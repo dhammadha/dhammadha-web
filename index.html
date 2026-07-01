@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhammadha Studio — Mockup v4</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--mint:#5ECEC8;--navy:#2B1B3D;--ml:#e8faf9;--mm:#b8ecea;--bg:#f5f5f2;--border:#e8e8e0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#eee;display:flex;justify-content:center;padding:20px}
+  .page{background:var(--bg);width:100%;max-width:1200px;border-radius:12px;overflow:hidden;border:0.5px solid #ddd}
+
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;border-bottom:0.5px solid var(--border)}
+  .logo{display:flex;align-items:center;gap:9px}
+  .logo-icon{width:30px;height:30px;background:var(--mint);border-radius:6px;display:flex;align-items:center;justify-content:center}
+  .logo-icon svg{width:18px;height:18px}
+  .logo-name{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:.05em}
+  .logo-sub{font-size:10px;color:#aaa;letter-spacing:.06em}
+  .nav-links{display:flex;gap:24px;font-size:13px;color:#555}
+  .nav-links a{text-decoration:none;color:inherit}
+  .nav-right{display:flex;gap:9px;align-items:center}
+  .lang-toggle{display:flex;border:0.5px solid #ddd;border-radius:6px;overflow:hidden}
+  .lang-opt{font-size:11px;padding:4px 10px;color:#aaa;cursor:pointer;user-select:none}
+  .lang-opt.active{background:var(--navy);color:#fff}
+  .btn-nav{font-size:12px;padding:6px 14px;border:0.5px solid #ccc;border-radius:6px;background:#fff;color:var(--navy);cursor:pointer}
+  .btn-nav.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  /* HERO */
+  .hero{padding:56px 32px 48px;background:#fff;border-bottom:0.5px solid var(--border)}
+  .hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--mint);background:var(--ml);padding:4px 10px;border-radius:20px;margin-bottom:18px;border:0.5px solid var(--mm)}
+  .hero-dot{width:5px;height:5px;background:var(--mint);border-radius:50%}
+  .hero-h{font-size:46px;font-weight:600;color:var(--navy);line-height:1.1;letter-spacing:-1px;margin-bottom:14px}
+  .hero-h em{color:var(--mint);font-style:normal}
+  .hero-p{font-size:15px;color:#666;line-height:1.65;max-width:480px;margin-bottom:28px}
+  .hero-btns{display:flex;gap:10px}
+  .btn-primary{padding:10px 22px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500}
+  .btn-outline{padding:10px 18px;background:#fff;border:0.5px solid var(--navy);border-radius:6px;font-size:14px;color:var(--navy);cursor:pointer}
+
+  /* SECTIONS */
+  .section{padding:24px 32px;background:var(--bg)}
+  .section + .section{padding-top:20px}
+  .sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .sec-title{font-size:13px;font-weight:600;color:var(--navy)}
+  .pill-group{display:flex;gap:6px}
+  .pill{font-size:11px;padding:3px 11px;border:0.5px solid #ccc;border-radius:20px;background:#fff;color:#888;cursor:pointer;user-select:none}
+  .pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  /* FONT GRID */
+  .font-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .fc{background:#fff;border-radius:8px;overflow:hidden;cursor:pointer;border:0.5px solid var(--border);transition:border-color .15s}
+  .fc:hover{border-color:#aaa}
+  .fc-cover{aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .fc-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;line-height:1.1;padding:10px;text-align:center}
+  .badge{position:absolute;top:8px;left:8px;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600;letter-spacing:.03em}
+  .badge-new{background:var(--mint);color:var(--navy)}
+  .badge-sale{background:#f0c040;color:#5a3800}
+  .fc-heart{position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s}
+  .fc-heart:hover{background:rgba(255,255,255,.35)}
+  .fc-heart svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .fc-info{padding:10px 12px 12px}
+  .fc-name{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fc-by{font-size:11px;color:#aaa;margin:2px 0 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fc-by span{color:var(--mint)}
+  .fc-row3{display:flex;justify-content:space-between;align-items:center}
+  .fc-styles{font-size:11px;color:#aaa}
+  .fc-price{font-size:12px;font-weight:600;color:var(--navy)}
+  .fc-price.free{color:#0a8a84}
+  .fc-more{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:#f0f0ec;border:0.5px dashed #ccc;border-radius:8px;cursor:pointer;transition:border-color .15s;padding:24px}
+  .fc-more:hover{border-color:#999}
+  .fc-more-num{font-size:26px;font-weight:600;color:var(--navy)}
+  .fc-more-sub{font-size:11px;color:#aaa}
+  .fc-more-link{font-size:11px;color:var(--mint);margin-top:2px}
+
+  /* COLORS */
+  .bg-c1{background:#c0392b}.bg-c2{background:#2B1B3D}.bg-c3{background:#1a1a2e}.bg-c4{background:#2d4a3e}
+  .bg-c5{background:#7a3b10}.bg-c6{background:#1a3a5c}.bg-c7{background:#3d1a3d}.bg-c8{background:#2c3e50}
+  .bg-c9{background:#4a3728}.bg-c10{background:#1a4a2e}.bg-c11{background:#4a1a28}
+
+  /* ADS */
+  .ads-slot{background:#ebe9e4;padding:10px 32px;display:flex;align-items:center;justify-content:center;gap:10px;border-top:0.5px solid #e0ddd6;border-bottom:0.5px solid #e0ddd6}
+  .ads-label{font-size:9px;color:#bbb;letter-spacing:.07em;text-transform:uppercase;flex-shrink:0}
+  .ads-box{background:#dddbd4;border-radius:4px;height:60px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#bbb;flex:1;max-width:728px}
+
+  /* PRICING */
+  .pricing-section{padding:28px 32px;background:#fff;border-top:0.5px solid var(--border)}
+  .pricing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+  .pc{padding:20px 22px;border:0.5px solid #ddd;border-radius:10px;background:#fff;display:flex;flex-direction:column}
+  .pc.featured{border-color:var(--navy)}
+  .pc-badge{font-size:10px;background:var(--ml);color:#0a8a84;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:10px;border:0.5px solid var(--mm);align-self:flex-start}
+  .pc-name{font-size:14px;font-weight:600;color:var(--navy)}
+  .pc-price{font-size:26px;font-weight:600;color:var(--navy);margin:8px 0 2px}
+  .pc-period{font-size:12px;color:#aaa;margin-bottom:12px}
+  .pc-desc{font-size:12px;color:#666;line-height:1.65;flex:1}
+  .pc-btn{margin-top:18px;width:100%;padding:9px;border-radius:6px;font-size:13px;cursor:pointer;border:0.5px solid #ccc;color:#666;background:#fff;text-align:center;font-weight:500}
+  .pc-btn.dark{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  /* FOOTER */
+  footer{padding:20px 32px;background:#fff;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .footer-logo{display:flex;align-items:center;gap:8px}
+  .footer-icon{width:20px;height:20px;background:var(--mint);border-radius:4px}
+  .footer-name{font-size:13px;font-weight:600;color:var(--navy)}
+  .footer-links{display:flex;gap:18px;font-size:12px;color:#aaa}
+  .footer-copy{font-size:11px;color:#bbb}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M7 5C5 5 4 6.5 4 8.5S5.5 12 8 12C5.5 12 4 13.5 4 15.5S5 19 7 19" stroke="#2B1B3D" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M17 5C19 5 20 6.5 20 8.5S18.5 12 16 12C18.5 12 20 13.5 20 15.5S19 19 17 19" stroke="#2B1B3D" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M8 12H16" stroke="#2B1B3D" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div><div class="logo-name">DHAMMADHA</div><div class="logo-sub">STUDIO</div></div>
+    </div>
+    <div class="nav-links">
+      <a href="#">ฟอนต์ทั้งหมด</a>
+      <a href="#">ราคา</a>
+      <a href="#">FAQ</a>
+      <a href="#">สัญญาอนุญาต</a>
+    </div>
+    <div class="nav-right">
+      <div class="lang-toggle">
+        <span class="lang-opt active">TH</span>
+        <span class="lang-opt">EN</span>
+      </div>
+      <button class="btn-nav">เข้าสู่ระบบ</button>
+      <button class="btn-nav primary">สมัครสมาชิก</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag"><span class="hero-dot"></span>Thai type foundry</div>
+    <h1 class="hero-h">ฟอนต์ไทย<br>ที่ <em>ออกแบบ</em>อย่างพิถีพิถัน</h1>
+    <p class="hero-p">คลังฟอนต์ภาษาไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย</p>
+    <div class="hero-btns">
+      <button class="btn-primary">ดูฟอนต์ทั้งหมด</button>
+      <button class="btn-outline">ราคาและแผนบริการ</button>
+    </div>
+  </section>
+
+  <!-- PROMO GRID -->
+  <div class="section">
+    <div class="sec-header">
+      <span class="sec-title">โปรโมชั่น</span>
+    </div>
+    <div class="font-grid" style="margin-bottom:0">
+      <div class="fc">
+        <div class="fc-cover bg-c1"><div class="fc-inner" style="font-family:Georgia;font-style:italic;font-size:28px">สุราตานา.</div><span class="badge badge-sale">ลด 30%</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
+        <div class="fc-info"><div class="fc-name">SURATANA</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">9 styles</span><span class="fc-price">฿XXX</span></div></div>
+      </div>
+      <div class="fc">
+        <div class="fc-cover bg-c2"><div class="fc-inner" style="font-weight:800;letter-spacing:-2px;font-size:32px">KENTT</div><span class="badge badge-sale">ลด 20%</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
+        <div class="fc-info"><div class="fc-name">KENTT</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">Display</span><span class="fc-price">฿XXX</span></div></div>
+      </div>
+      <div class="fc">
+        <div class="fc-cover bg-c3"><div class="fc-inner" style="font-weight:200;letter-spacing:3px;font-size:26px">นมปัง</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
+        <div class="fc-info"><div class="fc-name">NOMPANG</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">14 styles</span><span class="fc-price">฿XXX</span></div></div>
+      </div>
+      <div class="fc">
+        <div class="fc-cover bg-c4"><div class="fc-inner" style="font-size:24px">ปายหมาย</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
+        <div class="fc-info"><div class="fc-name">PAAYMAAY</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">1 style</span><span class="fc-price">฿XXX</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN FONT GRID -->
+  <div class="section" style="padding-top:4px">
+    <div class="sec-header">
+      <span class="sec-title">ฟอนต์ทั้งหมด</span>
+      <div class="pill-group">
+        <span class="pill active">ฟอนต์แนะนำ</span>
+        <span class="pill">ฟอนต์ล่าสุด</span>
+      </div>
+    </div>
+    <div class="font-grid">
+      <div class="fc"><div class="fc-cover bg-c1"><div class="fc-inner" style="font-family:Georgia;font-style:italic;font-size:26px">สุราตานา.</div><span class="badge badge-new">NEW</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">SURATANA</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">9 styles</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c2"><div class="fc-inner" style="font-weight:800;letter-spacing:-2px;font-size:28px">KENTT</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">KENTT</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">Display</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c3"><div class="fc-inner" style="font-weight:200;letter-spacing:3px;font-size:24px">นมปัง</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">NOMPANG</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">14 styles</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c4"><div class="fc-inner" style="font-size:22px">ดองเต้า</div><span class="badge badge-new">NEW</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">DONGTAO</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">2 styles</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c5"><div class="fc-inner" style="font-family:Georgia;font-style:italic;font-size:22px">ปายหมาย</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">PAAYMAAY</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">1 style</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c6"><div class="fc-inner" style="font-size:32px;font-weight:800">HOOK</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">HOOK</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">Display</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c7"><div class="fc-inner" style="font-family:Georgia;font-size:24px">เดจา</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">DEJA</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">4 styles</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c8"><div class="fc-inner" style="font-size:16px;font-weight:300;letter-spacing:3px;line-height:1.4">SURATANA<br>SANS</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">SURATANA SANS</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">10 styles</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c9"><div class="fc-inner" style="font-size:26px">ทองกร</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">THONGKORN</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">9 styles</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c10"><div class="fc-inner" style="font-size:28px">วาน</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">WAAN</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">3 styles</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c11"><div class="fc-inner" style="font-family:Georgia;font-style:italic;font-size:24px">หิน</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">HINN</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">2 styles</span><span class="fc-price free">ฟรี</span></div></div></div>
+      <div class="fc-more">
+        <div class="fc-more-num">+23</div>
+        <div class="fc-more-sub">ฟอนต์อื่น ๆ</div>
+        <div class="fc-more-link">ดูทั้งหมด →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADSENSE -->
+  <div class="ads-slot">
+    <span class="ads-label">ADS</span>
+    <div class="ads-box">AdSense 728×90 Leaderboard — แสดงตรงนี้หลัง font grid</div>
+  </div>
+
+  <!-- PRICING -->
+  <section class="pricing-section">
+    <div class="sec-header"><span class="sec-title">ราคาและแผนบริการ</span></div>
+    <div class="pricing-grid">
+      <div class="pc">
+        <span class="pc-badge">ซื้อครั้งเดียว</span>
+        <div class="pc-name">ซื้อรายฟอนต์</div>
+        <div class="pc-price">ราคาแตกต่างกัน</div>
+        <div class="pc-period">ต่อ font family</div>
+        <div class="pc-desc">ดาวน์โหลดไฟล์ได้ทันทีหลังชำระเงิน ใช้งานได้ตลอดชีพตามสัญญาอนุญาต รองรับทั้ง desktop และ web</div>
+        <div class="pc-btn">เลือกดูราคาแต่ละฟอนต์</div>
+      </div>
+      <div class="pc featured">
+        <span class="pc-badge">แนะนำ · ประหยัดกว่า</span>
+        <div class="pc-name">Subscription รายเดือน</div>
+        <div class="pc-price">฿XXX</div>
+        <div class="pc-period">/ เดือน · ยกเลิกได้ทุกเมื่อ</div>
+        <div class="pc-desc">เข้าถึงฟอนต์ทุกชุดในคลัง ใช้งานผ่าน desktop app และเว็บ รับฟอนต์ใหม่อัตโนมัติทุกครั้ง</div>
+        <div class="pc-btn dark">เริ่มใช้งานฟรี 7 วัน</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">
+      <div class="footer-icon"></div>
+      <span class="footer-name">DHAMMADHA STUDIO</span>
+    </div>
+    <div class="footer-links">
+      <a href="#" style="color:inherit;text-decoration:none">สัญญาอนุญาต</a>
+      <a href="#" style="color:inherit;text-decoration:none">วิธีสั่งซื้อ</a>
+      <a href="#" style="color:inherit;text-decoration:none">FAQ</a>
+      <a href="#" style="color:inherit;text-decoration:none">ติดต่อ</a>
+    </div>
+    <div class="footer-copy">© 2025 Dhammadha Studio</div>
+  </footer>
+
+</div>
+</body>
+</html>
