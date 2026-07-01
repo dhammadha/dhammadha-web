@@ -4,17 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DHAMMADHA STUDIO</title>
+<link rel="icon" type="image/png" href="/logo_DHAMMADHA_2025_simple.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--mint:#5ECEC8;--navy:#2B1B3D;--ml:#e8faf9;--mm:#b8ecea;--bg:#f5f5f2;--border:#e8e8e0}
-  body{font-family:"Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#eee;display:flex;justify-content:center;padding:20px}
-  .page{background:var(--bg);width:100%;max-width:1200px;border-radius:12px;overflow:hidden;border:0.5px solid #ddd}
+  body{font-family:"Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#eee;margin:0;padding:0}
+  .page{background:var(--bg);width:100%;max-width:1200px;margin:0 auto;border-radius:0 0 12px 12px;border:0.5px solid #ddd;border-top:none}
 
   /* NAV */
-  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;border-bottom:0.5px solid var(--border)}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;transition:box-shadow .2s;max-width:1200px;margin:0 auto;border-left:0.5px solid #ddd;border-right:0.5px solid #ddd}
+  nav.scrolled{box-shadow:0 2px 12px rgba(0,0,0,.08);border-bottom-color:transparent}
   .logo{display:flex;align-items:center;gap:9px}
   .logo-img{width:36px;height:36px;border-radius:6px;object-fit:cover}
   .logo-text{height:36px;display:flex;flex-direction:column;justify-content:center;gap:1px}
@@ -32,14 +34,10 @@
   .lang-item:hover{background:#f5f5f2}
   .lang-item.lang-active{background:var(--navy);color:#fff;border-radius:8px;margin:6px;padding:9px 12px}
   .lang-item.lang-active:hover{background:var(--navy)}
-  .btn-cart{background:none;border:none;cursor:pointer;padding:6px;color:#666;display:flex;align-items:center}
-  .btn-cart svg{width:20px;height:20px}
   .btn-login{font-size:13px;padding:8px 18px;border:none;border-radius:8px;background:var(--navy);color:#fff;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500}
 
   /* HERO */
   .hero{padding:56px 32px 48px;background:#fff;border-bottom:0.5px solid var(--border)}
-  .hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--mint);background:var(--ml);padding:4px 10px;border-radius:20px;margin-bottom:18px;border:0.5px solid var(--mm)}
-  .hero-dot{width:5px;height:5px;background:var(--mint);border-radius:50%}
   .hero-h{font-size:46px;font-weight:600;color:var(--navy);line-height:1.1;letter-spacing:-1px;margin-bottom:14px}
   .hero-h em{color:var(--mint);font-style:normal}
   .hero-p{font-size:15px;color:#666;line-height:1.65;max-width:480px;margin-bottom:28px}
@@ -49,12 +47,22 @@
 
   /* SECTIONS */
   .section{padding:24px 32px;background:var(--bg)}
-  .section + .section{padding-top:20px}
   .sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
   .sec-title{font-size:16px;font-weight:600;color:var(--navy)}
   .pill-group{display:flex;gap:6px}
   .pill{font-size:11px;padding:3px 11px;border:0.5px solid #ccc;border-radius:20px;background:#fff;color:#888;cursor:pointer;user-select:none}
   .pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  /* SLIDER */
+  .slider-outer{position:relative;padding:0 40px}
+  .slider-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .slider-btn{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:#fff;border:0.5px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:box-shadow .15s;font-size:18px;color:var(--navy);user-select:none}
+  .slider-btn:hover{box-shadow:0 4px 12px rgba(0,0,0,.18)}
+  .slider-btn.prev{left:0}
+  .slider-btn.next{right:0}
+  .slider-dots{display:flex;gap:6px;justify-content:center;margin-top:14px}
+  .slider-dot{width:7px;height:7px;border-radius:50%;background:#ddd;cursor:pointer;transition:background .2s}
+  .slider-dot.active{background:var(--navy)}
 
   /* FONT GRID */
   .font-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
@@ -102,24 +110,27 @@
   .pc-price{font-size:26px;font-weight:600;color:var(--navy);margin:8px 0 2px}
   .pc-period{font-size:12px;color:#aaa;margin-bottom:12px}
   .pc-desc{font-size:12px;color:#666;line-height:1.65;flex:1}
-  .pc-btn{margin-top:18px;width:100%;padding:9px;border-radius:6px;font-size:13px;cursor:pointer;border:0.5px solid #ccc;color:#666;background:#fff;text-align:center;font-weight:500;font-family:"Noto Sans Thai",sans-serif}
+  .pc-btn{margin-top:18px;width:100%;padding:9px;border-radius:6px;font-size:13px;cursor:pointer;border:0.5px solid #ccc;color:#666;background:#fff;text-align:center;font-weight:500;font-family:"Noto Sans Thai",sans-serif;text-decoration:none;display:block}
   .pc-btn.dark{background:var(--navy);color:#fff;border-color:var(--navy)}
 
   /* FOOTER */
-  footer{padding:24px 32px;background:#fff;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .footer-left{display:flex;flex-direction:column;gap:10px}
+  footer{background:#fff;border-top:0.5px solid var(--border)}
+  .footer-main{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:32px;padding:36px 32px 28px}
+  .footer-brand{display:flex;flex-direction:column;gap:12px}
   .footer-img{width:28px;height:28px;border-radius:5px;object-fit:cover}
-  .footer-socials{display:flex;gap:12px}
+  .footer-brand-name{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:.04em}
+  .footer-brand-desc{font-size:11px;color:#aaa;line-height:1.6;max-width:200px}
+  .footer-socials{display:flex;gap:10px;margin-top:4px}
   .footer-socials a{color:var(--navy);transition:color .15s;display:flex}
   .footer-socials a:hover{color:var(--mint)}
   .footer-socials svg{width:18px;height:18px}
-  .footer-links{display:flex;gap:18px;font-size:12px;color:#aaa}
-  .footer-links a{text-decoration:none;color:inherit}
-  .footer-copy{font-size:11px;color:#bbb}
+  .footer-col h4{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:12px;letter-spacing:.02em}
+  .footer-col a{display:block;font-size:12px;color:#888;text-decoration:none;margin-bottom:8px;transition:color .15s}
+  .footer-col a:hover{color:var(--mint)}
+  .footer-bottom{border-top:0.5px solid var(--border);padding:14px 32px;text-align:center;font-size:11px;color:#bbb}
 </style>
 </head>
 <body>
-<div class="page">
 
   <!-- NAV -->
   <nav>
@@ -131,33 +142,28 @@
       <a href="#">ฟอนต์</a>
       <a href="#">สัญญาอนุญาต</a>
       <a href="#">ราคาและแผนบริการ</a>
-      <a href="#">ติดต่อสอบถาม</a>
-      <a href="#">คำถามที่พบบ่อย</a>
+      <a href="#">ติดต่อ</a>
+      <a href="#">FAQ</a>
     </div>
     <div class="nav-right">
       <div class="lang-selector" id="langSel">
         <div class="lang-btn" onclick="document.getElementById('langSel').classList.toggle('open')">
-          <span id="langLabel">TH</span>
-          <span class="lang-arrow">▾</span>
+          <span id="langLabel">TH</span><span class="lang-arrow">▾</span>
         </div>
         <div class="lang-dropdown">
           <div class="lang-item lang-active" onclick="setLang('TH',this)">TH - ไทย</div>
           <div class="lang-item" onclick="setLang('EN',this)">EN - English</div>
         </div>
       </div>
-      <button class="btn-cart" aria-label="ตะกร้า">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-        </svg>
-      </button>
       <button class="btn-login">เข้าสู่ระบบ</button>
     </div>
   </nav>
 
+<div class="page">
+
   <!-- HERO -->
   <section class="hero">
-<h1 class="hero-h">ฟอนต์ไทย<br>ที่ <em>ออกแบบ</em>อย่างพิถีพิถัน</h1>
+    <h1 class="hero-h">ฟอนต์ไทย<br>ที่ <em>ออกแบบ</em>อย่างพิถีพิถัน</h1>
     <p class="hero-p">คลังฟอนต์ภาษาไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย</p>
     <div class="hero-btns">
       <button class="btn-primary">ดูฟอนต์ทั้งหมด</button>
@@ -165,29 +171,17 @@
     </div>
   </section>
 
-  <!-- PROMO GRID -->
+  <!-- FEATURED SLIDER -->
   <div class="section">
     <div class="sec-header">
-      <span class="sec-title">โปรโมชั่น</span>
+      <span class="sec-title">คัดสรรพิเศษ</span>
     </div>
-    <div class="font-grid" style="margin-bottom:0">
-      <div class="fc">
-        <div class="fc-cover bg-c1"><div class="fc-inner" style="font-family:Georgia;font-style:italic;font-size:28px">สุราตานา.</div><span class="badge badge-sale">ลด 30%</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
-        <div class="fc-info"><div class="fc-name">SURATANA</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">9 styles</span><span class="fc-price">฿XXX</span></div></div>
-      </div>
-      <div class="fc">
-        <div class="fc-cover bg-c2"><div class="fc-inner" style="font-weight:800;letter-spacing:-2px;font-size:32px">KENTT</div><span class="badge badge-sale">ลด 20%</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
-        <div class="fc-info"><div class="fc-name">KENTT</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">Display</span><span class="fc-price">฿XXX</span></div></div>
-      </div>
-      <div class="fc">
-        <div class="fc-cover bg-c3"><div class="fc-inner" style="font-weight:200;letter-spacing:3px;font-size:26px">นมปัง</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
-        <div class="fc-info"><div class="fc-name">NOMPANG</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">14 styles</span><span class="fc-price">฿XXX</span></div></div>
-      </div>
-      <div class="fc">
-        <div class="fc-cover bg-c4"><div class="fc-inner" style="font-size:24px">ปายหมาย</div><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div>
-        <div class="fc-info"><div class="fc-name">PAAYMAAY</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">1 style</span><span class="fc-price">฿XXX</span></div></div>
-      </div>
+    <div class="slider-outer">
+      <button class="slider-btn prev" onclick="slideMove(-1)">&#8249;</button>
+      <div class="slider-grid" id="sliderGrid"></div>
+      <button class="slider-btn next" onclick="slideMove(1)">&#8250;</button>
     </div>
+    <div class="slider-dots" id="sliderDots"></div>
   </div>
 
   <!-- MAIN FONT GRID -->
@@ -195,8 +189,8 @@
     <div class="sec-header">
       <span class="sec-title">ฟอนต์ทั้งหมด</span>
       <div class="pill-group">
-        <span class="pill active">ฟอนต์แนะนำ</span>
-        <span class="pill">ฟอนต์ล่าสุด</span>
+        <span class="pill active" onclick="setFilter('featured',this)">ฟอนต์แนะนำ</span>
+        <span class="pill" onclick="setFilter('latest',this)">ฟอนต์ล่าสุด</span>
       </div>
     </div>
     <div class="font-grid">
@@ -222,7 +216,7 @@
   <!-- ADSENSE -->
   <div class="ads-slot">
     <span class="ads-label">ADS</span>
-    <div class="ads-box">AdSense 728×90 Leaderboard — แสดงตรงนี้หลัง font grid</div>
+    <div class="ads-box">AdSense 728×90 Leaderboard</div>
   </div>
 
   <!-- PRICING -->
@@ -243,45 +237,161 @@
         <div class="pc-price">฿XXX</div>
         <div class="pc-period">/ เดือน · ยกเลิกได้ทุกเมื่อ</div>
         <div class="pc-desc">เข้าถึงฟอนต์ทุกชุดในคลัง ใช้งานผ่าน desktop app และเว็บ รับฟอนต์ใหม่อัตโนมัติทุกครั้ง</div>
-        <a href="/coming-soon.html" class="pc-btn dark" style="text-decoration:none;display:block;text-align:center">สมัครฟรี · เริ่มใช้ได้เลยทันที</a>
+        <a href="/coming-soon.html" class="pc-btn dark">สมัครฟรี · เริ่มใช้ได้เลยทันที</a>
       </div>
     </div>
   </section>
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-left">
-      <img src="/logo_DHAMMADHA_2025_simple.png" class="footer-img" alt="Dhammadha Studio">
-      <div class="footer-socials">
-        <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
-        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-        <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>
-        <a href="#" aria-label="Line"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.952 12.477c0-4.185-4.195-7.586-9.352-7.586S1.248 8.292 1.248 12.477c0 3.75 3.328 6.892 7.823 7.487.305.066.72.2.824.46.094.235.062.604.03.842l-.133.8c-.04.237-.188.926.812.505 1-.422 5.398-3.18 7.367-5.445 1.359-1.49 2.012-3.003 2.012-4.649zm-12.36 2.105H5.677a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 1.024 0v2.959h1.403a.512.512 0 0 1 0 1.023zm1.578-.511a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 1.024 0v3.471zm4.687 0a.512.512 0 0 1-.897.338l-1.786-2.43v2.093a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 .897-.338l1.786 2.43V10.6a.512.512 0 0 1 1.024 0v3.471zm2.823-2.448a.512.512 0 0 1 0 1.023h-1.403v.913h1.403a.512.512 0 0 1 0 1.023H14.17a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 .512-.512h1.51a.512.512 0 0 1 0 1.023H14.68v.512h1.403z"/></svg></a>
+    <div class="footer-main">
+      <div class="footer-brand">
+        <div style="display:flex;align-items:center;gap:8px">
+          <img src="/logo_DHAMMADHA_2025_simple.png" class="footer-img" alt="Dhammadha Studio">
+          <span class="footer-brand-name">DHAMMADHA STUDIO</span>
+        </div>
+        <p class="footer-brand-desc">คลังฟอนต์ไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย</p>
+        <div class="footer-socials">
+          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>
+          <a href="#" aria-label="Line"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.952 12.477c0-4.185-4.195-7.586-9.352-7.586S1.248 8.292 1.248 12.477c0 3.75 3.328 6.892 7.823 7.487.305.066.72.2.824.46.094.235.062.604.03.842l-.133.8c-.04.237-.188.926.812.505 1-.422 5.398-3.18 7.367-5.445 1.359-1.49 2.012-3.003 2.012-4.649zm-12.36 2.105H5.677a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 1.024 0v2.959h1.403a.512.512 0 0 1 0 1.023zm1.578-.511a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 1.024 0v3.471zm4.687 0a.512.512 0 0 1-.897.338l-1.786-2.43v2.093a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 .897-.338l1.786 2.43V10.6a.512.512 0 0 1 1.024 0v3.471zm2.823-2.448a.512.512 0 0 1 0 1.023h-1.403v.913h1.403a.512.512 0 0 1 0 1.023H14.17a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 .512-.512h1.51a.512.512 0 0 1 0 1.023H14.68v.512h1.403z"/></svg></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>ฟอนต์</h4>
+        <a href="#">ฟอนต์ทั้งหมด</a>
+        <a href="#">ฟอนต์ใหม่</a>
+        <a href="#">ฟอนต์แนะนำ</a>
+        <a href="/coming-soon.html">Subscription</a>
+      </div>
+      <div class="footer-col">
+        <h4>ข้อมูล</h4>
+        <a href="#">สัญญาอนุญาต</a>
+        <a href="#">วิธีสั่งซื้อ</a>
+        <a href="#">นโยบายความเป็นส่วนตัว</a>
+        <a href="#">เงื่อนไขการใช้งาน</a>
+      </div>
+      <div class="footer-col">
+        <h4>ช่วยเหลือ</h4>
+        <a href="#">FAQ</a>
+        <a href="#">ติดต่อเรา</a>
+        <a href="#">รายงานปัญหา</a>
       </div>
     </div>
-    <div class="footer-links">
-      <a href="#" style="color:inherit;text-decoration:none">ฟอนต์</a>
-      <a href="#" style="color:inherit;text-decoration:none">สัญญาอนุญาต</a>
-      <a href="#" style="color:inherit;text-decoration:none">ราคาและแผนบริการ</a>
-      <a href="#" style="color:inherit;text-decoration:none">ติดต่อสอบถาม</a>
-      <a href="#" style="color:inherit;text-decoration:none">คำถามที่พบบ่อย</a>
-    </div>
-    <div class="footer-copy">© 2012–2026 DHAMMADHA STUDIO</div>
+    <div class="footer-bottom">© 2012–2026 DHAMMADHA STUDIO</div>
   </footer>
 
 </div>
+
 <script>
-function setLang(code, el) {
-  document.getElementById('langLabel').textContent = code;
-  document.querySelectorAll('.lang-item').forEach(i => i.classList.remove('lang-active'));
+// Sticky nav shadow
+window.addEventListener('scroll',function(){
+  document.querySelector('nav').classList.toggle('scrolled',window.scrollY>10);
+});
+
+// Lang switcher
+function setLang(code,el){
+  document.getElementById('langLabel').textContent=code;
+  document.querySelectorAll('.lang-item').forEach(i=>i.classList.remove('lang-active'));
   el.classList.add('lang-active');
   document.getElementById('langSel').classList.remove('open');
 }
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('#langSel')) {
-    document.getElementById('langSel').classList.remove('open');
-  }
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#langSel')) document.getElementById('langSel').classList.remove('open');
 });
+
+// Filter pills
+function setFilter(type,el){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Featured slider data
+// Priority: โปรโมชั่น (sale) ก่อน → ถ้าไม่มี สุ่มจากทั้งหมดโดยเน้นขายดี
+const allFonts=[
+  {name:'SURATANA',th:'สุราตานา.',bg:'#c0392b',fs:22,italic:true,sale:'ลด 30%',popular:true},
+  {name:'KENTT',th:'KENTT',bg:'#2B1B3D',fs:24,bold:true,tight:true,sale:'ลด 20%',popular:true},
+  {name:'NOMPANG',th:'นมปัง',bg:'#1a1a2e',fs:20,light:true,popular:true},
+  {name:'DONGTAO',th:'ดองเต้า',bg:'#2d4a3e',fs:18,isNew:true,popular:false},
+  {name:'PAAYMAAY',th:'ปายหมาย',bg:'#7a3b10',fs:17,italic:true,popular:true},
+  {name:'HOOK',th:'HOOK',bg:'#1a3a5c',fs:26,bold:true,popular:false},
+  {name:'DEJA',th:'เดจา',bg:'#3d1a3d',fs:20,popular:true},
+  {name:'SURATANA SANS',th:'SURATANA\nSANS',bg:'#2c3e50',fs:13,light:true,spaced:true,popular:false},
+  {name:'THONGKORN',th:'ทองกร',bg:'#4a3728',fs:20,popular:true},
+  {name:'WAAN',th:'วาน',bg:'#1a4a2e',fs:22,popular:false},
+  {name:'HINN',th:'หิน',bg:'#4a1a28',fs:20,italic:true,popular:false},
+];
+
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5)}
+
+function buildSliderPool(){
+  const sale=allFonts.filter(f=>f.sale);
+  if(sale.length>0){
+    // มีโปรโมชั่น — เอา sale ก่อน แล้วเติมด้วย popular จนครบ 10
+    const rest=allFonts.filter(f=>!f.sale&&f.popular);
+    const pool=[...sale,...shuffle(rest)].slice(0,10);
+    return pool;
+  } else {
+    // ไม่มีโปรโมชั่น — สุ่มโดยเน้น popular ก่อน
+    const popular=allFonts.filter(f=>f.popular);
+    const others=allFonts.filter(f=>!f.popular);
+    return [...shuffle(popular),...shuffle(others)].slice(0,10);
+  }
+}
+
+const HEART_SVG=`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+
+function renderCard(f){
+  const style=[
+    `font-size:${f.fs}px`,
+    f.bold?'font-weight:800':'',
+    f.light?'font-weight:200':'',
+    f.italic?'font-style:italic':'',
+    f.tight?'letter-spacing:-2px':'',
+    f.spaced?'letter-spacing:3px;line-height:1.4':'',
+  ].filter(Boolean).join(';');
+  const badge=f.sale
+    ?`<span class="badge badge-sale">${f.sale}</span>`
+    :f.isNew?`<span class="badge badge-new">NEW</span>`:'';
+  return `<div class="fc">
+    <div class="fc-cover" style="background:${f.bg}">
+      <div class="fc-inner" style="${style}">${f.th.replace('\n','<br>')}</div>
+      ${badge}
+      <div class="fc-heart">${HEART_SVG}</div>
+    </div>
+    <div class="fc-info">
+      <div class="fc-name">${f.name}</div>
+      <div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div>
+      <div class="fc-row3"><span class="fc-styles">—</span><span class="fc-price">฿XXX</span></div>
+    </div>
+  </div>`;
+}
+
+const sliderPool=buildSliderPool();
+const PER_PAGE=3;
+let currentSlide=0;
+const totalPages=Math.ceil(sliderPool.length/PER_PAGE);
+
+function renderSlider(){
+  const grid=document.getElementById('sliderGrid');
+  const dots=document.getElementById('sliderDots');
+  const start=currentSlide*PER_PAGE;
+  grid.innerHTML=sliderPool.slice(start,start+PER_PAGE).map(renderCard).join('');
+  dots.innerHTML=Array.from({length:totalPages},(_,i)=>
+    `<div class="slider-dot${i===currentSlide?' active':''}" onclick="goSlide(${i})"></div>`
+  ).join('');
+}
+
+function slideMove(dir){
+  currentSlide=(currentSlide+dir+totalPages)%totalPages;
+  renderSlider();
+}
+function goSlide(i){currentSlide=i;renderSlider();}
+renderSlider();
+
+// Auto-slide every 5s
+setInterval(()=>slideMove(1),5000);
 </script>
 </body>
 </html>
