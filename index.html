@@ -23,11 +23,18 @@
   .nav-links{display:flex;gap:24px;font-size:15px;color:#555}
   .nav-links a{text-decoration:none;color:inherit}
   .nav-right{display:flex;gap:9px;align-items:center}
-  .lang-toggle{display:flex;border:0.5px solid #ddd;border-radius:6px;overflow:hidden}
-  .lang-opt{font-size:11px;padding:4px 10px;color:#aaa;cursor:pointer;user-select:none}
-  .lang-opt.active{background:var(--navy);color:#fff}
-  .btn-nav{font-size:12px;padding:6px 14px;border:0.5px solid #ccc;border-radius:6px;background:#fff;color:var(--navy);cursor:pointer;font-family:"Noto Sans Thai",sans-serif}
-  .btn-nav.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .lang-selector{position:relative;cursor:pointer;user-select:none}
+  .lang-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:#555;padding:6px 4px}
+  .lang-arrow{font-size:10px;color:#999}
+  .lang-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:0.5px solid #ddd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.1);min-width:150px;overflow:hidden;z-index:100}
+  .lang-selector.open .lang-dropdown{display:block}
+  .lang-item{padding:11px 16px;font-size:13px;color:#333;cursor:pointer}
+  .lang-item:hover{background:#f5f5f2}
+  .lang-item.lang-active{background:var(--navy);color:#fff;border-radius:8px;margin:6px;padding:9px 12px}
+  .lang-item.lang-active:hover{background:var(--navy)}
+  .btn-cart{background:none;border:none;cursor:pointer;padding:6px;color:#666;display:flex;align-items:center}
+  .btn-cart svg{width:20px;height:20px}
+  .btn-login{font-size:13px;padding:8px 18px;border:none;border-radius:8px;background:#4C6EF5;color:#fff;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500}
 
   /* HERO */
   .hero{padding:56px 32px 48px;background:#fff;border-bottom:0.5px solid var(--border)}
@@ -44,7 +51,7 @@
   .section{padding:24px 32px;background:var(--bg)}
   .section + .section{padding-top:20px}
   .sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-  .sec-title{font-size:13px;font-weight:600;color:var(--navy)}
+  .sec-title{font-size:16px;font-weight:600;color:var(--navy)}
   .pill-group{display:flex;gap:6px}
   .pill{font-size:11px;padding:3px 11px;border:0.5px solid #ccc;border-radius:20px;background:#fff;color:#888;cursor:pointer;user-select:none}
   .pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
@@ -91,7 +98,7 @@
   .pc{padding:20px 22px;border:0.5px solid #ddd;border-radius:10px;background:#fff;display:flex;flex-direction:column}
   .pc.featured{border-color:var(--navy)}
   .pc-badge{font-size:10px;background:var(--ml);color:#0a8a84;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:10px;border:0.5px solid var(--mm);align-self:flex-start}
-  .pc-name{font-size:14px;font-weight:600;color:var(--navy)}
+  .pc-name{font-size:18px;font-weight:600;color:var(--navy)}
   .pc-price{font-size:26px;font-weight:600;color:var(--navy);margin:8px 0 2px}
   .pc-period{font-size:12px;color:#aaa;margin-bottom:12px}
   .pc-desc{font-size:12px;color:#666;line-height:1.65;flex:1}
@@ -124,12 +131,23 @@
       <a href="#">คำถามที่พบบ่อย</a>
     </div>
     <div class="nav-right">
-      <div class="lang-toggle">
-        <span class="lang-opt active">TH</span>
-        <span class="lang-opt">EN</span>
+      <div class="lang-selector" id="langSel">
+        <div class="lang-btn" onclick="document.getElementById('langSel').classList.toggle('open')">
+          <span id="langLabel">TH</span>
+          <span class="lang-arrow">▾</span>
+        </div>
+        <div class="lang-dropdown">
+          <div class="lang-item lang-active" onclick="setLang('TH',this)">TH - ไทย</div>
+          <div class="lang-item" onclick="setLang('EN',this)">EN - English</div>
+        </div>
       </div>
-      <button class="btn-nav">เข้าสู่ระบบ</button>
-      <button class="btn-nav primary">สมัครสมาชิก</button>
+      <button class="btn-cart" aria-label="ตะกร้า">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+      </button>
+      <button class="btn-login">เข้าสู่ระบบ</button>
     </div>
   </nav>
 
@@ -221,7 +239,7 @@
         <div class="pc-price">฿XXX</div>
         <div class="pc-period">/ เดือน · ยกเลิกได้ทุกเมื่อ</div>
         <div class="pc-desc">เข้าถึงฟอนต์ทุกชุดในคลัง ใช้งานผ่าน desktop app และเว็บ รับฟอนต์ใหม่อัตโนมัติทุกครั้ง</div>
-        <div class="pc-btn dark">เริ่มใช้งานฟรี 7 วัน</div>
+        <div class="pc-btn dark">สมัครฟรี · เริ่มใช้ได้เลยทันที</div>
       </div>
     </div>
   </section>
@@ -242,5 +260,18 @@
   </footer>
 
 </div>
+<script>
+function setLang(code, el) {
+  document.getElementById('langLabel').textContent = code;
+  document.querySelectorAll('.lang-item').forEach(i => i.classList.remove('lang-active'));
+  el.classList.add('lang-active');
+  document.getElementById('langSel').classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#langSel')) {
+    document.getElementById('langSel').classList.remove('open');
+  }
+});
+</script>
 </body>
 </html>
