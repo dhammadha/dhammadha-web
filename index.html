@@ -17,7 +17,7 @@
   nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;position:sticky;top:0;z-index:100;transition:box-shadow .2s}
   nav.scrolled{box-shadow:0 2px 12px rgba(0,0,0,.08);border-bottom-color:transparent}
   .logo{display:flex;align-items:center;gap:9px}
-  .logo-img{width:36px;height:36px;border-radius:6px;object-fit:cover}
+  .logo-img{width:36px;height:36px;border-radius:6px;object-fit:cover;border:none;color:transparent}
   .logo-text{height:36px;display:flex;flex-direction:column;justify-content:center;gap:1px}
   .logo-name{font-size:16px;font-weight:600;color:var(--navy);letter-spacing:.05em;line-height:1}
   .logo-sub{font-size:12px;color:#aaa;letter-spacing:.06em;line-height:1}
@@ -113,7 +113,7 @@
   .pricing-section{background:var(--bg)}
   .pricing-inner{max-width:1200px;margin:0 auto;padding:28px 32px}
   .pricing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
-  .pc{padding:20px 22px;border:0.25px solid #ddd;border-radius:10px;background:#fff;display:flex;flex-direction:column}
+  .pc{padding:20px 22px;border:none;border-radius:10px;background:#fff;display:flex;flex-direction:column}
   .pc.featured{border:0.25px solid #ddd}
   .pc-badge{font-size:10px;background:var(--ml);color:#0a8a84;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:10px;border:0.5px solid var(--mm);align-self:flex-start}
   .pc-name{font-size:26px;font-weight:600;color:var(--navy);line-height:1.2;margin:0}
@@ -126,10 +126,10 @@
   .pc-btn.dark:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
 
   /* FOOTER */
-  footer{background:#fff;border-top:0.5px solid var(--border)}
+  footer{background:#fff}
   .footer-main{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:32px;padding:36px 32px 28px;max-width:1200px;margin:0 auto}
   .footer-brand{display:flex;flex-direction:column;gap:12px}
-  .footer-img{width:28px;height:28px;border-radius:5px;object-fit:cover}
+  .footer-img{width:28px;height:28px;border-radius:5px;object-fit:cover;border:none;color:transparent}
   .footer-brand-name{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:.04em}
   .footer-brand-desc{font-size:11px;color:#aaa;line-height:1.6;max-width:200px}
   .footer-socials{display:flex;gap:10px;margin-top:4px}
@@ -140,7 +140,7 @@
   .footer-col a{display:block;font-size:12px;color:#888;text-decoration:none;margin-bottom:8px;transition:color .15s}
   .footer-col a:hover{color:var(--mint)}
   .footer-bottom-inner{max-width:1200px;margin:0 auto;padding:14px 32px;text-align:center;font-size:11px;color:#bbb}
-  .footer-bottom{border-top:0.5px solid var(--border)}
+  .footer-bottom{}
 </style>
 </head>
 <body>
