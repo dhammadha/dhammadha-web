@@ -14,7 +14,7 @@
   body{font-family:"Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;margin:0}
 
   /* NAV */
-  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;transition:box-shadow .2s}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;position:sticky;top:0;z-index:100;transition:box-shadow .2s}
   nav.scrolled{box-shadow:0 2px 12px rgba(0,0,0,.08);border-bottom-color:transparent}
   .logo{display:flex;align-items:center;gap:9px;text-decoration:none}
   .logo-img{width:36px;height:36px;border-radius:6px;object-fit:cover}
@@ -33,7 +33,8 @@
   .lang-item:hover{background:#f5f5f2}
   .lang-item.lang-active{background:var(--navy);color:#fff;border-radius:8px;margin:6px;padding:9px 12px}
   .lang-item.lang-active:hover{background:var(--navy)}
-  .btn-login{font-size:13px;padding:8px 18px;border:none;border-radius:8px;background:var(--navy);color:#fff;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500}
+  .btn-login{font-size:13px;padding:8px 18px;border:none;border-radius:8px;background:var(--navy);color:#fff;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500;transition:background .15s}
+  .btn-login:hover{background:var(--mint)}
 
   /* MAIN CONTENT */
   main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;text-align:center}
@@ -41,15 +42,17 @@
   .coming-icon svg{width:38px;height:38px}
   h1{font-size:56px;font-weight:700;color:var(--navy);letter-spacing:-1px;line-height:1;margin-bottom:16px}
   .subtitle{font-size:17px;color:#666;line-height:1.65;margin-bottom:36px}
-  .btn-home{display:inline-block;padding:12px 28px;background:var(--navy);color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:500;font-family:"Noto Sans Thai",sans-serif;transition:opacity .15s}
-  .btn-home:hover{opacity:.85}
+  .btn-home{display:inline-block;padding:12px 28px;background:var(--navy);color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:500;font-family:"Noto Sans Thai",sans-serif;transition:background .15s}
+  .btn-home:hover{background:var(--mint)}
 
   /* FOOTER */
   footer{background:#fff;border-top:0.5px solid var(--border)}
-  .footer-main{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:32px;padding:36px 32px 28px}
+  .footer-inner{max-width:1200px;margin:0 auto}
+  .footer-main{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:32px;padding:36px 32px 28px;max-width:1200px;margin:0 auto}
   .footer-brand{display:flex;flex-direction:column;gap:12px}
   .footer-img{width:28px;height:28px;border-radius:5px;object-fit:cover}
   .footer-brand-name{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:.04em}
+  .footer-brand-desc{font-size:11px;color:#aaa;line-height:1.6;max-width:200px}
   .footer-socials{display:flex;gap:10px;margin-top:4px}
   .footer-socials a{color:var(--navy);transition:color .15s;display:flex}
   .footer-socials a:hover{color:var(--mint)}
@@ -99,42 +102,46 @@
   <a href="/" class="btn-home">← กลับหน้าหลัก</a>
 </main>
 
-<footer>
-  <div class="footer-main">
-    <div class="footer-brand">
-      <div style="display:flex;align-items:center;gap:8px">
-        <img src="/logo_DHAMMADHA_2025_simple.png" class="footer-img" alt="Dhammadha Studio">
-        <span class="footer-brand-name">DHAMMADHA STUDIO</span>
+<!-- FOOTER -->
+  <footer>
+  <div class="footer-inner">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <div style="display:flex;align-items:center;gap:8px">
+          <img src="/logo_DHAMMADHA_2025_simple.png" class="footer-img" alt="Dhammadha Studio">
+          <span class="footer-brand-name">DHAMMADHA STUDIO</span>
+        </div>
+        
+        <div class="footer-socials">
+          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>
+          <a href="#" aria-label="Line"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.952 12.477c0-4.185-4.195-7.586-9.352-7.586S1.248 8.292 1.248 12.477c0 3.75 3.328 6.892 7.823 7.487.305.066.72.2.824.46.094.235.062.604.03.842l-.133.8c-.04.237-.188.926.812.505 1-.422 5.398-3.18 7.367-5.445 1.359-1.49 2.012-3.003 2.012-4.649zm-12.36 2.105H5.677a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 1.024 0v2.959h1.403a.512.512 0 0 1 0 1.023zm1.578-.511a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 1.024 0v3.471zm4.687 0a.512.512 0 0 1-.897.338l-1.786-2.43v2.093a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 .897-.338l1.786 2.43V10.6a.512.512 0 0 1 1.024 0v3.471zm2.823-2.448a.512.512 0 0 1 0 1.023h-1.403v.913h1.403a.512.512 0 0 1 0 1.023H14.17a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 .512-.512h1.51a.512.512 0 0 1 0 1.023H14.68v.512h1.403z"/></svg></a>
+        </div>
       </div>
-      <div class="footer-socials">
-        <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
-        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-        <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>
-        <a href="#" aria-label="Line"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.952 12.477c0-4.185-4.195-7.586-9.352-7.586S1.248 8.292 1.248 12.477c0 3.75 3.328 6.892 7.823 7.487.305.066.72.2.824.46.094.235.062.604.03.842l-.133.8c-.04.237-.188.926.812.505 1-.422 5.398-3.18 7.367-5.445 1.359-1.49 2.012-3.003 2.012-4.649zm-12.36 2.105H5.677a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 1.024 0v2.959h1.403a.512.512 0 0 1 0 1.023zm1.578-.511a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 1.024 0v3.471zm4.687 0a.512.512 0 0 1-.897.338l-1.786-2.43v2.093a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 .897-.338l1.786 2.43V10.6a.512.512 0 0 1 1.024 0v3.471zm2.823-2.448a.512.512 0 0 1 0 1.023h-1.403v.913h1.403a.512.512 0 0 1 0 1.023H14.17a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 .512-.512h1.51a.512.512 0 0 1 0 1.023H14.68v.512h1.403z"/></svg></a>
+      <div class="footer-col">
+        <h4>ฟอนต์</h4>
+        <a href="#">ฟอนต์ทั้งหมด</a>
+        <a href="#">ฟอนต์ใหม่</a>
+        <a href="#">ฟอนต์แนะนำ</a>
+        <a href="/coming-soon.html">Subscription</a>
+      </div>
+      <div class="footer-col">
+        <h4>ข้อมูล</h4>
+        <a href="#">สัญญาอนุญาต</a>
+        <a href="#">วิธีสั่งซื้อ</a>
+        <a href="#">นโยบายความเป็นส่วนตัว</a>
+        <a href="#">เงื่อนไขการใช้งาน</a>
+      </div>
+      <div class="footer-col">
+        <h4>ช่วยเหลือ</h4>
+        <a href="#">คำถามที่พบบ่อย</a>
+        <a href="#">ติดต่อเรา</a>
+        <a href="#">รายงานปัญหา</a>
       </div>
     </div>
-    <div class="footer-col">
-      <h4>ฟอนต์</h4>
-      <a href="/">ฟอนต์ทั้งหมด</a>
-      <a href="/">ฟอนต์ใหม่</a>
-      <a href="/">ฟอนต์แนะนำ</a>
-      <a href="/coming-soon.html">Subscription</a>
-    </div>
-    <div class="footer-col">
-      <h4>ข้อมูล</h4>
-      <a href="/">สัญญาอนุญาต</a>
-      <a href="/">วิธีสั่งซื้อ</a>
-      <a href="/">นโยบายความเป็นส่วนตัว</a>
-      <a href="/">เงื่อนไขการใช้งาน</a>
-    </div>
-    <div class="footer-col">
-      <h4>ช่วยเหลือ</h4>
-      <a href="/">FAQ</a>
-      <a href="/">ติดต่อเรา</a>
-      <a href="/">รายงานปัญหา</a>
-    </div>
+    <div class="footer-bottom">© 2012–2026 DHAMMADHA STUDIO</div>
   </div>
-  <div class="footer-bottom">© 2012–2026 DHAMMADHA STUDIO</div>
 </footer>
 
 <script>

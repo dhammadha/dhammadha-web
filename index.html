@@ -11,11 +11,10 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--mint:#5ECEC8;--navy:#2B1B3D;--ml:#e8faf9;--mm:#b8ecea;--bg:#f5f5f2;--border:#e8e8e0}
-  body{font-family:"Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#eee;margin:0;padding:0}
-  .page{background:var(--bg);width:100%;max-width:1200px;margin:0 auto;border-radius:0 0 12px 12px;border:0.5px solid #ddd;border-top:none}
+  body{font-family:"Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;margin:0;padding:0}
 
   /* NAV */
-  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;transition:box-shadow .2s;max-width:1200px;margin:0 auto;border-left:0.5px solid #ddd;border-right:0.5px solid #ddd}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:#fff;position:sticky;top:0;z-index:100;transition:box-shadow .2s}
   nav.scrolled{box-shadow:0 2px 12px rgba(0,0,0,.08);border-bottom-color:transparent}
   .logo{display:flex;align-items:center;gap:9px}
   .logo-img{width:36px;height:36px;border-radius:6px;object-fit:cover}
@@ -23,7 +22,8 @@
   .logo-name{font-size:16px;font-weight:600;color:var(--navy);letter-spacing:.05em;line-height:1}
   .logo-sub{font-size:12px;color:#aaa;letter-spacing:.06em;line-height:1}
   .nav-links{display:flex;gap:24px;font-size:15px;color:#555}
-  .nav-links a{text-decoration:none;color:inherit}
+  .nav-links a{text-decoration:none;color:inherit;transition:color .15s}
+  .nav-links a:hover{color:var(--mint)}
   .nav-right{display:flex;gap:9px;align-items:center}
   .lang-selector{position:relative;cursor:pointer;user-select:none}
   .lang-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:#555;padding:6px 4px}
@@ -34,30 +34,38 @@
   .lang-item:hover{background:#f5f5f2}
   .lang-item.lang-active{background:var(--navy);color:#fff;border-radius:8px;margin:6px;padding:9px 12px}
   .lang-item.lang-active:hover{background:var(--navy)}
-  .btn-login{font-size:13px;padding:8px 18px;border:none;border-radius:8px;background:var(--navy);color:#fff;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500}
+  .btn-login{font-size:13px;padding:8px 18px;border:none;border-radius:8px;background:var(--navy);color:#fff;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500;transition:background .15s}
+  .btn-login:hover{background:var(--mint)}
 
   /* HERO */
-  .hero{padding:56px 32px 48px;background:#fff;border-bottom:0.5px solid var(--border)}
+  .hero{background:#fff}
+  .hero-inner{max-width:1200px;margin:0 auto;padding:56px 32px 48px}
   .hero-h{font-size:46px;font-weight:600;color:var(--navy);line-height:1.1;letter-spacing:-1px;margin-bottom:14px}
   .hero-h em{color:var(--mint);font-style:normal}
   .hero-p{font-size:15px;color:#666;line-height:1.65;max-width:480px;margin-bottom:28px}
   .hero-btns{display:flex;gap:10px}
-  .btn-primary{padding:10px 22px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500;font-family:"Noto Sans Thai",sans-serif}
-  .btn-outline{padding:10px 18px;background:#fff;border:0.5px solid var(--navy);border-radius:6px;font-size:14px;color:var(--navy);cursor:pointer;font-family:"Noto Sans Thai",sans-serif}
+  .btn-primary{padding:10px 22px;background:#fff;color:var(--navy);border:0.25px solid #ddd;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500;font-family:"Noto Sans Thai",sans-serif;transition:background .15s,color .15s,border-color .15s}
+  .btn-primary:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn-outline{padding:10px 18px;background:#fff;border:0.25px solid #ddd;border-radius:6px;font-size:14px;color:var(--navy);cursor:pointer;font-weight:500;font-family:"Noto Sans Thai",sans-serif;transition:background .15s,color .15s,border-color .15s}
+  .btn-outline:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
 
   /* SECTIONS */
-  .section{padding:24px 32px;background:var(--bg)}
+  .section{background:var(--bg)}
+  .section-inner{max-width:1200px;margin:0 auto;padding:24px 32px}
+  .section-white{background:#fff}
+  .section-gap{height:24px;background:#fff}
   .sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-  .sec-title{font-size:16px;font-weight:600;color:var(--navy)}
+  .sec-title{font-size:32px;font-weight:600;color:var(--navy)}
   .pill-group{display:flex;gap:6px}
-  .pill{font-size:11px;padding:3px 11px;border:0.5px solid #ccc;border-radius:20px;background:#fff;color:#888;cursor:pointer;user-select:none}
+  .pill{font-size:11px;padding:3px 11px;border:0.5px solid #ccc;border-radius:20px;background:#fff;color:#888;cursor:pointer;user-select:none;transition:background .15s,color .15s,border-color .15s}
+  .pill:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
   .pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
 
   /* SLIDER */
-  .slider-outer{position:relative;padding:0 40px}
-  .slider-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-  .slider-btn{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;background:#fff;border:0.5px solid #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:box-shadow .15s;font-size:18px;color:var(--navy);user-select:none}
-  .slider-btn:hover{box-shadow:0 4px 12px rgba(0,0,0,.18)}
+  .slider-outer{position:relative;padding:0 32px}
+  .slider-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+  .slider-btn{position:absolute;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;z-index:10;font-size:22px;color:#bbb;user-select:none;padding:8px;transition:color .15s}
+  .slider-btn:hover{color:var(--navy)}
   .slider-btn.prev{left:0}
   .slider-btn.next{right:0}
   .slider-dots{display:flex;gap:6px;justify-content:center;margin-top:14px}
@@ -66,8 +74,8 @@
 
   /* FONT GRID */
   .font-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-  .fc{background:#fff;border-radius:8px;overflow:hidden;cursor:pointer;border:0.5px solid var(--border);transition:border-color .15s}
-  .fc:hover{border-color:#aaa}
+  .fc{background:#fff;border-radius:8px;overflow:hidden;cursor:pointer;border:0.5px solid var(--border);transition:box-shadow .15s,border-color .15s}
+  .fc:hover{box-shadow:0 2px 12px rgba(0,0,0,.08);border-color:transparent}
   .fc-cover{aspect-ratio:16/9;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
   .fc-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;line-height:1.1;padding:10px;text-align:center}
   .badge{position:absolute;top:8px;left:8px;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600;letter-spacing:.03em}
@@ -96,26 +104,30 @@
   .bg-c9{background:#4a3728}.bg-c10{background:#1a4a2e}.bg-c11{background:#4a1a28}
 
   /* ADS */
-  .ads-slot{background:#ebe9e4;padding:10px 32px;display:flex;align-items:center;justify-content:center;gap:10px;border-top:0.5px solid #e0ddd6;border-bottom:0.5px solid #e0ddd6}
+  .ads-slot{background:#ebe9e4;border-top:0.5px solid #e0ddd6;border-bottom:0.5px solid #e0ddd6}
+  .ads-inner{max-width:1200px;margin:0 auto;padding:10px 32px;display:flex;align-items:center;justify-content:center;gap:10px}
   .ads-label{font-size:9px;color:#bbb;letter-spacing:.07em;text-transform:uppercase;flex-shrink:0}
   .ads-box{background:#dddbd4;border-radius:4px;height:60px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#bbb;flex:1;max-width:728px}
 
   /* PRICING */
-  .pricing-section{padding:28px 32px;background:#fff;border-top:0.5px solid var(--border)}
+  .pricing-section{background:var(--bg)}
+  .pricing-inner{max-width:1200px;margin:0 auto;padding:28px 32px}
   .pricing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
-  .pc{padding:20px 22px;border:0.5px solid #ddd;border-radius:10px;background:#fff;display:flex;flex-direction:column}
-  .pc.featured{border-color:var(--navy)}
+  .pc{padding:20px 22px;border:0.25px solid #ddd;border-radius:10px;background:#fff;display:flex;flex-direction:column}
+  .pc.featured{border:0.25px solid #ddd}
   .pc-badge{font-size:10px;background:var(--ml);color:#0a8a84;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:10px;border:0.5px solid var(--mm);align-self:flex-start}
-  .pc-name{font-size:18px;font-weight:600;color:var(--navy)}
-  .pc-price{font-size:26px;font-weight:600;color:var(--navy);margin:8px 0 2px}
-  .pc-period{font-size:12px;color:#aaa;margin-bottom:12px}
+  .pc-name{font-size:26px;font-weight:600;color:var(--navy);line-height:1.2;margin:0}
+  .pc-price{font-size:26px;font-weight:600;color:var(--navy);margin:0;line-height:1.2}
+  .pc-period{font-size:12px;color:#aaa;margin-top:10px;margin-bottom:10px}
   .pc-desc{font-size:12px;color:#666;line-height:1.65;flex:1}
-  .pc-btn{margin-top:18px;width:100%;padding:9px;border-radius:6px;font-size:13px;cursor:pointer;border:0.5px solid #ccc;color:#666;background:#fff;text-align:center;font-weight:500;font-family:"Noto Sans Thai",sans-serif;text-decoration:none;display:block}
-  .pc-btn.dark{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .pc-btn{margin-top:18px;width:100%;padding:9px;border-radius:6px;font-size:14px;cursor:pointer;border:0.25px solid #ddd;color:var(--navy);background:#fff;text-align:center;font-weight:500;font-family:"Noto Sans Thai",sans-serif;text-decoration:none;display:block;transition:background .15s,color .15s,border-color .15s}
+  .pc-btn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .pc-btn.dark{background:#fff;color:var(--navy);border:0.25px solid #ddd;font-size:14px;font-weight:500;transition:background .15s,color .15s,border-color .15s}
+  .pc-btn.dark:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
 
   /* FOOTER */
   footer{background:#fff;border-top:0.5px solid var(--border)}
-  .footer-main{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:32px;padding:36px 32px 28px}
+  .footer-main{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:32px;padding:36px 32px 28px;max-width:1200px;margin:0 auto}
   .footer-brand{display:flex;flex-direction:column;gap:12px}
   .footer-img{width:28px;height:28px;border-radius:5px;object-fit:cover}
   .footer-brand-name{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:.04em}
@@ -127,7 +139,8 @@
   .footer-col h4{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:12px;letter-spacing:.02em}
   .footer-col a{display:block;font-size:12px;color:#888;text-decoration:none;margin-bottom:8px;transition:color .15s}
   .footer-col a:hover{color:var(--mint)}
-  .footer-bottom{border-top:0.5px solid var(--border);padding:14px 32px;text-align:center;font-size:11px;color:#bbb}
+  .footer-bottom-inner{max-width:1200px;margin:0 auto;padding:14px 32px;text-align:center;font-size:11px;color:#bbb}
+  .footer-bottom{border-top:0.5px solid var(--border)}
 </style>
 </head>
 <body>
@@ -159,20 +172,22 @@
     </div>
   </nav>
 
-<div class="page">
 
   <!-- HERO -->
   <section class="hero">
-    <h1 class="hero-h">ฟอนต์ไทย<br>ที่ <em>ออกแบบ</em>อย่างพิถีพิถัน</h1>
+  <div class="hero-inner">
+    <h1 class="hero-h">ฟอนต์ไทย<br>ที่ <em>ออกแบบ</em> อย่างพิถีพิถัน</h1>
     <p class="hero-p">คลังฟอนต์ภาษาไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย</p>
     <div class="hero-btns">
       <button class="btn-primary">ดูฟอนต์ทั้งหมด</button>
       <button class="btn-outline">ราคาและแผนบริการ</button>
     </div>
+  </div>
   </section>
 
   <!-- FEATURED SLIDER -->
   <div class="section">
+  <div class="section-inner">
     <div class="sec-header">
       <span class="sec-title">คัดสรรพิเศษ</span>
     </div>
@@ -183,9 +198,13 @@
     </div>
     <div class="slider-dots" id="sliderDots"></div>
   </div>
+  </div>
+
+  <div class="section-gap"></div>
 
   <!-- MAIN FONT GRID -->
-  <div class="section" style="padding-top:4px">
+  <div class="section section-white">
+  <div class="section-inner">
     <div class="sec-header">
       <span class="sec-title">ฟอนต์ทั้งหมด</span>
       <div class="pill-group">
@@ -195,11 +214,11 @@
     </div>
     <div class="font-grid">
       <div class="fc"><div class="fc-cover bg-c1"><span class="badge badge-new">NEW</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">SURATANA</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">9 styles</span><span class="fc-price">฿XXX</span></div></div></div>
-      <div class="fc"><div class="fc-cover bg-c2"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">KENTT</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">1 style</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c2"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">KENTT</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">6 styles</span><span class="fc-price">฿XXX</span></div></div></div>
       <div class="fc"><div class="fc-cover bg-c3"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">NOMPANG</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">14 styles</span><span class="fc-price">฿XXX</span></div></div></div>
       <div class="fc"><div class="fc-cover bg-c4"><span class="badge badge-new">NEW</span><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">DONGTAO</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">2 styles</span><span class="fc-price">฿XXX</span></div></div></div>
       <div class="fc"><div class="fc-cover bg-c5"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">PAAYMAAY</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">1 style</span><span class="fc-price">฿XXX</span></div></div></div>
-      <div class="fc"><div class="fc-cover bg-c6"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">HOOK</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">1 style</span><span class="fc-price">฿XXX</span></div></div></div>
+      <div class="fc"><div class="fc-cover bg-c6"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">HOOK</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">10 styles</span><span class="fc-price">฿XXX</span></div></div></div>
       <div class="fc"><div class="fc-cover bg-c7"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">DEJA</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">4 styles</span><span class="fc-price">฿XXX</span></div></div></div>
       <div class="fc"><div class="fc-cover bg-c8"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">SURATANA SANS</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">10 styles</span><span class="fc-price">฿XXX</span></div></div></div>
       <div class="fc"><div class="fc-cover bg-c9"><div class="fc-heart"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div></div><div class="fc-info"><div class="fc-name">THONGKORN</div><div class="fc-by">โดย <span>ธรรมดาสตูดิโอ</span></div><div class="fc-row3"><span class="fc-styles">9 styles</span><span class="fc-price">฿XXX</span></div></div></div>
@@ -212,34 +231,39 @@
       </div>
     </div>
   </div>
+  </div>
 
   <!-- PRICING -->
   <section class="pricing-section">
+  <div class="pricing-inner">
     <div class="sec-header"><span class="sec-title">ราคาและแผนบริการ</span></div>
     <div class="pricing-grid">
       <div class="pc">
         <span class="pc-badge">ซื้อครั้งเดียว</span>
         <div class="pc-name">ซื้อรายฟอนต์</div>
         <div class="pc-price">ราคาแตกต่างกัน</div>
-        <div class="pc-period">ต่อ font family</div>
-        <div class="pc-desc">ดาวน์โหลดไฟล์ได้ทันทีหลังชำระเงิน ใช้งานได้ตลอดชีพตามสัญญาอนุญาต รองรับทั้ง desktop และ web</div>
-        <div class="pc-btn">เลือกดูราคาแต่ละฟอนต์</div>
+        <div class="pc-period">/ ชุดฟอนต์</div>
+        <div class="pc-desc">ดาวน์โหลดไฟล์ฟอนต์ได้ทันทีหลังชำระเงิน</div>
+        <div class="pc-btn">ดูฟอนต์ทั้งหมด</div>
       </div>
       <div class="pc featured">
         <span class="pc-badge">แนะนำ · ประหยัดกว่า</span>
         <div class="pc-name">Subscription รายเดือน</div>
         <div class="pc-price">฿XXX</div>
         <div class="pc-period">/ เดือน · ยกเลิกได้ทุกเมื่อ</div>
-        <div class="pc-desc">เข้าถึงฟอนต์ทุกชุดในคลัง ใช้งานผ่าน desktop app และเว็บ รับฟอนต์ใหม่อัตโนมัติทุกครั้ง</div>
+        <div class="pc-desc">เข้าถึงฟอนต์ทุกชุดในคลัง ใช้งานง่ายผ่าน Desktop App</div>
         <a href="/coming-soon.html" class="pc-btn dark">สมัครฟรี · เริ่มใช้ได้เลยทันที</a>
       </div>
     </div>
+  </div>
   </section>
 
   <!-- ADSENSE -->
   <div class="ads-slot">
+  <div class="ads-inner">
     <span class="ads-label">ADS</span>
     <div class="ads-box">AdSense 728×90 Leaderboard</div>
+  </div>
   </div>
 
   <!-- FOOTER -->
@@ -279,10 +303,9 @@
         <a href="#">รายงานปัญหา</a>
       </div>
     </div>
-    <div class="footer-bottom">© 2012–2026 DHAMMADHA STUDIO</div>
+  <div class="footer-bottom"><div class="footer-bottom-inner">© 2012–2026 DHAMMADHA STUDIO</div></div>
   </footer>
 
-</div>
 
 <script>
 // Sticky nav shadow
@@ -311,11 +334,11 @@ function setFilter(type,el){
 // Priority: โปรโมชั่น (sale) ก่อน → ถ้าไม่มี สุ่มจากทั้งหมดโดยเน้นขายดี
 const allFonts=[
   {name:'SURATANA',th:'สุราตานา.',bg:'#c0392b',fs:22,italic:true,sale:'ลด 30%',popular:true,styles:'9 styles'},
-  {name:'KENTT',th:'KENTT',bg:'#2B1B3D',fs:24,bold:true,tight:true,sale:'ลด 20%',popular:true,styles:'1 style'},
+  {name:'KENTT',th:'KENTT',bg:'#2B1B3D',fs:24,bold:true,tight:true,sale:'ลด 20%',popular:true,styles:'6 styles'},
   {name:'NOMPANG',th:'นมปัง',bg:'#1a1a2e',fs:20,light:true,popular:true,styles:'14 styles'},
   {name:'DONGTAO',th:'ดองเต้า',bg:'#2d4a3e',fs:18,isNew:true,popular:false,styles:'2 styles'},
   {name:'PAAYMAAY',th:'ปายหมาย',bg:'#7a3b10',fs:17,italic:true,popular:true,styles:'1 style'},
-  {name:'HOOK',th:'HOOK',bg:'#1a3a5c',fs:26,bold:true,popular:false,styles:'1 style'},
+  {name:'HOOK',th:'HOOK',bg:'#1a3a5c',fs:26,bold:true,popular:false,styles:'10 styles'},
   {name:'DEJA',th:'เดจา',bg:'#3d1a3d',fs:20,popular:true,styles:'4 styles'},
   {name:'SURATANA SANS',th:'SURATANA\nSANS',bg:'#2c3e50',fs:13,light:true,spaced:true,popular:false,styles:'10 styles'},
   {name:'THONGKORN',th:'ทองกร',bg:'#4a3728',fs:20,popular:true,styles:'9 styles'},
