@@ -1,2 +1,2 @@
 # dhammadha-web
-Dhammadha Studio homepage
+DHAMMADHA STUDIO homepage
