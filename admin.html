@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — DHAMMADHA STUDIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--mint:#5ECEC8;--navy:#2B1B3D;--bg:#f5f5f2;--border:#e8e8e0;--red:#e74c3c}
+  body{font-family:"Noto Sans Thai",-apple-system,sans-serif;background:var(--bg);color:#333}
+
+  /* AUTH SCREEN */
+  #authScreen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .auth-box{background:#fff;border-radius:12px;padding:40px;width:340px;text-align:center}
+  .auth-logo{font-size:18px;font-weight:600;color:var(--navy);letter-spacing:.05em;margin-bottom:6px}
+  .auth-sub{font-size:12px;color:#aaa;margin-bottom:28px}
+  .auth-box input{width:100%;padding:10px 14px;border:0.5px solid #ddd;border-radius:8px;font-size:14px;font-family:"Noto Sans Thai",sans-serif;margin-bottom:12px;outline:none}
+  .auth-box input:focus{border-color:var(--mint)}
+  .auth-box button{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-family:"Noto Sans Thai",sans-serif;cursor:pointer;font-weight:500}
+  .auth-box button:hover{background:var(--mint)}
+  .auth-err{color:var(--red);font-size:12px;margin-top:8px;display:none}
+
+  /* LAYOUT */
+  #appScreen{display:none}
+  header{background:var(--navy);color:#fff;padding:14px 32px;display:flex;align-items:center;justify-content:space-between}
+  .header-title{font-size:15px;font-weight:600;letter-spacing:.05em}
+  .header-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .header-right{display:flex;gap:10px;align-items:center}
+  .btn-sm{padding:7px 16px;border-radius:7px;font-size:13px;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500;border:none}
+  .btn-mint{background:var(--mint);color:var(--navy)}
+  .btn-ghost{background:transparent;color:#aaa;border:0.5px solid #555}
+  .btn-ghost:hover{color:#fff;border-color:#fff}
+
+  main{max-width:1100px;margin:0 auto;padding:32px}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:24px;background:#fff;border-radius:10px;padding:5px;border:0.5px solid var(--border);width:fit-content}
+  .tab{padding:8px 20px;border-radius:7px;font-size:13px;cursor:pointer;color:#888;transition:all .15s;font-family:"Noto Sans Thai",sans-serif}
+  .tab.active{background:var(--navy);color:#fff}
+
+  /* FONT LIST */
+  .font-table{background:#fff;border-radius:10px;border:0.5px solid var(--border);overflow:hidden}
+  .font-table-header{display:grid;grid-template-columns:2fr 1fr 80px 80px 80px 80px 100px;gap:12px;padding:12px 16px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .font-row{display:grid;grid-template-columns:2fr 1fr 80px 80px 80px 80px 100px;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .font-row:last-child{border-bottom:none}
+  .font-row:hover{background:#fafaf8}
+  .font-name{font-size:13px;font-weight:600;color:var(--navy)}
+  .font-name-th{font-size:11px;color:#aaa;margin-top:1px}
+  .font-price{font-size:13px;font-weight:500;color:var(--navy)}
+  .badge-pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;display:inline-block}
+  .pill-active{background:#e8faf9;color:#0a8a84;border:0.5px solid #b8ecea}
+  .pill-hidden{background:#f5f5f2;color:#aaa;border:0.5px solid #e0e0d8}
+  .pill-free{background:#fff3cd;color:#856404;border:0.5px solid #ffc107}
+  .pill-new{background:#e8faf9;color:#0a8a84;border:0.5px solid #b8ecea}
+  .row-actions{display:flex;gap:6px}
+  .btn-edit{padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;border:0.5px solid #ddd;background:#fff;color:var(--navy);font-family:"Noto Sans Thai",sans-serif}
+  .btn-edit:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn-del{padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:0.5px solid #fcc;background:#fff;color:var(--red);font-family:"Noto Sans Thai",sans-serif}
+  .btn-del:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+  /* EMPTY STATE */
+  .empty{text-align:center;padding:60px 20px;color:#aaa}
+  .empty-icon{font-size:40px;margin-bottom:12px}
+  .empty-text{font-size:14px;margin-bottom:6px;color:#888}
+  .empty-sub{font-size:12px}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto}
+  .modal-header{padding:20px 24px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1}
+  .modal-title{font-size:16px;font-weight:600;color:var(--navy)}
+  .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;line-height:1;padding:4px}
+  .modal-close:hover{color:#333}
+  .modal-body{padding:24px}
+  .modal-footer{padding:16px 24px;border-top:0.5px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
+
+  /* FORM */
+  .form-section{margin-bottom:24px}
+  .form-section-title{font-size:12px;font-weight:600;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:0.5px solid var(--border)}
+  .form-row{display:grid;gap:12px;margin-bottom:12px}
+  .form-row.cols-2{grid-template-columns:1fr 1fr}
+  .form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .form-group{display:flex;flex-direction:column;gap:5px}
+  label{font-size:12px;color:#666;font-weight:500}
+  input[type=text],input[type=number],textarea,select{padding:9px 12px;border:0.5px solid #ddd;border-radius:8px;font-size:13px;font-family:"Noto Sans Thai",sans-serif;outline:none;width:100%;background:#fff;color:#333}
+  input:focus,textarea:focus,select:focus{border-color:var(--mint)}
+  textarea{resize:vertical;min-height:72px}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #f0f0ec}
+  .toggle-row:last-child{border-bottom:none}
+  .toggle-label{font-size:13px;color:#444}
+  .toggle-sub{font-size:11px;color:#aaa;margin-top:1px}
+  .toggle{position:relative;width:38px;height:22px;flex-shrink:0}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:22px;cursor:pointer;transition:.2s}
+  .toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+  .toggle input:checked+.toggle-slider{background:var(--mint)}
+  .toggle input:checked+.toggle-slider:before{transform:translateX(16px)}
+  .cover-preview{width:100%;aspect-ratio:16/9;border-radius:8px;border:0.5px dashed #ddd;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;overflow:hidden;background:#fafaf8;margin-top:8px;cursor:pointer;transition:border-color .15s}
+  .cover-preview:hover{border-color:#999}
+  .cover-preview img{width:100%;height:100%;object-fit:cover}
+
+  /* STATUS */
+  .status-bar{background:var(--navy);color:#fff;padding:10px 24px;font-size:12px;border-radius:0 0 12px 12px;display:none}
+  .status-bar.show{display:block}
+  .status-bar.error{background:var(--red)}
+
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .stat-card{background:#fff;border-radius:10px;padding:16px 20px;border:0.5px solid var(--border)}
+  .stat-num{font-size:28px;font-weight:600;color:var(--navy)}
+  .stat-label{font-size:11px;color:#aaa;margin-top:4px}
+
+  /* LOADING */
+  .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:#aaa;font-size:13px;gap:8px}
+  .spin{width:18px;height:18px;border:2px solid #eee;border-top-color:var(--mint);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">DHAMMADHA STUDIO</div>
+    <div class="auth-sub">Admin Panel</div>
+    <input type="email" id="authEmail" placeholder="อีเมล" />
+    <input type="password" id="authPass" placeholder="รหัสผ่าน" />
+    <button onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="auth-err" id="authErr">อีเมลหรือรหัสผ่านไม่ถูกต้อง</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen">
+  <header>
+    <div>
+      <div class="header-title">DHAMMADHA STUDIO — Admin</div>
+      <div class="header-sub" id="adminEmail"></div>
+    </div>
+    <div class="header-right">
+      <a href="/" class="btn-sm btn-ghost" style="text-decoration:none">← ดูเว็บ</a>
+      <button class="btn-sm btn-ghost" onclick="doLogout()">ออกจากระบบ</button>
+      <button class="btn-sm btn-mint" onclick="openModal()">+ เพิ่มฟอนต์</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">ฟอนต์ทั้งหมด</div></div>
+      <div class="stat-card"><div class="stat-num" id="statActive">—</div><div class="stat-label">แสดงบนเว็บ</div></div>
+      <div class="stat-card"><div class="stat-num" id="statFree">—</div><div class="stat-label">ฟรี</div></div>
+      <div class="stat-card"><div class="stat-num" id="statSale">—</div><div class="stat-label">โปรโมชั่น</div></div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('all',this)">ทั้งหมด</div>
+      <div class="tab" onclick="switchTab('active',this)">แสดงอยู่</div>
+      <div class="tab" onclick="switchTab('hidden',this)">ซ่อนอยู่</div>
+      <div class="tab" onclick="switchTab('sale',this)">โปรโมชั่น</div>
+    </div>
+
+    <!-- FONT LIST -->
+    <div class="font-table">
+      <div class="font-table-header">
+        <div>ฟอนต์</div>
+        <div>หมวดหมู่</div>
+        <div>ราคา</div>
+        <div>สถานะ</div>
+        <div>โปรฯ</div>
+        <div>ป้าย</div>
+        <div>จัดการ</div>
+      </div>
+      <div id="fontList"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">เพิ่มฟอนต์ใหม่</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- BASIC INFO -->
+      <div class="form-section">
+        <div class="form-section-title">ข้อมูลพื้นฐาน</div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>ชื่อฟอนต์ (EN) *</label>
+            <input type="text" id="fName" placeholder="เช่น SURATANA">
+          </div>
+          <div class="form-group">
+            <label>ชื่อฟอนต์ (TH)</label>
+            <input type="text" id="fNameTh" placeholder="เช่น สุราตานา">
+          </div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>Slug (URL) *</label>
+            <input type="text" id="fSlug" placeholder="เช่น suratana">
+          </div>
+          <div class="form-group">
+            <label>นักออกแบบ</label>
+            <input type="text" id="fDesigner" placeholder="เช่น ธรรมดาสตูดิโอ" value="ธรรมดาสตูดิโอ">
+          </div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group">
+            <label>หมวดหมู่</label>
+            <select id="fCategory">
+              <option value="serif">Serif</option>
+              <option value="sans-serif">Sans-serif</option>
+              <option value="display">Display</option>
+              <option value="handwriting">Handwriting</option>
+              <option value="monospace">Monospace</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tags (คั่นด้วย comma)</label>
+            <input type="text" id="fTags" placeholder="thai, display, bold">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>คำอธิบาย (TH)</label>
+            <textarea id="fDescTh" placeholder="คำอธิบายภาษาไทย..."></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>คำอธิบาย (EN)</label>
+            <textarea id="fDescEn" placeholder="English description..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRICING -->
+      <div class="form-section">
+        <div class="form-section-title">ราคา</div>
+        <div class="form-row cols-3">
+          <div class="form-group">
+            <label>ราคา (฿)</label>
+            <input type="number" id="fPrice" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>Sort Order</label>
+            <input type="number" id="fSort" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>Sale Label</label>
+            <input type="text" id="fSaleLabel" placeholder="เช่น ลด 30%">
+          </div>
+        </div>
+      </div>
+
+      <!-- TOGGLES -->
+      <div class="form-section">
+        <div class="form-section-title">การแสดงผล</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">แสดงบนเว็บ</div><div class="toggle-sub">is_active — ปิดเพื่อซ่อนโดยไม่ลบ</div></div>
+          <label class="toggle"><input type="checkbox" id="fActive" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">ฟรี</div><div class="toggle-sub">is_free — แสดงป้าย "ฟรี"</div></div>
+          <label class="toggle"><input type="checkbox" id="fFree"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">อยู่ใน Subscription</div><div class="toggle-sub">is_subscription — รวมอยู่ในแพลน</div></div>
+          <label class="toggle"><input type="checkbox" id="fSub" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">โปรโมชั่น</div><div class="toggle-sub">is_sale — แสดง badge ลด%</div></div>
+          <label class="toggle"><input type="checkbox" id="fSale"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">ยอดนิยม</div><div class="toggle-sub">is_popular — ขึ้น Slider คัดสรรพิเศษ</div></div>
+          <label class="toggle"><input type="checkbox" id="fPopular"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <!-- COVER IMAGE -->
+      <div class="form-section">
+        <div class="form-section-title">Cover Image</div>
+        <div class="form-group">
+          <label>URL รูปปก (Firebase Storage หรือ URL อื่น)</label>
+          <input type="text" id="fCoverUrl" placeholder="https://..." oninput="previewCover(this.value)">
+        </div>
+        <div class="form-group">
+          <label>สีพื้นหลัง (ถ้ายังไม่มีรูป)</label>
+          <input type="text" id="fBgColor" placeholder="#2B1B3D">
+        </div>
+        <div class="cover-preview" id="coverPreview" onclick="document.getElementById('fCoverUrl').focus()">
+          <span id="coverPlaceholder">คลิกเพื่อใส่ URL รูปปก</span>
+          <img id="coverImg" style="display:none" alt="cover preview">
+        </div>
+      </div>
+
+    </div>
+    <div class="status-bar" id="modalStatus"></div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" style="background:#fff;border:0.5px solid #ddd;color:#666;padding:9px 20px;border-radius:8px;font-family:'Noto Sans Thai',sans-serif;cursor:pointer" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-sm btn-mint" style="padding:9px 24px;border-radius:8px;font-family:'Noto Sans Thai',sans-serif;cursor:pointer;font-weight:500" onclick="saveFont()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCK7h6hOspbgKJgkmivJ9jxYHCOhmCPAKY",
+  authDomain: "dhammadha-studio.firebaseapp.com",
+  projectId: "dhammadha-studio",
+  storageBucket: "dhammadha-studio.firebasestorage.app",
+  messagingSenderId: "90771649996",
+  appId: "1:90771649996:web:e25d6dabdb938247ead969"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let fonts = [];
+let currentTab = 'all';
+let editingId = null;
+
+// ── AUTH ──────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('adminEmail').textContent = user.email;
+    loadFonts();
+  } else {
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('appScreen').style.display = 'none';
+  }
+});
+
+window.doLogin = async () => {
+  const email = document.getElementById('authEmail').value;
+  const pass = document.getElementById('authPass').value;
+  const err = document.getElementById('authErr');
+  err.style.display = 'none';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    err.style.display = 'block';
+  }
+};
+
+window.doLogout = () => signOut(auth);
+
+// Enter key on auth
+document.getElementById('authPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.doLogin();
+});
+
+// ── LOAD FONTS ────────────────────────────────────
+async function loadFonts() {
+  const q = query(collection(db, 'fonts'), orderBy('sort_order'), orderBy('created_at', 'desc'));
+  const snap = await getDocs(q);
+  fonts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  updateStats();
+  renderList();
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = fonts.length;
+  document.getElementById('statActive').textContent = fonts.filter(f => f.is_active).length;
+  document.getElementById('statFree').textContent = fonts.filter(f => f.is_free).length;
+  document.getElementById('statSale').textContent = fonts.filter(f => f.is_sale).length;
+}
+
+function renderList() {
+  const container = document.getElementById('fontList');
+  let filtered = fonts;
+  if (currentTab === 'active') filtered = fonts.filter(f => f.is_active);
+  if (currentTab === 'hidden') filtered = fonts.filter(f => !f.is_active);
+  if (currentTab === 'sale') filtered = fonts.filter(f => f.is_sale);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty">
+      <div class="empty-icon">🔤</div>
+      <div class="empty-text">ยังไม่มีฟอนต์</div>
+      <div class="empty-sub">กด "+ เพิ่มฟอนต์" เพื่อเริ่มต้น</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(f => `
+    <div class="font-row">
+      <div>
+        <div class="font-name">${f.name || '—'}</div>
+        <div class="font-name-th">${f.name_th || ''}</div>
+      </div>
+      <div style="font-size:12px;color:#888">${f.category || '—'}</div>
+      <div class="font-price">${f.is_free ? '<span style="color:#0a8a84">ฟรี</span>' : (f.price ? '฿'+f.price.toLocaleString() : '—')}</div>
+      <div><span class="badge-pill ${f.is_active ? 'pill-active' : 'pill-hidden'}">${f.is_active ? 'แสดง' : 'ซ่อน'}</span></div>
+      <div>${f.is_sale ? `<span class="badge-pill pill-free">${f.sale_label || 'Sale'}</span>` : '<span style="color:#ddd;font-size:12px">—</span>'}</div>
+      <div>${f.is_new ? '<span class="badge-pill pill-new">NEW</span>' : '<span style="color:#ddd;font-size:12px">—</span>'}</div>
+      <div class="row-actions">
+        <button class="btn-edit" onclick="editFont('${f.id}')">แก้ไข</button>
+        <button class="btn-del" onclick="deleteFont('${f.id}','${f.name}')">ลบ</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── TABS ──────────────────────────────────────────
+window.switchTab = (tab, el) => {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+};
+
+// ── MODAL ─────────────────────────────────────────
+window.openModal = () => {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'เพิ่มฟอนต์ใหม่';
+  clearForm();
+  document.getElementById('modalOverlay').classList.add('open');
+};
+
+window.closeModal = () => {
+  document.getElementById('modalOverlay').classList.remove('open');
+  hideStatus();
+};
+
+window.editFont = (id) => {
+  const f = fonts.find(x => x.id === id);
+  if (!f) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'แก้ไขฟอนต์';
+  document.getElementById('fName').value = f.name || '';
+  document.getElementById('fNameTh').value = f.name_th || '';
+  document.getElementById('fSlug').value = f.slug || '';
+  document.getElementById('fDesigner').value = f.designer_name || '';
+  document.getElementById('fCategory').value = f.category || 'serif';
+  document.getElementById('fTags').value = (f.tags || []).join(', ');
+  document.getElementById('fDescTh').value = f.description_th || '';
+  document.getElementById('fDescEn').value = f.description_en || '';
+  document.getElementById('fPrice').value = f.price || '';
+  document.getElementById('fSort').value = f.sort_order || 0;
+  document.getElementById('fSaleLabel').value = f.sale_label || '';
+  document.getElementById('fActive').checked = f.is_active !== false;
+  document.getElementById('fFree').checked = !!f.is_free;
+  document.getElementById('fSub').checked = f.is_subscription !== false;
+  document.getElementById('fSale').checked = !!f.is_sale;
+  document.getElementById('fPopular').checked = !!f.is_popular;
+  document.getElementById('fCoverUrl').value = f.cover_image_url || '';
+  document.getElementById('fBgColor').value = f.bg_color || '';
+  previewCover(f.cover_image_url || '');
+  document.getElementById('modalOverlay').classList.add('open');
+};
+
+window.deleteFont = async (id, name) => {
+  if (!confirm(`ลบฟอนต์ "${name}" ออกจากระบบ?\n(ไม่สามารถกู้คืนได้)`)) return;
+  await deleteDoc(doc(db, 'fonts', id));
+  await loadFonts();
+};
+
+function clearForm() {
+  ['fName','fNameTh','fSlug','fDescTh','fDescEn','fTags','fSaleLabel','fCoverUrl','fBgColor'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fDesigner').value = 'ธรรมดาสตูดิโอ';
+  document.getElementById('fPrice').value = '';
+  document.getElementById('fSort').value = fonts.length;
+  document.getElementById('fCategory').value = 'serif';
+  document.getElementById('fActive').checked = true;
+  document.getElementById('fFree').checked = false;
+  document.getElementById('fSub').checked = true;
+  document.getElementById('fSale').checked = false;
+  document.getElementById('fPopular').checked = false;
+  previewCover('');
+  hideStatus();
+}
+
+// ── SAVE ──────────────────────────────────────────
+window.saveFont = async () => {
+  const name = document.getElementById('fName').value.trim();
+  const slug = document.getElementById('fSlug').value.trim().toLowerCase().replace(/\s+/g,'-');
+  if (!name || !slug) { showStatus('กรุณาใส่ชื่อฟอนต์และ slug', true); return; }
+
+  const data = {
+    name,
+    slug,
+    name_th: document.getElementById('fNameTh').value.trim(),
+    designer_name: document.getElementById('fDesigner').value.trim(),
+    category: document.getElementById('fCategory').value,
+    tags: document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    description_th: document.getElementById('fDescTh').value.trim(),
+    description_en: document.getElementById('fDescEn').value.trim(),
+    price: parseFloat(document.getElementById('fPrice').value) || 0,
+    sort_order: parseInt(document.getElementById('fSort').value) || 0,
+    sale_label: document.getElementById('fSaleLabel').value.trim(),
+    is_active: document.getElementById('fActive').checked,
+    is_free: document.getElementById('fFree').checked,
+    is_subscription: document.getElementById('fSub').checked,
+    is_sale: document.getElementById('fSale').checked,
+    is_popular: document.getElementById('fPopular').checked,
+    cover_image_url: document.getElementById('fCoverUrl').value.trim(),
+    bg_color: document.getElementById('fBgColor').value.trim(),
+    updated_at: serverTimestamp(),
+  };
+
+  try {
+    if (editingId) {
+      await updateDoc(doc(db, 'fonts', editingId), data);
+      showStatus('อัปเดตเรียบร้อย ✓');
+    } else {
+      data.created_at = serverTimestamp();
+      data.is_new = true;
+      await addDoc(collection(db, 'fonts'), data);
+      showStatus('เพิ่มฟอนต์เรียบร้อย ✓');
+    }
+    await loadFonts();
+    setTimeout(closeModal, 1200);
+  } catch(e) {
+    showStatus('เกิดข้อผิดพลาด: ' + e.message, true);
+  }
+};
+
+// ── HELPERS ───────────────────────────────────────
+window.previewCover = (url) => {
+  const img = document.getElementById('coverImg');
+  const placeholder = document.getElementById('coverPlaceholder');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    placeholder.style.display = 'block';
+  }
+};
+
+function showStatus(msg, isError = false) {
+  const bar = document.getElementById('modalStatus');
+  bar.textContent = msg;
+  bar.className = 'status-bar show' + (isError ? ' error' : '');
+}
+function hideStatus() {
+  document.getElementById('modalStatus').className = 'status-bar';
+}
+
+// Auto slug from name
+document.getElementById('fName').addEventListener('input', function() {
+  const slug = document.getElementById('fSlug');
+  if (!editingId) slug.value = this.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+});
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
