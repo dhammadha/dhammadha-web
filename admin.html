@@ -458,7 +458,6 @@ window.editFont=(id)=>{
   exCoverUrl=f.cover_image_url||'';exThumbUrl=f.thumbnail_url||'';
   exPreviewUrls=[...(f.preview_images||[])];exFullFontUrls=[...(f.full_font_files||[])];exDemoFontUrls=[...(f.demo_font_files||[])];exSpecimenUrls=[...(f.specimen_files||[])];
   if(exCoverUrl)showImgPreview('coverPreview','coverZone',exCoverUrl,'cover');
-  if(exThumbUrl)showImgPreview('thumbPreview','thumbZone',exThumbUrl,'thumb');
   if(exPreviewUrls.length)renderPreviewGrid();
   if(exFullFontUrls.length)renderExFonts('fullFontList',exFullFontUrls,'full');
   if(exDemoFontUrls.length)renderExFonts('demoFontList',exDemoFontUrls,'demo');
@@ -478,8 +477,8 @@ function clearForm(){
   document.getElementById('saleExtra').classList.remove('show');
   pendingCover=null;pendingThumb=null;pendingPreviews=[];pendingFullFonts=[];pendingDemoFonts=[];pendingSpecimens=[];
   exCoverUrl='';exThumbUrl='';exPreviewUrls=[];exFullFontUrls=[];exDemoFontUrls=[];exSpecimenUrls=[];
-  ['coverPreview','thumbPreview'].forEach(id=>document.getElementById(id).innerHTML='');
-  ['coverZone','thumbZone'].forEach(id=>document.getElementById(id).classList.remove('has-file'));
+  document.getElementById('coverPreview').innerHTML='';
+  document.getElementById('coverZone').classList.remove('has-file');
   document.getElementById('previewGrid').innerHTML='';
   document.getElementById('fullFontList').innerHTML='';
   document.getElementById('demoFontList').innerHTML='';
@@ -492,7 +491,6 @@ function clearForm(){
 window.handleSingleImage=(input,zoneId,previewId,type)=>{
   const file=input.files[0];if(!file)return;
   if(type==='cover')pendingCover=file;
-  if(type==='thumb')pendingThumb=file;
   showImgPreview(previewId,zoneId,URL.createObjectURL(file),type);
 };
 function showImgPreview(previewId,zoneId,url,type){
@@ -507,7 +505,6 @@ window.clearImg=(previewId,zoneId,type)=>{
   document.getElementById(previewId).innerHTML='';
   document.getElementById(zoneId).classList.remove('has-file');
   if(type==='cover'){pendingCover=null;exCoverUrl='';}
-  if(type==='thumb'){pendingThumb=null;exThumbUrl='';}
 };
 window.handleMultiImage=(input)=>{
   pendingPreviews=[...pendingPreviews,...Array.from(input.files)];
@@ -612,7 +609,6 @@ window.saveFont=async()=>{
     const isFree=document.getElementById('fFree').checked;
 
     if(pendingCover){showStatus('อัพโหลด Cover...');coverUrl=await uploadFile(pendingCover,`public/covers/${slug}_cover.${pendingCover.name.split('.').pop()}`,'coverProg');}
-    if(pendingThumb){showStatus('อัพโหลด Thumbnail...');thumbUrl=await uploadFile(pendingThumb,`public/thumbnails/${slug}_thumb.${pendingThumb.name.split('.').pop()}`,'thumbProg');}
     for(let i=0;i<pendingPreviews.length;i++){showStatus(`อัพโหลดรูป Preview ${i+1}/${pendingPreviews.length}...`);const url=await uploadFile(pendingPreviews[i],`public/previews/${slug}_prev_${Date.now()}_${i}.${pendingPreviews[i].name.split('.').pop()}`,'coverProg');previewUrls.push(url);}
     for(let i=0;i<pendingFullFonts.length;i++){showStatus(`อัพโหลด Full Font ${i+1}/${pendingFullFonts.length}...`);const url=await uploadFile(pendingFullFonts[i],`protected/fonts/${slug}/${pendingFullFonts[i].name}`,'fullFontProg');fullUrls.push(url);}
     if(!isFree){for(let i=0;i<pendingDemoFonts.length;i++){showStatus(`อัพโหลด Demo Font ${i+1}/${pendingDemoFonts.length}...`);const url=await uploadFile(pendingDemoFonts[i],`public/demo-fonts/${slug}/${pendingDemoFonts[i].name}`,'demoFontProg');demoUrls.push(url);}}
@@ -637,7 +633,7 @@ window.saveFont=async()=>{
       is_active:document.getElementById('fActive').checked,
       is_free:isFree,
       is_subscription:document.getElementById('fSub').checked,
-      cover_image_url:coverUrl,thumbnail_url:thumbUrl,
+      cover_image_url:coverUrl,thumbnail_url:coverUrl,
       preview_images:previewUrls,
       full_font_files:fullUrls,
       demo_font_files:demoUrls,
