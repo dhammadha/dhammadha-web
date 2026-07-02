@@ -8,131 +8,161 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--mint:#5ECEC8;--navy:#2B1B3D;--bg:#f5f5f2;--border:#e8e8e0;--red:#e74c3c}
-  body{font-family:"Noto Sans Thai",-apple-system,sans-serif;background:var(--bg);color:#333}
+  body{font-family:"Noto Sans Thai",-apple-system,sans-serif;background:var(--bg);color:#333;font-size:15px}
 
-  /* AUTH SCREEN */
+  /* AUTH */
   #authScreen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999}
-  .auth-box{background:#fff;border-radius:12px;padding:40px;width:340px;text-align:center}
-  .auth-logo{font-size:18px;font-weight:600;color:var(--navy);letter-spacing:.05em;margin-bottom:6px}
-  .auth-sub{font-size:12px;color:#aaa;margin-bottom:28px}
-  .auth-box input{width:100%;padding:10px 14px;border:0.5px solid #ddd;border-radius:8px;font-size:14px;font-family:"Noto Sans Thai",sans-serif;margin-bottom:12px;outline:none}
+  .auth-box{background:#fff;border-radius:14px;padding:44px;width:360px;text-align:center}
+  .auth-logo{font-size:20px;font-weight:600;color:var(--navy);letter-spacing:.05em;margin-bottom:6px}
+  .auth-sub{font-size:14px;color:#aaa;margin-bottom:28px}
+  .auth-box input{width:100%;padding:12px 14px;border:0.5px solid #ddd;border-radius:9px;font-size:15px;font-family:"Noto Sans Thai",sans-serif;margin-bottom:12px;outline:none}
   .auth-box input:focus{border-color:var(--mint)}
-  .auth-box button{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-family:"Noto Sans Thai",sans-serif;cursor:pointer;font-weight:500}
+  .auth-box button{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:9px;font-size:15px;font-family:"Noto Sans Thai",sans-serif;cursor:pointer;font-weight:500}
   .auth-box button:hover{background:var(--mint)}
-  .auth-err{color:var(--red);font-size:12px;margin-top:8px;display:none}
+  .auth-err{color:var(--red);font-size:13px;margin-top:10px;display:none}
 
   /* LAYOUT */
   #appScreen{display:none}
-  header{background:var(--navy);color:#fff;padding:14px 32px;display:flex;align-items:center;justify-content:space-between}
-  .header-title{font-size:15px;font-weight:600;letter-spacing:.05em}
-  .header-sub{font-size:11px;color:#aaa;margin-top:2px}
+  header{background:var(--navy);color:#fff;padding:16px 36px;display:flex;align-items:center;justify-content:space-between}
+  .header-title{font-size:16px;font-weight:600;letter-spacing:.05em}
+  .header-sub{font-size:13px;color:#aaa;margin-top:2px}
   .header-right{display:flex;gap:10px;align-items:center}
-  .btn-sm{padding:7px 16px;border-radius:7px;font-size:13px;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500;border:none}
+  .btn-sm{padding:8px 18px;border-radius:8px;font-size:14px;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500;border:none;transition:all .15s}
   .btn-mint{background:var(--mint);color:var(--navy)}
+  .btn-mint:hover{background:#4bbdb7}
   .btn-ghost{background:transparent;color:#aaa;border:0.5px solid #555}
   .btn-ghost:hover{color:#fff;border-color:#fff}
-
-  main{max-width:1100px;margin:0 auto;padding:32px}
-
-  /* TABS */
-  .tabs{display:flex;gap:4px;margin-bottom:24px;background:#fff;border-radius:10px;padding:5px;border:0.5px solid var(--border);width:fit-content}
-  .tab{padding:8px 20px;border-radius:7px;font-size:13px;cursor:pointer;color:#888;transition:all .15s;font-family:"Noto Sans Thai",sans-serif}
-  .tab.active{background:var(--navy);color:#fff}
-
-  /* FONT LIST */
-  .font-table{background:#fff;border-radius:10px;border:0.5px solid var(--border);overflow:hidden}
-  .font-table-header{display:grid;grid-template-columns:2fr 1fr 80px 80px 80px 80px 100px;gap:12px;padding:12px 16px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
-  .font-row{display:grid;grid-template-columns:2fr 1fr 80px 80px 80px 80px 100px;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
-  .font-row:last-child{border-bottom:none}
-  .font-row:hover{background:#fafaf8}
-  .font-name{font-size:13px;font-weight:600;color:var(--navy)}
-  .font-name-th{font-size:11px;color:#aaa;margin-top:1px}
-  .font-price{font-size:13px;font-weight:500;color:var(--navy)}
-  .badge-pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;display:inline-block}
-  .pill-active{background:#e8faf9;color:#0a8a84;border:0.5px solid #b8ecea}
-  .pill-hidden{background:#f5f5f2;color:#aaa;border:0.5px solid #e0e0d8}
-  .pill-free{background:#fff3cd;color:#856404;border:0.5px solid #ffc107}
-  .pill-new{background:#e8faf9;color:#0a8a84;border:0.5px solid #b8ecea}
-  .row-actions{display:flex;gap:6px}
-  .btn-edit{padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer;border:0.5px solid #ddd;background:#fff;color:var(--navy);font-family:"Noto Sans Thai",sans-serif}
-  .btn-edit:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
-  .btn-del{padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:0.5px solid #fcc;background:#fff;color:var(--red);font-family:"Noto Sans Thai",sans-serif}
-  .btn-del:hover{background:var(--red);color:#fff;border-color:var(--red)}
-
-  /* EMPTY STATE */
-  .empty{text-align:center;padding:60px 20px;color:#aaa}
-  .empty-icon{font-size:40px;margin-bottom:12px}
-  .empty-text{font-size:14px;margin-bottom:6px;color:#888}
-  .empty-sub{font-size:12px}
-
-  /* MODAL */
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
-  .modal-overlay.open{display:flex}
-  .modal{background:#fff;border-radius:12px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto}
-  .modal-header{padding:20px 24px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1}
-  .modal-title{font-size:16px;font-weight:600;color:var(--navy)}
-  .modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;line-height:1;padding:4px}
-  .modal-close:hover{color:#333}
-  .modal-body{padding:24px}
-  .modal-footer{padding:16px 24px;border-top:0.5px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
-
-  /* FORM */
-  .form-section{margin-bottom:24px}
-  .form-section-title{font-size:12px;font-weight:600;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:0.5px solid var(--border)}
-  .form-row{display:grid;gap:12px;margin-bottom:12px}
-  .form-row.cols-2{grid-template-columns:1fr 1fr}
-  .form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
-  .form-group{display:flex;flex-direction:column;gap:5px}
-  label{font-size:12px;color:#666;font-weight:500}
-  input[type=text],input[type=number],textarea,select{padding:9px 12px;border:0.5px solid #ddd;border-radius:8px;font-size:13px;font-family:"Noto Sans Thai",sans-serif;outline:none;width:100%;background:#fff;color:#333}
-  input:focus,textarea:focus,select:focus{border-color:var(--mint)}
-  textarea{resize:vertical;min-height:72px}
-  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #f0f0ec}
-  .toggle-row:last-child{border-bottom:none}
-  .toggle-label{font-size:13px;color:#444}
-  .toggle-sub{font-size:11px;color:#aaa;margin-top:1px}
-  .toggle{position:relative;width:38px;height:22px;flex-shrink:0}
-  .toggle input{opacity:0;width:0;height:0}
-  .toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:22px;cursor:pointer;transition:.2s}
-  .toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
-  .toggle input:checked+.toggle-slider{background:var(--mint)}
-  .toggle input:checked+.toggle-slider:before{transform:translateX(16px)}
-  .cover-preview{width:100%;aspect-ratio:16/9;border-radius:8px;border:0.5px dashed #ddd;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;overflow:hidden;background:#fafaf8;margin-top:8px;cursor:pointer;transition:border-color .15s}
-  .cover-preview:hover{border-color:#999}
-  .cover-preview img{width:100%;height:100%;object-fit:cover}
-
-  /* STATUS */
-  .status-bar{background:var(--navy);color:#fff;padding:10px 24px;font-size:12px;border-radius:0 0 12px 12px;display:none}
-  .status-bar.show{display:block}
-  .status-bar.error{background:var(--red)}
+  main{max-width:1140px;margin:0 auto;padding:36px}
 
   /* STATS */
-  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-  .stat-card{background:#fff;border-radius:10px;padding:16px 20px;border:0.5px solid var(--border)}
-  .stat-num{font-size:28px;font-weight:600;color:var(--navy)}
-  .stat-label{font-size:11px;color:#aaa;margin-top:4px}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+  .stat-card{background:#fff;border-radius:12px;padding:20px 24px;border:0.5px solid var(--border)}
+  .stat-num{font-size:32px;font-weight:600;color:var(--navy)}
+  .stat-label{font-size:13px;color:#aaa;margin-top:4px}
 
-  /* LOADING */
-  .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:#aaa;font-size:13px;gap:8px}
-  .spin{width:18px;height:18px;border:2px solid #eee;border-top-color:var(--mint);border-radius:50%;animation:spin .7s linear infinite}
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:20px;background:#fff;border-radius:11px;padding:5px;border:0.5px solid var(--border);width:fit-content}
+  .tab{padding:9px 22px;border-radius:8px;font-size:14px;cursor:pointer;color:#888;transition:all .15s;font-family:"Noto Sans Thai",sans-serif}
+  .tab.active{background:var(--navy);color:#fff}
+
+  /* TABLE */
+  .font-table{background:#fff;border-radius:12px;border:0.5px solid var(--border);overflow:hidden}
+  .font-table-header{display:grid;grid-template-columns:2.5fr 1fr 90px 90px 120px 110px;gap:14px;padding:14px 20px;background:var(--bg);font-size:12px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .font-row{display:grid;grid-template-columns:2.5fr 1fr 90px 90px 120px 110px;gap:14px;padding:14px 20px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .font-row:last-child{border-bottom:none}
+  .font-row:hover{background:#fafaf8}
+  .font-name{font-size:14px;font-weight:600;color:var(--navy)}
+  .font-name-th{font-size:12px;color:#aaa;margin-top:2px}
+  .badge-pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;display:inline-block;margin:1px}
+  .pill-active{background:#e8faf9;color:#0a8a84;border:0.5px solid #b8ecea}
+  .pill-hidden{background:#f5f5f2;color:#aaa;border:0.5px solid #e0e0d8}
+  .pill-sale{background:#fff3cd;color:#856404;border:0.5px solid #ffc107}
+  .pill-demo{background:#e8f0fe;color:#1a56db;border:0.5px solid #c3d4fc}
+  .pill-new{background:#e8faf9;color:#0a8a84;border:0.5px solid #b8ecea}
+  .row-actions{display:flex;gap:7px}
+  .btn-edit{padding:6px 14px;border-radius:7px;font-size:12px;cursor:pointer;border:0.5px solid #ddd;background:#fff;color:var(--navy);font-family:"Noto Sans Thai",sans-serif;transition:all .15s}
+  .btn-edit:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn-del{padding:6px 12px;border-radius:7px;font-size:12px;cursor:pointer;border:0.5px solid #fcc;background:#fff;color:var(--red);font-family:"Noto Sans Thai",sans-serif;transition:all .15s}
+  .btn-del:hover{background:var(--red);color:#fff;border-color:var(--red)}
+  .empty{text-align:center;padding:70px 20px;color:#aaa}
+  .empty-icon{font-size:44px;margin-bottom:14px}
+  .empty-text{font-size:15px;margin-bottom:6px;color:#888}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:14px;width:100%;max-width:680px;max-height:92vh;overflow-y:auto}
+  .modal-header{padding:22px 28px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1}
+  .modal-title{font-size:18px;font-weight:600;color:var(--navy)}
+  .modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;line-height:1;padding:4px}
+  .modal-close:hover{color:#333}
+  .modal-body{padding:28px}
+  .modal-footer{padding:18px 28px;border-top:0.5px solid var(--border);display:flex;gap:12px;justify-content:flex-end;position:sticky;bottom:0;background:#fff}
+
+  /* FORM */
+  .form-section{margin-bottom:28px}
+  .form-section-title{font-size:13px;font-weight:600;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;padding-bottom:9px;border-bottom:0.5px solid var(--border)}
+  .form-row{display:grid;gap:14px;margin-bottom:14px}
+  .form-row.cols-2{grid-template-columns:1fr 1fr}
+  .form-row.cols-3{grid-template-columns:1fr 1fr 1fr}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  label{font-size:13px;color:#555;font-weight:500}
+  input[type=text],input[type=number],input[type=date],textarea,select{padding:10px 14px;border:0.5px solid #ddd;border-radius:9px;font-size:15px;font-family:"Noto Sans Thai",sans-serif;outline:none;width:100%;background:#fff;color:#333;transition:border-color .15s}
+  input:focus,textarea:focus,select:focus{border-color:var(--mint)}
+  textarea{resize:vertical;min-height:80px}
+
+  /* TOGGLE */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:0.5px solid #f0f0ec}
+  .toggle-row:last-child{border-bottom:none}
+  .toggle-label{font-size:15px;color:#444;font-weight:500}
+  .toggle-desc{font-size:12px;color:#aaa;margin-top:2px}
+  .toggle{position:relative;width:42px;height:24px;flex-shrink:0}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:24px;cursor:pointer;transition:.2s}
+  .toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+  .toggle input:checked+.toggle-slider{background:var(--mint)}
+  .toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+
+  /* SALE BOX */
+  #saleExtra{display:none;background:#fffbeb;border:0.5px solid #fde68a;border-radius:10px;padding:16px;margin-top:12px}
+  #saleExtra.show{display:block}
+
+  /* UPLOAD */
+  .upload-zone{border:1.5px dashed #ddd;border-radius:10px;padding:22px;text-align:center;cursor:pointer;transition:all .15s;background:#fafaf8;position:relative;overflow:hidden}
+  .upload-zone:hover{border-color:var(--mint);background:#f0fffe}
+  .upload-zone.has-file{border-color:var(--mint);border-style:solid;background:#f0fffe}
+  .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+  .upload-icon{font-size:28px;margin-bottom:8px}
+  .upload-label{font-size:14px;color:#555;font-weight:500}
+  .upload-sub{font-size:12px;color:#aaa;margin-top:4px}
+  .upload-progress{height:4px;background:#e0e0e0;border-radius:4px;margin-top:12px;display:none}
+  .upload-progress-bar{height:100%;background:var(--mint);border-radius:4px;width:0%;transition:width .3s}
+  .img-preview-wrap{margin-top:10px;position:relative;border-radius:9px;overflow:hidden;border:0.5px solid var(--border)}
+  .img-preview-wrap img{width:100%;display:block;object-fit:cover}
+  .img-preview-wrap .clear-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border:none;color:#fff;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+
+  /* PREVIEW GRID */
+  .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .preview-thumb{position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;border:0.5px solid var(--border)}
+  .preview-thumb img{width:100%;height:100%;object-fit:cover}
+  .preview-thumb .rm{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,.6);border:none;border-radius:50%;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+  /* FONT FILE BOX */
+  .font-file-box{border:0.5px solid var(--border);border-radius:10px;padding:18px;background:#fafaf8;margin-bottom:12px}
+  .font-file-label{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .fbadge{font-size:11px;padding:2px 9px;border-radius:20px}
+  .fbadge-protected{background:#fee2e2;color:#991b1b;border:0.5px solid #fca5a5}
+  .fbadge-public{background:#dcfce7;color:#166534;border:0.5px solid #86efac}
+  .weight-list{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+  .weight-item{display:flex;align-items:center;justify-content:space-between;background:#fff;border:0.5px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px}
+  .weight-item-name{color:var(--navy);font-weight:500;word-break:break-all}
+  .weight-item-size{color:#aaa;font-size:12px;flex-shrink:0;margin-left:8px}
+  .weight-item-rm{background:none;border:none;color:#bbb;cursor:pointer;font-size:17px;margin-left:8px;flex-shrink:0}
+  .weight-item-rm:hover{color:var(--red)}
+
+  /* STATUS */
+  .status-bar{padding:12px 28px;font-size:14px;display:none}
+  .status-bar.show{display:block;background:#e8faf9;color:#0a8a84}
+  .status-bar.error{display:block;background:#fee2e2;color:#991b1b}
+
+  .loading{display:flex;align-items:center;justify-content:center;padding:50px;color:#aaa;font-size:14px;gap:10px}
+  .spin{width:20px;height:20px;border:2px solid #eee;border-top-color:var(--mint);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
   @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
 <div id="authScreen">
   <div class="auth-box">
     <div class="auth-logo">DHAMMADHA STUDIO</div>
     <div class="auth-sub">Admin Panel</div>
-    <input type="email" id="authEmail" placeholder="อีเมล" />
-    <input type="password" id="authPass" placeholder="รหัสผ่าน" />
+    <input type="email" id="authEmail" placeholder="อีเมล">
+    <input type="password" id="authPass" placeholder="รหัสผ่าน">
     <button onclick="doLogin()">เข้าสู่ระบบ</button>
     <div class="auth-err" id="authErr">อีเมลหรือรหัสผ่านไม่ถูกต้อง</div>
   </div>
 </div>
 
-<!-- APP -->
 <div id="appScreen">
   <header>
     <div>
@@ -145,34 +175,22 @@
       <button class="btn-sm btn-mint" onclick="openModal()">+ เพิ่มฟอนต์</button>
     </div>
   </header>
-
   <main>
-    <!-- STATS -->
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">ฟอนต์ทั้งหมด</div></div>
       <div class="stat-card"><div class="stat-num" id="statActive">—</div><div class="stat-label">แสดงบนเว็บ</div></div>
       <div class="stat-card"><div class="stat-num" id="statFree">—</div><div class="stat-label">ฟรี</div></div>
       <div class="stat-card"><div class="stat-num" id="statSale">—</div><div class="stat-label">โปรโมชั่น</div></div>
     </div>
-
-    <!-- TABS -->
     <div class="tabs">
       <div class="tab active" onclick="switchTab('all',this)">ทั้งหมด</div>
       <div class="tab" onclick="switchTab('active',this)">แสดงอยู่</div>
       <div class="tab" onclick="switchTab('hidden',this)">ซ่อนอยู่</div>
       <div class="tab" onclick="switchTab('sale',this)">โปรโมชั่น</div>
     </div>
-
-    <!-- FONT LIST -->
     <div class="font-table">
       <div class="font-table-header">
-        <div>ฟอนต์</div>
-        <div>หมวดหมู่</div>
-        <div>ราคา</div>
-        <div>สถานะ</div>
-        <div>โปรฯ</div>
-        <div>ป้าย</div>
-        <div>จัดการ</div>
+        <div>ฟอนต์</div><div>หมวดหมู่</div><div>ราคา</div><div>สถานะ</div><div>ป้าย</div><div>จัดการ</div>
       </div>
       <div id="fontList"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
     </div>
@@ -188,28 +206,15 @@
     </div>
     <div class="modal-body">
 
-      <!-- BASIC INFO -->
       <div class="form-section">
         <div class="form-section-title">ข้อมูลพื้นฐาน</div>
         <div class="form-row cols-2">
-          <div class="form-group">
-            <label>ชื่อฟอนต์ (EN) *</label>
-            <input type="text" id="fName" placeholder="เช่น SURATANA">
-          </div>
-          <div class="form-group">
-            <label>ชื่อฟอนต์ (TH)</label>
-            <input type="text" id="fNameTh" placeholder="เช่น สุราตานา">
-          </div>
+          <div class="form-group"><label>ชื่อฟอนต์ (EN) *</label><input type="text" id="fName" placeholder="เช่น SURATANA"></div>
+          <div class="form-group"><label>ชื่อฟอนต์ (TH)</label><input type="text" id="fNameTh" placeholder="เช่น สุราตานา"></div>
         </div>
         <div class="form-row cols-2">
-          <div class="form-group">
-            <label>Slug (URL) *</label>
-            <input type="text" id="fSlug" placeholder="เช่น suratana">
-          </div>
-          <div class="form-group">
-            <label>นักออกแบบ</label>
-            <input type="text" id="fDesigner" placeholder="เช่น ธรรมดาสตูดิโอ" value="ธรรมดาสตูดิโอ">
-          </div>
+          <div class="form-group"><label>Slug (URL) *</label><input type="text" id="fSlug" placeholder="เช่น suratana"></div>
+          <div class="form-group"><label>นักออกแบบ</label><input type="text" id="fDesigner" value="ธรรมดาสตูดิโอ"></div>
         </div>
         <div class="form-row cols-2">
           <div class="form-group">
@@ -222,91 +227,127 @@
               <option value="monospace">Monospace</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Tags (คั่นด้วย comma)</label>
-            <input type="text" id="fTags" placeholder="thai, display, bold">
-          </div>
+          <div class="form-group"><label>Tags (คั่นด้วย comma)</label><input type="text" id="fTags" placeholder="thai, display, bold"></div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>คำอธิบาย (TH)</label>
-            <textarea id="fDescTh" placeholder="คำอธิบายภาษาไทย..."></textarea>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>คำอธิบาย (EN)</label>
-            <textarea id="fDescEn" placeholder="English description..."></textarea>
-          </div>
-        </div>
+        <div class="form-row"><div class="form-group"><label>คำอธิบาย (TH)</label><textarea id="fDescTh" placeholder="คำอธิบายภาษาไทย..."></textarea></div></div>
+        <div class="form-row"><div class="form-group"><label>คำอธิบาย (EN)</label><textarea id="fDescEn" placeholder="English description..."></textarea></div></div>
       </div>
 
-      <!-- PRICING -->
       <div class="form-section">
-        <div class="form-section-title">ราคา</div>
-        <div class="form-row cols-3">
-          <div class="form-group">
-            <label>ราคา (฿)</label>
-            <input type="number" id="fPrice" placeholder="0" min="0">
-          </div>
-          <div class="form-group">
-            <label>Sort Order</label>
-            <input type="number" id="fSort" placeholder="0" min="0">
-          </div>
-          <div class="form-group">
-            <label>Sale Label</label>
-            <input type="text" id="fSaleLabel" placeholder="เช่น ลด 30%">
+        <div class="form-section-title">ราคาและโปรโมชั่น</div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>ราคาปกติ (฿)</label><input type="number" id="fPrice" placeholder="0" min="0"></div>
+          <div class="form-group"><label>ส่วนลด % (กรอกเพื่อเปิดโปรโมชั่น)</label><input type="number" id="fDiscount" placeholder="เช่น 30" min="0" max="100" oninput="onDiscountInput()"></div>
+        </div>
+        <div id="saleExtra">
+          <div class="form-row cols-2">
+            <div class="form-group"><label>ข้อความโปรโมชั่น</label><input type="text" id="fSaleLabel" placeholder="เช่น ลด 30% ต้อนรับปีใหม่"></div>
+            <div class="form-group"><label>วันสิ้นสุดโปรโมชั่น</label><input type="date" id="fSaleEnd"></div>
           </div>
         </div>
       </div>
 
-      <!-- TOGGLES -->
       <div class="form-section">
         <div class="form-section-title">การแสดงผล</div>
         <div class="toggle-row">
-          <div><div class="toggle-label">แสดงบนเว็บ</div><div class="toggle-sub">is_active — ปิดเพื่อซ่อนโดยไม่ลบ</div></div>
+          <div><div class="toggle-label">แสดงบนเว็บ</div><div class="toggle-desc">ปิดเพื่อซ่อนโดยไม่ลบข้อมูล</div></div>
           <label class="toggle"><input type="checkbox" id="fActive" checked><span class="toggle-slider"></span></label>
         </div>
         <div class="toggle-row">
-          <div><div class="toggle-label">ฟรี</div><div class="toggle-sub">is_free — แสดงป้าย "ฟรี"</div></div>
-          <label class="toggle"><input type="checkbox" id="fFree"><span class="toggle-slider"></span></label>
+          <div><div class="toggle-label">ฟอนต์ฟรี</div><div class="toggle-desc">ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน</div></div>
+          <label class="toggle"><input type="checkbox" id="fFree" onchange="onFreeToggle()"><span class="toggle-slider"></span></label>
         </div>
         <div class="toggle-row">
-          <div><div class="toggle-label">อยู่ใน Subscription</div><div class="toggle-sub">is_subscription — รวมอยู่ในแพลน</div></div>
+          <div><div class="toggle-label">อยู่ใน Subscription</div><div class="toggle-desc">รวมอยู่ในแพลนรายเดือน</div></div>
           <label class="toggle"><input type="checkbox" id="fSub" checked><span class="toggle-slider"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">โปรโมชั่น</div><div class="toggle-sub">is_sale — แสดง badge ลด%</div></div>
-          <label class="toggle"><input type="checkbox" id="fSale"><span class="toggle-slider"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">ยอดนิยม</div><div class="toggle-sub">is_popular — ขึ้น Slider คัดสรรพิเศษ</div></div>
-          <label class="toggle"><input type="checkbox" id="fPopular"><span class="toggle-slider"></span></label>
         </div>
       </div>
 
-      <!-- COVER IMAGE -->
       <div class="form-section">
-        <div class="form-section-title">Cover Image</div>
-        <div class="form-group">
-          <label>URL รูปปก (Firebase Storage หรือ URL อื่น)</label>
-          <input type="text" id="fCoverUrl" placeholder="https://..." oninput="previewCover(this.value)">
+        <div class="form-section-title">รูปภาพ</div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Cover Image * (แนะนำ 1280×720)</label>
+          <div class="upload-zone" id="coverZone">
+            <input type="file" id="coverFile" accept="image/*" onchange="handleSingleImage(this,'coverZone','coverPreview','cover')">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-label">คลิกเพื่อเลือกรูป Cover</div>
+            <div class="upload-sub">JPG, PNG, WEBP — 16:9</div>
+            <div class="upload-progress" id="coverProg"><div class="upload-progress-bar" id="coverProgBar"></div></div>
+          </div>
+          <div id="coverPreview"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Thumbnail * (แนะนำ 400×400)</label>
+          <div class="upload-zone" id="thumbZone">
+            <input type="file" id="thumbFile" accept="image/*" onchange="handleSingleImage(this,'thumbZone','thumbPreview','thumb')">
+            <div class="upload-icon">📷</div>
+            <div class="upload-label">คลิกเพื่อเลือกรูป Thumbnail</div>
+            <div class="upload-sub">JPG, PNG, WEBP — 1:1</div>
+            <div class="upload-progress" id="thumbProg"><div class="upload-progress-bar" id="thumbProgBar"></div></div>
+          </div>
+          <div id="thumbPreview"></div>
         </div>
         <div class="form-group">
-          <label>สีพื้นหลัง (ถ้ายังไม่มีรูป)</label>
-          <input type="text" id="fBgColor" placeholder="#2B1B3D">
+          <label>รูป Preview (เลือกได้หลายรูป)</label>
+          <div class="upload-zone" id="previewZone">
+            <input type="file" id="previewFiles" accept="image/*" multiple onchange="handleMultiImage(this)">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-label">คลิกเพื่อเลือกรูป Preview</div>
+            <div class="upload-sub">เลือกได้หลายรูปพร้อมกัน</div>
+          </div>
+          <div class="preview-grid" id="previewGrid"></div>
         </div>
-        <div class="cover-preview" id="coverPreview" onclick="document.getElementById('fCoverUrl').focus()">
-          <span id="coverPlaceholder">คลิกเพื่อใส่ URL รูปปก</span>
-          <img id="coverImg" style="display:none" alt="cover preview">
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">ไฟล์ฟอนต์</div>
+        <div class="font-file-box">
+          <div class="font-file-label">Full Family <span class="fbadge fbadge-protected">🔒 Protected — ต้องชำระเงินก่อนดาวน์โหลด</span></div>
+          <div class="upload-zone" id="fullFontZone">
+            <input type="file" id="fullFontFiles" accept=".otf,.ttf,.woff,.woff2,.zip" multiple onchange="handleFontFiles(this,'fullFontList','full')">
+            <div class="upload-icon">🔤</div>
+            <div class="upload-label">อัพโหลดไฟล์ฟอนต์ Full Family</div>
+            <div class="upload-sub">OTF, TTF, WOFF, WOFF2, ZIP</div>
+            <div class="upload-progress" id="fullFontProg"><div class="upload-progress-bar" id="fullFontProgBar"></div></div>
+          </div>
+          <div class="weight-list" id="fullFontList"></div>
+        </div>
+        <div class="font-file-box" id="demoFontBox">
+          <div class="font-file-label">Demo Font <span class="fbadge fbadge-public">🌐 Public — ดาวน์โหลดได้เลย</span> <span style="font-size:12px;color:#aaa;font-weight:400">ถ้ามี จะขึ้น badge DEMO</span></div>
+          <div class="upload-zone" id="demoFontZone">
+            <input type="file" id="demoFontFiles" accept=".otf,.ttf,.woff,.woff2" multiple onchange="handleFontFiles(this,'demoFontList','demo')">
+            <div class="upload-icon">🔤</div>
+            <div class="upload-label">อัพโหลดไฟล์ฟอนต์ Demo</div>
+            <div class="upload-sub">OTF, TTF, WOFF, WOFF2</div>
+            <div class="upload-progress" id="demoFontProg"><div class="upload-progress-bar" id="demoFontProgBar"></div></div>
+          </div>
+          <div class="weight-list" id="demoFontList"></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">ตัวอย่างฟอนต์เพิ่มเติม</div>
+        <div class="font-file-box">
+          <div class="font-file-label">
+            Font Specimen PDF
+            <span class="fbadge fbadge-public">🌐 Public — ดาวน์โหลดได้เลย</span>
+          </div>
+          <div class="upload-zone" id="specimenZone">
+            <input type="file" id="specimenFiles" accept=".pdf" multiple onchange="handleFontFiles(this,'specimenList','specimen')">
+            <div class="upload-icon">📄</div>
+            <div class="upload-label">อัพโหลดไฟล์ตัวอย่างฟอนต์</div>
+            <div class="upload-sub">PDF เท่านั้น — เลือกได้หลายไฟล์</div>
+            <div class="upload-progress" id="specimenProg"><div class="upload-progress-bar" id="specimenProgBar"></div></div>
+          </div>
+          <div class="weight-list" id="specimenList"></div>
         </div>
       </div>
 
     </div>
     <div class="status-bar" id="modalStatus"></div>
     <div class="modal-footer">
-      <button class="btn-sm btn-ghost" style="background:#fff;border:0.5px solid #ddd;color:#666;padding:9px 20px;border-radius:8px;font-family:'Noto Sans Thai',sans-serif;cursor:pointer" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn-sm btn-mint" style="padding:9px 24px;border-radius:8px;font-family:'Noto Sans Thai',sans-serif;cursor:pointer;font-weight:500" onclick="saveFont()">บันทึก</button>
+      <button style="padding:10px 22px;border-radius:9px;font-family:'Noto Sans Thai',sans-serif;cursor:pointer;border:0.5px solid #ddd;background:#fff;color:#666;font-size:15px" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-sm btn-mint" style="padding:10px 28px;border-radius:9px;font-size:15px" id="saveBtn" onclick="saveFont()">บันทึก</button>
     </div>
   </div>
 </div>
@@ -317,256 +358,307 @@ import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, q
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCK7h6hOspbgKJgkmivJ9jxYHCOhmCPAKY",
-  authDomain: "dhammadha-studio.firebaseapp.com",
-  projectId: "dhammadha-studio",
-  storageBucket: "dhammadha-studio.firebasestorage.app",
-  messagingSenderId: "90771649996",
-  appId: "1:90771649996:web:e25d6dabdb938247ead969"
-};
+const app = initializeApp({
+  apiKey:"AIzaSyCK7h6hOspbgKJgkmivJ9jxYHCOhmCPAKY",
+  authDomain:"dhammadha-studio.firebaseapp.com",
+  projectId:"dhammadha-studio",
+  storageBucket:"dhammadha-studio.firebasestorage.app",
+  messagingSenderId:"90771649996",
+  appId:"1:90771649996:web:e25d6dabdb938247ead969"
+});
+const db=getFirestore(app), auth=getAuth(app), storage=getStorage(app);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-let fonts = [];
-let currentTab = 'all';
-let editingId = null;
+let fonts=[],currentTab='all',editingId=null;
+let pendingCover=null,pendingThumb=null,pendingPreviews=[],pendingFullFonts=[],pendingDemoFonts=[],pendingSpecimens=[];
+let exCoverUrl='',exThumbUrl='',exPreviewUrls=[],exFullFontUrls=[],exDemoFontUrls=[],exSpecimenUrls=[];
 
 // ── AUTH ──────────────────────────────────────────
-onAuthStateChanged(auth, user => {
-  if (user) {
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
-    document.getElementById('adminEmail').textContent = user.email;
+onAuthStateChanged(auth,u=>{
+  if(u){
+    document.getElementById('authScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    document.getElementById('adminEmail').textContent=u.email;
     loadFonts();
   } else {
-    document.getElementById('authScreen').style.display = 'flex';
-    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('authScreen').style.display='flex';
+    document.getElementById('appScreen').style.display='none';
   }
 });
-
-window.doLogin = async () => {
-  const email = document.getElementById('authEmail').value;
-  const pass = document.getElementById('authPass').value;
-  const err = document.getElementById('authErr');
-  err.style.display = 'none';
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch(e) {
-    err.style.display = 'block';
-  }
+window.doLogin=async()=>{
+  const e=document.getElementById('authEmail').value,p=document.getElementById('authPass').value;
+  document.getElementById('authErr').style.display='none';
+  try{await signInWithEmailAndPassword(auth,e,p);}catch{document.getElementById('authErr').style.display='block';}
 };
+window.doLogout=()=>signOut(auth);
+document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='Enter')window.doLogin();});
 
-window.doLogout = () => signOut(auth);
-
-// Enter key on auth
-document.getElementById('authPass').addEventListener('keydown', e => {
-  if (e.key === 'Enter') window.doLogin();
-});
-
-// ── LOAD FONTS ────────────────────────────────────
-async function loadFonts() {
-  const q = query(collection(db, 'fonts'), orderBy('sort_order'), orderBy('created_at', 'desc'));
-  const snap = await getDocs(q);
-  fonts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  updateStats();
-  renderList();
+// ── DATA ──────────────────────────────────────────
+async function loadFonts(){
+  const snap=await getDocs(query(collection(db,'fonts'),orderBy('created_at','desc')));
+  fonts=snap.docs.map(d=>({id:d.id,...d.data()}));
+  updateStats(); renderList();
 }
-
-function updateStats() {
-  document.getElementById('statTotal').textContent = fonts.length;
-  document.getElementById('statActive').textContent = fonts.filter(f => f.is_active).length;
-  document.getElementById('statFree').textContent = fonts.filter(f => f.is_free).length;
-  document.getElementById('statSale').textContent = fonts.filter(f => f.is_sale).length;
+function updateStats(){
+  document.getElementById('statTotal').textContent=fonts.length;
+  document.getElementById('statActive').textContent=fonts.filter(f=>f.is_active).length;
+  document.getElementById('statFree').textContent=fonts.filter(f=>f.is_free).length;
+  document.getElementById('statSale').textContent=fonts.filter(f=>f.is_sale).length;
 }
-
-function renderList() {
-  const container = document.getElementById('fontList');
-  let filtered = fonts;
-  if (currentTab === 'active') filtered = fonts.filter(f => f.is_active);
-  if (currentTab === 'hidden') filtered = fonts.filter(f => !f.is_active);
-  if (currentTab === 'sale') filtered = fonts.filter(f => f.is_sale);
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty">
-      <div class="empty-icon">🔤</div>
-      <div class="empty-text">ยังไม่มีฟอนต์</div>
-      <div class="empty-sub">กด "+ เพิ่มฟอนต์" เพื่อเริ่มต้น</div>
-    </div>`;
-    return;
-  }
-
-  container.innerHTML = filtered.map(f => `
-    <div class="font-row">
-      <div>
-        <div class="font-name">${f.name || '—'}</div>
-        <div class="font-name-th">${f.name_th || ''}</div>
-      </div>
-      <div style="font-size:12px;color:#888">${f.category || '—'}</div>
-      <div class="font-price">${f.is_free ? '<span style="color:#0a8a84">ฟรี</span>' : (f.price ? '฿'+f.price.toLocaleString() : '—')}</div>
-      <div><span class="badge-pill ${f.is_active ? 'pill-active' : 'pill-hidden'}">${f.is_active ? 'แสดง' : 'ซ่อน'}</span></div>
-      <div>${f.is_sale ? `<span class="badge-pill pill-free">${f.sale_label || 'Sale'}</span>` : '<span style="color:#ddd;font-size:12px">—</span>'}</div>
-      <div>${f.is_new ? '<span class="badge-pill pill-new">NEW</span>' : '<span style="color:#ddd;font-size:12px">—</span>'}</div>
+function isNew(f){
+  if(!f.created_at)return false;
+  return(Date.now()-(f.created_at.toDate?.()?.getTime()||0))<45*24*60*60*1000;
+}
+function renderList(){
+  const c=document.getElementById('fontList');
+  let list=fonts;
+  if(currentTab==='active')list=fonts.filter(f=>f.is_active);
+  if(currentTab==='hidden')list=fonts.filter(f=>!f.is_active);
+  if(currentTab==='sale')list=fonts.filter(f=>f.is_sale);
+  if(!list.length){c.innerHTML='<div class="empty"><div class="empty-icon">🔤</div><div class="empty-text">ยังไม่มีฟอนต์</div></div>';return;}
+  c.innerHTML=list.map(f=>{
+    const badges=[];
+    if(f.is_sale)badges.push(`<span class="badge-pill pill-sale">${f.sale_label||'Sale'}</span>`);
+    if(f.has_demo)badges.push(`<span class="badge-pill pill-demo">DEMO</span>`);
+    if(isNew(f))badges.push(`<span class="badge-pill pill-new">NEW</span>`);
+    return `<div class="font-row">
+      <div><div class="font-name">${f.name||'—'}</div><div class="font-name-th">${f.name_th||''}</div></div>
+      <div style="font-size:13px;color:#888">${f.category||'—'}</div>
+      <div style="font-size:14px;font-weight:500;color:var(--navy)">${f.is_free?'<span style="color:#0a8a84">ฟรี</span>':(f.price?'฿'+f.price.toLocaleString():'—')}</div>
+      <div><span class="badge-pill ${f.is_active?'pill-active':'pill-hidden'}">${f.is_active?'แสดง':'ซ่อน'}</span></div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap">${badges.join('')||'<span style="color:#ddd;font-size:12px">—</span>'}</div>
       <div class="row-actions">
         <button class="btn-edit" onclick="editFont('${f.id}')">แก้ไข</button>
         <button class="btn-del" onclick="deleteFont('${f.id}','${f.name}')">ลบ</button>
-      </div>
-    </div>
-  `).join('');
+      </div></div>`;
+  }).join('');
 }
-
-// ── TABS ──────────────────────────────────────────
-window.switchTab = (tab, el) => {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderList();
-};
+window.switchTab=(tab,el)=>{currentTab=tab;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderList();};
 
 // ── MODAL ─────────────────────────────────────────
-window.openModal = () => {
-  editingId = null;
-  document.getElementById('modalTitle').textContent = 'เพิ่มฟอนต์ใหม่';
+window.openModal=()=>{editingId=null;document.getElementById('modalTitle').textContent='เพิ่มฟอนต์ใหม่';clearForm();document.getElementById('modalOverlay').classList.add('open');};
+window.closeModal=()=>{document.getElementById('modalOverlay').classList.remove('open');hideStatus();};
+window.deleteFont=async(id,name)=>{if(!confirm(`ลบฟอนต์ "${name}"?`))return;await deleteDoc(doc(db,'fonts',id));await loadFonts();};
+
+window.editFont=(id)=>{
+  const f=fonts.find(x=>x.id===id);if(!f)return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='แก้ไขฟอนต์';
   clearForm();
+  document.getElementById('fName').value=f.name||'';
+  document.getElementById('fNameTh').value=f.name_th||'';
+  document.getElementById('fSlug').value=f.slug||'';
+  document.getElementById('fDesigner').value=f.designer_name||'ธรรมดาสตูดิโอ';
+  document.getElementById('fCategory').value=f.category||'serif';
+  document.getElementById('fTags').value=(f.tags||[]).join(', ');
+  document.getElementById('fDescTh').value=f.description_th||'';
+  document.getElementById('fDescEn').value=f.description_en||'';
+  document.getElementById('fPrice').value=f.price||'';
+  document.getElementById('fActive').checked=f.is_active!==false;
+  document.getElementById('fFree').checked=!!f.is_free;
+  document.getElementById('fSub').checked=f.is_subscription!==false;
+  if(f.discount_percent){
+    document.getElementById('fDiscount').value=f.discount_percent;
+    document.getElementById('saleExtra').classList.add('show');
+    document.getElementById('fSaleLabel').value=f.sale_label||'';
+    if(f.sale_end)document.getElementById('fSaleEnd').value=f.sale_end;
+  }
+  exCoverUrl=f.cover_image_url||'';exThumbUrl=f.thumbnail_url||'';
+  exPreviewUrls=[...(f.preview_images||[])];exFullFontUrls=[...(f.full_font_files||[])];exDemoFontUrls=[...(f.demo_font_files||[])];exSpecimenUrls=[...(f.specimen_files||[])];
+  if(exCoverUrl)showImgPreview('coverPreview','coverZone',exCoverUrl,'cover');
+  if(exThumbUrl)showImgPreview('thumbPreview','thumbZone',exThumbUrl,'thumb');
+  if(exPreviewUrls.length)renderPreviewGrid();
+  if(exFullFontUrls.length)renderExFonts('fullFontList',exFullFontUrls,'full');
+  if(exDemoFontUrls.length)renderExFonts('demoFontList',exDemoFontUrls,'demo');
+  if(exSpecimenUrls.length)renderExFonts('specimenList',exSpecimenUrls,'specimen');
+  onFreeToggle();
   document.getElementById('modalOverlay').classList.add('open');
 };
 
-window.closeModal = () => {
-  document.getElementById('modalOverlay').classList.remove('open');
+function clearForm(){
+  ['fName','fNameTh','fSlug','fDescTh','fDescEn','fTags','fSaleLabel','fDiscount','fSaleEnd'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('fDesigner').value='ธรรมดาสตูดิโอ';
+  document.getElementById('fPrice').value='';
+  document.getElementById('fCategory').value='serif';
+  document.getElementById('fActive').checked=true;
+  document.getElementById('fFree').checked=false;
+  document.getElementById('fSub').checked=true;
+  document.getElementById('saleExtra').classList.remove('show');
+  pendingCover=null;pendingThumb=null;pendingPreviews=[];pendingFullFonts=[];pendingDemoFonts=[];pendingSpecimens=[];
+  exCoverUrl='';exThumbUrl='';exPreviewUrls=[];exFullFontUrls=[];exDemoFontUrls=[];exSpecimenUrls=[];
+  ['coverPreview','thumbPreview'].forEach(id=>document.getElementById(id).innerHTML='');
+  ['coverZone','thumbZone'].forEach(id=>document.getElementById(id).classList.remove('has-file'));
+  document.getElementById('previewGrid').innerHTML='';
+  document.getElementById('fullFontList').innerHTML='';
+  document.getElementById('demoFontList').innerHTML='';
+  document.getElementById('specimenList').innerHTML='';
+  document.getElementById('demoFontBox').style.display='block';
   hideStatus();
+}
+
+// ── IMAGE HANDLERS ────────────────────────────────
+window.handleSingleImage=(input,zoneId,previewId,type)=>{
+  const file=input.files[0];if(!file)return;
+  if(type==='cover')pendingCover=file;
+  if(type==='thumb')pendingThumb=file;
+  showImgPreview(previewId,zoneId,URL.createObjectURL(file),type);
+};
+function showImgPreview(previewId,zoneId,url,type){
+  document.getElementById(zoneId).classList.add('has-file');
+  document.getElementById(previewId).innerHTML=`
+    <div class="img-preview-wrap">
+      <img src="${url}" style="aspect-ratio:${type==='cover'?'16/9':'1/1'}">
+      <button class="clear-btn" onclick="clearImg('${previewId}','${zoneId}','${type}')">✕</button>
+    </div>`;
+}
+window.clearImg=(previewId,zoneId,type)=>{
+  document.getElementById(previewId).innerHTML='';
+  document.getElementById(zoneId).classList.remove('has-file');
+  if(type==='cover'){pendingCover=null;exCoverUrl='';}
+  if(type==='thumb'){pendingThumb=null;exThumbUrl='';}
+};
+window.handleMultiImage=(input)=>{
+  pendingPreviews=[...pendingPreviews,...Array.from(input.files)];
+  renderPreviewGrid();
+};
+function renderPreviewGrid(){
+  const g=document.getElementById('previewGrid');
+  const ex=exPreviewUrls.map((url,i)=>`<div class="preview-thumb"><img src="${url}"><button class="rm" onclick="rmExPreview(${i})">✕</button></div>`).join('');
+  const pend=pendingPreviews.map((f,i)=>`<div class="preview-thumb"><img src="${URL.createObjectURL(f)}"><button class="rm" onclick="rmPreview(${i})">✕</button></div>`).join('');
+  g.innerHTML=ex+pend;
+}
+window.rmPreview=(i)=>{pendingPreviews.splice(i,1);renderPreviewGrid();};
+window.rmExPreview=(i)=>{exPreviewUrls.splice(i,1);renderPreviewGrid();};
+
+// ── FONT FILE HANDLERS ────────────────────────────
+window.handleFontFiles=(input,listId,type)=>{
+  const files=Array.from(input.files);
+  if(type==='full')pendingFullFonts=[...pendingFullFonts,...files];
+  if(type==='demo')pendingDemoFonts=[...pendingDemoFonts,...files];
+  if(type==='specimen')pendingSpecimens=[...pendingSpecimens,...files];
+  const flist=type==='full'?pendingFullFonts:type==='demo'?pendingDemoFonts:pendingSpecimens;
+  renderFontList(listId,flist,type);
+};
+function renderFontList(listId,files,type){
+  document.getElementById(listId).innerHTML=files.map((f,i)=>`
+    <div class="weight-item">
+      <span class="weight-item-name">${f.name}</span>
+      <span class="weight-item-size">${(f.size/1024).toFixed(0)} KB</span>
+      <button class="weight-item-rm" onclick="rmFont(${i},'${type}')">✕</button>
+    </div>`).join('');
+}
+function renderExFonts(listId,urls,type){
+  document.getElementById(listId).innerHTML=urls.map((url,i)=>{
+    const name=decodeURIComponent(url.split('/').pop().split('?')[0]);
+    return `<div class="weight-item">
+      <span class="weight-item-name">${name}</span>
+      <span class="weight-item-size" style="color:var(--mint)">✓ อัพโหลดแล้ว</span>
+      <button class="weight-item-rm" onclick="rmExFont(${i},'${type}')">✕</button>
+    </div>`;
+  }).join('');
+}
+window.rmFont=(i,type)=>{
+  if(type==='full'){pendingFullFonts.splice(i,1);renderFontList('fullFontList',pendingFullFonts,'full');}
+  if(type==='demo'){pendingDemoFonts.splice(i,1);renderFontList('demoFontList',pendingDemoFonts,'demo');}
+  if(type==='specimen'){pendingSpecimens.splice(i,1);renderFontList('specimenList',pendingSpecimens,'specimen');}
+};
+window.rmExFont=(i,type)=>{
+  if(type==='full'){exFullFontUrls.splice(i,1);renderExFonts('fullFontList',exFullFontUrls,'full');}
+  if(type==='demo'){exDemoFontUrls.splice(i,1);renderExFonts('demoFontList',exDemoFontUrls,'demo');}
+  if(type==='specimen'){exSpecimenUrls.splice(i,1);renderExFonts('specimenList',exSpecimenUrls,'specimen');}
 };
 
-window.editFont = (id) => {
-  const f = fonts.find(x => x.id === id);
-  if (!f) return;
-  editingId = id;
-  document.getElementById('modalTitle').textContent = 'แก้ไขฟอนต์';
-  document.getElementById('fName').value = f.name || '';
-  document.getElementById('fNameTh').value = f.name_th || '';
-  document.getElementById('fSlug').value = f.slug || '';
-  document.getElementById('fDesigner').value = f.designer_name || '';
-  document.getElementById('fCategory').value = f.category || 'serif';
-  document.getElementById('fTags').value = (f.tags || []).join(', ');
-  document.getElementById('fDescTh').value = f.description_th || '';
-  document.getElementById('fDescEn').value = f.description_en || '';
-  document.getElementById('fPrice').value = f.price || '';
-  document.getElementById('fSort').value = f.sort_order || 0;
-  document.getElementById('fSaleLabel').value = f.sale_label || '';
-  document.getElementById('fActive').checked = f.is_active !== false;
-  document.getElementById('fFree').checked = !!f.is_free;
-  document.getElementById('fSub').checked = f.is_subscription !== false;
-  document.getElementById('fSale').checked = !!f.is_sale;
-  document.getElementById('fPopular').checked = !!f.is_popular;
-  document.getElementById('fCoverUrl').value = f.cover_image_url || '';
-  document.getElementById('fBgColor').value = f.bg_color || '';
-  previewCover(f.cover_image_url || '');
-  document.getElementById('modalOverlay').classList.add('open');
+// ── DISCOUNT/SALE ─────────────────────────────────
+window.onDiscountInput=()=>{
+  const val=parseInt(document.getElementById('fDiscount').value)||0;
+  if(val>0){
+    document.getElementById('saleExtra').classList.add('show');
+    if(!document.getElementById('fSaleLabel').value)
+      document.getElementById('fSaleLabel').value=`ลด ${val}%`;
+  } else {
+    document.getElementById('saleExtra').classList.remove('show');
+  }
+};
+window.onFreeToggle=()=>{
+  document.getElementById('demoFontBox').style.display=document.getElementById('fFree').checked?'none':'block';
 };
 
-window.deleteFont = async (id, name) => {
-  if (!confirm(`ลบฟอนต์ "${name}" ออกจากระบบ?\n(ไม่สามารถกู้คืนได้)`)) return;
-  await deleteDoc(doc(db, 'fonts', id));
-  await loadFonts();
-};
-
-function clearForm() {
-  ['fName','fNameTh','fSlug','fDescTh','fDescEn','fTags','fSaleLabel','fCoverUrl','fBgColor'].forEach(id => {
-    document.getElementById(id).value = '';
+// ── UPLOAD ────────────────────────────────────────
+function uploadFile(file,path,progBarId){
+  return new Promise((res,rej)=>{
+    const bar=document.getElementById(progBarId);
+    if(bar){bar.style.display='block';}
+    const task=uploadBytesResumable(ref(storage,path),file);
+    task.on('state_changed',
+      s=>{const pct=(s.bytesTransferred/s.totalBytes)*100;if(bar){const b=bar.querySelector('.upload-progress-bar');if(b)b.style.width=pct+'%';}},
+      rej,
+      async()=>res(await getDownloadURL(task.snapshot.ref))
+    );
   });
-  document.getElementById('fDesigner').value = 'ธรรมดาสตูดิโอ';
-  document.getElementById('fPrice').value = '';
-  document.getElementById('fSort').value = fonts.length;
-  document.getElementById('fCategory').value = 'serif';
-  document.getElementById('fActive').checked = true;
-  document.getElementById('fFree').checked = false;
-  document.getElementById('fSub').checked = true;
-  document.getElementById('fSale').checked = false;
-  document.getElementById('fPopular').checked = false;
-  previewCover('');
-  hideStatus();
 }
 
 // ── SAVE ──────────────────────────────────────────
-window.saveFont = async () => {
-  const name = document.getElementById('fName').value.trim();
-  const slug = document.getElementById('fSlug').value.trim().toLowerCase().replace(/\s+/g,'-');
-  if (!name || !slug) { showStatus('กรุณาใส่ชื่อฟอนต์และ slug', true); return; }
+window.saveFont=async()=>{
+  const name=document.getElementById('fName').value.trim();
+  const slug=document.getElementById('fSlug').value.trim().toLowerCase().replace(/\s+/g,'-');
+  if(!name||!slug){showStatus('กรุณาใส่ชื่อฟอนต์และ slug',true);return;}
+  const btn=document.getElementById('saveBtn');
+  btn.textContent='กำลังบันทึก...';btn.disabled=true;
 
-  const data = {
-    name,
-    slug,
-    name_th: document.getElementById('fNameTh').value.trim(),
-    designer_name: document.getElementById('fDesigner').value.trim(),
-    category: document.getElementById('fCategory').value,
-    tags: document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean),
-    description_th: document.getElementById('fDescTh').value.trim(),
-    description_en: document.getElementById('fDescEn').value.trim(),
-    price: parseFloat(document.getElementById('fPrice').value) || 0,
-    sort_order: parseInt(document.getElementById('fSort').value) || 0,
-    sale_label: document.getElementById('fSaleLabel').value.trim(),
-    is_active: document.getElementById('fActive').checked,
-    is_free: document.getElementById('fFree').checked,
-    is_subscription: document.getElementById('fSub').checked,
-    is_sale: document.getElementById('fSale').checked,
-    is_popular: document.getElementById('fPopular').checked,
-    cover_image_url: document.getElementById('fCoverUrl').value.trim(),
-    bg_color: document.getElementById('fBgColor').value.trim(),
-    updated_at: serverTimestamp(),
-  };
+  try{
+    let coverUrl=exCoverUrl,thumbUrl=exThumbUrl;
+    let previewUrls=[...exPreviewUrls],fullUrls=[...exFullFontUrls],demoUrls=[...exDemoFontUrls];
+    const isFree=document.getElementById('fFree').checked;
 
-  try {
-    if (editingId) {
-      await updateDoc(doc(db, 'fonts', editingId), data);
-      showStatus('อัปเดตเรียบร้อย ✓');
-    } else {
-      data.created_at = serverTimestamp();
-      data.is_new = true;
-      await addDoc(collection(db, 'fonts'), data);
-      showStatus('เพิ่มฟอนต์เรียบร้อย ✓');
-    }
+    if(pendingCover){showStatus('อัพโหลด Cover...');coverUrl=await uploadFile(pendingCover,`public/covers/${slug}_cover.${pendingCover.name.split('.').pop()}`,'coverProg');}
+    if(pendingThumb){showStatus('อัพโหลด Thumbnail...');thumbUrl=await uploadFile(pendingThumb,`public/thumbnails/${slug}_thumb.${pendingThumb.name.split('.').pop()}`,'thumbProg');}
+    for(let i=0;i<pendingPreviews.length;i++){showStatus(`อัพโหลดรูป Preview ${i+1}/${pendingPreviews.length}...`);const url=await uploadFile(pendingPreviews[i],`public/previews/${slug}_prev_${Date.now()}_${i}.${pendingPreviews[i].name.split('.').pop()}`,'coverProg');previewUrls.push(url);}
+    for(let i=0;i<pendingFullFonts.length;i++){showStatus(`อัพโหลด Full Font ${i+1}/${pendingFullFonts.length}...`);const url=await uploadFile(pendingFullFonts[i],`protected/fonts/${slug}/${pendingFullFonts[i].name}`,'fullFontProg');fullUrls.push(url);}
+    if(!isFree){for(let i=0;i<pendingDemoFonts.length;i++){showStatus(`อัพโหลด Demo Font ${i+1}/${pendingDemoFonts.length}...`);const url=await uploadFile(pendingDemoFonts[i],`public/demo-fonts/${slug}/${pendingDemoFonts[i].name}`,'demoFontProg');demoUrls.push(url);}}
+    let specUrls=[...exSpecimenUrls];
+    for(let i=0;i<pendingSpecimens.length;i++){showStatus(`อัพโหลด Specimen ${i+1}/${pendingSpecimens.length}...`);const url=await uploadFile(pendingSpecimens[i],`public/specimens/${slug}/${pendingSpecimens[i].name}`,'specimenProg');specUrls.push(url);}
+
+    const disc=parseInt(document.getElementById('fDiscount').value)||0;
+    const price=parseFloat(document.getElementById('fPrice').value)||0;
+    const data={
+      name,slug,
+      name_th:document.getElementById('fNameTh').value.trim(),
+      designer_name:document.getElementById('fDesigner').value.trim(),
+      category:document.getElementById('fCategory').value,
+      tags:document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+      description_th:document.getElementById('fDescTh').value.trim(),
+      description_en:document.getElementById('fDescEn').value.trim(),
+      price,sale_price:disc>0?Math.round(price*(1-disc/100)):price,
+      discount_percent:disc,
+      is_sale:disc>0,
+      sale_label:disc>0?(document.getElementById('fSaleLabel').value.trim()||`ลด ${disc}%`):'',
+      sale_end:document.getElementById('fSaleEnd').value||'',
+      is_active:document.getElementById('fActive').checked,
+      is_free:isFree,
+      is_subscription:document.getElementById('fSub').checked,
+      cover_image_url:coverUrl,thumbnail_url:thumbUrl,
+      preview_images:previewUrls,
+      full_font_files:fullUrls,
+      demo_font_files:demoUrls,
+      has_demo:demoUrls.length>0,
+      specimen_files:specUrls,
+      updated_at:serverTimestamp(),
+    };
+    if(editingId){await updateDoc(doc(db,'fonts',editingId),data);showStatus('✓ อัปเดตเรียบร้อย');}
+    else{data.created_at=serverTimestamp();await addDoc(collection(db,'fonts'),data);showStatus('✓ เพิ่มฟอนต์เรียบร้อย');}
     await loadFonts();
-    setTimeout(closeModal, 1200);
-  } catch(e) {
-    showStatus('เกิดข้อผิดพลาด: ' + e.message, true);
-  }
+    setTimeout(closeModal,1500);
+  }catch(e){showStatus('เกิดข้อผิดพลาด: '+e.message,true);}
+  finally{btn.textContent='บันทึก';btn.disabled=false;}
 };
 
-// ── HELPERS ───────────────────────────────────────
-window.previewCover = (url) => {
-  const img = document.getElementById('coverImg');
-  const placeholder = document.getElementById('coverPlaceholder');
-  if (url) {
-    img.src = url;
-    img.style.display = 'block';
-    placeholder.style.display = 'none';
-  } else {
-    img.style.display = 'none';
-    placeholder.style.display = 'block';
-  }
-};
+function showStatus(msg,isError=false){const b=document.getElementById('modalStatus');b.textContent=msg;b.className='status-bar '+(isError?'error':'show');}
+function hideStatus(){document.getElementById('modalStatus').className='status-bar';}
 
-function showStatus(msg, isError = false) {
-  const bar = document.getElementById('modalStatus');
-  bar.textContent = msg;
-  bar.className = 'status-bar show' + (isError ? ' error' : '');
-}
-function hideStatus() {
-  document.getElementById('modalStatus').className = 'status-bar';
-}
-
-// Auto slug from name
-document.getElementById('fName').addEventListener('input', function() {
-  const slug = document.getElementById('fSlug');
-  if (!editingId) slug.value = this.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-});
-
-// Close modal on overlay click
-document.getElementById('modalOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+document.getElementById('fName').addEventListener('input',function(){if(!editingId)document.getElementById('fSlug').value=this.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');});
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 </script>
 </body>
 </html>
