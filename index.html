@@ -206,11 +206,8 @@
   <div class="section section-white">
   <div class="section-inner">
     <div class="sec-header">
-      <span class="sec-title">ฟอนต์ทั้งหมด</span>
-      <div class="pill-group">
-        <span class="pill active" onclick="setFilter('featured',this)">ฟอนต์แนะนำ</span>
-        <span class="pill" onclick="setFilter('latest',this)">ฟอนต์ล่าสุด</span>
-      </div>
+      <span class="sec-title">ฟอนต์ล่าสุด</span>
+
     </div>
     <div class="font-grid" id="fontGrid">
       <div style="grid-column:1/-1;text-align:center;color:#aaa;padding:40px;font-size:13px">กำลังโหลด...</div>
@@ -418,24 +415,8 @@ function renderGrid(fonts) {
   grid.innerHTML = html;
 }
 
-// ── FILTER ────────────────────────────────────────
-window.setFilter = function(type, el) {
-  currentFilter = type;
-  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  applyFilter();
-};
-
 function applyFilter() {
-  let filtered = allFonts;
-  if (currentFilter === 'latest') {
-    filtered = [...allFonts].sort((a,b) => {
-      const ta = a.created_at?.toDate?.()?.getTime() || 0;
-      const tb = b.created_at?.toDate?.()?.getTime() || 0;
-      return tb - ta;
-    });
-  }
-  renderGrid(filtered);
+  renderGrid(allFonts);
 }
 
 // ── LOAD FROM FIRESTORE ───────────────────────────
