@@ -210,7 +210,7 @@
         <div class="form-section-title">ข้อมูลพื้นฐาน</div>
         <div class="form-row cols-2">
           <div class="form-group"><label>ชื่อฟอนต์ (EN) *</label><input type="text" id="fName" placeholder="เช่น SURATANA"></div>
-          <div class="form-group"><label>ชื่อฟอนต์ (TH)</label><input type="text" id="fNameTh" placeholder="เช่น สุราตานา"></div>
+          <div class="form-group"><label>ชื่อฟอนต์ (TH)</label><input type="text" id="fNameTh" placeholder="เช่น สุรัตนา"></div>
         </div>
         <div class="form-row cols-2">
           <div class="form-group"><label>Slug (URL) *</label><input type="text" id="fSlug" placeholder="เช่น suratana"></div>
@@ -291,7 +291,7 @@
 
       <div class="form-section">
         <div class="form-section-title">ไฟล์ฟอนต์</div>
-        <div class="font-file-box">
+        <div class="font-file-box" id="fullFontBox">
           <div class="font-file-label">Full Family <span class="fbadge fbadge-protected">🔒 Protected — ต้องชำระเงินก่อนดาวน์โหลด</span></div>
           <div class="upload-zone" id="fullFontZone">
             <input type="file" id="fullFontFiles" accept=".otf,.ttf,.woff,.woff2,.zip" multiple onchange="handleFontFiles(this,'fullFontList','full')">
@@ -312,6 +312,19 @@
             <div class="upload-progress" id="demoFontProg"><div class="upload-progress-bar" id="demoFontProgBar"></div></div>
           </div>
           <div class="weight-list" id="demoFontList"></div>
+        </div>
+      </div>
+
+        <div class="font-file-box" id="freeFontBox" style="display:none;margin-bottom:12px">
+          <div class="font-file-label">Free Font <span class="fbadge fbadge-public">🌐 Public — ดาวน์โหลดได้เลย</span> <span style="font-size:12px;color:#aaa;font-weight:400">ถ้ามี จะขึ้น badge FREE</span> <span style="color:var(--red);font-size:12px">*</span></div>
+          <div class="upload-zone" id="freeFontZone">
+            <input type="file" id="freeFontFiles" accept=".otf,.ttf,.woff,.woff2,.zip" multiple onchange="handleFontFiles(this,'freeFontList','free')">
+            <div class="upload-icon">🔤</div>
+            <div class="upload-label">อัพโหลดไฟล์ฟอนต์ฟรี <span style="color:var(--red)">*</span></div>
+            <div class="upload-sub">OTF, TTF, WOFF, WOFF2, ZIP</div>
+            <div class="upload-progress" id="freeFontProg"><div class="upload-progress-bar" id="freeFontProgBar"></div></div>
+          </div>
+          <div class="weight-list" id="freeFontList"></div>
         </div>
       </div>
 
@@ -362,8 +375,8 @@ const app = initializeApp({
 const db=getFirestore(app), auth=getAuth(app), storage=getStorage(app);
 
 let fonts=[],currentTab='all',editingId=null;
-let pendingCover=null,pendingThumb=null,pendingPreviews=[],pendingFullFonts=[],pendingDemoFonts=[],pendingSpecimens=[];
-let exCoverUrl='',exThumbUrl='',exPreviewUrls=[],exFullFontUrls=[],exDemoFontUrls=[],exSpecimenUrls=[];
+let pendingCover=null,pendingThumb=null,pendingPreviews=[],pendingFullFonts=[],pendingDemoFonts=[],pendingSpecimens=[],pendingFreeFonts=[];
+let exCoverUrl='',exThumbUrl='',exPreviewUrls=[],exFullFontUrls=[],exDemoFontUrls=[],exSpecimenUrls=[],exFreeFontUrls=[];
 
 // ── AUTH ──────────────────────────────────────────
 onAuthStateChanged(auth,u=>{
@@ -456,12 +469,13 @@ window.editFont=(id)=>{
     if(f.sale_end)document.getElementById('fSaleEnd').value=f.sale_end;
   }
   exCoverUrl=f.cover_image_url||'';exThumbUrl=f.thumbnail_url||'';
-  exPreviewUrls=[...(f.preview_images||[])];exFullFontUrls=[...(f.full_font_files||[])];exDemoFontUrls=[...(f.demo_font_files||[])];exSpecimenUrls=[...(f.specimen_files||[])];
+  exPreviewUrls=[...(f.preview_images||[])];exFullFontUrls=[...(f.full_font_files||[])];exDemoFontUrls=[...(f.demo_font_files||[])];exSpecimenUrls=[...(f.specimen_files||[])];exFreeFontUrls=[...(f.free_font_files||[])];
   if(exCoverUrl)showImgPreview('coverPreview','coverZone',exCoverUrl,'cover');
   if(exPreviewUrls.length)renderPreviewGrid();
   if(exFullFontUrls.length)renderExFonts('fullFontList',exFullFontUrls,'full');
   if(exDemoFontUrls.length)renderExFonts('demoFontList',exDemoFontUrls,'demo');
   if(exSpecimenUrls.length)renderExFonts('specimenList',exSpecimenUrls,'specimen');
+  if(exFreeFontUrls.length)renderExFonts('freeFontList',exFreeFontUrls,'free');
   onFreeToggle();
   document.getElementById('modalOverlay').classList.add('open');
 };
@@ -475,14 +489,15 @@ function clearForm(){
   document.getElementById('fFree').checked=false;
   document.getElementById('fSub').checked=true;
   document.getElementById('saleExtra').classList.remove('show');
-  pendingCover=null;pendingThumb=null;pendingPreviews=[];pendingFullFonts=[];pendingDemoFonts=[];pendingSpecimens=[];
-  exCoverUrl='';exThumbUrl='';exPreviewUrls=[];exFullFontUrls=[];exDemoFontUrls=[];exSpecimenUrls=[];
+  pendingCover=null;pendingThumb=null;pendingPreviews=[];pendingFullFonts=[];pendingDemoFonts=[];pendingSpecimens=[];pendingFreeFonts=[];
+  exCoverUrl='';exThumbUrl='';exPreviewUrls=[];exFullFontUrls=[];exDemoFontUrls=[];exSpecimenUrls=[];exFreeFontUrls=[];
   document.getElementById('coverPreview').innerHTML='';
   document.getElementById('coverZone').classList.remove('has-file');
   document.getElementById('previewGrid').innerHTML='';
   document.getElementById('fullFontList').innerHTML='';
   document.getElementById('demoFontList').innerHTML='';
   document.getElementById('specimenList').innerHTML='';
+  document.getElementById('freeFontList').innerHTML='';
   document.getElementById('demoFontBox').style.display='block';
   hideStatus();
 }
@@ -525,7 +540,8 @@ window.handleFontFiles=(input,listId,type)=>{
   if(type==='full')pendingFullFonts=[...pendingFullFonts,...files];
   if(type==='demo')pendingDemoFonts=[...pendingDemoFonts,...files];
   if(type==='specimen')pendingSpecimens=[...pendingSpecimens,...files];
-  const flist=type==='full'?pendingFullFonts:type==='demo'?pendingDemoFonts:pendingSpecimens;
+  if(type==='free')pendingFreeFonts=[...pendingFreeFonts,...files];
+  const flist=type==='full'?pendingFullFonts:type==='demo'?pendingDemoFonts:type==='specimen'?pendingSpecimens:pendingFreeFonts;
   renderFontList(listId,flist,type);
 };
 function renderFontList(listId,files,type){
@@ -550,11 +566,13 @@ window.rmFont=(i,type)=>{
   if(type==='full'){pendingFullFonts.splice(i,1);renderFontList('fullFontList',pendingFullFonts,'full');}
   if(type==='demo'){pendingDemoFonts.splice(i,1);renderFontList('demoFontList',pendingDemoFonts,'demo');}
   if(type==='specimen'){pendingSpecimens.splice(i,1);renderFontList('specimenList',pendingSpecimens,'specimen');}
+  if(type==='free'){pendingFreeFonts.splice(i,1);renderFontList('freeFontList',pendingFreeFonts,'free');}
 };
 window.rmExFont=(i,type)=>{
   if(type==='full'){exFullFontUrls.splice(i,1);renderExFonts('fullFontList',exFullFontUrls,'full');}
   if(type==='demo'){exDemoFontUrls.splice(i,1);renderExFonts('demoFontList',exDemoFontUrls,'demo');}
   if(type==='specimen'){exSpecimenUrls.splice(i,1);renderExFonts('specimenList',exSpecimenUrls,'specimen');}
+  if(type==='free'){exFreeFontUrls.splice(i,1);renderExFonts('freeFontList',exFreeFontUrls,'free');}
 };
 
 // ── DISCOUNT/SALE ─────────────────────────────────
@@ -570,15 +588,9 @@ window.onDiscountInput=()=>{
 };
 window.onFreeToggle=()=>{
   const isFree=document.getElementById('fFree').checked;
-  const box=document.getElementById('demoFontBox');
-  const label=document.getElementById('demoFontLabel');
-  if(isFree){
-    box.style.display='block';
-    label.innerHTML='Free Font <span class="fbadge fbadge-public">🌐 Public — ดาวน์โหลดได้เลย</span> <span style="font-size:12px;color:#aaa;font-weight:400">ถ้ามี จะขึ้น badge FREE</span>';
-  } else {
-    box.style.display='block';
-    label.innerHTML='Demo Font <span class="fbadge fbadge-public">🌐 Public — ดาวน์โหลดได้เลย</span> <span style="font-size:12px;color:#aaa;font-weight:400">ถ้ามี จะขึ้น badge DEMO</span>';
-  }
+  document.getElementById('fullFontBox').style.display=isFree?'none':'block';
+  document.getElementById('demoFontBox').style.display=isFree?'none':'block';
+  document.getElementById('freeFontBox').style.display=isFree?'block':'none';
 };
 
 // ── UPLOAD ────────────────────────────────────────
@@ -600,6 +612,9 @@ window.saveFont=async()=>{
   const name=document.getElementById('fName').value.trim();
   const slug=document.getElementById('fSlug').value.trim().toLowerCase().replace(/\s+/g,'-');
   if(!name||!slug){showStatus('กรุณาใส่ชื่อฟอนต์และ slug',true);return;}
+  const isFreeCheck=document.getElementById('fFree').checked;
+  if(isFreeCheck&&pendingFreeFonts.length===0&&exFreeFontUrls.length===0){showStatus('กรุณาอัพโหลดไฟล์ Free Font',true);return;}
+  if(!isFreeCheck&&pendingFullFonts.length===0&&exFullFontUrls.length===0){showStatus('กรุณาอัพโหลดไฟล์ Full Family',true);return;}
   const btn=document.getElementById('saveBtn');
   btn.textContent='กำลังบันทึก...';btn.disabled=true;
 
@@ -612,6 +627,8 @@ window.saveFont=async()=>{
     for(let i=0;i<pendingPreviews.length;i++){showStatus(`อัพโหลดรูป Preview ${i+1}/${pendingPreviews.length}...`);const url=await uploadFile(pendingPreviews[i],`public/previews/${slug}_prev_${Date.now()}_${i}.${pendingPreviews[i].name.split('.').pop()}`,'coverProg');previewUrls.push(url);}
     for(let i=0;i<pendingFullFonts.length;i++){showStatus(`อัพโหลด Full Font ${i+1}/${pendingFullFonts.length}...`);const url=await uploadFile(pendingFullFonts[i],`protected/fonts/${slug}/${pendingFullFonts[i].name}`,'fullFontProg');fullUrls.push(url);}
     if(!isFree){for(let i=0;i<pendingDemoFonts.length;i++){showStatus(`อัพโหลด Demo Font ${i+1}/${pendingDemoFonts.length}...`);const url=await uploadFile(pendingDemoFonts[i],`public/demo-fonts/${slug}/${pendingDemoFonts[i].name}`,'demoFontProg');demoUrls.push(url);}}
+    let freeUrls=[...exFreeFontUrls];
+    if(isFree){for(let i=0;i<pendingFreeFonts.length;i++){showStatus(`อัพโหลด Free Font ${i+1}/${pendingFreeFonts.length}...`);const url=await uploadFile(pendingFreeFonts[i],`public/free-fonts/${slug}/${pendingFreeFonts[i].name}`,'freeFontProg');freeUrls.push(url);}}
     let specUrls=[...exSpecimenUrls];
     for(let i=0;i<pendingSpecimens.length;i++){showStatus(`อัพโหลด Specimen ${i+1}/${pendingSpecimens.length}...`);const url=await uploadFile(pendingSpecimens[i],`public/specimens/${slug}/${pendingSpecimens[i].name}`,'specimenProg');specUrls.push(url);}
 
@@ -639,6 +656,7 @@ window.saveFont=async()=>{
       demo_font_files:demoUrls,
       has_demo:demoUrls.length>0,
       specimen_files:specUrls,
+      free_font_files:freeUrls,
       updated_at:serverTimestamp(),
     };
     if(editingId){await updateDoc(doc(db,'fonts',editingId),data);showStatus('✓ อัปเดตเรียบร้อย');}
