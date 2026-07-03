@@ -72,7 +72,7 @@ export default function ComingSoonPage() {
             ฟอนต์ไทยไม่จำกัด<br />ด้วย <em className="text-mint not-italic">Subscription</em>
           </h1>
           <p className="text-[15px] text-[#666] leading-[1.7] mb-9">
-            เข้าถึงฟอนต์ทุกตัวในคลังด้วยแพลนรายเดือนเดียว<br />
+            เข้าถึงฟอนต์ทุกตัวในคลังด้วยแพลนรายเดือน<br />
             ไม่ต้องซื้อทีละชุด ใช้ได้ทันที อัปเดตตลอดเวลา
           </p>
 
