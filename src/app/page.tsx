@@ -15,12 +15,18 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 const SLIDER_SIZE = 8;
-const VISIBLE = 3;
+const MAX_VISIBLE = 3;
 
 function buildSliderPool(fonts: Font[]): Font[] {
   const sale = fonts.filter((f) => f.is_sale);
   const others = shuffle(fonts.filter((f) => !f.is_sale));
   return [...sale, ...others].slice(0, SLIDER_SIZE);
+}
+
+// Build infinite strip: [last V items] + pool + [first V items]
+function buildStrip(pool: Font[], v: number): Font[] {
+  if (!pool.length) return [];
+  return [...pool.slice(-v), ...pool, ...pool.slice(0, v)];
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -29,9 +35,16 @@ const GRID_SHOW = 11;
 export default function HomePage() {
   const [fonts, setFonts] = useState<Font[]>([]);
   const [sliderPool, setSliderPool] = useState<Font[]>([]);
-  const [slide, setSlide] = useState(0);
   const [loading, setLoading] = useState(true);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Carousel
+  const n = sliderPool.length;
+  const showCount = Math.min(n, MAX_VISIBLE);
+  const strip = buildStrip(sliderPool, showCount);
+  const [pos, setPos] = useState(showCount); // start after prepended clones
+  const [animated, setAnimated] = useState(true);
+  const dotIdx = n > 0 ? (pos - showCount + n * 10) % n : 0;
 
   useEffect(() => {
     async function load() {
@@ -55,28 +68,41 @@ export default function HomePage() {
     load();
   }, []);
 
-  const n = sliderPool.length;
-
-  useEffect(() => {
-    if (!n) return;
-    timerRef.current = setInterval(() => {
-      setSlide((s) => (s + 1) % n);
-    }, 4000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [n]);
-
-  const sliderVisible = n > 0
-    ? [0, 1, 2].map((i) => sliderPool[(slide + i) % n])
-    : [];
   const gridFonts = fonts.slice(0, GRID_SHOW);
   const remaining = fonts.length - GRID_SHOW;
 
+  // Reset strip position when pool changes
+  useEffect(() => {
+    setPos(showCount || 0);
+    setAnimated(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
+  }, [sliderPool, showCount]);
+
+  // Auto-advance
+  useEffect(() => {
+    if (n < 2) return;
+    timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [n]);
+
+  // Re-enable animation after instant snap
+  useEffect(() => {
+    if (!animated) {
+      requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
+    }
+  }, [animated]);
+
+  function onTransitionEnd() {
+    if (pos >= n + showCount) { setAnimated(false); setPos(showCount); }
+    else if (pos <= 0 && showCount > 0) { setAnimated(false); setPos(n); }
+  }
+
   function moveSlide(dir: number) {
-    if (!n) return;
-    setSlide((s) => (s + dir + n) % n);
+    if (n < 2) return;
+    setPos((p) => p + dir);
     if (timerRef.current) {
       clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => setSlide((s) => (s + 1) % n), 4000);
+      timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
     }
   }
 
@@ -116,51 +142,60 @@ export default function HomePage() {
           <div className="flex justify-between items-center mb-3.5">
             <span className="text-[32px] font-semibold text-navy">คัดสรรพิเศษ</span>
           </div>
-          <div className="relative px-8">
-            <button
-              onClick={() => moveSlide(-1)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[22px] text-[#bbb] hover:text-navy transition-colors p-2 z-10"
-              aria-label="ก่อนหน้า"
-            >
-              ‹
-            </button>
-
-            {loading ? (
-              <div className="grid grid-cols-3 gap-5">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="bg-white rounded-lg aspect-video animate-pulse" />
-                ))}
-              </div>
-            ) : sliderPool.length === 0 ? (
-              <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {sliderVisible.map((f, i) => (
-                  <FontCard key={`${f.id}-${i}`} font={f} />
-                ))}
-              </div>
+          <div className="relative">
+            {/* Prev */}
+            {n > 1 && (
+              <button onClick={() => moveSlide(-1)}
+                className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
+                ‹
+              </button>
             )}
 
-            <button
-              onClick={() => moveSlide(1)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[22px] text-[#bbb] hover:text-navy transition-colors p-2 z-10"
-              aria-label="ถัดไป"
-            >
-              ›
-            </button>
+            {/* Strip */}
+            <div className="overflow-hidden mx-8">
+              {loading ? (
+                <div className="flex gap-5">
+                  {[0,1,2].map((i) => <div key={i} className="flex-none w-1/3 bg-white rounded-lg aspect-video animate-pulse" />)}
+                </div>
+              ) : n === 0 ? (
+                <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
+              ) : (
+                <div
+                  className="flex"
+                  style={{
+                    // translateX(%) is relative to the element itself
+                    // moving pos items = -(pos/strip.length)*100% of strip
+                    transform: `translateX(${-(pos / strip.length) * 100}%)`,
+                    transition: animated ? "transform 0.45s cubic-bezier(0.25,0.1,0.25,1)" : "none",
+                    // strip total width relative to the overflow container
+                    width: `${(strip.length / showCount) * 100}%`,
+                  }}
+                  onTransitionEnd={onTransitionEnd}
+                >
+                  {strip.map((f, i) => (
+                    <div key={i} style={{ width: `${100 / strip.length}%`, padding: "0 10px" }}>
+                      <FontCard font={f} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Next */}
+            {n > 1 && (
+              <button onClick={() => moveSlide(1)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
+                ›
+              </button>
+            )}
           </div>
 
           {n > 1 && (
             <div className="flex gap-1.5 justify-center mt-3.5">
               {Array.from({ length: n }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSlide(i)}
-                  className={`w-[7px] h-[7px] rounded-full border-none cursor-pointer transition-colors ${
-                    i === slide ? "bg-navy" : "bg-[#ddd]"
-                  }`}
-                  aria-label={`ตำแหน่ง ${i + 1}`}
-                />
+                <button key={i} onClick={() => { setPos(showCount + i); }}
+                  className={`w-[7px] h-[7px] rounded-full border-none cursor-pointer transition-colors ${i === dotIdx ? "bg-navy" : "bg-[#ddd]"}`}
+                  aria-label={`ตำแหน่ง ${i + 1}`} />
               ))}
             </div>
           )}
