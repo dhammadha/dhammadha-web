@@ -29,7 +29,8 @@ function weightToCss(name: string): number {
 }
 
 function getUniqueWeights(urls: string[]): string[] {
-  return [...new Set(urls.map(parseWeight))];
+  const unique = [...new Set(urls.map(parseWeight))];
+  return unique.sort((a, b) => weightToCss(a) - weightToCss(b));
 }
 
 function getFormats(urls: string[]): string {
