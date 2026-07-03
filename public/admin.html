@@ -53,8 +53,8 @@
   .tab.active{background:var(--navy);color:#fff}
 
   .font-table{background:#fff;border-radius:12px;border:0.5px solid var(--border);overflow:hidden}
-  .font-table-header{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px 130px;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
-  .font-row{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px 130px;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .font-table-header{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px auto;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .font-row{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px auto;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
   .font-row:last-child{border-bottom:none}
   .font-row:hover{background:#fafaf8}
   .font-name{font-size:14px;font-weight:600;color:var(--navy)}
@@ -538,7 +538,6 @@ function renderList(){
       <div class="row-actions">
         <button class="btn ${isActive?'btn-outline':'btn-mint'}" style="padding:4px 10px;font-size:11px" onclick="toggleActive('${f.id}',${isActive})">${isActive?'ซ่อน':'แสดง'}</button>
         <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="editFont('${f.id}')">แก้ไข</button>
-        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="generatePreviewFont('${f.id}')" title="สร้าง Obfuscated Preview Font">${f.obfuscated_font_files?.length?'🔒 Preview':'⚙️ สร้าง Preview'}</button>
         <button class="btn btn-danger" style="padding:4px 9px;font-size:11px" onclick="deleteFont('${f.id}','${f.name}')">ลบ</button>
       </div>
     </div>`;
