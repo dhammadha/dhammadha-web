@@ -17,6 +17,17 @@ function parseWeight(url: string): string {
   return parts.length > 1 ? parts[parts.length - 1] : "Regular";
 }
 
+const WEIGHT_MAP: Record<string, number> = {
+  thin: 100, extralight: 200, ultralight: 200, light: 300,
+  regular: 400, normal: 400, medium: 500, semibold: 600,
+  demibold: 600, bold: 700, extrabold: 800, ultrabold: 800,
+  black: 900, heavy: 900,
+};
+
+function weightToCss(name: string): number {
+  return WEIGHT_MAP[name.toLowerCase()] ?? 400;
+}
+
 function getUniqueWeights(urls: string[]): string[] {
   return [...new Set(urls.map(parseWeight))];
 }
@@ -109,7 +120,7 @@ export default function FontDetail() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
-  // Inject @font-face for preview — prefers obfuscated files, falls back to demo/full/free
+  // Inject @font-face per weight — prefers obfuscated files, falls back to demo/full/free
   useEffect(() => {
     if (!font?.slug) return;
     const previewFiles = font.obfuscated_font_files?.length
@@ -125,7 +136,8 @@ export default function FontDetail() {
     const faces = previewFiles.map((url) => {
       const ext = decodeURIComponent(url.split("?")[0]).split(".").pop()?.toLowerCase() || "woff2";
       const fmt = ext === "otf" ? "opentype" : ext === "ttf" ? "truetype" : ext;
-      return `@font-face { font-family: "${family}"; src: url("${url}") format("${fmt}"); font-display: block; }`;
+      const w = weightToCss(parseWeight(url));
+      return `@font-face { font-family: "${family}"; font-weight: ${w}; src: url("${url}") format("${fmt}"); font-display: block; }`;
     }).join("\n");
 
     const style = document.createElement("style");
@@ -276,15 +288,16 @@ export default function FontDetail() {
                 )}
               </div>
             </div>
-            <div className="relative w-full min-h-[100px]">
+            <div className="relative w-full h-[140px]">
               {/* Display layer: encoded text rendered with obfuscated font */}
               <div
                 aria-hidden
-                className="w-full min-h-[100px] bg-bg rounded-lg px-4 py-3 border border-[0.5px] border-border pointer-events-none whitespace-pre-wrap break-words"
+                className="absolute inset-0 bg-bg rounded-lg px-4 py-3 border border-[0.5px] border-border pointer-events-none whitespace-pre-wrap break-words overflow-hidden"
                 style={{
                   fontSize: `${fontSize}px`,
                   lineHeight: 1.45,
                   fontFamily: font ? `"preview-${font.slug}", sans-serif` : undefined,
+                  fontWeight: weightToCss(selectedWeight),
                   color: testerInput ? "var(--color-navy, #2B1B3D)" : "#bbb",
                 }}
               >
@@ -294,7 +307,7 @@ export default function FontDetail() {
                       : testerInput)
                   : "พิมพ์ทดสอบได้ที่นี่"}
               </div>
-              {/* Input layer: transparent, captures typing */}
+              {/* Input layer: same font applied so cursor aligns with display */}
               <textarea
                 value={testerInput}
                 onChange={(e) => setTesterInput(e.target.value)}
@@ -303,6 +316,8 @@ export default function FontDetail() {
                 style={{
                   fontSize: `${fontSize}px`,
                   lineHeight: 1.45,
+                  fontFamily: font ? `"preview-${font.slug}", sans-serif` : undefined,
+                  fontWeight: weightToCss(selectedWeight),
                   color: "transparent",
                   caretColor: "var(--color-navy, #2B1B3D)",
                 }}
@@ -316,17 +331,17 @@ export default function FontDetail() {
             {/* LEFT: Font Info */}
             <div className="bg-white border border-[0.5px] border-border rounded-xl p-5">
               <div className="mb-4">
-                <div className="text-[22px] font-semibold text-navy leading-snug">
+                <div className="text-[26px] font-semibold text-navy leading-snug">
                   {mainTitle}
                 </div>
                 {subTitle && (
-                  <div className="text-[13px] text-[#aaa] mt-1">{subTitle}</div>
+                  <div className="text-[14px] text-[#aaa] mt-1">{subTitle}</div>
                 )}
               </div>
 
               <div className="h-[0.5px] bg-border mb-3.5" />
 
-              <table className="w-full text-[13px] border-collapse">
+              <table className="w-full text-[14px] border-collapse">
                 <tbody>
                   <tr>
                     <td className="py-1.5 text-[#888] w-[45%]">น้ำหนัก</td>
@@ -360,7 +375,7 @@ export default function FontDetail() {
               )}
 
               {font.description_th && (
-                <p className="text-[13px] text-[#555] leading-[1.75]">
+                <p className="text-[14px] text-[#555] leading-[1.75]">
                   {font.description_th}
                 </p>
               )}
@@ -370,7 +385,7 @@ export default function FontDetail() {
                   {font.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-[11px] px-2 py-0.5 rounded-full bg-bg border border-[0.5px] border-border text-[#888]"
+                      className="text-[12px] px-2 py-0.5 rounded-full bg-bg border border-[0.5px] border-border text-[#888]"
                     >
                       {tag}
                     </span>
@@ -400,7 +415,7 @@ export default function FontDetail() {
 
               {/* Personal tier */}
               <div>
-                <div className="text-[12px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
+                <div className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
                   บุคคลทั่วไป
                 </div>
                 <div className="border border-[0.5px] border-border rounded-[8px] p-3 mb-2.5">
@@ -485,14 +500,13 @@ export default function FontDetail() {
 
               {/* Org tiers */}
               <div>
-                <div className="text-[12px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
+                <div className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
                   ห้างร้าน องค์กร บริษัท
                 </div>
                 <div className="flex flex-col gap-2 mb-2.5">
                   {[
                     { name: "บริษัทขนาดเล็ก / กลาง", desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง", price: "฿3,500" },
                     { name: "บริษัทใหญ่ / Ad Agency", desc: "ไม่จำกัดจำนวนเครื่อง", price: "฿7,000" },
-                    { name: "ใช้งานเพิ่มเติม", desc: "ตาม ข้อ (3) ใน สัญญาอนุญาต", price: "฿20,000" },
                   ].map((tier) => (
                     <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
                       <div className="flex justify-between items-center">
@@ -502,10 +516,20 @@ export default function FontDetail() {
                       <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
                     </div>
                   ))}
+                  <div className="border border-[0.5px] border-border rounded-[8px] p-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[14px] font-medium text-navy">ใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต</span>
+                      <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿20,000</span>
+                    </div>
+                    <div className="text-[12px] text-[#aaa] mt-0.5">
+                      ดูรายละเอียด{" "}
+                      <Link href="/agreement/" className="text-mint no-underline hover:underline">สัญญาอนุญาต</Link>
+                    </div>
+                  </div>
                 </div>
                 <Link
                   href="/quote/"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 border border-[0.5px] border-navy rounded-[9px] text-[15px] text-navy no-underline hover:bg-mint hover:border-mint hover:text-navy transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-navy border border-[0.5px] border-navy rounded-[9px] text-[15px] text-white no-underline hover:bg-mint hover:border-mint hover:text-navy transition-colors"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
