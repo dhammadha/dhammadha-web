@@ -516,8 +516,9 @@ function renderList(){
   }
   c.innerHTML=list.map(f=>{
     const tags=(f.tags||[]).slice(0,4).join(', ');
+    const fmtDate=s=>{if(!s)return'';const[y,m,d]=s.split('-');return`${d}-${m}-${y}`;};
     const promoText=f.is_sale
-      ?`<span style="color:#856404;font-size:12px">ลด ${f.discount_percent||0}%${f.sale_end?` ถึง ${f.sale_end}`:''}</span>`
+      ?`<span style="color:#856404;font-size:12px">ลด ${f.discount_percent||0}%${f.sale_end?` ถึง ${fmtDate(f.sale_end)}`:''}</span>`
       :`<span style="color:#ddd">—</span>`;
     const priceText=f.is_free
       ?`<span style="color:#166534;font-size:13px;font-weight:500">ฟรี</span>`
