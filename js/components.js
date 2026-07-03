@@ -36,5 +36,12 @@ window.setLang = function(code, el) {
 // โหลด components เมื่อ DOM พร้อม
 document.addEventListener('DOMContentLoaded', () => {
   loadComponent('nav-root', '/components/nav.html');
-  loadComponent('footer-root', '/components/footer.html');
+  loadComponent('footer-root', '/components/footer.html').then(() => {
+    document.querySelectorAll('[data-href]').forEach(el => {
+      el.addEventListener('click', e => {
+        e.preventDefault();
+        window.open(el.dataset.href, '_blank', 'noopener');
+      });
+    });
+  });
 });
