@@ -35,19 +35,23 @@ function getFormats(urls: string[]): string {
 
 export default function FontDetail() {
   const params = useParams();
-  // On Firebase Hosting, /fonts/[slug] is rewritten to /fonts/_/index.html
-  // so useParams returns "_". Read the real slug from window.location.pathname instead.
-  const [slug, setSlug] = useState(
-    typeof params?.slug === "string" && params.slug !== "_" ? params.slug : ""
-  );
-  useEffect(() => {
-    const parts = window.location.pathname.split("/").filter(Boolean);
-    const urlSlug = parts[parts.length - 1] || "";
-    if (urlSlug && urlSlug !== "_") setSlug(urlSlug);
-  }, []);
+  // slug starts empty — set from window.location.pathname on mount
+  // (Firebase Hosting rewrites /fonts/[slug] → /fonts/_/, so useParams gives "_")
+  const [slug, setSlug] = useState("");
   const [font, setFont] = useState<Font | null>(null);
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Resolve real slug from URL before any fetch
+  useEffect(() => {
+    const paramSlug = typeof params?.slug === "string" ? params.slug : "";
+    if (paramSlug && paramSlug !== "_") {
+      setSlug(paramSlug);
+    } else {
+      const parts = window.location.pathname.split("/").filter(Boolean);
+      setSlug(parts[parts.length - 1] || "");
+    }
+  }, [params?.slug]);
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedWeight, setSelectedWeight] = useState("");
   const [fontSize, setFontSize] = useState("36");
@@ -55,7 +59,9 @@ export default function FontDetail() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    if (!slug) return; // wait until slug is resolved from URL
     async function load() {
+      setLoading(true);
       try {
         const snap = await getDocs(
           query(collection(db, "fonts"), where("slug", "==", slug), where("is_active", "==", true))
