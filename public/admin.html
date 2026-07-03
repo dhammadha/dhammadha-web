@@ -509,7 +509,7 @@ function renderList(){
   if(currentTab==='hidden')list=fonts.filter(f=>!f.is_active);
   if(currentTab==='sale')list=fonts.filter(f=>f.is_sale);
   if(!list.length){
-    c.innerHTML='<div class="empty"><div class="empty-icon">🔤</div><div class="empty-text">ยังไม่มีฟอนต์ในหมวดนี้</div></div>';
+    c.innerHTML='<div class="empty"><div class="empty-text">ยังไม่มีฟอนต์ในหมวดนี้</div></div>';
     return;
   }
   c.innerHTML=list.map(f=>{
