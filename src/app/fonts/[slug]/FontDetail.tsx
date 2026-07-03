@@ -108,6 +108,30 @@ export default function FontDetail() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
+  // Inject @font-face for preview — uses demo files if available, else full/free
+  useEffect(() => {
+    if (!font?.slug) return;
+    const previewFiles = font.demo_font_files?.length
+      ? font.demo_font_files
+      : font.full_font_files?.length
+      ? font.full_font_files
+      : font.free_font_files || [];
+    if (!previewFiles.length) return;
+
+    const family = `preview-${font.slug}`;
+    const faces = previewFiles.map((url) => {
+      const ext = decodeURIComponent(url.split("?")[0]).split(".").pop()?.toLowerCase() || "woff2";
+      const fmt = ext === "otf" ? "opentype" : ext === "ttf" ? "truetype" : ext;
+      return `@font-face { font-family: "${family}"; src: url("${url}") format("${fmt}"); font-display: block; }`;
+    }).join("\n");
+
+    const style = document.createElement("style");
+    style.id = `preview-font-${font.slug}`;
+    style.textContent = faces;
+    document.head.appendChild(style);
+    return () => { document.getElementById(`preview-font-${font.slug}`)?.remove(); };
+  }, [font?.slug]);
+
   function moveSlide(dir: number) {
     setSlideIdx((i) => (i + dir + images.length) % images.length);
     if (timerRef.current) {
@@ -222,11 +246,10 @@ export default function FontDetail() {
           </div>
 
           {/* TYPE TESTER */}
+          {/* Font face is injected via <style> tag when font data loads — see useEffect below */}
           <div className="bg-white border border-[0.5px] border-border rounded-xl p-5 mb-5">
             <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-              <span className="text-[14px] font-semibold text-navy">
-                ทดสอบฟอนต์
-              </span>
+              <span className="text-[15px] font-semibold text-navy">ทดสอบฟอนต์</span>
               <div className="flex gap-2">
                 <select
                   value={fontSize}
@@ -254,8 +277,12 @@ export default function FontDetail() {
               contentEditable
               suppressContentEditableWarning
               spellCheck={false}
-              className="w-full min-h-[80px] flex items-center bg-bg rounded-lg px-4 py-3 outline-none text-[#bbb] border border-[0.5px] border-border"
-              style={{ fontSize: `${fontSize}px`, lineHeight: 1.45 }}
+              className="w-full min-h-[100px] flex items-center bg-bg rounded-lg px-4 py-3 outline-none text-[#bbb] border border-[0.5px] border-border"
+              style={{
+                fontSize: `${fontSize}px`,
+                lineHeight: 1.45,
+                fontFamily: font ? `"preview-${font.slug}", sans-serif` : undefined,
+              }}
               onFocus={(e) => {
                 if (e.currentTarget.textContent === "พิมพ์ทดสอบได้ที่นี่") {
                   e.currentTarget.textContent = "";
@@ -363,35 +390,35 @@ export default function FontDetail() {
 
               {/* Personal tier */}
               <div>
-                <div className="text-[11px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
+                <div className="text-[12px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
                   บุคคลทั่วไป
                 </div>
                 <div className="border border-[0.5px] border-border rounded-[8px] p-3 mb-2.5">
-                  <div className="text-[11px] text-[#aaa] mb-1">
-                    สิทธิการใช้งานสำหรับ
-                  </div>
-                  <div className="text-[13px] font-medium text-navy">
-                    ผู้ใช้งานทั่วไป นิสิต นักศึกษา นักออกแบบอิสระ
-                  </div>
-                  <div className="flex justify-end mt-2.5">
-                    {font.is_free ? (
-                      <span className="text-[14px] font-semibold text-[#0a8a84]">
-                        ฟรี
-                      </span>
-                    ) : font.is_sale ? (
-                      <div className="flex items-baseline gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[14px] font-medium text-navy">
+                      ผู้ใช้งานทั่วไป นิสิต นักศึกษา นักออกแบบอิสระ
+                    </span>
+                    <span className="flex items-center gap-1.5 ml-3 shrink-0">
+                      {font.is_free ? (
+                        <span className="text-[15px] font-semibold text-[#0a8a84]">ฟรี</span>
+                      ) : font.is_sale ? (
+                        <>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#f0c040] text-[#5a3800] font-semibold">
+                            -{font.discount_percent ?? 0}%
+                          </span>
+                          <span className="text-[15px] font-semibold text-navy">
+                            ฿{(font.sale_price ?? 0).toLocaleString()}
+                          </span>
+                          <span className="text-[12px] text-[#bbb] line-through">
+                            ฿{(font.price ?? 0).toLocaleString()}
+                          </span>
+                        </>
+                      ) : font.price ? (
                         <span className="text-[15px] font-semibold text-navy">
-                          ฿{(font.sale_price ?? 0).toLocaleString()}
+                          ฿{font.price.toLocaleString()}
                         </span>
-                        <span className="text-[12px] text-[#bbb] line-through">
-                          ฿{(font.price ?? 0).toLocaleString()}
-                        </span>
-                      </div>
-                    ) : font.price ? (
-                      <span className="text-[15px] font-semibold text-navy">
-                        ฿{font.price.toLocaleString()}
-                      </span>
-                    ) : null}
+                      ) : null}
+                    </span>
                   </div>
                 </div>
 
@@ -400,12 +427,12 @@ export default function FontDetail() {
                     href={font.free_font_files?.[0] || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full py-2.5 text-center bg-mint text-navy rounded-[9px] text-[14px] font-semibold no-underline hover:bg-[#4bbdb7] transition-colors"
+                    className="block w-full py-2.5 text-center bg-navy text-white rounded-[9px] text-[15px] font-semibold no-underline hover:bg-mint hover:text-navy transition-colors"
                   >
                     ดาวน์โหลดฟรี
                   </a>
                 ) : (
-                  <button className="w-full py-2.5 bg-mint text-navy rounded-[9px] text-[14px] font-semibold border-none cursor-pointer hover:bg-[#4bbdb7] transition-colors">
+                  <button className="w-full py-2.5 bg-navy text-white rounded-[9px] text-[15px] font-semibold border-none cursor-pointer hover:bg-mint hover:text-navy transition-colors">
                     ซื้อฟอนต์นี้
                   </button>
                 )}
@@ -448,48 +475,27 @@ export default function FontDetail() {
 
               {/* Org tiers */}
               <div>
-                <div className="text-[11px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
+                <div className="text-[12px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
                   ห้างร้าน องค์กร บริษัท
                 </div>
                 <div className="flex flex-col gap-2 mb-2.5">
                   {[
-                    {
-                      name: "บริษัทขนาดเล็ก / กลาง",
-                      desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง",
-                      price: "฿3,500",
-                    },
-                    {
-                      name: "บริษัทใหญ่ / Ad Agency",
-                      desc: "ไม่จำกัดจำนวนเครื่อง",
-                      price: "฿7,000",
-                    },
-                    {
-                      name: "ใช้งานเพิ่มเติม (ข้อ 3)",
-                      desc: "ตามสัญญาอนุญาต ข้อ 3",
-                      price: "฿20,000",
-                    },
+                    { name: "บริษัทขนาดเล็ก / กลาง", desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง", price: "฿3,500" },
+                    { name: "บริษัทใหญ่ / Ad Agency", desc: "ไม่จำกัดจำนวนเครื่อง", price: "฿7,000" },
+                    { name: "ใช้งานเพิ่มเติม", desc: "ตาม ข้อ (3) ใน สัญญาอนุญาต", price: "฿20,000" },
                   ].map((tier) => (
-                    <div
-                      key={tier.name}
-                      className="border border-[0.5px] border-border rounded-[8px] p-3"
-                    >
-                      <div className="flex justify-between items-baseline">
-                        <span className="text-[13px] font-medium text-navy">
-                          {tier.name}
-                        </span>
-                        <span className="text-[13px] font-semibold text-navy">
-                          {tier.price}
-                        </span>
+                    <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[14px] font-medium text-navy">{tier.name}</span>
+                        <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">{tier.price}</span>
                       </div>
-                      <div className="text-[11px] text-[#aaa] mt-0.5">
-                        {tier.desc}
-                      </div>
+                      <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
                     </div>
                   ))}
                 </div>
                 <Link
                   href="/quote/"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 border border-[0.5px] border-[#ddd] rounded-[9px] text-[14px] text-navy no-underline hover:border-navy transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 border border-[0.5px] border-navy rounded-[9px] text-[15px] text-navy no-underline hover:bg-mint hover:border-mint hover:text-navy transition-colors"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
