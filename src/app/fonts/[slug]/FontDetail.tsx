@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -35,13 +35,16 @@ function getFormats(urls: string[]): string {
 
 export default function FontDetail() {
   const params = useParams();
-  const pathname = usePathname();
-  // useParams returns "_" on Firebase Hosting (rewrite from /fonts/* to /fonts/_/)
-  // so read the real slug from the actual browser URL path instead
-  const paramSlug = typeof params?.slug === "string" ? params.slug : "";
-  const slug = paramSlug === "_" || !paramSlug
-    ? (pathname.split("/").filter(Boolean).pop() || "")
-    : paramSlug;
+  // On Firebase Hosting, /fonts/[slug] is rewritten to /fonts/_/index.html
+  // so useParams returns "_". Read the real slug from window.location.pathname instead.
+  const [slug, setSlug] = useState(
+    typeof params?.slug === "string" && params.slug !== "_" ? params.slug : ""
+  );
+  useEffect(() => {
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    const urlSlug = parts[parts.length - 1] || "";
+    if (urlSlug && urlSlug !== "_") setSlug(urlSlug);
+  }, []);
   const [font, setFont] = useState<Font | null>(null);
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);

@@ -6,7 +6,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import FontCard, { Font, isNew } from "@/components/FontCard";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -49,13 +49,11 @@ export default function HomePage() {
   useEffect(() => {
     async function load() {
       try {
-        const q = query(
-          collection(db, "fonts"),
-          where("is_active", "==", true),
-          orderBy("created_at", "desc")
+        const snap = await getDocs(
+          query(collection(db, "fonts"), where("is_active", "==", true))
         );
-        const snap = await getDocs(q);
-        const active = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Font[];
+        const active = (snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Font[])
+          .sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
         setFonts(active);
         setSliderPool(buildSliderPool(active));
 
