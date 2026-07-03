@@ -49,14 +49,17 @@ export default function HomePage() {
   useEffect(() => {
     async function load() {
       try {
-        const snap = await getDocs(
-          query(collection(db, "fonts"), where("is_active", "==", true))
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), 8000)
         );
+        const snap = await Promise.race([
+          getDocs(query(collection(db, "fonts"), where("is_active", "==", true))),
+          timeout,
+        ]);
         const active = (snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Font[])
           .sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
         setFonts(active);
         setSliderPool(buildSliderPool(active));
-
       } catch (e) {
         console.error("Firestore error:", e);
       } finally {
