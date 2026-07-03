@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "dhammadha-web",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "3001"],
-      "port": 3001
+      "name": "Next.js Dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
     }
   ]
 }
