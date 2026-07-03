@@ -16,7 +16,7 @@ export default function AgreementPage() {
             <section>
               <h2 className="text-[15px] font-semibold text-navy mb-2">ข้อ 1 — ผู้ได้รับอนุญาต</h2>
               <p className="mb-3">อนุญาตให้ใช้งานเฉพาะผู้ได้รับอนุญาตตามรายชื่อที่ปรากฏในใบสั่งซื้อ</p>
-              <ul className="list-disc pl-5 flex flex-col gap-1 text-[13px] text-[#555]">
+              <ul className="list-disc pl-5 flex flex-col gap-1 text-[14px] text-[#555]">
                 <li>สิทธิการใช้งานส่วนบุคคล สามารถใช้งานได้เพียงคนเดียว</li>
                 <li>สิทธิการใช้งานสำหรับห้างร้าน องค์กร บริษัท จำกัดจำนวนเครื่องใช้งานตามเอกสารการสั่งซื้อ</li>
               </ul>
@@ -30,7 +30,7 @@ export default function AgreementPage() {
                 อนุญาตให้ใช้ผลิตสื่อประชาสัมพันธ์ทุกประเภท ทั้งที่ใช้ในเชิงพาณิชย์ และไม่ใช้ในเชิงพาณิชย์
                 ซึ่งจัดทำโดยผู้ได้รับอนุญาตเท่านั้น
               </p>
-              <ul className="list-disc pl-5 flex flex-col gap-1 text-[13px] text-[#555] mb-4">
+              <ul className="list-disc pl-5 flex flex-col gap-1 text-[14px] text-[#555] mb-4">
                 <li>สิ่งพิมพ์ทุกประเภท (โปสเตอร์ แผ่นพับ บรรจุภัณฑ์ ฯลฯ)</li>
                 <li>สื่อดิจิทัลคงที่ (แบนเนอร์ รูปภาพ กราฟิก)</li>
                 <li>งานออกแบบกราฟิกทั่วไป</li>
@@ -47,7 +47,7 @@ export default function AgreementPage() {
               <p className="mb-3">
                 การใช้งานในรูปแบบต่อไปนี้จำเป็นต้องซื้อสิทธิการใช้งานเพิ่มเติม กรุณาติดต่อเพื่อขอใบเสนอราคา
               </p>
-              <ul className="list-disc pl-5 flex flex-col gap-1 text-[13px] text-[#555]">
+              <ul className="list-disc pl-5 flex flex-col gap-1 text-[14px] text-[#555]">
                 <li>Identity Font / โลโก้ / ตราสัญลักษณ์องค์กร</li>
                 <li>สื่อโทรทัศน์ / ภาพยนตร์ / TVC</li>
                 <li>YouTube / วิดีโอออนไลน์ / สตรีมมิ่ง</li>
@@ -61,7 +61,7 @@ export default function AgreementPage() {
 
             <section>
               <h2 className="text-[15px] font-semibold text-navy mb-2">ข้อ 4 — ข้อห้าม</h2>
-              <ul className="list-disc pl-5 flex flex-col gap-2 text-[13px] text-[#555]">
+              <ul className="list-disc pl-5 flex flex-col gap-2 text-[14px] text-[#555]">
                 <li>ไม่อนุญาตให้ทำซ้ำ ดัดแปลง แปล แก้ไข ชื่อ เลข รหัส หรือเรียบเรียงใหม่ ซึ่งโปรแกรมคอมพิวเตอร์ฟอนต์นี้ โดยเด็ดขาด</li>
                 <li>ไม่อนุญาตให้เผยแพร่ แจกจ่าย จำหน่าย ให้เช่า โปรแกรมคอมพิวเตอร์ฟอนต์นี้หรือสิทธิใด ๆ ที่ให้ไว้ตามสัญญาอนุญาตนี้ แก่บุคคล หรือองค์กรอื่นโดยเด็ดขาด</li>
                 <li>ผู้ได้รับอนุญาตจะต้องรับรองว่าจะไม่ ลบ ทำลาย ทำให้เสียหาย หรือทำให้ไม่ชัดเจน ซึ่งเครื่องหมายหรือสัญลักษณ์แสดงความเป็นเจ้าของสิทธิ์ หรือเครื่องหมายการค้าของผู้อนุญาต ทั้งโดยจงใจ หรือประมาทเลินเล่อ</li>
@@ -101,6 +101,18 @@ export default function AgreementPage() {
             </section>
 
           </div>
+
+          <div className="mt-6 text-[14px] text-[#888] leading-[1.8]">
+            <p className="font-medium text-[#666] mb-2">หมายเหตุ:</p>
+            <ul className="list-disc pl-5 flex flex-col gap-1">
+              <li>การจำแนกประเภทผู้ซื้อ ขึ้นอยู่กับดุลยพินิจของผู้ขาย</li>
+              <li>สงวนสิทธิ์ในการเปลี่ยนแปลงราคาและเงื่อนไข โดยมิต้องแจ้งให้ทราบล่วงหน้า และขอสงวนสิทธิ์ไม่รับเปลี่ยนสินค้าหรือคืนเงินทุกกรณี</li>
+              <li>รายละเอียดราคาที่แจ้งไว้เป็นยอดสุทธิ ไม่รวมค่าธรรมเนียมในการโอน หรือค่าธรรมเนียมการเปลี่ยนแปลงสกุลเงิน (ถ้ามี)</li>
+              <li>รายละเอียดราคาที่แจ้งไว้ สำหรับองค์กร บริษัท สัญชาติไทย เท่านั้น</li>
+              <li>สัญญาอนุญาต ให้ยึดถือประกาศบนเวบไซต์ที่ปรับปรุงรายละเอียดล่าสุดเป็นสำคัญ</li>
+            </ul>
+          </div>
+
         </div>
       </div>
       <Footer />
