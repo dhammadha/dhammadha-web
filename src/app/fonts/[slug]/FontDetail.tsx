@@ -55,6 +55,7 @@ export default function FontDetail() {
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedWeight, setSelectedWeight] = useState("");
   const [fontSize, setFontSize] = useState("36");
+  const [testerInput, setTesterInput] = useState("");
   const [specimenOpen, setSpecimenOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -108,10 +109,12 @@ export default function FontDetail() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
-  // Inject @font-face for preview — uses demo files if available, else full/free
+  // Inject @font-face for preview — prefers obfuscated files, falls back to demo/full/free
   useEffect(() => {
     if (!font?.slug) return;
-    const previewFiles = font.demo_font_files?.length
+    const previewFiles = font.obfuscated_font_files?.length
+      ? font.obfuscated_font_files
+      : font.demo_font_files?.length
       ? font.demo_font_files
       : font.full_font_files?.length
       ? font.full_font_files
@@ -273,30 +276,37 @@ export default function FontDetail() {
                 )}
               </div>
             </div>
-            <div
-              contentEditable
-              suppressContentEditableWarning
-              spellCheck={false}
-              className="w-full min-h-[100px] flex items-center bg-bg rounded-lg px-4 py-3 outline-none text-[#bbb] border border-[0.5px] border-border"
-              style={{
-                fontSize: `${fontSize}px`,
-                lineHeight: 1.45,
-                fontFamily: font ? `"preview-${font.slug}", sans-serif` : undefined,
-              }}
-              onFocus={(e) => {
-                if (e.currentTarget.textContent === "พิมพ์ทดสอบได้ที่นี่") {
-                  e.currentTarget.textContent = "";
-                  e.currentTarget.style.color = "var(--color-navy, #2B1B3D)";
-                }
-              }}
-              onBlur={(e) => {
-                if (!e.currentTarget.textContent?.trim()) {
-                  e.currentTarget.textContent = "พิมพ์ทดสอบได้ที่นี่";
-                  e.currentTarget.style.color = "";
-                }
-              }}
-            >
-              พิมพ์ทดสอบได้ที่นี่
+            <div className="relative w-full min-h-[100px]">
+              {/* Display layer: encoded text rendered with obfuscated font */}
+              <div
+                aria-hidden
+                className="w-full min-h-[100px] bg-bg rounded-lg px-4 py-3 border border-[0.5px] border-border pointer-events-none whitespace-pre-wrap break-words"
+                style={{
+                  fontSize: `${fontSize}px`,
+                  lineHeight: 1.45,
+                  fontFamily: font ? `"preview-${font.slug}", sans-serif` : undefined,
+                  color: testerInput ? "var(--color-navy, #2B1B3D)" : "#bbb",
+                }}
+              >
+                {testerInput
+                  ? (font?.obfuscated_map
+                      ? [...testerInput].map((ch) => font.obfuscated_map![ch] ?? ch).join("")
+                      : testerInput)
+                  : "พิมพ์ทดสอบได้ที่นี่"}
+              </div>
+              {/* Input layer: transparent, captures typing */}
+              <textarea
+                value={testerInput}
+                onChange={(e) => setTesterInput(e.target.value)}
+                spellCheck={false}
+                className="absolute inset-0 w-full h-full resize-none bg-transparent outline-none rounded-lg px-4 py-3 border border-transparent"
+                style={{
+                  fontSize: `${fontSize}px`,
+                  lineHeight: 1.45,
+                  color: "transparent",
+                  caretColor: "var(--color-navy, #2B1B3D)",
+                }}
+              />
             </div>
           </div>
 
