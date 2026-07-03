@@ -174,9 +174,12 @@
 
   /* PREVIEW GRID */
   .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-  .preview-thumb{position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;border:0.5px solid var(--border)}
-  .preview-thumb img{width:100%;height:100%;object-fit:cover}
+  .preview-thumb{position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;border:0.5px solid var(--border);cursor:grab;user-select:none}
+  .preview-thumb.dragging{opacity:.4;border:1.5px dashed var(--mint)}
+  .preview-thumb.drag-over{border:1.5px solid var(--mint);box-shadow:0 0 0 2px #5ECEC840}
+  .preview-thumb img{width:100%;height:100%;object-fit:cover;pointer-events:none}
   .preview-thumb .rm{position:absolute;top:4px;right:4px;width:22px;height:22px;background:rgba(0,0,0,.6);border:none;border-radius:50%;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .preview-thumb .drag-handle{position:absolute;top:4px;left:4px;width:22px;height:22px;background:rgba(0,0,0,.5);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;cursor:grab}
 
   /* FONT FILE BOX */
   .font-file-box{border:0.5px solid var(--border);border-radius:10px;padding:18px;background:#fafaf8}
@@ -248,14 +251,14 @@
   </div>
 
   <!-- OVERLAY -->
-  <div id="panelOverlay" onclick="closePanel()"></div>
+  <div id="panelOverlay" onclick="handleCancel()"></div>
 
   <!-- SLIDE PANEL -->
   <div id="slidePanel">
     <div class="panel-header">
       <div class="panel-breadcrumb">Admin → <span id="panelTitle">เพิ่มฟอนต์ใหม่</span></div>
       <div class="panel-header-actions">
-        <button class="panel-close" onclick="closePanel()">✕</button>
+        <button class="panel-close" onclick="handleCancel()">✕</button>
       </div>
     </div>
 
@@ -358,10 +361,10 @@
           <div class="font-file-box">
             <div class="font-file-label">Full Family<span class="req">*</span> <span class="fbadge fbadge-protected">🔒 Protected — ต้องชำระเงินก่อนดาวน์โหลด</span></div>
             <div class="upload-zone" id="fullFontZone">
-              <input type="file" id="fullFontFiles" accept=".otf,.ttf,.woff,.woff2,.zip" multiple onchange="handleFontFiles(this,'fullFontList','full')">
+              <input type="file" id="fullFontFiles" accept=".otf,.ttf,.woff,.woff2" multiple onchange="handleFontFiles(this,'fullFontList','full')">
               <div class="upload-icon">🔤</div>
               <div class="upload-label">อัพโหลดไฟล์ฟอนต์ Full Family</div>
-              <div class="upload-sub">OTF, TTF, WOFF, WOFF2, ZIP</div>
+              <div class="upload-sub">OTF, TTF, WOFF, WOFF2</div>
               <div class="upload-progress" id="fullFontProg"><div class="upload-progress-bar" id="fullFontProgBar"></div></div>
             </div>
             <div class="weight-list" id="fullFontList"></div>
@@ -388,10 +391,10 @@
           <div class="font-file-box">
             <div class="font-file-label">Free Font<span class="req">*</span> <span class="fbadge fbadge-public">🌐 Public — ดาวน์โหลดได้เลย</span> <span style="font-size:12px;color:#aaa;font-weight:400">ถ้ามี จะขึ้น badge FREE</span></div>
             <div class="upload-zone" id="freeFontZone">
-              <input type="file" id="freeFontFiles" accept=".otf,.ttf,.woff,.woff2,.zip" multiple onchange="handleFontFiles(this,'freeFontList','free')">
+              <input type="file" id="freeFontFiles" accept=".otf,.ttf,.woff,.woff2" multiple onchange="handleFontFiles(this,'freeFontList','free')">
               <div class="upload-icon">🔤</div>
               <div class="upload-label">อัพโหลดไฟล์ฟอนต์ฟรี<span class="req">*</span></div>
-              <div class="upload-sub">OTF, TTF, WOFF, WOFF2, ZIP</div>
+              <div class="upload-sub">OTF, TTF, WOFF, WOFF2</div>
               <div class="upload-progress" id="freeFontProg"><div class="upload-progress-bar" id="freeFontProgBar"></div></div>
             </div>
             <div class="weight-list" id="freeFontList"></div>
@@ -452,8 +455,11 @@ const app = initializeApp({
 const db=getFirestore(app),auth=getAuth(app),storage=getStorage(app);
 
 let fonts=[],currentTab='all',editingId=null;
-let pendingCover=null,pendingPreviews=[],pendingFullFonts=[],pendingDemoFonts=[],pendingFreeFonts=[],pendingSpecimens=[];
-let exCoverUrl='',exPreviewUrls=[],exFullFontUrls=[],exDemoFontUrls=[],exFreeFontUrls=[],exSpecimenUrls=[];
+let pendingCover=null,pendingFullFonts=[],pendingDemoFonts=[],pendingFreeFonts=[],pendingSpecimens=[];
+let exCoverUrl='',exFullFontUrls=[],exDemoFontUrls=[],exFreeFontUrls=[],exSpecimenUrls=[];
+// unified ordered preview list: {type:'ex'|'new', url?:string, file?:File}
+let previewItems=[];
+let dragSrcIdx=-1;
 
 // ── AUTH ──────────────────────────────────────────
 onAuthStateChanged(auth,u=>{
@@ -564,13 +570,13 @@ window.editFont=(id)=>{
     if(f.sale_end)document.getElementById('fSaleEnd').value=f.sale_end;
   }
   exCoverUrl=f.cover_image_url||'';
-  exPreviewUrls=[...(f.preview_images||[])];
+  previewItems=(f.preview_images||[]).map(url=>({type:'ex',url}));
   exFullFontUrls=[...(f.full_font_files||[])];
   exDemoFontUrls=[...(f.demo_font_files||[])];
   exFreeFontUrls=[...(f.free_font_files||[])];
   exSpecimenUrls=[...(f.specimen_files||[])];
   if(exCoverUrl)showImgPreview('coverPreview','coverZone',exCoverUrl);
-  if(exPreviewUrls.length)renderPreviewGrid();
+  if(previewItems.length)renderPreviewGrid();
   if(exFullFontUrls.length)renderExFonts('fullFontList',exFullFontUrls,'full');
   if(exDemoFontUrls.length)renderExFonts('demoFontList',exDemoFontUrls,'demo');
   if(exFreeFontUrls.length)renderExFonts('freeFontList',exFreeFontUrls,'free');
@@ -597,8 +603,8 @@ function clearForm(){
   document.getElementById('fFree').checked=false;
   document.getElementById('fSub').checked=true;
   document.getElementById('saleExtra').classList.remove('show');
-  pendingCover=null;pendingPreviews=[];pendingFullFonts=[];pendingDemoFonts=[];pendingFreeFonts=[];pendingSpecimens=[];
-  exCoverUrl='';exPreviewUrls=[];exFullFontUrls=[];exDemoFontUrls=[];exFreeFontUrls=[];exSpecimenUrls=[];
+  pendingCover=null;pendingFullFonts=[];pendingDemoFonts=[];pendingFreeFonts=[];pendingSpecimens=[];
+  exCoverUrl='';previewItems=[];exFullFontUrls=[];exDemoFontUrls=[];exFreeFontUrls=[];exSpecimenUrls=[];
   document.getElementById('coverPreview').innerHTML='';
   document.getElementById('coverZone').classList.remove('has-file');
   document.getElementById('previewGrid').innerHTML='';
@@ -648,17 +654,37 @@ window.clearCover=()=>{
   document.getElementById('coverZone').classList.remove('has-file');
 };
 window.handleMultiImage=(input)=>{
-  pendingPreviews=[...pendingPreviews,...Array.from(input.files)];
+  Array.from(input.files).forEach(f=>previewItems.push({type:'new',file:f}));
   renderPreviewGrid();
 };
 function renderPreviewGrid(){
   const g=document.getElementById('previewGrid');
-  const ex=exPreviewUrls.map((url,i)=>`<div class="preview-thumb"><img src="${url}"><button class="rm" onclick="rmExPreview(${i})">✕</button></div>`).join('');
-  const pend=pendingPreviews.map((f,i)=>`<div class="preview-thumb"><img src="${URL.createObjectURL(f)}"><button class="rm" onclick="rmPreview(${i})">✕</button></div>`).join('');
-  g.innerHTML=ex+pend;
+  g.innerHTML=previewItems.map((item,i)=>{
+    const src=item.type==='ex'?item.url:URL.createObjectURL(item.file);
+    return `<div class="preview-thumb" draggable="true" data-idx="${i}"
+      ondragstart="onDragStart(event,${i})"
+      ondragover="onDragOver(event)"
+      ondrop="onDrop(event,${i})"
+      ondragend="onDragEnd(event)">
+      <img src="${src}">
+      <div class="drag-handle">⠿</div>
+      <button class="rm" onclick="rmPreviewItem(${i})">✕</button>
+    </div>`;
+  }).join('');
 }
-window.rmPreview=(i)=>{pendingPreviews.splice(i,1);renderPreviewGrid();};
-window.rmExPreview=(i)=>{exPreviewUrls.splice(i,1);renderPreviewGrid();};
+window.rmPreviewItem=(i)=>{previewItems.splice(i,1);renderPreviewGrid();};
+window.onDragStart=(e,i)=>{dragSrcIdx=i;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';};
+window.onDragOver=(e)=>{e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');};
+window.onDrop=(e,i)=>{
+  e.preventDefault();
+  if(dragSrcIdx===i)return;
+  const moved=previewItems.splice(dragSrcIdx,1)[0];
+  previewItems.splice(i,0,moved);
+  renderPreviewGrid();
+};
+window.onDragEnd=(e)=>{
+  document.querySelectorAll('.preview-thumb').forEach(el=>el.classList.remove('dragging','drag-over'));
+};
 
 // ── FONT FILE HANDLERS ────────────────────────────
 window.handleFontFiles=(input,listId,type)=>{
@@ -703,61 +729,64 @@ window.rmExFont=(i,type)=>{
 
 // ── UPLOAD ────────────────────────────────────────
 let isSaving=false;
-let uploadedDuringSession=[];
+let uploadedPaths=[];
 
-function uploadFile(file,path,progEl,onProgress){
+function uploadFile(file,path,progId){
   return new Promise((res,rej)=>{
-    if(progEl)progEl.style.display='block';
+    const progEl=document.getElementById(progId);
+    if(progEl){progEl.style.display='block';const bar=progEl.querySelector('.upload-progress-bar');if(bar)bar.style.width='0%';}
     const task=uploadBytesResumable(ref(storage,path),file);
     task.on('state_changed',
-      s=>{if(onProgress)onProgress(s.bytesTransferred,s.totalBytes);},
+      s=>{
+        const pct=(s.bytesTransferred/s.totalBytes*100).toFixed(0);
+        const bar=progEl?.querySelector('.upload-progress-bar');
+        if(bar)bar.style.width=pct+'%';
+      },
       rej,
       async()=>{
-        const url=await getDownloadURL(task.snapshot.ref);
-        uploadedDuringSession.push(path);
-        res(url);
+        uploadedPaths.push(path);
+        res(await getDownloadURL(task.snapshot.ref));
       }
     );
   });
 }
 
-function uploadGroup(files,pathFn,progId){
-  if(!files.length)return Promise.resolve([]);
-  const progEl=document.getElementById(progId);
-  if(progEl)progEl.style.display='block';
-  const bytes=files.map(()=>({done:0,total:0}));
-  function updateBar(){
-    const d=bytes.reduce((a,b)=>a+b.done,0);
-    const t=bytes.reduce((a,b)=>a+b.total,0)||1;
-    const bar=progEl?.querySelector('.upload-progress-bar');
-    if(bar)bar.style.width=(d/t*100)+'%';
+async function uploadSequential(files,pathFn,progId,label){
+  const urls=[];
+  for(let i=0;i<files.length;i++){
+    if(!isSaving)throw new Error('cancelled');
+    toast(`${label} ${i+1}/${files.length}...`);
+    urls.push(await uploadFile(files[i],pathFn(files[i]),progId));
   }
-  return Promise.all(files.map((file,i)=>
-    uploadFile(file,pathFn(file,i),progEl,
-      (done,total)=>{bytes[i]={done,total};updateBar();}
-    )
-  ));
+  return urls;
 }
 
 async function cleanupUploaded(){
-  await Promise.allSettled(
-    uploadedDuringSession.map(path=>deleteObject(ref(storage,path)).catch(()=>{}))
-  );
-  uploadedDuringSession=[];
+  await Promise.allSettled(uploadedPaths.map(p=>deleteObject(ref(storage,p)).catch(()=>{})));
+  uploadedPaths=[];
+}
+
+function setSavingUI(saving){
+  const btn=document.getElementById('saveBtn');
+  const savingEl=document.getElementById('panelSaving');
+  const cancelBtn=document.getElementById('cancelBtn');
+  const overlay=document.getElementById('panelOverlay');
+  btn.disabled=saving;
+  savingEl.style.display=saving?'block':'none';
+  cancelBtn.textContent=saving?'ยกเลิก & ลบไฟล์':'ยกเลิก';
+  cancelBtn.style.color=saving?'var(--red)':'';
+  // prevent accidental close while saving
+  overlay.style.pointerEvents=saving?'none':'all';
 }
 
 window.handleCancel=async()=>{
   if(isSaving){
     if(!confirm('กำลังอัพโหลดอยู่ — ยกเลิกและลบไฟล์ที่อัพโหลดไปแล้วไหม?'))return;
     isSaving=false;
+    setSavingUI(false);
     toast('กำลังลบไฟล์ที่อัพโหลดไปแล้ว...');
     await cleanupUploaded();
-    toast('ลบเรียบร้อย ยกเลิกแล้ว');
-    const btn=document.getElementById('saveBtn');
-    const saving=document.getElementById('panelSaving');
-    const cancelBtn=document.getElementById('cancelBtn');
-    btn.disabled=false;saving.style.display='none';
-    cancelBtn.textContent='ยกเลิก';cancelBtn.style.color='';
+    toast('ยกเลิกและลบไฟล์เรียบร้อย');
   }
   closePanel();
 };
@@ -771,40 +800,51 @@ window.saveFont=async()=>{
   if(isFree&&pendingFreeFonts.length===0&&exFreeFontUrls.length===0){toast('กรุณาอัพโหลดไฟล์ Free Font',true);return;}
   if(!isFree&&pendingFullFonts.length===0&&exFullFontUrls.length===0){toast('กรุณาอัพโหลดไฟล์ Full Family',true);return;}
 
-  const btn=document.getElementById('saveBtn');
-  const saving=document.getElementById('panelSaving');
-  const cancelBtn=document.getElementById('cancelBtn');
-  btn.disabled=true;saving.style.display='block';
-  isSaving=true;uploadedDuringSession=[];
-  cancelBtn.textContent='ยกเลิก & ลบไฟล์';cancelBtn.style.color='var(--red)';
+  isSaving=true;uploadedPaths=[];
+  setSavingUI(true);
 
   try{
+    // Cover
     let coverUrl=exCoverUrl;
     if(pendingCover){
       toast('อัพโหลด Cover...');
-      const urls=await uploadGroup([pendingCover],
-        f=>`public/covers/${slug}_cover.${f.name.split('.').pop()}`,'coverProg');
-      coverUrl=urls[0];
+      coverUrl=await uploadFile(pendingCover,`public/covers/${slug}_cover.${pendingCover.name.split('.').pop()}`,'coverProg');
     }
 
-    toast('อัพโหลดรูป Preview...');
-    const newPrevUrls=await uploadGroup(pendingPreviews,
-      (f,i)=>`public/previews/${slug}_prev_${Date.now()}_${i}.${f.name.split('.').pop()}`,'coverProg');
-    const previewUrls=[...exPreviewUrls,...newPrevUrls];
+    // Previews (sequential, preserve order from previewItems)
+    const finalPreviewUrls=[];
+    const newPreviews=previewItems.filter(p=>p.type==='new');
+    let newIdx=0;
+    // upload new ones first, collect URLs
+    const newPreviewUrls=[];
+    for(let i=0;i<newPreviews.length;i++){
+      if(!isSaving)throw new Error('cancelled');
+      toast(`อัพโหลดรูป Preview ${i+1}/${newPreviews.length}...`);
+      const f=newPreviews[i].file;
+      const url=await uploadFile(f,`public/previews/${slug}_prev_${Date.now()}_${i}.${f.name.split('.').pop()}`,'coverProg');
+      newPreviewUrls.push(url);
+    }
+    // reconstruct order
+    let ni=0;
+    for(const item of previewItems){
+      if(item.type==='ex')finalPreviewUrls.push(item.url);
+      else finalPreviewUrls.push(newPreviewUrls[ni++]);
+    }
 
-    toast('อัพโหลดไฟล์ฟอนต์...');
-    const [fullUrls,demoUrls,freeUrls,specUrls]=await Promise.all([
-      !isFree?uploadGroup(pendingFullFonts,
-        f=>`protected/fonts/${slug}/${f.name}`,'fullFontProg'):Promise.resolve([]),
-      !isFree?uploadGroup(pendingDemoFonts,
-        f=>`public/demo-fonts/${slug}/${f.name}`,'demoFontProg'):Promise.resolve([]),
-      isFree?uploadGroup(pendingFreeFonts,
-        f=>`public/free-fonts/${slug}/${f.name}`,'freeFontProg'):Promise.resolve([]),
-      uploadGroup(pendingSpecimens,
-        f=>`public/specimens/${slug}/${f.name}`,'specimenProg'),
-    ]);
+    // Font files (sequential per group)
+    const fullUrls=[...exFullFontUrls];
+    if(!isFree)fullUrls.push(...await uploadSequential(pendingFullFonts,f=>`protected/fonts/${slug}/${f.name}`,'fullFontProg','Full Font'));
 
-    if(!isSaving){await cleanupUploaded();return;}
+    const demoUrls=[...exDemoFontUrls];
+    if(!isFree)demoUrls.push(...await uploadSequential(pendingDemoFonts,f=>`public/demo-fonts/${slug}/${f.name}`,'demoFontProg','Demo Font'));
+
+    const freeUrls=[...exFreeFontUrls];
+    if(isFree)freeUrls.push(...await uploadSequential(pendingFreeFonts,f=>`public/free-fonts/${slug}/${f.name}`,'freeFontProg','Free Font'));
+
+    const specUrls=[...exSpecimenUrls];
+    specUrls.push(...await uploadSequential(pendingSpecimens,f=>`public/specimens/${slug}/${f.name}`,'specimenProg','Specimen'));
+
+    if(!isSaving)throw new Error('cancelled');
 
     const disc=parseInt(document.getElementById('fDiscount').value)||0;
     const price=parseFloat(document.getElementById('fPrice').value)||0;
@@ -827,15 +867,16 @@ window.saveFont=async()=>{
       is_subscription:document.getElementById('fSub').checked,
       cover_image_url:coverUrl,
       thumbnail_url:coverUrl,
-      preview_images:previewUrls,
-      full_font_files:[...exFullFontUrls,...fullUrls],
-      demo_font_files:[...exDemoFontUrls,...demoUrls],
-      free_font_files:[...exFreeFontUrls,...freeUrls],
-      specimen_files:[...exSpecimenUrls,...specUrls],
-      has_demo:([...exDemoFontUrls,...demoUrls]).length>0,
+      preview_images:finalPreviewUrls,
+      full_font_files:fullUrls,
+      demo_font_files:demoUrls,
+      free_font_files:freeUrls,
+      specimen_files:specUrls,
+      has_demo:demoUrls.length>0,
       updated_at:serverTimestamp(),
     };
 
+    toast('กำลังบันทึก...');
     if(editingId){
       await updateDoc(doc(db,'fonts',editingId),data);
       toast('✓ อัปเดตเรียบร้อย');
@@ -844,15 +885,18 @@ window.saveFont=async()=>{
       await addDoc(collection(db,'fonts'),data);
       toast('✓ เพิ่มฟอนต์เรียบร้อย');
     }
-    uploadedDuringSession=[];
+    uploadedPaths=[];
     await loadFonts();
     setTimeout(closePanel,1000);
   } catch(e){
-    if(isSaving)toast('เกิดข้อผิดพลาด: '+e.message,true);
+    if(e.message==='cancelled'){
+      // handleCancel already cleaned up
+    } else {
+      toast('เกิดข้อผิดพลาด: '+e.message,true);
+    }
   } finally {
     isSaving=false;
-    btn.disabled=false;saving.style.display='none';
-    cancelBtn.textContent='ยกเลิก';cancelBtn.style.color='';
+    setSavingUI(false);
   }
 };
 
