@@ -130,7 +130,9 @@ export default function FontDetail() {
     const faces = previewFiles.map((url) => {
       const ext = decodeURIComponent(url.split("?")[0]).split(".").pop()?.toLowerCase() || "woff2";
       const fmt = ext === "otf" ? "opentype" : ext === "ttf" ? "truetype" : ext;
-      const w = weightToCss(parseWeight(url));
+      // Strip -obf suffix before parsing weight (obfuscated files end in "-obf.ttf")
+      const urlForWeight = url.replace(/-obf\.(ttf|otf)(\?|$)/i, ".$1$2");
+      const w = weightToCss(parseWeight(urlForWeight));
       return `@font-face { font-family: "${family}"; font-weight: ${w}; src: url("${url}") format("${fmt}"); font-display: block; }`;
     }).join("\n");
 
@@ -310,8 +312,6 @@ export default function FontDetail() {
                 style={{
                   fontSize: `${fontSize}px`,
                   lineHeight: 1.45,
-                  fontFamily: font ? `"preview-${font.slug}", sans-serif` : undefined,
-                  fontWeight: weightToCss(selectedWeight),
                   color: "transparent",
                   caretColor: "var(--color-navy, #2B1B3D)",
                 }}
@@ -338,26 +338,26 @@ export default function FontDetail() {
               <table className="w-full text-[14px] border-collapse">
                 <tbody>
                   <tr>
-                    <td className="py-1.5 text-[#888] w-[45%]">น้ำหนัก</td>
-                    <td className="py-1.5 font-medium text-navy text-right">
+                    <td className="py-1 text-[#888] w-[45%]">น้ำหนัก</td>
+                    <td className="py-1 font-medium text-navy text-right">
                       {weights.length || "—"}{weights.length ? " weights" : ""}
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 text-[#888]">สไตล์</td>
-                    <td className="py-1.5 font-medium text-navy text-right">
+                    <td className="py-1 text-[#888]">สไตล์</td>
+                    <td className="py-1 font-medium text-navy text-right">
                       {styleCount || "—"}{styleCount ? " styles" : ""}
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 text-[#888]">Font Format</td>
-                    <td className="py-1.5 font-medium text-navy text-right">
+                    <td className="py-1 text-[#888]">Font Format</td>
+                    <td className="py-1 font-medium text-navy text-right">
                       {formats}
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 text-[#888]">ผู้ออกแบบ</td>
-                    <td className="py-1.5 font-medium text-navy text-right">
+                    <td className="py-1 text-[#888]">ผู้ออกแบบ</td>
+                    <td className="py-1 font-medium text-navy text-right">
                       {font.designer_name || "ธรรมดาสตูดิโอ"}
                     </td>
                   </tr>
