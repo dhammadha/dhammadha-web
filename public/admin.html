@@ -901,14 +901,14 @@ window.saveFont=async()=>{
     setTimeout(closePanel,1000);
     // Auto-generate obfuscated preview font
     if(data.full_font_files?.length||exFullFontUrls.length){
-      showToast(`⚙️ กำลังสร้าง Preview Font สำหรับ "${slug}"...`);
+      toast(`⚙️ กำลังสร้าง Preview Font สำหรับ "${slug}"...`);
       try{
         const obfuscateFont=httpsCallable(functions,'obfuscateFont');
         const result=await obfuscateFont({slug});
-        showToast(`🔒 Preview Font พร้อมแล้ว (${result.data.count} ไฟล์)`);
+        toast(`🔒 Preview Font พร้อมแล้ว (${result.data.count} ไฟล์)`);
         await loadFonts();
       }catch(e){
-        showToast(`⚠️ บันทึกสำเร็จ แต่สร้าง Preview Font ไม่ได้: ${e.message}`,true);
+        toast(`⚠️ บันทึกสำเร็จ แต่สร้าง Preview Font ไม่ได้: ${e.message}`,true);
       }
     }
   } catch(e){
