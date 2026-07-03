@@ -118,7 +118,7 @@ export default function Nav() {
         <Link href="/#fonts" className="no-underline text-inherit hover:text-mint transition-colors">
           ฟอนต์ทั้งหมด
         </Link>
-        <Link href="#" className="no-underline text-inherit hover:text-mint transition-colors">
+        <Link href="/agreement/" className="no-underline text-inherit hover:text-mint transition-colors">
           สัญญาอนุญาต
         </Link>
         <Link href="/#pricing" className="no-underline text-inherit hover:text-mint transition-colors">
@@ -201,7 +201,7 @@ export default function Nav() {
         <div className="absolute top-full left-0 right-0 bg-white border-t border-[#eee] shadow-md flex flex-col md:hidden">
           {[
             { href: "/#fonts", label: "ฟอนต์ทั้งหมด" },
-            { href: "#", label: "สัญญาอนุญาต" },
+            { href: "/agreement/", label: "สัญญาอนุญาต" },
             { href: "/#pricing", label: "ราคาและแผนบริการ" },
           ].map((item) => (
             <Link

@@ -102,8 +102,8 @@ export default function AgreementPage() {
 
           </div>
 
-          <div className="mt-6 text-[14px] text-[#888] leading-[1.8]">
-            <p className="font-medium text-[#666] mb-2">หมายเหตุ:</p>
+          <div className="mt-6 text-[13px] text-[#aaa] leading-[1.8]">
+            <p className="mb-2">หมายเหตุ:</p>
             <ul className="list-disc pl-5 flex flex-col gap-1">
               <li>การจำแนกประเภทผู้ซื้อ ขึ้นอยู่กับดุลยพินิจของผู้ขาย</li>
               <li>สงวนสิทธิ์ในการเปลี่ยนแปลงราคาและเงื่อนไข โดยมิต้องแจ้งให้ทราบล่วงหน้า และขอสงวนสิทธิ์ไม่รับเปลี่ยนสินค้าหรือคืนเงินทุกกรณี</li>
