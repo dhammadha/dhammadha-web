@@ -5,6 +5,11 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/admin", "destination": "/admin.html" },
+      { "source": "/subscribe", "destination": "/coming-soon.html" },
+      { "source": "/fonts/**", "destination": "/font.html" }
     ]
   }
 }
