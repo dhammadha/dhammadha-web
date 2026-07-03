@@ -133,7 +133,10 @@
   input[type=text],input[type=number],input[type=date],textarea,select{
     padding:10px 14px;border:0.5px solid #ddd;border-radius:9px;
     font-size:15px;font-family:"Noto Sans Thai",sans-serif;
-    outline:none;width:100%;background:#fff;color:#333;transition:border-color .15s}
+    outline:none;width:100%;background:#fff;color:#333;transition:border-color .15s;
+    height:44px;box-sizing:border-box;appearance:none;-webkit-appearance:none}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+  textarea{height:auto}
   input:focus,textarea:focus,select:focus{border-color:var(--mint)}
   textarea{resize:vertical;min-height:80px}
 
@@ -250,15 +253,15 @@
     </div>
   </div>
 
-  <!-- OVERLAY — click does nothing while saving -->
-  <div id="panelOverlay" onclick="if(!isSaving)closePanel()"></div>
+  <!-- OVERLAY -->
+  <div id="panelOverlay"></div>
 
   <!-- SLIDE PANEL -->
   <div id="slidePanel">
     <div class="panel-header">
       <div class="panel-breadcrumb">Admin → <span id="panelTitle">เพิ่มฟอนต์ใหม่</span></div>
       <div class="panel-header-actions">
-        <button class="panel-close" onclick="if(!isSaving)closePanel()">✕</button>
+        <button class="panel-close" id="panelCloseBtn">✕</button>
       </div>
     </div>
 
@@ -442,7 +445,7 @@ import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, q
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject }
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
 
 const app = initializeApp({
@@ -732,24 +735,23 @@ window.rmExFont=(i,type)=>{
 let isSaving=false;
 let uploadedPaths=[];
 
-function uploadFile(file,path,progId){
-  return new Promise((res,rej)=>{
-    const progEl=document.getElementById(progId);
-    if(progEl){progEl.style.display='block';const bar=progEl.querySelector('.upload-progress-bar');if(bar)bar.style.width='0%';}
-    const task=uploadBytesResumable(ref(storage,path),file);
-    task.on('state_changed',
-      s=>{
-        const pct=(s.bytesTransferred/s.totalBytes*100).toFixed(0);
-        const bar=progEl?.querySelector('.upload-progress-bar');
-        if(bar)bar.style.width=pct+'%';
-      },
-      rej,
-      async()=>{
-        uploadedPaths.push(path);
-        res(await getDownloadURL(task.snapshot.ref));
-      }
-    );
-  });
+// Wire up overlay and X to close only when not saving
+document.getElementById('panelOverlay').addEventListener('click',()=>{if(!isSaving)closePanel();});
+document.getElementById('panelCloseBtn').addEventListener('click',()=>{if(!isSaving)closePanel();});
+
+async function uploadFile(file,path,progId){
+  const progEl=document.getElementById(progId);
+  if(progEl){
+    progEl.style.display='block';
+    const bar=progEl.querySelector('.upload-progress-bar');
+    if(bar){bar.style.width='0%';bar.style.transition='none';}
+  }
+  const storageRef=ref(storage,path);
+  await uploadBytes(storageRef,file);
+  const url=await getDownloadURL(storageRef);
+  uploadedPaths.push(path);
+  if(progEl){const bar=progEl.querySelector('.upload-progress-bar');if(bar)bar.style.width='100%';}
+  return url;
 }
 
 async function uploadSequential(files,pathFn,progId,label){
