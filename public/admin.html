@@ -528,8 +528,8 @@ function renderList(){
       :(f.price?`<span style="font-size:13px;font-weight:500;color:var(--navy)">฿${Number(f.price).toLocaleString()}</span>`:'<span style="color:#ddd">—</span>');
     const isActive=f.is_active!==false;
     return `<div class="font-row">
-      <div>${f.cover_image_url?`<img class="cover-thumb" src="${f.cover_image_url}" loading="lazy">`:`<div class="cover-thumb-empty"></div>`}</div>
-      <div><div class="font-name">${f.name||'—'}</div><div class="font-name-th">${f.name_th||''}</div></div>
+      <div><a href="/fonts/${f.slug}/" target="_blank" rel="noopener" style="display:block">${f.cover_image_url?`<img class="cover-thumb" src="${f.cover_image_url}" loading="lazy">`:`<div class="cover-thumb-empty"></div>`}</a></div>
+      <div><a href="/fonts/${f.slug}/" target="_blank" rel="noopener" style="text-decoration:none"><div class="font-name">${f.name||'—'}</div><div class="font-name-th">${f.name_th||''}</div></a></div>
       <div style="font-size:12px;color:#888;text-transform:capitalize">${f.category||'—'}</div>
       <div style="font-size:12px;color:#888">${tags||'<span style="color:#ddd">—</span>'}</div>
       <div>${priceText}</div>
@@ -940,20 +940,6 @@ function toast(msg,isError=false){
   clearTimeout(toastTimer);
   if(!isError)toastTimer=setTimeout(()=>t.className='status-toast',2500);
 }
-
-// ── OBFUSCATE PREVIEW FONT ────────────────────────
-window.generatePreviewFont=async(slug)=>{
-  showToast(`กำลังสร้าง Preview Font สำหรับ "${slug}"...`);
-  try {
-    const obfuscateFont=httpsCallable(functions,'obfuscateFont');
-    const result=await obfuscateFont({slug});
-    const data=result.data;
-    showToast(`✅ สร้างสำเร็จ ${data.count} ไฟล์`);
-    await loadFonts();
-  } catch(e) {
-    showToast(`❌ เกิดข้อผิดพลาด: ${e.message}`,true);
-  }
-};
 
 // ── AUTO SLUG ─────────────────────────────────────
 document.getElementById('fName').addEventListener('input',function(){
