@@ -120,16 +120,10 @@ export default function FontDetail() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
-  // Inject @font-face per weight — prefers obfuscated files, falls back to demo/full/free
+  // Inject @font-face per weight — obfuscated files only (generated from full family)
   useEffect(() => {
     if (!font?.slug) return;
-    const previewFiles = font.obfuscated_font_files?.length
-      ? font.obfuscated_font_files
-      : font.demo_font_files?.length
-      ? font.demo_font_files
-      : font.full_font_files?.length
-      ? font.full_font_files
-      : font.free_font_files || [];
+    const previewFiles = font.obfuscated_font_files ?? [];
     if (!previewFiles.length) return;
 
     const family = `preview-${font.slug}`;
