@@ -85,7 +85,13 @@ export default function FontCard({ font }: { font: Font }) {
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-[#aaa]">
-            {font.weight_count ? `${font.weight_count} styles` : ""}
+            {(() => {
+              const n = font.weight_count
+                || font.full_font_files?.length
+                || font.free_font_files?.length
+                || 0;
+              return n > 0 ? `${n} style${n > 1 ? "s" : ""}` : "";
+            })()}
           </span>
           {font.is_free ? (
             <span className="text-[12px] font-semibold text-[#0a8a84]">ฟรี</span>

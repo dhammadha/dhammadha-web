@@ -53,12 +53,14 @@
   .tab.active{background:var(--navy);color:#fff}
 
   .font-table{background:#fff;border-radius:12px;border:0.5px solid var(--border);overflow:hidden}
-  .font-table-header{display:grid;grid-template-columns:2.5fr 1fr 100px 100px 130px 120px;gap:14px;padding:13px 20px;background:var(--bg);font-size:12px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
-  .font-row{display:grid;grid-template-columns:2.5fr 1fr 100px 100px 130px 120px;gap:14px;padding:13px 20px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .font-table-header{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px 130px;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .font-row{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px 130px;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
   .font-row:last-child{border-bottom:none}
   .font-row:hover{background:#fafaf8}
   .font-name{font-size:14px;font-weight:600;color:var(--navy)}
   .font-name-th{font-size:12px;color:#aaa;margin-top:2px}
+  .cover-thumb{width:52px;height:32px;border-radius:6px;object-fit:cover;border:0.5px solid var(--border);background:#f0f0ee;display:block}
+  .cover-thumb-empty{width:52px;height:32px;border-radius:6px;background:#eee;border:0.5px solid var(--border)}
   .badge-pill{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;display:inline-block;margin:1px}
   .pill-active{background:#e8faf9;color:#0a8a84;border:0.5px solid #b8ecea}
   .pill-hidden{background:#f5f5f2;color:#aaa;border:0.5px solid #e0e0d8}
@@ -247,7 +249,7 @@
     </div>
     <div class="font-table">
       <div class="font-table-header">
-        <div>ฟอนต์</div><div>หมวดหมู่</div><div>ราคา</div><div>สถานะ</div><div>ป้าย</div><div>จัดการ</div>
+        <div></div><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>สถานะ</div><div>โปรโมชั่น</div><div>จัดการ</div>
       </div>
       <div id="fontList"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
     </div>
@@ -513,20 +515,26 @@ function renderList(){
     return;
   }
   c.innerHTML=list.map(f=>{
-    const badges=[];
-    if(f.is_sale)badges.push(`<span class="badge-pill pill-sale">${f.sale_label||'Sale'}</span>`);
-    if(f.is_free)badges.push(`<span class="badge-pill pill-free">FREE</span>`);
-    if(f.has_demo)badges.push(`<span class="badge-pill pill-demo">DEMO</span>`);
-    if(isNew(f))badges.push(`<span class="badge-pill pill-new">NEW</span>`);
+    const tags=(f.tags||[]).slice(0,3).map(t=>`<span class="badge-pill pill-hidden" style="font-size:10px">${t}</span>`).join('');
+    const promoText=f.is_sale
+      ?`<span style="color:#856404;font-size:12px">ลด ${f.discount_percent||0}%${f.sale_end?` ถึง ${f.sale_end}`:''}</span>`
+      :`<span style="color:#ddd">—</span>`;
+    const priceText=f.is_free
+      ?`<span style="color:#166534;font-size:13px;font-weight:500">ฟรี</span>`
+      :(f.price?`<span style="font-size:13px;font-weight:500;color:var(--navy)">฿${Number(f.price).toLocaleString()}</span>`:'<span style="color:#ddd">—</span>');
+    const isActive=f.is_active!==false;
     return `<div class="font-row">
+      <div>${f.cover_image_url?`<img class="cover-thumb" src="${f.cover_image_url}" loading="lazy">`:`<div class="cover-thumb-empty"></div>`}</div>
       <div><div class="font-name">${f.name||'—'}</div><div class="font-name-th">${f.name_th||''}</div></div>
-      <div style="font-size:13px;color:#888">${f.category||'—'}</div>
-      <div style="font-size:14px;font-weight:500;color:var(--navy)">${f.is_free?'<span style="color:#166534">ฟรี</span>':(f.price?'฿'+f.price.toLocaleString():'—')}</div>
-      <div><span class="badge-pill ${f.is_active?'pill-active':'pill-hidden'}">${f.is_active?'แสดง':'ซ่อน'}</span></div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap">${badges.join('')||'<span style="color:#ddd;font-size:12px">—</span>'}</div>
+      <div style="font-size:12px;color:#888;text-transform:capitalize">${f.category||'—'}</div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap">${tags||'<span style="color:#ddd;font-size:12px">—</span>'}</div>
+      <div>${priceText}</div>
+      <div><span class="badge-pill ${isActive?'pill-active':'pill-hidden'}">${isActive?'แสดง':'ซ่อน'}</span></div>
+      <div>${promoText}</div>
       <div class="row-actions">
-        <button class="btn btn-outline" style="padding:5px 12px;font-size:12px" onclick="editFont('${f.id}')">แก้ไข</button>
-        <button class="btn btn-danger" style="padding:5px 10px;font-size:12px" onclick="deleteFont('${f.id}','${f.name}')">ลบ</button>
+        <button class="btn ${isActive?'btn-outline':'btn-mint'}" style="padding:4px 10px;font-size:11px" onclick="toggleActive('${f.id}',${isActive})">${isActive?'ซ่อน':'แสดง'}</button>
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="editFont('${f.id}')">แก้ไข</button>
+        <button class="btn btn-danger" style="padding:4px 9px;font-size:11px" onclick="deleteFont('${f.id}','${f.name}')">ลบ</button>
       </div>
     </div>`;
   }).join('');
@@ -594,6 +602,11 @@ window.deleteFont=async(id,name)=>{
   if(!confirm(`ลบฟอนต์ "${name}"?\n(ไม่สามารถกู้คืนได้)`))return;
   await deleteDoc(doc(db,'fonts',id));
   toast('ลบเรียบร้อย');
+  await loadFonts();
+};
+window.toggleActive=async(id,currentActive)=>{
+  await updateDoc(doc(db,'fonts',id),{is_active:!currentActive,updated_at:serverTimestamp()});
+  toast(currentActive?'ซ่อนฟอนต์แล้ว':'แสดงฟอนต์แล้ว');
   await loadFonts();
 };
 
@@ -867,6 +880,7 @@ window.saveFont=async()=>{
       free_font_files:freeUrls,
       specimen_files:specUrls,
       has_demo:demoUrls.length>0,
+      weight_count:isFree?freeUrls.length:fullUrls.length,
       updated_at:serverTimestamp(),
     };
 
