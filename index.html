@@ -348,7 +348,7 @@ async function loadFonts() {
     const q = query(
       collection(db, 'fonts'),
       where('is_active', '==', true),
-      orderBy('sort_order')
+      orderBy('created_at', 'desc')
     );
     const snap = await getDocs(q);
     allFonts = snap.docs.map(d => ({ id: d.id, ...d.data() }));

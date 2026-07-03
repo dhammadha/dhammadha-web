@@ -49,9 +49,12 @@
   .cs-form button{padding:11px 22px;background:var(--navy);color:#fff;border:none;border-radius:9px;font-size:14px;font-family:"Noto Sans Thai",sans-serif;cursor:pointer;font-weight:500;white-space:nowrap;transition:background .15s}
   .cs-form button:hover{background:var(--mint)}
   .cs-note{font-size:12px;color:#aaa}
+  .cs-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#888;text-decoration:none;margin-bottom:28px;transition:color .15s}
+  .cs-back:hover{color:var(--navy)}
+  .cs-back svg{width:16px;height:16px}
   .cs-features{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:48px;text-align:left}
   .cs-feat{background:#fff;border-radius:10px;padding:18px 20px;border:0.5px solid var(--border)}
-  .cs-feat-icon{font-size:22px;margin-bottom:8px}
+  .cs-feat-icon{width:28px;height:28px;margin-bottom:8px;color:var(--navy)}
   .cs-feat-title{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px}
   .cs-feat-desc{font-size:12px;color:#888;line-height:1.6}
 
@@ -78,6 +81,10 @@
 
   <div class="cs-wrap">
     <div class="cs-box">
+      <a href="/" class="cs-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        กลับหน้าแรก
+      </a>
       <div class="cs-badge">Coming Soon</div>
       <h1 class="cs-title">ฟอนต์ไทยไม่จำกัด<br>ด้วย <em>Subscription</em></h1>
       <p class="cs-desc">เข้าถึงฟอนต์ทุกตัวในคลังด้วยแพลนรายเดือนเดียว<br>ไม่ต้องซื้อทีละชุด ใช้ได้ทันที อัปเดตตลอดเวลา</p>
@@ -88,22 +95,22 @@
       <div class="cs-note" id="csNote">กรอกอีเมลเพื่อรับการแจ้งเตือนเมื่อเปิดให้บริการ</div>
       <div class="cs-features">
         <div class="cs-feat">
-          <div class="cs-feat-icon">🔤</div>
+          <svg class="cs-feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
           <div class="cs-feat-title">ฟอนต์ครบทุกตัว</div>
           <div class="cs-feat-desc">เข้าถึงฟอนต์ทุกชุดในคลังโดยไม่มีข้อจำกัด</div>
         </div>
         <div class="cs-feat">
-          <div class="cs-feat-icon">⚡</div>
+          <svg class="cs-feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
           <div class="cs-feat-title">ใช้งานได้ทันที</div>
           <div class="cs-feat-desc">ดาวน์โหลดและติดตั้งได้ทันทีหลังสมัครสมาชิก</div>
         </div>
         <div class="cs-feat">
-          <div class="cs-feat-icon">🔄</div>
+          <svg class="cs-feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           <div class="cs-feat-title">อัปเดตอัตโนมัติ</div>
           <div class="cs-feat-desc">ได้รับฟอนต์ใหม่และ version อัปเดตโดยอัตโนมัติ</div>
         </div>
         <div class="cs-feat">
-          <div class="cs-feat-icon">💼</div>
+          <svg class="cs-feat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
           <div class="cs-feat-title">ใช้เชิงพาณิชย์</div>
           <div class="cs-feat-desc">ลิขสิทธิ์ครอบคลุมงานส่วนตัวและเชิงพาณิชย์</div>
         </div>
