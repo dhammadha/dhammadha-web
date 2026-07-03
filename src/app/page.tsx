@@ -135,8 +135,8 @@ export default function HomePage() {
               <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {sliderVisible.map((f) => (
-                  <FontCard key={f.id} font={f} />
+                {sliderVisible.map((f, i) => (
+                  <FontCard key={`${f.id}-${i}`} font={f} />
                 ))}
               </div>
             )}
