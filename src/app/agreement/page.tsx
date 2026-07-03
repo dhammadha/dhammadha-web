@@ -102,7 +102,7 @@ export default function AgreementPage() {
 
           </div>
 
-          <div className="mt-6 text-[13px] text-[#aaa] leading-[1.8]">
+          <div className="mt-6 text-[13px] text-[#aaa] leading-[1.5]">
             <p className="mb-2">หมายเหตุ:</p>
             <ul className="list-disc pl-5 flex flex-col gap-1">
               <li>การจำแนกประเภทผู้ซื้อ ขึ้นอยู่กับดุลยพินิจของผู้ขาย</li>

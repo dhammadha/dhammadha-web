@@ -42,9 +42,10 @@ export const obfuscateFont = onCall(
     const storage = admin.storage().bucket();
 
     // Load font doc
-    const snap = await db.collection("fonts").doc(slug).get();
-    if (!snap.exists) throw new HttpsError("not-found", "font not found");
-    const fontData = snap.data()!;
+    const q = await db.collection("fonts").where("slug", "==", slug).limit(1).get();
+    if (q.empty) throw new HttpsError("not-found", "font not found");
+    const snap = q.docs[0];
+    const fontData = snap.data();
 
     const fullFiles: string[] = fontData.full_font_files ?? [];
     if (!fullFiles.length) throw new HttpsError("not-found", "no full_font_files");
@@ -113,7 +114,7 @@ export const obfuscateFont = onCall(
     }
 
     // Save urls + map to Firestore
-    await db.collection("fonts").doc(slug).update({
+    await snap.ref.update({
       obfuscated_font_files: obfuscatedUrls,
       obfuscated_map: charMap,
     });
