@@ -14,19 +14,16 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
+const SLIDER_SIZE = 8;
+const VISIBLE = 3;
+
 function buildSliderPool(fonts: Font[]): Font[] {
   const sale = fonts.filter((f) => f.is_sale);
-  if (sale.length > 0) {
-    const rest = fonts.filter((f) => !f.is_sale && f.is_popular);
-    return [...sale, ...shuffle(rest)].slice(0, 10);
-  }
-  const popular = fonts.filter((f) => f.is_popular);
-  const others = fonts.filter((f) => !f.is_popular);
-  return [...shuffle(popular), ...shuffle(others)].slice(0, 10);
+  const others = shuffle(fonts.filter((f) => !f.is_sale));
+  return [...sale, ...others].slice(0, SLIDER_SIZE);
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-const PER_PAGE = 3;
 const GRID_SHOW = 11;
 
 export default function HomePage() {
@@ -58,28 +55,28 @@ export default function HomePage() {
     load();
   }, []);
 
-  useEffect(() => {
-    if (!sliderPool.length) return;
-    timerRef.current = setInterval(() => {
-      setSlide((s) => (s + 1) % Math.ceil(sliderPool.length / PER_PAGE));
-    }, 5000);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [sliderPool]);
+  const n = sliderPool.length;
 
-  const totalPages = Math.ceil(sliderPool.length / PER_PAGE);
-  const sliderVisible = sliderPool.slice(slide * PER_PAGE, slide * PER_PAGE + PER_PAGE);
+  useEffect(() => {
+    if (!n) return;
+    timerRef.current = setInterval(() => {
+      setSlide((s) => (s + 1) % n);
+    }, 4000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [n]);
+
+  const sliderVisible = n > 0
+    ? [0, 1, 2].map((i) => sliderPool[(slide + i) % n])
+    : [];
   const gridFonts = fonts.slice(0, GRID_SHOW);
   const remaining = fonts.length - GRID_SHOW;
 
   function moveSlide(dir: number) {
-    setSlide((s) => (s + dir + totalPages) % totalPages);
+    if (!n) return;
+    setSlide((s) => (s + dir + n) % n);
     if (timerRef.current) {
       clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => {
-        setSlide((s) => (s + 1) % totalPages);
-      }, 5000);
+      timerRef.current = setInterval(() => setSlide((s) => (s + 1) % n), 4000);
     }
   }
 
@@ -153,16 +150,16 @@ export default function HomePage() {
             </button>
           </div>
 
-          {totalPages > 1 && (
+          {n > 1 && (
             <div className="flex gap-1.5 justify-center mt-3.5">
-              {Array.from({ length: totalPages }, (_, i) => (
+              {Array.from({ length: n }, (_, i) => (
                 <button
                   key={i}
                   onClick={() => setSlide(i)}
                   className={`w-[7px] h-[7px] rounded-full border-none cursor-pointer transition-colors ${
                     i === slide ? "bg-navy" : "bg-[#ddd]"
                   }`}
-                  aria-label={`หน้า ${i + 1}`}
+                  aria-label={`ตำแหน่ง ${i + 1}`}
                 />
               ))}
             </div>
