@@ -250,15 +250,15 @@
     </div>
   </div>
 
-  <!-- OVERLAY -->
-  <div id="panelOverlay" onclick="handleCancel()"></div>
+  <!-- OVERLAY — click does nothing while saving -->
+  <div id="panelOverlay" onclick="if(!isSaving)closePanel()"></div>
 
   <!-- SLIDE PANEL -->
   <div id="slidePanel">
     <div class="panel-header">
       <div class="panel-breadcrumb">Admin → <span id="panelTitle">เพิ่มฟอนต์ใหม่</span></div>
       <div class="panel-header-actions">
-        <button class="panel-close" onclick="handleCancel()">✕</button>
+        <button class="panel-close" onclick="if(!isSaving)closePanel()">✕</button>
       </div>
     </div>
 
@@ -421,10 +421,11 @@
     </div><!-- end panel-body -->
 
     <div class="panel-footer">
-      <div id="panelSaving" style="font-size:13px;color:#aaa;display:none">กำลังบันทึก...</div>
+      <div id="panelSaving" style="font-size:13px;color:#aaa;display:none">⏳ กำลังบันทึก...</div>
       <div style="flex:1"></div>
       <div class="panel-footer-right">
-        <button class="btn btn-outline" id="cancelBtn" onclick="handleCancel()">ยกเลิก</button>
+        <button id="cancelSaveBtn" class="btn btn-danger" style="display:none" onclick="doCancel()">ยกเลิก & ลบไฟล์</button>
+        <button class="btn btn-outline" id="cancelBtn" onclick="closePanel()">ยกเลิก</button>
         <button class="btn btn-mint" id="saveBtn" onclick="saveFont()">บันทึก</button>
       </div>
     </div>
@@ -767,27 +768,19 @@ async function cleanupUploaded(){
 }
 
 function setSavingUI(saving){
-  const btn=document.getElementById('saveBtn');
-  const savingEl=document.getElementById('panelSaving');
-  const cancelBtn=document.getElementById('cancelBtn');
-  const overlay=document.getElementById('panelOverlay');
-  btn.disabled=saving;
-  savingEl.style.display=saving?'block':'none';
-  cancelBtn.textContent=saving?'ยกเลิก & ลบไฟล์':'ยกเลิก';
-  cancelBtn.style.color=saving?'var(--red)':'';
-  // prevent accidental close while saving
-  overlay.style.pointerEvents=saving?'none':'all';
+  document.getElementById('saveBtn').disabled=saving;
+  document.getElementById('panelSaving').style.display=saving?'block':'none';
+  document.getElementById('cancelBtn').style.display=saving?'none':'inline-flex';
+  document.getElementById('cancelSaveBtn').style.display=saving?'inline-flex':'none';
 }
 
-window.handleCancel=async()=>{
-  if(isSaving){
-    if(!confirm('กำลังอัพโหลดอยู่ — ยกเลิกและลบไฟล์ที่อัพโหลดไปแล้วไหม?'))return;
-    isSaving=false;
-    setSavingUI(false);
-    toast('กำลังลบไฟล์ที่อัพโหลดไปแล้ว...');
-    await cleanupUploaded();
-    toast('ยกเลิกและลบไฟล์เรียบร้อย');
-  }
+window.doCancel=async()=>{
+  if(!confirm('ยกเลิกและลบไฟล์ที่อัพโหลดไปแล้วไหม?'))return;
+  isSaving=false;
+  setSavingUI(false);
+  toast('กำลังลบไฟล์...');
+  await cleanupUploaded();
+  toast('ยกเลิกและลบไฟล์เรียบร้อย');
   closePanel();
 };
 
@@ -889,14 +882,22 @@ window.saveFont=async()=>{
     await loadFonts();
     setTimeout(closePanel,1000);
   } catch(e){
-    if(e.message==='cancelled'){
-      // handleCancel already cleaned up
-    } else {
-      toast('เกิดข้อผิดพลาด: '+e.message,true);
+    if(e.message!=='cancelled'){
+      console.error('saveFont error:',e);
+      const msg='เกิดข้อผิดพลาด: '+e.message;
+      document.getElementById('panelSaving').textContent='❌ '+msg;
+      document.getElementById('panelSaving').style.color='var(--red)';
+      // keep error visible — don't auto-hide
     }
   } finally {
     isSaving=false;
-    setSavingUI(false);
+    document.getElementById('saveBtn').disabled=false;
+    document.getElementById('cancelBtn').style.display='inline-flex';
+    document.getElementById('cancelSaveBtn').style.display='none';
+    // reset saving text for next time (error stays until panel closed)
+    if(document.getElementById('panelSaving').style.color!=='var(--red)'){
+      document.getElementById('panelSaving').style.display='none';
+    }
   }
 };
 
