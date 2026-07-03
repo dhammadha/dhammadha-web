@@ -421,7 +421,7 @@
       <div id="panelSaving" style="font-size:13px;color:#aaa;display:none">กำลังบันทึก...</div>
       <div style="flex:1"></div>
       <div class="panel-footer-right">
-        <button class="btn btn-outline" onclick="closePanel()">ยกเลิก</button>
+        <button class="btn btn-outline" id="cancelBtn" onclick="handleCancel()">ยกเลิก</button>
         <button class="btn btn-mint" id="saveBtn" onclick="saveFont()">บันทึก</button>
       </div>
     </div>
@@ -438,7 +438,7 @@ import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, q
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL }
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js";
 
 const app = initializeApp({
@@ -702,18 +702,65 @@ window.rmExFont=(i,type)=>{
 };
 
 // ── UPLOAD ────────────────────────────────────────
-function uploadFile(file,path,progId){
+let isSaving=false;
+let uploadedDuringSession=[];
+
+function uploadFile(file,path,progEl,onProgress){
   return new Promise((res,rej)=>{
-    const prog=document.getElementById(progId);
-    if(prog)prog.style.display='block';
+    if(progEl)progEl.style.display='block';
     const task=uploadBytesResumable(ref(storage,path),file);
     task.on('state_changed',
-      s=>{const pct=(s.bytesTransferred/s.totalBytes)*100;const bar=prog?.querySelector('.upload-progress-bar');if(bar)bar.style.width=pct+'%';},
+      s=>{if(onProgress)onProgress(s.bytesTransferred,s.totalBytes);},
       rej,
-      async()=>res(await getDownloadURL(task.snapshot.ref))
+      async()=>{
+        const url=await getDownloadURL(task.snapshot.ref);
+        uploadedDuringSession.push(path);
+        res(url);
+      }
     );
   });
 }
+
+function uploadGroup(files,pathFn,progId){
+  if(!files.length)return Promise.resolve([]);
+  const progEl=document.getElementById(progId);
+  if(progEl)progEl.style.display='block';
+  const bytes=files.map(()=>({done:0,total:0}));
+  function updateBar(){
+    const d=bytes.reduce((a,b)=>a+b.done,0);
+    const t=bytes.reduce((a,b)=>a+b.total,0)||1;
+    const bar=progEl?.querySelector('.upload-progress-bar');
+    if(bar)bar.style.width=(d/t*100)+'%';
+  }
+  return Promise.all(files.map((file,i)=>
+    uploadFile(file,pathFn(file,i),progEl,
+      (done,total)=>{bytes[i]={done,total};updateBar();}
+    )
+  ));
+}
+
+async function cleanupUploaded(){
+  await Promise.allSettled(
+    uploadedDuringSession.map(path=>deleteObject(ref(storage,path)).catch(()=>{}))
+  );
+  uploadedDuringSession=[];
+}
+
+window.handleCancel=async()=>{
+  if(isSaving){
+    if(!confirm('กำลังอัพโหลดอยู่ — ยกเลิกและลบไฟล์ที่อัพโหลดไปแล้วไหม?'))return;
+    isSaving=false;
+    toast('กำลังลบไฟล์ที่อัพโหลดไปแล้ว...');
+    await cleanupUploaded();
+    toast('ลบเรียบร้อย ยกเลิกแล้ว');
+    const btn=document.getElementById('saveBtn');
+    const saving=document.getElementById('panelSaving');
+    const cancelBtn=document.getElementById('cancelBtn');
+    btn.disabled=false;saving.style.display='none';
+    cancelBtn.textContent='ยกเลิก';cancelBtn.style.color='';
+  }
+  closePanel();
+};
 
 // ── SAVE ──────────────────────────────────────────
 window.saveFont=async()=>{
@@ -726,30 +773,38 @@ window.saveFont=async()=>{
 
   const btn=document.getElementById('saveBtn');
   const saving=document.getElementById('panelSaving');
+  const cancelBtn=document.getElementById('cancelBtn');
   btn.disabled=true;saving.style.display='block';
+  isSaving=true;uploadedDuringSession=[];
+  cancelBtn.textContent='ยกเลิก & ลบไฟล์';cancelBtn.style.color='var(--red)';
 
   try{
     let coverUrl=exCoverUrl;
-    if(pendingCover){toast('อัพโหลด Cover...');coverUrl=await uploadFile(pendingCover,`public/covers/${slug}_cover.${pendingCover.name.split('.').pop()}`,'coverProg');}
-
-    let previewUrls=[...exPreviewUrls];
-    for(let i=0;i<pendingPreviews.length;i++){
-      toast(`อัพโหลดรูป Preview ${i+1}/${pendingPreviews.length}...`);
-      const url=await uploadFile(pendingPreviews[i],`public/previews/${slug}_prev_${Date.now()}_${i}.${pendingPreviews[i].name.split('.').pop()}`,'coverProg');
-      previewUrls.push(url);
+    if(pendingCover){
+      toast('อัพโหลด Cover...');
+      const urls=await uploadGroup([pendingCover],
+        f=>`public/covers/${slug}_cover.${f.name.split('.').pop()}`,'coverProg');
+      coverUrl=urls[0];
     }
 
-    let fullUrls=[...exFullFontUrls];
-    if(!isFree){for(let i=0;i<pendingFullFonts.length;i++){toast(`อัพโหลด Full Font ${i+1}/${pendingFullFonts.length}...`);const url=await uploadFile(pendingFullFonts[i],`protected/fonts/${slug}/${pendingFullFonts[i].name}`,'fullFontProg');fullUrls.push(url);}}
+    toast('อัพโหลดรูป Preview...');
+    const newPrevUrls=await uploadGroup(pendingPreviews,
+      (f,i)=>`public/previews/${slug}_prev_${Date.now()}_${i}.${f.name.split('.').pop()}`,'coverProg');
+    const previewUrls=[...exPreviewUrls,...newPrevUrls];
 
-    let demoUrls=[...exDemoFontUrls];
-    if(!isFree){for(let i=0;i<pendingDemoFonts.length;i++){toast(`อัพโหลด Demo ${i+1}/${pendingDemoFonts.length}...`);const url=await uploadFile(pendingDemoFonts[i],`public/demo-fonts/${slug}/${pendingDemoFonts[i].name}`,'demoFontProg');demoUrls.push(url);}}
+    toast('อัพโหลดไฟล์ฟอนต์...');
+    const [fullUrls,demoUrls,freeUrls,specUrls]=await Promise.all([
+      !isFree?uploadGroup(pendingFullFonts,
+        f=>`protected/fonts/${slug}/${f.name}`,'fullFontProg'):Promise.resolve([]),
+      !isFree?uploadGroup(pendingDemoFonts,
+        f=>`public/demo-fonts/${slug}/${f.name}`,'demoFontProg'):Promise.resolve([]),
+      isFree?uploadGroup(pendingFreeFonts,
+        f=>`public/free-fonts/${slug}/${f.name}`,'freeFontProg'):Promise.resolve([]),
+      uploadGroup(pendingSpecimens,
+        f=>`public/specimens/${slug}/${f.name}`,'specimenProg'),
+    ]);
 
-    let freeUrls=[...exFreeFontUrls];
-    if(isFree){for(let i=0;i<pendingFreeFonts.length;i++){toast(`อัพโหลด Free Font ${i+1}/${pendingFreeFonts.length}...`);const url=await uploadFile(pendingFreeFonts[i],`public/free-fonts/${slug}/${pendingFreeFonts[i].name}`,'freeFontProg');freeUrls.push(url);}}
-
-    let specUrls=[...exSpecimenUrls];
-    for(let i=0;i<pendingSpecimens.length;i++){toast(`อัพโหลด Specimen ${i+1}/${pendingSpecimens.length}...`);const url=await uploadFile(pendingSpecimens[i],`public/specimens/${slug}/${pendingSpecimens[i].name}`,'specimenProg');specUrls.push(url);}
+    if(!isSaving){await cleanupUploaded();return;}
 
     const disc=parseInt(document.getElementById('fDiscount').value)||0;
     const price=parseFloat(document.getElementById('fPrice').value)||0;
@@ -773,11 +828,11 @@ window.saveFont=async()=>{
       cover_image_url:coverUrl,
       thumbnail_url:coverUrl,
       preview_images:previewUrls,
-      full_font_files:fullUrls,
-      demo_font_files:demoUrls,
-      free_font_files:freeUrls,
-      specimen_files:specUrls,
-      has_demo:demoUrls.length>0,
+      full_font_files:[...exFullFontUrls,...fullUrls],
+      demo_font_files:[...exDemoFontUrls,...demoUrls],
+      free_font_files:[...exFreeFontUrls,...freeUrls],
+      specimen_files:[...exSpecimenUrls,...specUrls],
+      has_demo:([...exDemoFontUrls,...demoUrls]).length>0,
       updated_at:serverTimestamp(),
     };
 
@@ -789,12 +844,15 @@ window.saveFont=async()=>{
       await addDoc(collection(db,'fonts'),data);
       toast('✓ เพิ่มฟอนต์เรียบร้อย');
     }
+    uploadedDuringSession=[];
     await loadFonts();
     setTimeout(closePanel,1000);
   } catch(e){
-    toast('เกิดข้อผิดพลาด: '+e.message,true);
+    if(isSaving)toast('เกิดข้อผิดพลาด: '+e.message,true);
   } finally {
+    isSaving=false;
     btn.disabled=false;saving.style.display='none';
+    cancelBtn.textContent='ยกเลิก';cancelBtn.style.color='';
   }
 };
 
