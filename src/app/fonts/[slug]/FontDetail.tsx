@@ -369,7 +369,7 @@ export default function FontDetail() {
               )}
 
               {font.description_th && (
-                <p className="text-[14px] text-[#555] leading-[1.75]">
+                <p className="text-[14px] text-[#555] leading-[1.55]">
                   {font.description_th}
                 </p>
               )}
