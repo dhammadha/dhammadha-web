@@ -461,7 +461,7 @@ const app = initializeApp({
   appId:"1:90771649996:web:e25d6dabdb938247ead969"
 });
 const db=getFirestore(app),auth=getAuth(app),storage=getStorage(app);
-const functions=getFunctions(app,'asia-southeast1');
+const functions=getFunctions(app);
 
 let fonts=[],currentTab='all',editingId=null;
 let pendingCover=null,pendingFullFonts=[],pendingDemoFonts=[],pendingFreeFonts=[],pendingSpecimens=[];
