@@ -39,12 +39,12 @@ export default function HomePage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Carousel
-  const n = sliderPool.length;
-  const showCount = Math.min(n, MAX_VISIBLE);
+  const poolSize = sliderPool.length;
+  const showCount = Math.min(poolSize, MAX_VISIBLE);
   const strip = buildStrip(sliderPool, showCount);
   const [pos, setPos] = useState(showCount); // start after prepended clones
   const [animated, setAnimated] = useState(true);
-  const dotIdx = n > 0 ? (pos - showCount + n * 10) % n : 0;
+  const dotIdx = poolSize > 0 ? (pos - showCount + poolSize * 10) % poolSize : 0;
 
   useEffect(() => {
     async function load() {
@@ -80,10 +80,10 @@ export default function HomePage() {
 
   // Auto-advance
   useEffect(() => {
-    if (n < 2) return;
+    if (poolSize < 2) return;
     timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [n]);
+  }, [poolSize]);
 
   // Re-enable animation after instant snap
   useEffect(() => {
@@ -93,12 +93,12 @@ export default function HomePage() {
   }, [animated]);
 
   function onTransitionEnd() {
-    if (pos >= n + showCount) { setAnimated(false); setPos(showCount); }
-    else if (pos <= 0 && showCount > 0) { setAnimated(false); setPos(n); }
+    if (pos >= poolSize + showCount) { setAnimated(false); setPos(showCount); }
+    else if (pos <= 0 && showCount > 0) { setAnimated(false); setPos(poolSize); }
   }
 
   function moveSlide(dir: number) {
-    if (n < 2) return;
+    if (poolSize < 2) return;
     setPos((p) => p + dir);
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -144,7 +144,7 @@ export default function HomePage() {
           </div>
           <div className="relative">
             {/* Prev */}
-            {n > 1 && (
+            {poolSize > 1 && (
               <button onClick={() => moveSlide(-1)}
                 className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
                 ‹
@@ -157,7 +157,7 @@ export default function HomePage() {
                 <div className="flex gap-5">
                   {[0,1,2].map((i) => <div key={i} className="flex-none w-1/3 bg-white rounded-lg aspect-video animate-pulse" />)}
                 </div>
-              ) : n === 0 ? (
+              ) : poolSize === 0 ? (
                 <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
               ) : (
                 <div
@@ -182,7 +182,7 @@ export default function HomePage() {
             </div>
 
             {/* Next */}
-            {n > 1 && (
+            {poolSize > 1 && (
               <button onClick={() => moveSlide(1)}
                 className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
                 ›
@@ -190,9 +190,9 @@ export default function HomePage() {
             )}
           </div>
 
-          {n > 1 && (
+          {poolSize > 1 && (
             <div className="flex gap-1.5 justify-center mt-3.5">
-              {Array.from({ length: n }, (_, i) => (
+              {Array.from({ length: poolSize }, (_, i) => (
                 <button key={i} onClick={() => { setPos(showCount + i); }}
                   className={`w-[7px] h-[7px] rounded-full border-none cursor-pointer transition-colors ${i === dotIdx ? "bg-navy" : "bg-[#ddd]"}`}
                   aria-label={`ตำแหน่ง ${i + 1}`} />

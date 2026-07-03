@@ -49,7 +49,7 @@ export default function FontDetail() {
     async function load() {
       try {
         const snap = await getDocs(
-          query(collection(db, "fonts"), where("slug", "==", slug))
+          query(collection(db, "fonts"), where("slug", "==", slug), where("is_active", "==", true))
         );
         if (snap.empty) { setLoading(false); return; }
 
@@ -396,9 +396,7 @@ export default function FontDetail() {
                 )}
               </div>
 
-              {font.has_demo &&
-                font.demo_font_files &&
-                font.demo_font_files.length > 0 && (
+              {font.demo_font_files && font.demo_font_files.length > 0 && (
                   <a
                     href={font.demo_font_files[0]}
                     target="_blank"
