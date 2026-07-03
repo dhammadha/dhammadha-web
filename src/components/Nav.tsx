@@ -1,15 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, where } from "firebase/firestore";
+
+interface FontOption {
+  slug: string;
+  name: string;
+  name_th: string;
+  category: string;
+}
+
+let cachedFonts: FontOption[] | null = null;
 
 export default function Nav() {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
-  const [lang, setLang] = useState("TH");
   const [menuOpen, setMenuOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<FontOption[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [fonts, setFonts] = useState<FontOption[]>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -17,15 +34,62 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Load fonts once, cache globally
+  useEffect(() => {
+    if (cachedFonts) { setFonts(cachedFonts); return; }
+    getDocs(query(collection(db, "fonts"), where("is_active", "==", true))).then((snap) => {
+      const data = snap.docs.map((d) => {
+        const f = d.data();
+        return { slug: f.slug, name: f.name || "", name_th: f.name_th || "", category: f.category || "" };
+      });
+      cachedFonts = data;
+      setFonts(data);
+    }).catch(() => {});
+  }, []);
+
+  // Close on outside click
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) {
-        setLangOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+        setActiveIdx(-1);
       }
     };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, []);
+
+  const handleInput = useCallback((val: string) => {
+    setSearchQuery(val);
+    setActiveIdx(-1);
+    if (!val.trim()) { setSuggestions([]); setSearchOpen(false); return; }
+    const q = val.trim().toLowerCase();
+    const matches = fonts.filter(
+      (f) => f.name.toLowerCase().includes(q) || f.name_th.toLowerCase().includes(q)
+    ).slice(0, 8);
+    setSuggestions(matches);
+    setSearchOpen(true);
+  }, [fonts]);
+
+  const goToFont = (slug: string) => {
+    setSearchQuery("");
+    setSuggestions([]);
+    setSearchOpen(false);
+    setActiveIdx(-1);
+    router.push(`/fonts/${slug}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!searchOpen || !suggestions.length) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActiveIdx((i) => Math.min(i + 1, suggestions.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActiveIdx((i) => Math.max(i - 1, -1)); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIdx >= 0) goToFont(suggestions[activeIdx].slug);
+      else if (suggestions.length === 1) goToFont(suggestions[0].slug);
+    }
+    else if (e.key === "Escape") { setSearchOpen(false); inputRef.current?.blur(); }
+  };
 
   return (
     <nav
@@ -33,7 +97,7 @@ export default function Nav() {
         scrolled ? "shadow-[0_2px_12px_rgba(0,0,0,0.08)]" : ""
       }`}
     >
-      <Link href="/" className="flex items-center gap-2.5 no-underline">
+      <Link href="/" className="flex items-center gap-2.5 no-underline flex-shrink-0">
         <Image
           src="/logo_DHAMMADHA_2025_simple.png"
           alt="Dhammadha Studio"
@@ -63,43 +127,62 @@ export default function Nav() {
       </div>
 
       <div className="flex gap-2.5 items-center">
-        {/* Language selector */}
-        <div className="relative select-none cursor-pointer" ref={langRef}>
-          <button
-            className="flex items-center gap-1 text-[13px] text-[#555] px-1 py-1.5 bg-transparent border-none"
-            onClick={() => setLangOpen((v) => !v)}
-          >
-            <span>{lang}</span>
-            <span className="text-[10px] text-[#999]">▾</span>
-          </button>
-          {langOpen && (
-            <div className="absolute top-[calc(100%+6px)] right-0 bg-white border border-[0.5px] border-[#ddd] rounded-[10px] shadow-[0_8px_24px_rgba(0,0,0,0.1)] min-w-[150px] overflow-hidden z-50">
-              {[
-                { code: "TH", label: "TH - ไทย" },
-                { code: "EN", label: "EN - English" },
-              ].map((item) => (
+        {/* Search box */}
+        <div ref={searchRef} className="relative hidden md:block">
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-150 bg-[#f8f8f6] ${
+            searchOpen ? "border-mint shadow-[0_0_0_3px_#5ECEC820]" : "border-transparent"
+          }`}>
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="text-[#aaa] flex-shrink-0">
+              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.4"/>
+              <path d="M10.5 10.5l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+            <input
+              ref={inputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleInput(e.target.value)}
+              onFocus={() => { if (suggestions.length) setSearchOpen(true); }}
+              onKeyDown={handleKeyDown}
+              placeholder="ค้นหาฟอนต์..."
+              className="bg-transparent border-none outline-none text-[14px] text-[#333] placeholder-[#bbb] w-[180px] font-[inherit]"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => { setSearchQuery(""); setSuggestions([]); setSearchOpen(false); inputRef.current?.focus(); }}
+                className="text-[#bbb] hover:text-[#888] bg-transparent border-none cursor-pointer text-base leading-none p-0"
+              >×</button>
+            )}
+          </div>
+
+          {/* Suggestions dropdown */}
+          {searchOpen && suggestions.length > 0 && (
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[300px] bg-white rounded-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-[#f0f0f0] overflow-hidden z-50">
+              {suggestions.map((f, i) => (
                 <div
-                  key={item.code}
-                  onClick={() => {
-                    setLang(item.code);
-                    setLangOpen(false);
-                  }}
-                  className={
-                    lang === item.code
-                      ? "bg-navy text-white rounded-lg mx-1.5 my-1 px-3 py-2 text-[13px] cursor-pointer"
-                      : "px-4 py-3 text-[13px] text-[#333] cursor-pointer hover:bg-bg"
-                  }
+                  key={f.slug}
+                  onMouseDown={() => goToFont(f.slug)}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors border-b border-[#f8f8f8] last:border-0 ${
+                    i === activeIdx ? "bg-[#f0fffe]" : "hover:bg-[#fafaf8]"
+                  }`}
                 >
-                  {item.label}
+                  <div>
+                    <div className="text-[14px] font-semibold text-navy leading-snug">{f.name}</div>
+                    {f.name_th && <div className="text-[12px] text-[#aaa] leading-snug">{f.name_th}</div>}
+                  </div>
+                  <span className="text-[11px] text-[#bbb] capitalize flex-shrink-0 ml-2">{f.category}</span>
                 </div>
               ))}
             </div>
           )}
-        </div>
 
-        <button className="text-[13px] px-[18px] py-2 border-none rounded-lg bg-navy text-white font-medium hover:bg-mint transition-colors">
-          เข้าสู่ระบบ
-        </button>
+          {/* No results */}
+          {searchOpen && searchQuery && suggestions.length === 0 && (
+            <div className="absolute top-[calc(100%+8px)] right-0 w-[240px] bg-white rounded-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-[#f0f0f0] px-4 py-4 text-[13px] text-[#aaa] z-50">
+              ไม่พบฟอนต์ที่ตรงกับ &ldquo;{searchQuery}&rdquo;
+            </div>
+          )}
+        </div>
 
         {/* Mobile hamburger */}
         <button
@@ -130,6 +213,31 @@ export default function Nav() {
               {item.label}
             </Link>
           ))}
+          {/* Mobile search */}
+          <div className="px-8 py-4 border-b border-[#f0f0f0]">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#eee] bg-[#f8f8f6]">
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none" className="text-[#aaa]">
+                <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.4"/>
+                <path d="M10.5 10.5l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="ค้นหาฟอนต์..."
+                className="bg-transparent border-none outline-none text-[14px] text-[#333] placeholder-[#bbb] w-full font-[inherit]"
+                onChange={(e) => {
+                  const q = e.target.value.trim().toLowerCase();
+                  if (!q) { setSuggestions([]); return; }
+                  setSuggestions(fonts.filter(f => f.name.toLowerCase().includes(q) || f.name_th.toLowerCase().includes(q)).slice(0, 5));
+                }}
+              />
+            </div>
+            {suggestions.map((f) => (
+              <div key={f.slug} onMouseDown={() => { goToFont(f.slug); setMenuOpen(false); }}
+                className="px-2 py-2.5 text-[14px] text-navy border-b border-[#f5f5f5] cursor-pointer hover:text-mint">
+                {f.name} {f.name_th && <span className="text-[#aaa] text-[12px]">— {f.name_th}</span>}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </nav>
