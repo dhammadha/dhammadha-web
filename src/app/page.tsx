@@ -6,35 +6,12 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, orderBy, Timestamp } from "firebase/firestore";
-
-// ── Types ────────────────────────────────────────────────────────────────────
-interface Font {
-  id: string;
-  name?: string;
-  slug?: string;
-  designer_name?: string;
-  is_free?: boolean;
-  price?: number;
-  is_sale?: boolean;
-  sale_label?: string;
-  is_popular?: boolean;
-  is_active?: boolean;
-  weight_count?: number;
-  cover_image_url?: string;
-  bg_color?: string;
-  created_at?: Timestamp;
-}
+import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import FontCard, { Font, isNew } from "@/components/FontCard";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
-}
-
-function isNew(f: Font): boolean {
-  if (!f.created_at) return false;
-  const ms = f.created_at.toDate().getTime();
-  return Date.now() - ms < 45 * 24 * 60 * 60 * 1000;
 }
 
 function buildSliderPool(fonts: Font[]): Font[] {
@@ -46,68 +23,6 @@ function buildSliderPool(fonts: Font[]): Font[] {
   const popular = fonts.filter((f) => f.is_popular);
   const others = fonts.filter((f) => !f.is_popular);
   return [...shuffle(popular), ...shuffle(others)].slice(0, 10);
-}
-
-// ── Font Card ────────────────────────────────────────────────────────────────
-function FontCard({ font }: { font: Font }) {
-  const href = `/fonts/${font.slug || font.id}/`;
-  const bgStyle: React.CSSProperties = font.cover_image_url
-    ? {
-        background: font.bg_color || "#2B1B3D",
-        backgroundImage: `url('${font.cover_image_url}')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
-    : { background: font.bg_color || "#2B1B3D" };
-
-  const newFlag = isNew(font);
-  const badge = font.is_sale
-    ? { text: font.sale_label || "Sale", cls: "bg-[#f0c040] text-[#5a3800]" }
-    : newFlag
-    ? { text: "NEW", cls: "bg-mint text-navy" }
-    : null;
-
-  return (
-    <Link
-      href={href}
-      className="block bg-white rounded-lg overflow-hidden border border-[0.5px] border-border hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:border-transparent transition-all no-underline"
-    >
-      <div className="aspect-video relative flex items-center justify-center overflow-hidden" style={bgStyle}>
-        {badge && (
-          <span className={`absolute top-2 left-2 text-[9px] px-[7px] py-0.5 rounded-full font-semibold tracking-[0.03em] ${badge.cls}`}>
-            {badge.text}
-          </span>
-        )}
-        <button
-          className="absolute top-1.5 right-1.5 w-[26px] h-[26px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/35 transition-colors"
-          onClick={(e) => e.preventDefault()}
-          aria-label="บันทึก"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-        </button>
-      </div>
-      <div className="px-3 pt-2.5 pb-3">
-        <div className="text-[13px] font-semibold text-navy truncate">{font.name || "—"}</div>
-        <div className="text-[11px] text-[#aaa] mt-0.5 mb-1.5 truncate">
-          โดย <span className="text-mint">{font.designer_name || "ธรรมดาสตูดิโอ"}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-[#aaa]">
-            {font.weight_count ? `${font.weight_count} styles` : ""}
-          </span>
-          {font.is_free ? (
-            <span className="text-[12px] font-semibold text-[#0a8a84]">ฟรี</span>
-          ) : font.price ? (
-            <span className="text-[12px] font-semibold text-navy">฿{font.price.toLocaleString()}</span>
-          ) : (
-            <span className="text-[12px] font-semibold text-navy">—</span>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
