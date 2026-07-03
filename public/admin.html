@@ -515,7 +515,7 @@ function renderList(){
     return;
   }
   c.innerHTML=list.map(f=>{
-    const tags=(f.tags||[]).slice(0,3).map(t=>`<span class="badge-pill pill-hidden" style="font-size:10px">${t}</span>`).join('');
+    const tags=(f.tags||[]).slice(0,4).join(', ');
     const promoText=f.is_sale
       ?`<span style="color:#856404;font-size:12px">ลด ${f.discount_percent||0}%${f.sale_end?` ถึง ${f.sale_end}`:''}</span>`
       :`<span style="color:#ddd">—</span>`;
@@ -527,7 +527,7 @@ function renderList(){
       <div>${f.cover_image_url?`<img class="cover-thumb" src="${f.cover_image_url}" loading="lazy">`:`<div class="cover-thumb-empty"></div>`}</div>
       <div><div class="font-name">${f.name||'—'}</div><div class="font-name-th">${f.name_th||''}</div></div>
       <div style="font-size:12px;color:#888;text-transform:capitalize">${f.category||'—'}</div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap">${tags||'<span style="color:#ddd;font-size:12px">—</span>'}</div>
+      <div style="font-size:12px;color:#888">${tags||'<span style="color:#ddd">—</span>'}</div>
       <div>${priceText}</div>
       <div><span class="badge-pill ${isActive?'pill-active':'pill-hidden'}">${isActive?'แสดง':'ซ่อน'}</span></div>
       <div>${promoText}</div>
@@ -873,7 +873,6 @@ window.saveFont=async()=>{
       is_free:isFree,
       is_subscription:document.getElementById('fSub').checked,
       cover_image_url:coverUrl,
-      thumbnail_url:coverUrl,
       preview_images:finalPreviewUrls,
       full_font_files:fullUrls,
       demo_font_files:demoUrls,
