@@ -30,7 +30,7 @@ function buildStrip(pool: Font[], v: number): Font[] {
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-const GRID_SHOW = 11;
+const GRID_SHOW = 7;
 
 export default function HomePage() {
   const [fonts, setFonts] = useState<Font[]>([]);
