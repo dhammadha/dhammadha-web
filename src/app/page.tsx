@@ -6,7 +6,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import FontCard, { Font, isNew } from "@/components/FontCard";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -47,26 +47,23 @@ export default function HomePage() {
   const dotIdx = poolSize > 0 ? (pos - showCount + poolSize * 10) % poolSize : 0;
 
   useEffect(() => {
-    async function load() {
-      try {
-        const timeout = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), 8000)
-        );
-        const snap = await Promise.race([
-          getDocs(query(collection(db, "fonts"), where("is_active", "==", true))),
-          timeout,
-        ]);
+    setLoading(true);
+    const q = query(collection(db, "fonts"), where("is_active", "==", true));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
         const active = (snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Font[])
           .sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
         setFonts(active);
         setSliderPool(buildSliderPool(active));
-      } catch (e) {
-        console.error("Firestore error:", e);
-      } finally {
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Firestore error:", err);
         setLoading(false);
       }
-    }
-    load();
+    );
+    return () => unsub();
   }, []);
 
   const gridFonts = fonts.slice(0, GRID_SHOW);
