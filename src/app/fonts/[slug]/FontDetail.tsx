@@ -590,11 +590,15 @@ export default function FontDetail() {
                 <button
                   onClick={() => {
                     font.specimen_files?.forEach((url, i) => {
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `${font.slug}-specimen${(font.specimen_files?.length ?? 0) > 1 ? `-${i + 1}` : ""}.pdf`;
-                      a.target = "_blank";
-                      setTimeout(() => a.click(), i * 300);
+                      const filename = `${font.slug}-specimen${(font.specimen_files?.length ?? 0) > 1 ? `-${i + 1}` : ""}.pdf`;
+                      setTimeout(async () => {
+                        const blob = await fetch(url).then((r) => r.blob());
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(blob);
+                        a.download = filename;
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                      }, i * 500);
                     });
                   }}
                   className="flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-navy border border-[0.5px] border-border rounded-[8px] bg-transparent hover:border-navy cursor-pointer transition-colors"
