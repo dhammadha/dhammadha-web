@@ -121,18 +121,21 @@ export default function FontDetail() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
-  // Inject @font-face per weight — obfuscated files only (generated from full family)
+  // Inject @font-face — free fonts use files directly; paid fonts use obfuscated files
   useEffect(() => {
     if (!font?.slug) return;
-    const previewFiles = font.obfuscated_font_files ?? [];
+
+    const isFree = font.is_free === true;
+    const previewFiles = isFree
+      ? (font.free_font_files ?? font.full_font_files ?? [])
+      : (font.obfuscated_font_files ?? []);
     if (!previewFiles.length) return;
 
     const family = `preview-${font.slug}`;
     const faces = previewFiles.map((url) => {
       const ext = decodeURIComponent(url.split("?")[0]).split(".").pop()?.toLowerCase() || "woff2";
       const fmt = ext === "otf" ? "opentype" : ext === "ttf" ? "truetype" : ext;
-      // Strip -obf suffix before parsing weight (obfuscated files end in "-obf.ttf")
-      const urlForWeight = url.replace(/-obf\.(ttf|otf)(\?|$)/i, ".$1$2");
+      const urlForWeight = isFree ? url : url.replace(/-obf\.(ttf|otf)(\?|$)/i, ".$1$2");
       const w = weightToCss(parseWeight(urlForWeight));
       return `@font-face { font-family: "${family}"; font-weight: ${w}; src: url("${url}") format("${fmt}"); font-display: block; }`;
     }).join("\n");
@@ -142,7 +145,7 @@ export default function FontDetail() {
     style.textContent = faces;
     document.head.appendChild(style);
     return () => { document.getElementById(`preview-font-${font.slug}`)?.remove(); };
-  }, [font?.slug]);
+  }, [font?.slug, font?.is_free]);
 
   function moveSlide(dir: number) {
     setSlideIdx((i) => (i + dir + images.length) % images.length);
@@ -299,7 +302,7 @@ export default function FontDetail() {
                 }}
               >
                 {testerInput
-                  ? (font?.obfuscated_map
+                  ? ((!font?.is_free && font?.obfuscated_map)
                       ? [...testerInput].map((ch) => font.obfuscated_map![ch] ?? ch).join("")
                       : testerInput)
                   : "พิมพ์ทดสอบได้ที่นี่"}
