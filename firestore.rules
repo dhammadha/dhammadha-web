@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // fonts — public read, auth write (admin only)
+    match /fonts/{fontId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // settings (licensing, promotion) — auth write only
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
