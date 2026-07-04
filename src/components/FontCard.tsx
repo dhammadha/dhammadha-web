@@ -55,6 +55,8 @@ export default function FontCard({ font }: { font: Font }) {
   const newFlag = isNew(font);
   const badge = font.is_sale
     ? { text: font.sale_label || "Sale", cls: "bg-[#f0c040] text-[#5a3800]" }
+    : font.is_free
+    ? { text: "FREE", cls: "bg-[#dcfce7] text-[#166534]" }
     : newFlag
     ? { text: "NEW", cls: "bg-mint text-navy" }
     : null;

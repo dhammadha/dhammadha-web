@@ -12,6 +12,8 @@ interface FontOption {
   name: string;
   name_th: string;
   category: string;
+  tags: string[];
+  is_free: boolean;
 }
 
 let cachedFonts: FontOption[] | null = null;
@@ -40,7 +42,9 @@ export default function Nav() {
     getDocs(query(collection(db, "fonts"), where("is_active", "==", true))).then((snap) => {
       const data = snap.docs.map((d) => {
         const f = d.data();
-        return { slug: f.slug, name: f.name || "", name_th: f.name_th || "", category: f.category || "" };
+        const tags: string[] = [...(f.tags || [])];
+        if (f.is_free && !tags.includes("ฟรี")) tags.push("ฟรี");
+        return { slug: f.slug, name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
       });
       cachedFonts = data;
       setFonts(data);
@@ -65,7 +69,10 @@ export default function Nav() {
     if (!val.trim()) { setSuggestions([]); setSearchOpen(false); return; }
     const q = val.trim().toLowerCase();
     const matches = fonts.filter(
-      (f) => f.name.toLowerCase().includes(q) || f.name_th.toLowerCase().includes(q)
+      (f) =>
+        f.name.toLowerCase().includes(q) ||
+        f.name_th.toLowerCase().includes(q) ||
+        f.tags.some((t) => t.toLowerCase().includes(q))
     ).slice(0, 8);
     setSuggestions(matches);
     setSearchOpen(true);
@@ -166,11 +173,22 @@ export default function Nav() {
                     i === activeIdx ? "bg-[#f0fffe]" : "hover:bg-[#fafaf8]"
                   }`}
                 >
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-[14px] font-semibold text-navy leading-snug">{f.name}</div>
                     {f.name_th && <div className="text-[12px] text-[#aaa] leading-snug">{f.name_th}</div>}
+                    {(() => {
+                      const q = searchQuery.trim().toLowerCase();
+                      const matched = f.tags.filter((t) => t.toLowerCase().includes(q) && !f.name.toLowerCase().includes(q) && !f.name_th.toLowerCase().includes(q));
+                      return matched.length > 0 ? (
+                        <div className="flex gap-1 mt-0.5 flex-wrap">
+                          {matched.slice(0, 3).map((t) => (
+                            <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#f0fffe] text-[#0a8a84] border border-[0.5px] border-mint">{t}</span>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
                   </div>
-                  <span className="text-[11px] text-[#bbb] capitalize flex-shrink-0 ml-2">{f.category}</span>
+                  <span className="text-[11px] text-[#bbb] capitalize flex-shrink-0 ml-2">{f.is_free ? "ฟรี" : f.category}</span>
                 </div>
               ))}
             </div>
@@ -227,7 +245,11 @@ export default function Nav() {
                 onChange={(e) => {
                   const q = e.target.value.trim().toLowerCase();
                   if (!q) { setSuggestions([]); return; }
-                  setSuggestions(fonts.filter(f => f.name.toLowerCase().includes(q) || f.name_th.toLowerCase().includes(q)).slice(0, 5));
+                  setSuggestions(fonts.filter(f =>
+                    f.name.toLowerCase().includes(q) ||
+                    f.name_th.toLowerCase().includes(q) ||
+                    f.tags.some((t) => t.toLowerCase().includes(q))
+                  ).slice(0, 5));
                 }}
               />
             </div>
