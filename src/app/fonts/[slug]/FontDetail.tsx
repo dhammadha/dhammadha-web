@@ -588,34 +588,6 @@ export default function FontDetail() {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
-                  onClick={() => {
-                    font.specimen_files?.forEach((url, i) => {
-                      const filename = `${font.slug}-specimen${(font.specimen_files?.length ?? 0) > 1 ? `-${i + 1}` : ""}.pdf`;
-                      setTimeout(async () => {
-                        try {
-                          const blob = await fetch(url).then((r) => r.blob());
-                          const a = document.createElement("a");
-                          a.href = URL.createObjectURL(blob);
-                          a.download = filename;
-                          a.click();
-                          URL.revokeObjectURL(a.href);
-                        } catch {
-                          // CORS not configured — open directly so user can save manually
-                          window.open(url, "_blank");
-                        }
-                      }, i * 500);
-                    });
-                  }}
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-navy border border-[0.5px] border-border rounded-[8px] bg-transparent hover:border-navy cursor-pointer transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  ดาวน์โหลด
-                </button>
-                <button
                   onClick={() => setSpecimenOpen(false)}
                   className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-bg border-none cursor-pointer text-[#aaa] hover:text-navy bg-transparent transition-colors"
                   aria-label="ปิด"
