@@ -592,12 +592,17 @@ export default function FontDetail() {
                     font.specimen_files?.forEach((url, i) => {
                       const filename = `${font.slug}-specimen${(font.specimen_files?.length ?? 0) > 1 ? `-${i + 1}` : ""}.pdf`;
                       setTimeout(async () => {
-                        const blob = await fetch(url).then((r) => r.blob());
-                        const a = document.createElement("a");
-                        a.href = URL.createObjectURL(blob);
-                        a.download = filename;
-                        a.click();
-                        URL.revokeObjectURL(a.href);
+                        try {
+                          const blob = await fetch(url).then((r) => r.blob());
+                          const a = document.createElement("a");
+                          a.href = URL.createObjectURL(blob);
+                          a.download = filename;
+                          a.click();
+                          URL.revokeObjectURL(a.href);
+                        } catch {
+                          // CORS not configured — open directly so user can save manually
+                          window.open(url, "_blank");
+                        }
                       }, i * 500);
                     });
                   }}
