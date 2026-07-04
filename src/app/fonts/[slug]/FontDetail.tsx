@@ -478,18 +478,20 @@ export default function FontDetail() {
                 )}
 
               {font.is_subscription && (
-                <div className="bg-mint-light border border-[0.5px] border-mint-mid rounded-[8px] px-3.5 py-3">
-                  <div className="text-[12px] font-semibold text-[#0a8a84] mb-1">
-                    รวมอยู่ใน Subscription
-                  </div>
-                  <div className="text-[12px] text-[#0a8a84]">
-                    เข้าถึงฟอนต์ทุกตัวด้วยแพลนรายเดือน
+                <div className="bg-mint-light border border-[0.5px] border-mint-mid rounded-[8px] px-3.5 py-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[12px] font-semibold text-[#0a8a84] mb-1">
+                      รวมอยู่ใน Subscription
+                    </div>
+                    <div className="text-[12px] text-[#0a8a84]">
+                      เข้าถึงฟอนต์ทุกตัวด้วยแพลนรายเดือน
+                    </div>
                   </div>
                   <Link
                     href="/coming-soon/"
-                    className="text-[12px] text-[#0a8a84] no-underline block mt-1.5"
+                    className="flex-shrink-0 text-[12px] font-medium text-[#0a8a84] no-underline bg-white border border-[0.5px] border-mint rounded-[7px] px-3 py-1.5 hover:bg-mint hover:text-navy transition-colors"
                   >
-                    ดูแผนบริการ →
+                    ดูแผนบริการ
                   </Link>
                 </div>
               )}
