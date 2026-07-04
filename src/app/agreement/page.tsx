@@ -51,7 +51,7 @@ export default function AgreementPage() {
                 <li>Identity Font / โลโก้ / ตราสัญลักษณ์องค์กร</li>
                 <li>สื่อโทรทัศน์ / ภาพยนตร์ / TVC</li>
                 <li>YouTube / วิดีโอออนไลน์ / สตรีมมิ่ง</li>
-                <li>Mobile Application</li>
+                <li>Desktop and Mobile Application</li>
                 <li>Web Font</li>
                 <li>แอปพลิเคชันบน Server / Network</li>
               </ul>
