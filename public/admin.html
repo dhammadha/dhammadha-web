@@ -229,7 +229,8 @@
     <div class="header-right">
       <a href="/" class="btn btn-ghost" style="text-decoration:none">← ดูเว็บ</a>
       <button class="btn btn-ghost" onclick="showPage('listPage')">รายการฟอนต์</button>
-      <button class="btn btn-ghost" onclick="showPage('licensingPage')">⚙️ ราคา Licensing</button>
+      <button class="btn btn-ghost" onclick="showPage('licensingPage')">ราคาองค์กร</button>
+      <button class="btn btn-ghost" onclick="showPage('promotionPage')">ราคาโปรโมชั่น</button>
       <button class="btn btn-ghost" onclick="doLogout()">ออกจากระบบ</button>
       <button class="btn btn-mint" onclick="openPanel()">+ เพิ่มฟอนต์</button>
     </div>
@@ -258,25 +259,49 @@
   </div>
 
   <!-- LICENSING PAGE -->
-  <div id="licensingPage" style="display:none;padding:32px 36px;max-width:640px">
-    <div style="font-size:18px;font-weight:600;color:var(--navy);margin-bottom:6px">ตั้งค่าราคา Licensing</div>
-    <div style="font-size:13px;color:#aaa;margin-bottom:28px">ราคาเหล่านี้จะแสดงในหน้าฟอนต์แต่ละตัว (สิทธิ์ใช้งานองค์กร)</div>
+  <div id="licensingPage" style="display:none;padding:40px 36px">
+    <div style="max-width:560px;margin:0 auto">
+      <div style="font-size:18px;font-weight:600;color:var(--navy);margin-bottom:6px">ราคาองค์กร</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:28px">ราคาเหล่านี้จะแสดงในหน้าฟอนต์แต่ละตัว (สิทธิ์ใช้งานองค์กร)</div>
+      <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:18px">
+        <div class="form-group">
+          <label>บริษัทขนาดเล็ก / กลาง (฿) <span style="font-size:12px;color:#aaa;font-weight:400">— ไม่เกิน 10 เครื่อง</span></label>
+          <input type="number" id="licSmall" placeholder="3500" min="0">
+        </div>
+        <div class="form-group">
+          <label>บริษัทใหญ่ / Ad Agency (฿) <span style="font-size:12px;color:#aaa;font-weight:400">— ไม่จำกัดจำนวนเครื่อง</span></label>
+          <input type="number" id="licLarge" placeholder="7000" min="0">
+        </div>
+        <div class="form-group">
+          <label>ใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต (฿)</label>
+          <input type="number" id="licExtra" placeholder="20000" min="0">
+        </div>
+        <div>
+          <button class="btn btn-mint" onclick="saveLicensing()" style="width:100%;justify-content:center;padding:12px">บันทึกราคา</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:18px">
-      <div class="form-group">
-        <label>บริษัทขนาดเล็ก / กลาง (฿) <span style="font-size:12px;color:#aaa;font-weight:400">— ไม่เกิน 10 เครื่อง</span></label>
-        <input type="number" id="licSmall" placeholder="3500" min="0">
-      </div>
-      <div class="form-group">
-        <label>บริษัทใหญ่ / Ad Agency (฿) <span style="font-size:12px;color:#aaa;font-weight:400">— ไม่จำกัดจำนวนเครื่อง</span></label>
-        <input type="number" id="licLarge" placeholder="7000" min="0">
-      </div>
-      <div class="form-group">
-        <label>ใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต (฿)</label>
-        <input type="number" id="licExtra" placeholder="20000" min="0">
-      </div>
-      <div>
-        <button class="btn btn-mint" onclick="saveLicensing()" style="width:100%;justify-content:center;padding:12px">บันทึกราคา</button>
+  <!-- PROMOTION PAGE -->
+  <div id="promotionPage" style="display:none;padding:40px 36px">
+    <div style="max-width:560px;margin:0 auto">
+      <div style="font-size:18px;font-weight:600;color:var(--navy);margin-bottom:6px">ราคาโปรโมชั่น</div>
+      <div style="font-size:13px;color:#aaa;margin-bottom:28px">มีผลกับฟอนต์ทุกตัวที่ไม่ใช่ฟรี — ตั้งค่าแล้วบันทึกเพื่อเปิดโปรโมชั่น</div>
+      <div style="background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:18px">
+        <div class="form-group">
+          <label>ส่วนลด (%)</label>
+          <input type="number" id="promoDiscount" placeholder="เช่น 30" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label>วันสิ้นสุดโปรโมชั่น</label>
+          <input type="date" id="promoEnd">
+        </div>
+        <div id="promoStatusBox" style="display:none;background:#fffbeb;border:0.5px solid #fde68a;border-radius:10px;padding:14px 16px;font-size:13px;color:#856404"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-mint" onclick="savePromotion()" style="flex:1;justify-content:center;padding:12px">บันทึก / เปิดโปรโมชั่น</button>
+          <button class="btn btn-danger" onclick="clearPromotion()" style="padding:12px 18px">ปิดโปรโมชั่น</button>
+        </div>
       </div>
     </div>
   </div>
@@ -684,8 +709,9 @@ window.onFreeToggle=()=>{
 
 // ── PAGE SWITCHER ─────────────────────────────────
 window.showPage=(id)=>{
-  ['listPage','licensingPage'].forEach(p=>document.getElementById(p).style.display=p===id?'block':'none');
+  ['listPage','licensingPage','promotionPage'].forEach(p=>document.getElementById(p).style.display=p===id?'block':'none');
   if(id==='licensingPage') loadLicensing();
+  if(id==='promotionPage') loadPromotion();
 };
 
 // ── LICENSING ─────────────────────────────────────
@@ -709,6 +735,47 @@ window.saveLicensing=async()=>{
     const {doc:fdoc,setDoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
     await setDoc(fdoc(db,'settings','licensing'),{small,large,extra});
     toast('✓ บันทึกราคา Licensing เรียบร้อย');
+  }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
+};
+
+// ── PROMOTION ─────────────────────────────────────
+async function loadPromotion(){
+  try{
+    const {getDoc,doc:fdoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+    const snap=await getDoc(fdoc(db,'settings','promotion'));
+    const box=document.getElementById('promoStatusBox');
+    if(snap.exists()){
+      const d=snap.data();
+      document.getElementById('promoDiscount').value=d.discount_percent||'';
+      document.getElementById('promoEnd').value=d.sale_end||'';
+      if(d.discount_percent>0){
+        const endText=d.sale_end?` ถึง ${d.sale_end.split('-').reverse().join('-')}`:'';
+        box.style.display='block';
+        box.textContent=`โปรโมชั่นเปิดอยู่: ลด ${d.discount_percent}%${endText}`;
+      } else { box.style.display='none'; }
+    } else { box.style.display='none'; }
+  }catch(e){console.error('loadPromotion',e);}
+}
+window.savePromotion=async()=>{
+  const disc=parseInt(document.getElementById('promoDiscount').value)||0;
+  const end=document.getElementById('promoEnd').value||'';
+  if(!disc){toast('กรุณาใส่ส่วนลด %',true);return;}
+  try{
+    const {doc:fdoc,setDoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+    await setDoc(fdoc(db,'settings','promotion'),{discount_percent:disc,sale_end:end,active:true});
+    toast('✓ บันทึกโปรโมชั่นเรียบร้อย');
+    loadPromotion();
+  }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
+};
+window.clearPromotion=async()=>{
+  if(!confirm('ปิดโปรโมชั่นทั้งหมด?'))return;
+  try{
+    const {doc:fdoc,setDoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+    await setDoc(fdoc(db,'settings','promotion'),{discount_percent:0,sale_end:'',active:false});
+    document.getElementById('promoDiscount').value='';
+    document.getElementById('promoEnd').value='';
+    document.getElementById('promoStatusBox').style.display='none';
+    toast('✓ ปิดโปรโมชั่นแล้ว');
   }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
 };
 
@@ -784,7 +851,8 @@ function renderFontList(listId,files,type){
 }
 function renderExFonts(listId,urls,type){
   document.getElementById(listId).innerHTML=urls.map((url,i)=>{
-    const name=decodeURIComponent(url.split('/').pop().split('?')[0]);
+    const decoded=decodeURIComponent(url.split('/').pop().split('?')[0]);
+    const name=decoded.split('/').pop();
     return `<div class="weight-item">
       <span class="weight-item-name">${name}</span>
       <span class="weight-item-size" style="color:var(--mint)">✓ อัพโหลดแล้ว</span>
