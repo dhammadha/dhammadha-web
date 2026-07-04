@@ -735,6 +735,7 @@ window.saveLicensing=async()=>{
     const {doc:fdoc,setDoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
     await setDoc(fdoc(db,'settings','licensing'),{small,large,extra});
     toast('✓ บันทึกราคา Licensing เรียบร้อย');
+    showPage('listPage'); loadFonts();
   }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
 };
 
@@ -782,7 +783,7 @@ window.savePromotion=async()=>{
     });
     await batch.commit();
     toast('✓ เปิดโปรโมชั่น — อัปเดตฟอนต์ทั้งหมดแล้ว');
-    loadPromotion();
+    showPage('listPage'); loadFonts();
   }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
 };
 window.clearPromotion=async()=>{
@@ -809,6 +810,7 @@ window.clearPromotion=async()=>{
     document.getElementById('promoEnd').value='';
     document.getElementById('promoStatusBox').style.display='none';
     toast('✓ ปิดโปรโมชั่น — รีเซ็ตฟอนต์ทั้งหมดแล้ว');
+    showPage('listPage'); loadFonts();
   }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
 };
 
