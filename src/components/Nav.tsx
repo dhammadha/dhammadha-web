@@ -43,7 +43,7 @@ export default function Nav() {
       const data = snap.docs.map((d) => {
         const f = d.data();
         const tags: string[] = [...(f.tags || [])];
-        if (f.is_free && !tags.includes("ฟรี")) tags.push("ฟรี");
+        if (f.is_free && !tags.includes("free")) tags.push("free");
         return { slug: f.slug, name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
       });
       cachedFonts = data;

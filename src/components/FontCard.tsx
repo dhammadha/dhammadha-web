@@ -56,7 +56,7 @@ export default function FontCard({ font }: { font: Font }) {
   const badge = font.is_sale
     ? { text: font.sale_label || "Sale", cls: "bg-[#f0c040] text-[#5a3800]" }
     : font.is_free
-    ? { text: "FREE", cls: "bg-[#dcfce7] text-[#166534]" }
+    ? { text: "FREE", cls: "bg-[#5ECEC8] text-[#0a4a47]" }
     : newFlag
     ? { text: "NEW", cls: "bg-mint text-navy" }
     : null;
@@ -99,6 +99,11 @@ export default function FontCard({ font }: { font: Font }) {
           </span>
           {font.is_free ? (
             <span className="text-[12px] font-semibold text-[#0a8a84]">ฟรี</span>
+          ) : font.is_sale && font.sale_price && font.price ? (
+            <div className="flex items-baseline gap-1">
+              <span className="text-[12px] font-semibold text-navy">฿{font.sale_price.toLocaleString()}</span>
+              <span className="text-[10px] text-[#bbb] line-through">฿{font.price.toLocaleString()}</span>
+            </div>
           ) : font.price ? (
             <span className="text-[12px] font-semibold text-navy">฿{font.price.toLocaleString()}</span>
           ) : (
