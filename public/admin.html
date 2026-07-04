@@ -53,8 +53,9 @@
   .tab.active{background:var(--navy);color:#fff}
 
   .font-table{background:#fff;border-radius:12px;border:0.5px solid var(--border);overflow:hidden}
-  .font-table-header{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px auto;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
-  .font-row{display:grid;grid-template-columns:52px 2fr 80px 1fr 90px 72px 150px auto;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .font-table-header{display:grid;grid-template-columns:52px 2fr 90px 1fr 90px 80px 170px auto;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .font-table-header>div,.font-row>div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .font-row{display:grid;grid-template-columns:52px 2fr 90px 1fr 90px 80px 170px auto;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
   .font-row:last-child{border-bottom:none}
   .font-row:hover{background:#fafaf8}
   .font-name{font-size:14px;font-weight:600;color:var(--navy)}
@@ -731,6 +732,7 @@ window.saveLicensing=async()=>{
   const small=parseInt(document.getElementById('licSmall').value)||3500;
   const large=parseInt(document.getElementById('licLarge').value)||7000;
   const extra=parseInt(document.getElementById('licExtra').value)||20000;
+  if(!confirm(`ยืนยันบันทึกราคาองค์กร?\nบริษัทเล็ก/กลาง: ฿${small.toLocaleString()}\nบริษัทใหญ่: ฿${large.toLocaleString()}\nใช้งานเพิ่มเติม: ฿${extra.toLocaleString()}`))return;
   try{
     const {doc:fdoc,setDoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
     await setDoc(fdoc(db,'settings','licensing'),{small,large,extra});
@@ -761,6 +763,8 @@ window.savePromotion=async()=>{
   const disc=parseInt(document.getElementById('promoDiscount').value)||0;
   const end=document.getElementById('promoEnd').value||'';
   if(!disc){toast('กรุณาใส่ส่วนลด %',true);return;}
+  const endText=end?` ถึง ${end}`:'';
+  if(!confirm(`ยืนยันเปิดโปรโมชั่น ลด ${disc}%${endText}?\nจะอัปเดตฟอนต์ทุกตัวที่ไม่ใช่ฟรีทันที`))return;
   try{
     const {doc:fdoc,setDoc,collection,getDocs,writeBatch}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
     // Save promotion settings
