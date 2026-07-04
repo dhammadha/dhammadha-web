@@ -81,7 +81,7 @@ export default function Footer() {
         {/* Fonts */}
         <div>
           <h4 className="text-[12px] font-semibold text-navy mb-3 tracking-[0.02em]">ผลิตภัณฑ์</h4>
-          <Link href="/#fonts" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ฟอนต์ทั้งหมด</Link>
+          <Link href="/fonts/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ฟอนต์ทั้งหมด</Link>
           <Link href="/agreement/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">สัญญาอนุญาต</Link>
           <Link href="/#pricing" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ราคาและแผนบริการ</Link>
         </div>

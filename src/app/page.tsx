@@ -119,7 +119,7 @@ export default function HomePage() {
           </p>
           <div className="flex gap-2.5">
             <Link
-              href="/#fonts"
+              href="/fonts/"
               className="px-[22px] py-2.5 bg-white text-navy border border-[0.25px] border-[#ddd] rounded-[6px] text-[14px] font-medium no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
             >
               ดูฟอนต์ทั้งหมด
@@ -252,7 +252,7 @@ export default function HomePage() {
                 ดาวน์โหลดไฟล์ฟอนต์ได้ทันทีหลังชำระเงิน
               </div>
               <Link
-                href="/#fonts"
+                href="/fonts/"
                 className="mt-4 block w-full py-2.5 text-center rounded-[6px] text-[14px] font-medium text-navy border border-[0.25px] border-[#ddd] no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
               >
                 ดูฟอนต์ทั้งหมด
