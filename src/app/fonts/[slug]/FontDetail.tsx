@@ -7,7 +7,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 
 function parseWeight(url: string): string {
   const decoded = decodeURIComponent(url.split("?")[0]);
@@ -53,6 +53,8 @@ export default function FontDetail() {
   const [font, setFont] = useState<Font | null>(null);
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
+  const [licensing, setLicensing] = useState({ small: 3500, large: 7000, extra: 20000 });
+  const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
 
   // Resolve real slug from URL before any fetch
   useEffect(() => {
@@ -97,6 +99,19 @@ export default function FontDetail() {
           : data.free_font_files || [];
         const weights = getUniqueWeights(files);
         if (weights.length) setSelectedWeight(weights[0]);
+
+        const [licSnap, promoSnap] = await Promise.all([
+          getDoc(doc(db, "settings", "licensing")),
+          getDoc(doc(db, "settings", "promotion")),
+        ]);
+        if (licSnap.exists()) {
+          const d = licSnap.data();
+          setLicensing({ small: d.small ?? 3500, large: d.large ?? 7000, extra: d.extra ?? 20000 });
+        }
+        if (promoSnap.exists()) {
+          const d = promoSnap.data();
+          setPromotion({ discount_percent: d.discount_percent ?? 0, sale_end: d.sale_end ?? "", active: !!d.active });
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -105,6 +120,17 @@ export default function FontDetail() {
     }
     load();
   }, [slug]);
+
+  // Global promotion — applies when font has no individual sale
+  const activePromo = (() => {
+    if (!promotion?.active || !promotion.discount_percent) return null;
+    if (promotion.sale_end) {
+      const [d, m, y] = promotion.sale_end.split("/").map(Number);
+      const end = new Date(y, m - 1, d, 23, 59, 59);
+      if (Date.now() > end.getTime()) return null;
+    }
+    return promotion;
+  })();
 
   const images: string[] = font
     ? [font.cover_image_url, ...(font.preview_images || [])].filter(
@@ -436,6 +462,18 @@ export default function FontDetail() {
                             ฿{(font.price ?? 0).toLocaleString()}
                           </span>
                         </>
+                      ) : font.price && activePromo ? (
+                        <>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#f0c040] text-[#5a3800] font-semibold">
+                            -{activePromo.discount_percent}%
+                          </span>
+                          <span className="text-[15px] font-semibold text-navy">
+                            ฿{Math.round(font.price * (1 - activePromo.discount_percent / 100)).toLocaleString()}
+                          </span>
+                          <span className="text-[12px] text-[#bbb] line-through">
+                            ฿{font.price.toLocaleString()}
+                          </span>
+                        </>
                       ) : font.price ? (
                         <span className="text-[15px] font-semibold text-navy">
                           ฿{font.price.toLocaleString()}
@@ -505,13 +543,13 @@ export default function FontDetail() {
                 </div>
                 <div className="flex flex-col gap-2 mb-2.5">
                   {[
-                    { name: "บริษัทขนาดเล็ก / กลาง", desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง", price: "฿3,500" },
-                    { name: "บริษัทใหญ่ / Ad Agency", desc: "ไม่จำกัดจำนวนเครื่อง", price: "฿7,000" },
+                    { name: "บริษัทขนาดเล็ก / กลาง", desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง", price: licensing.small },
+                    { name: "บริษัทใหญ่ / Ad Agency", desc: "ไม่จำกัดจำนวนเครื่อง", price: licensing.large },
                   ].map((tier) => (
                     <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
                       <div className="flex justify-between items-center">
                         <span className="text-[14px] font-medium text-navy">{tier.name}</span>
-                        <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">{tier.price}</span>
+                        <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
                       </div>
                       <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
                     </div>
@@ -519,7 +557,7 @@ export default function FontDetail() {
                   <div className="border border-[0.5px] border-border rounded-[8px] p-3">
                     <div className="flex justify-between items-center">
                       <span className="text-[14px] font-medium text-navy">ใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต</span>
-                      <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿20,000</span>
+                      <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{licensing.extra.toLocaleString()}</span>
                     </div>
                     <div className="text-[12px] text-[#aaa] mt-0.5">
                       ดูรายละเอียด{" "}

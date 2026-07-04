@@ -761,21 +761,54 @@ window.savePromotion=async()=>{
   const end=document.getElementById('promoEnd').value||'';
   if(!disc){toast('กรุณาใส่ส่วนลด %',true);return;}
   try{
-    const {doc:fdoc,setDoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+    const {doc:fdoc,setDoc,collection,getDocs,writeBatch}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+    // Save promotion settings
     await setDoc(fdoc(db,'settings','promotion'),{discount_percent:disc,sale_end:end,active:true});
-    toast('✓ บันทึกโปรโมชั่นเรียบร้อย');
+    // Apply to all non-free fonts
+    const snap=await getDocs(collection(db,'fonts'));
+    const batch=writeBatch(db);
+    snap.docs.forEach(d=>{
+      const f=d.data();
+      if(f.is_free) return;
+      const price=f.price||0;
+      const salePrice=Math.round(price*(1-disc/100));
+      batch.update(fdoc(db,'fonts',d.id),{
+        is_sale:true,
+        discount_percent:disc,
+        sale_price:salePrice,
+        sale_end:end,
+        sale_label:'Sale',
+      });
+    });
+    await batch.commit();
+    toast('✓ เปิดโปรโมชั่น — อัปเดตฟอนต์ทั้งหมดแล้ว');
     loadPromotion();
   }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
 };
 window.clearPromotion=async()=>{
   if(!confirm('ปิดโปรโมชั่นทั้งหมด?'))return;
   try{
-    const {doc:fdoc,setDoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+    const {doc:fdoc,setDoc,collection,getDocs,writeBatch}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
     await setDoc(fdoc(db,'settings','promotion'),{discount_percent:0,sale_end:'',active:false});
+    // Reset all non-free fonts that had promo applied
+    const snap=await getDocs(collection(db,'fonts'));
+    const batch=writeBatch(db);
+    snap.docs.forEach(d=>{
+      const f=d.data();
+      if(f.is_free) return;
+      batch.update(fdoc(db,'fonts',d.id),{
+        is_sale:false,
+        discount_percent:0,
+        sale_price:0,
+        sale_end:'',
+        sale_label:'',
+      });
+    });
+    await batch.commit();
     document.getElementById('promoDiscount').value='';
     document.getElementById('promoEnd').value='';
     document.getElementById('promoStatusBox').style.display='none';
-    toast('✓ ปิดโปรโมชั่นแล้ว');
+    toast('✓ ปิดโปรโมชั่น — รีเซ็ตฟอนต์ทั้งหมดแล้ว');
   }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
 };
 
