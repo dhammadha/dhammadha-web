@@ -223,11 +223,11 @@ export default function HomePage() {
                 <FontCard key={f.id} font={f} />
               ))}
               {remaining > 0 && (
-                <div className="flex flex-col items-center justify-center gap-1 bg-[#f0f0ec] border border-dashed border-[#ccc] rounded-lg cursor-pointer hover:border-[#999] transition-colors p-6">
+                <Link href="/fonts/" className="flex flex-col items-center justify-center gap-1 bg-[#f0f0ec] border border-dashed border-[#ccc] rounded-lg cursor-pointer hover:border-[#999] transition-colors p-6 no-underline">
                   <span className="text-[26px] font-semibold text-navy">+{remaining}</span>
                   <span className="text-[11px] text-[#aaa]">ฟอนต์อื่น ๆ</span>
                   <span className="text-[11px] text-mint mt-0.5">ดูทั้งหมด →</span>
-                </div>
+                </Link>
               )}
             </div>
           )}
