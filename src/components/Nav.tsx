@@ -122,6 +122,9 @@ export default function Nav() {
 
       {/* Desktop nav links */}
       <div className="hidden md:flex gap-6 text-[15px] text-[#555]">
+        <Link href="/" className="no-underline text-inherit hover:text-mint transition-colors">
+          หน้าแรก
+        </Link>
         <Link href="/fonts/" className="no-underline text-inherit hover:text-mint transition-colors">
           ฟอนต์ทั้งหมด
         </Link>
@@ -218,6 +221,7 @@ export default function Nav() {
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 bg-white border-t border-[#eee] shadow-md flex flex-col md:hidden">
           {[
+            { href: "/", label: "หน้าแรก" },
             { href: "/fonts/", label: "ฟอนต์ทั้งหมด" },
             { href: "/agreement/", label: "สัญญาอนุญาต" },
             { href: "/#pricing", label: "ราคาและแผนบริการ" },
