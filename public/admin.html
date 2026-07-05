@@ -1393,7 +1393,7 @@ window.printDocument=async(type)=>{
   // Customer block — 4 lines always
   if(isReceipt){
     document.getElementById('pCustomer').innerHTML=
-      `${q.contact_name||''}<br><strong>${q.company_name||''}</strong><br><span style="color:#555">${q.address||''}</span><br><span style="color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</span>`;
+      `<strong>${q.company_name||''}</strong><br><span style="color:#555">${q.address||''}</span><br><span style="color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</span>`;
     document.getElementById('pSubject').textContent='';
     document.getElementById('pNote').textContent='';
   } else {
