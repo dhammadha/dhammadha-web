@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -42,10 +43,20 @@ const EMPTY_FORM = {
 };
 
 export default function QuotePage() {
+  return (
+    <Suspense>
+      <QuoteForm />
+    </Suspense>
+  );
+}
+
+function QuoteForm() {
+  const searchParams = useSearchParams();
+  const preselectedFont = searchParams.get("font") ?? "";
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [fonts, setFonts] = useState<FontItem[]>([]);
-  // list of selected font ids, one row per entry
-  const [selectedFonts, setSelectedFonts] = useState<string[]>([""]);
+  const [selectedFonts, setSelectedFonts] = useState<string[]>([preselectedFont || ""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [showNote, setShowNote] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");

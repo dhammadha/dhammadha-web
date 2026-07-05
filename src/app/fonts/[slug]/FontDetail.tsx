@@ -567,7 +567,7 @@ export default function FontDetail() {
                   </div>
                 </div>
                 <Link
-                  href="/quote/"
+                  href={`/quote/?font=${font.id}`}
                   className="flex items-center justify-center gap-2 w-full py-2.5 bg-navy border border-[0.5px] border-navy rounded-[9px] text-[15px] text-white no-underline hover:bg-mint hover:border-mint hover:text-navy transition-colors"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
