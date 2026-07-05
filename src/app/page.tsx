@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import FontCard, { Font, isNew } from "@/components/FontCard";
+import AdBanner from "@/components/AdBanner";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function shuffle<T>(arr: T[]): T[] {
@@ -200,7 +201,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="h-6 bg-white" />
+      <AdBanner slot="YOUR_SLOT_ID" />
 
       {/* FONT GRID */}
       <div id="fonts" className="bg-white">
@@ -279,15 +280,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ADSENSE placeholder */}
-      <div className="bg-[#ebe9e4] border-y border-[#e0ddd6]">
-        <div className="max-w-site mx-auto px-8 py-2.5 flex items-center justify-center gap-2.5">
-          <span className="text-[9px] text-[#bbb] tracking-[0.07em] uppercase shrink-0">ADS</span>
-          <div className="bg-[#dddbd4] rounded h-[60px] flex items-center justify-center text-[11px] text-[#bbb] flex-1 max-w-[728px]">
-            AdSense 728×90 Leaderboard
-          </div>
-        </div>
-      </div>
+      <AdBanner slot="YOUR_SLOT_ID" />
 
       <Footer />
     </>

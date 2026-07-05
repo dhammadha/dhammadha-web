@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
+import AdBanner from "@/components/AdBanner";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 
@@ -60,6 +61,8 @@ export default function AllFontsPage() {
               ))}
             </div>
           )}
+
+          <AdBanner slot="YOUR_SLOT_ID" className="mt-6 -mx-8" />
 
           {/* Pagination */}
           {totalPages > 1 && (

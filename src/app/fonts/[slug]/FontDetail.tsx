@@ -6,6 +6,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
+import AdBanner from "@/components/AdBanner";
 import { db } from "@/lib/firebase";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 
@@ -596,6 +597,8 @@ export default function FontDetail() {
 
         </div>
       </div>
+
+      <AdBanner slot="YOUR_SLOT_ID" />
 
       {/* SPECIMEN LIGHTBOX */}
       {specimenOpen && (
