@@ -269,7 +269,9 @@
   .quote-row:hover{background:#fafaf8}
   .quote-table-header>div,.quote-row>div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .badge-pending{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#fff3cd;color:#856404;border:0.5px solid #ffc107}
-  .badge-sent{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#dcfce7;color:#166534;border:0.5px solid #86efac}
+  .badge-sent{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#dbeafe;color:#1e40af;border:0.5px solid #93c5fd}
+  .badge-paid{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#f3e8ff;color:#6b21a8;border:0.5px solid #c4b5fd}
+  .badge-completed{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#dcfce7;color:#166534;border:0.5px solid #86efac}
 
   /* QUOTE DETAIL PANEL */
   #quotePanel{
@@ -351,11 +353,6 @@
 
     <!-- QUOTES SECTION -->
     <div id="quotesSection" style="display:none">
-      <div class="tabs" style="margin-bottom:20px">
-        <div class="tab active" onclick="switchQuoteTab('pending',this)">รอดำเนินการ</div>
-        <div class="tab" onclick="switchQuoteTab('sent',this)">ส่งแล้ว</div>
-        <div class="tab" onclick="switchQuoteTab('all',this)">ทั้งหมด</div>
-      </div>
       <div class="quote-table">
         <div class="quote-table-header">
           <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท / องค์กร</div><div>รูปแบบสิทธิ์</div><div>สถานะ</div><div>จัดการ</div>
@@ -432,7 +429,7 @@
         <button class="btn btn-danger" id="qDeleteBtn" onclick="deleteQuoteAction()">ลบ</button>
         <button class="btn btn-outline" onclick="printDocument('quotation')">พิมพ์ใบเสนอราคา</button>
         <button class="btn btn-outline" onclick="printDocument('receipt')">พิมพ์ใบเสร็จรับเงิน</button>
-        <button class="btn btn-mint" id="qSentBtn" onclick="markSentAction()">✓ ส่งแล้ว</button>
+        <button class="btn btn-mint" id="qActionBtn" onclick="quoteActionStep()"></button>
       </div>
     </div>
   </div>
@@ -727,7 +724,7 @@ async function loadQuoteCount(){
   try{
     const snap=await getDocs(query(collection(db,'quotes'),orderBy('created_at','desc')));
     const all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const pending=all.filter(q=>q.status!=='sent').length;
+    const pending=all.filter(q=>q.status!=='completed').length;
     document.getElementById('statPending').textContent=pending;
     const card=document.getElementById('statPendingCard');
     const label=document.getElementById('statPendingLabel');
@@ -1484,13 +1481,18 @@ function updatePendingCount(){
   else{badge.style.display='none';}
 }
 
+const statusMeta={
+  pending:{cls:'badge-pending',label:'รอดำเนินการ'},
+  sent:   {cls:'badge-sent',   label:'รอชำระเงิน'},
+  paid:   {cls:'badge-paid',   label:'รอจัดส่งไฟล์'},
+  completed:{cls:'badge-completed',label:'สำเร็จ'},
+};
+function statusBadge(s){const m=statusMeta[s]||statusMeta.pending;return`<span class="${m.cls}">${m.label}</span>`;}
+
 function renderQuoteList(){
   const c=document.getElementById('quoteList');
-  let list=quotes;
-  if(currentQuoteTab==='pending')list=quotes.filter(q=>q.status!=='sent');
-  if(currentQuoteTab==='sent')list=quotes.filter(q=>q.status==='sent');
-  if(!list.length){
-    c.innerHTML='<div class="empty"><div class="empty-text">ไม่มีใบเสนอราคาในหมวดนี้</div></div>';
+  if(!quotes.length){
+    c.innerHTML='<div class="empty"><div class="empty-text">ยังไม่มีใบเสนอราคา</div></div>';
     return;
   }
   const licenseLabel={
@@ -1503,32 +1505,29 @@ function renderQuoteList(){
     const d=ts.toDate?ts.toDate():new Date(ts);
     return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
   };
-  c.innerHTML=list.map(q=>{
-    const isSent=q.status==='sent';
-    return `<div class="quote-row">
-      <div style="font-size:12px;color:#888">${fmtDate(q.created_at)}</div>
-      <div><span style="font-size:14px;font-weight:600;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
-      <div style="font-size:13px">${q.company_name||'—'}</div>
-      <div style="font-size:12px;color:#888">${licenseLabel[q.license_type]||q.license_type||'—'}</div>
-      <div><span class="${isSent?'badge-sent':'badge-pending'}">${isSent?'ส่งแล้ว':'รอดำเนินการ'}</span></div>
-      <div><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openQuotePanel('${q.id}')">ดูรายละเอียด</button></div>
-    </div>`;
-  }).join('');
+  c.innerHTML=quotes.map(q=>`<div class="quote-row">
+    <div style="font-size:12px;color:#888">${fmtDate(q.created_at)}</div>
+    <div><span style="font-size:14px;font-weight:600;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
+    <div style="font-size:13px">${q.company_name||'—'}</div>
+    <div style="font-size:12px;color:#888">${licenseLabel[q.license_type]||q.license_type||'—'}</div>
+    <div>${statusBadge(q.status)}</div>
+    <div><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openQuotePanel('${q.id}')">ดูรายละเอียด</button></div>
+  </div>`).join('');
 }
 
-window.switchQuoteTab=(tab,el)=>{
-  currentQuoteTab=tab;
-  document.querySelectorAll('#quotesSection .tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  renderQuoteList();
+const actionMeta={
+  pending:{label:'ส่งใบเสนอราคาแล้ว', next:'sent',   confirm:'ยืนยันว่าส่งใบเสนอราคาให้ลูกค้าแล้ว?'},
+  sent:   {label:'ชำระเงินแล้ว',       next:'paid',  confirm:'ยืนยันว่าลูกค้าชำระเงินแล้ว?'},
+  paid:   {label:'จัดส่งไฟล์แล้ว',    next:'completed',confirm:'ยืนยันว่าจัดส่งไฟล์ฟอนต์และใบเสร็จให้ลูกค้าแล้ว?'},
 };
 
 window.openQuotePanel=(id)=>{
   const q=quotes.find(x=>x.id===id);if(!q)return;
   viewingQuoteId=id;
-  const isSent=q.status==='sent';
-  document.getElementById('qSentBtn').style.display=isSent?'none':'inline-flex';
-  document.getElementById('qSentBtn').textContent=isSent?'ส่งแล้ว':'✓ ทำเครื่องหมายว่าส่งแล้ว';
+  const btn=document.getElementById('qActionBtn');
+  const meta=actionMeta[q.status];
+  if(meta){btn.textContent='✓ '+meta.label;btn.style.display='inline-flex';}
+  else{btn.style.display='none';}
 
   const licenseLabel={
     small_medium:'บริษัทขนาดเล็ก / กลาง (ไม่เกิน 10 เครื่อง)',
@@ -1565,12 +1564,14 @@ window.closeQuotePanel=()=>{
   viewingQuoteId=null;
 };
 
-window.markSentAction=async()=>{
+window.quoteActionStep=async()=>{
   if(!viewingQuoteId)return;
-  if(!confirm('ยืนยันว่าส่งใบเสนอราคาให้ลูกค้าแล้ว?'))return;
+  const q=quotes.find(x=>x.id===viewingQuoteId);if(!q)return;
+  const meta=actionMeta[q.status];if(!meta)return;
+  if(!confirm(meta.confirm))return;
   try{
-    await updateDoc(doc(db,'quotes',viewingQuoteId),{status:'sent',sent_at:serverTimestamp()});
-    toast('✓ ทำเครื่องหมายว่าส่งแล้ว');
+    await updateDoc(doc(db,'quotes',viewingQuoteId),{status:meta.next,updated_at:serverTimestamp()});
+    toast('✓ อัปเดตสถานะเรียบร้อย');
     closeQuotePanel();
     await loadQuotes();
   }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
