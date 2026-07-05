@@ -15,10 +15,6 @@
         "destination": "/admin.html"
       },
       {
-        "source": "/subscribe",
-        "destination": "/coming-soon/index.html"
-      },
-      {
         "source": "/fonts/**",
         "destination": "/fonts/_/index.html"
       }
