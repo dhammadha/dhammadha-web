@@ -207,12 +207,22 @@
   /* REQUIRED INDICATOR */
   .req{color:var(--red);margin-left:2px}
 
-  /* PRINT */
-  #printArea{display:none}
+  /* PRINT LIGHTBOX */
+  #printLightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;overflow-y:auto;padding:28px 16px 40px}
+  .print-lb-toolbar{max-width:740px;margin:0 auto 12px;display:flex;align-items:center;justify-content:space-between}
+  .print-lb-title{font-size:14px;color:#fff;font-weight:500}
+  .print-lb-btns{display:flex;gap:8px}
+  .print-lb-btns button{padding:8px 18px;border-radius:8px;font-size:14px;font-family:"Noto Sans Thai",sans-serif;font-weight:500;cursor:pointer;border:none}
+  .plb-print{background:#fff;color:#1a1744}
+  .plb-save{background:#1a1744;color:#fff}
+  .plb-close{background:transparent;color:#aaa;border:0.5px solid #888!important;font-size:14px}
+  #printArea{max-width:740px;margin:0 auto;background:#fff;border-radius:4px;padding:32px 40px}
   @media print{
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     body>*{display:none!important}
-    #printArea{display:block!important;margin:0;padding:0}
+    #printLightbox{display:block!important;background:none!important;padding:0!important;overflow:visible!important;position:static!important}
+    .print-lb-toolbar{display:none!important}
+    #printArea{display:block!important;margin:0;padding:0;border-radius:0;box-shadow:none}
     #printDoc{font-family:"Noto Sans Thai",-apple-system,sans-serif;font-size:13px;color:#222;padding:18mm 20mm;max-width:210mm;margin:0 auto}
     .ph-company{font-size:16px;font-weight:700;color:#1a1744;margin-bottom:3px}
     .ph-detail{font-size:11px;color:#555;line-height:1.6}
@@ -414,8 +424,8 @@
       <div style="flex:1"></div>
       <div class="panel-footer-right">
         <button class="btn btn-danger" id="qDeleteBtn" onclick="deleteQuoteAction()">ลบ</button>
-        <button class="btn btn-outline" onclick="printDocument('quotation')">🖨 ใบเสนอราคา</button>
-        <button class="btn btn-outline" onclick="printDocument('receipt')">🖨 ใบเสร็จ</button>
+        <button class="btn btn-outline" onclick="printDocument('quotation')">พิมพ์ใบเสนอราคา</button>
+        <button class="btn btn-outline" onclick="printDocument('receipt')">พิมพ์ใบเสร็จรับเงิน</button>
         <button class="btn btn-mint" id="qSentBtn" onclick="markSentAction()">✓ ส่งแล้ว</button>
       </div>
     </div>
@@ -601,7 +611,16 @@
 
 </div><!-- end appScreen -->
 
-<!-- PRINT AREA -->
+<!-- PRINT LIGHTBOX -->
+<div id="printLightbox">
+  <div class="print-lb-toolbar">
+    <span class="print-lb-title" id="pLbTitle">ตัวอย่างใบเสนอราคา</span>
+    <div class="print-lb-btns">
+      <button class="plb-print" onclick="window.print()">พิมพ์</button>
+      <button class="plb-save" onclick="window.print()">บันทึก PDF</button>
+      <button class="plb-close" onclick="closePrintLightbox()">ปิด</button>
+    </div>
+  </div>
 <div id="printArea">
   <div id="printDoc">
     <div class="ph-company">ธรรมดาสตูดิโอ</div>
@@ -641,6 +660,7 @@
     </div>
   </div>
 </div>
+</div><!-- end printLightbox -->
 
 <!-- TOAST -->
 <div class="status-toast" id="toast"></div>
@@ -1320,9 +1340,25 @@ function bahtText(n){
 }
 
 const licDesc={
-  small_medium:{line1:'สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท',line2:'ขนาดเล็ก / กลาง (ผู้ใช้งานไม่เกิน 10 เครื่อง)',key:'small'},
-  large_agency:{line1:'สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท',line2:'บริษัทขนาดใหญ่ / Ad Agency (ไม่จำกัดจำนวนเครื่อง)',key:'large'},
-  extended:{line1:'สิทธิการใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต',line2:'',key:'extra'},
+  small_medium:{line2:'บริษัทขนาดเล็ก / กลาง (ผู้ใช้งานไม่เกิน 10 เครื่อง)',key:'small',extended:false},
+  large_agency:{line2:'บริษัทขนาดใหญ่ / Ad Agency (ไม่จำกัดจำนวนเครื่อง)',key:'large',extended:false},
+  extended:{line2:'บริษัทขนาดใหญ่ / Ad Agency (ไม่จำกัดจำนวนเครื่อง)',key:'extra',extended:true},
+};
+
+let _prevDocTitle='DHAMMADHA STUDIO Admin';
+window.closePrintLightbox=()=>{
+  document.getElementById('printLightbox').style.display='none';
+  document.title=_prevDocTitle;
+};
+
+const slugify=(s)=>(s||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9ก-๙-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
+const fmtFilename=(ts,companyName,fonts,docType)=>{
+  const dt=ts?(ts.toDate?ts.toDate():new Date(ts)):new Date();
+  const dd=String(dt.getDate()).padStart(2,'0');
+  const mm=String(dt.getMonth()+1).padStart(2,'0');
+  const yyyy=dt.getFullYear();
+  const fontPart=fonts.map(f=>slugify(f)).join('-');
+  return `${dd}${mm}${yyyy}_${slugify(companyName)}_${fontPart}_${docType}`;
 };
 
 window.printDocument=async(type)=>{
@@ -1335,6 +1371,10 @@ window.printDocument=async(type)=>{
   const wht=Math.round(subtotal*0.03);
   const total=subtotal-wht;
 
+  const isReceipt=type==='receipt';
+  _prevDocTitle=document.title;
+  document.title=fmtFilename(q.created_at,q.company_name||q.contact_name,fonts,isReceipt?'receipt':'quotation');
+
   const fmtDate=(ts)=>{
     if(!ts)return new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
     const dt=ts.toDate?ts.toDate():new Date(ts);
@@ -1342,51 +1382,50 @@ window.printDocument=async(type)=>{
   };
   const fmt=(n)=>n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-  // Fill header
-  document.getElementById('pDocType').textContent=type==='receipt'?'ใบเสร็จรับเงิน':'ใบเสนอราคา';
+  document.getElementById('pLbTitle').textContent=isReceipt?'ตัวอย่างใบเสร็จรับเงิน':'ตัวอย่างใบเสนอราคา';
+  document.getElementById('pDocType').textContent=isReceipt?'ใบเสร็จรับเงิน':'ใบเสนอราคา';
   document.getElementById('pDate').textContent=fmtDate(q.created_at);
 
-  // Customer block
-  if(type==='receipt'){
+  // Customer block — 4 lines always
+  if(isReceipt){
     document.getElementById('pCustomer').innerHTML=
-      `<strong>ชื่อลูกค้า: ${q.company||q.contact_name||''}</strong><br>${q.address||''}<br>หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}`;
+      `${q.contact_name||''}<br><strong>${q.company_name||''}</strong><br><span style="color:#555">${q.address||''}</span><br><span style="color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</span>`;
     document.getElementById('pSubject').textContent='';
     document.getElementById('pNote').textContent='';
   } else {
     document.getElementById('pCustomer').innerHTML=
-      `เรียน : คุณ ${q.contact_name||''}<br><strong>${q.company||''}</strong><br>${q.address||''}<br>หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}`;
+      `เรียน : คุณ ${q.contact_name||''}<br><strong>${q.company_name||''}</strong><br><span style="color:#555">${q.address||''}</span><br><span style="color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</span>`;
     document.getElementById('pSubject').innerHTML='<strong>เรื่อง :</strong> เสนอราคาสิทธิการใช้งานโปรแกรมคอมพิวเตอร์ฟอนต์';
     document.getElementById('pNote').textContent='ใบเสนอราคานี้มีอายุ 15 วัน นับจากวันที่เสนอราคา';
   }
 
-  // Items
+  // Items — font rows with correct detail lines
   let rows='',i=1;
   for(const fn of fonts){
     rows+=`<tr class="item-main"><td>${i++}</td><td>ชุดฟอนต์ "${fn}"</td><td>${fmt(pricePerFont)}</td></tr>`;
-    rows+=`<tr class="item-sub"><td></td><td>${desc.line1}</td><td></td></tr>`;
-    if(desc.line2)rows+=`<tr class="item-sub"><td></td><td>${desc.line2}</td><td></td></tr>`;
+    rows+=`<tr class="item-sub"><td></td><td>สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท</td><td></td></tr>`;
+    rows+=`<tr class="item-sub"><td></td><td>${desc.line2}</td><td></td></tr>`;
+    if(desc.extended)rows+=`<tr class="item-sub"><td></td><td style="font-style:italic">พร้อมสิทธิการใช้งานเพิ่มเติม เช่น TVC / Digital Video Ad / Film / Identity / WEBFONT / App Font etc</td><td></td></tr>`;
   }
   document.getElementById('pItems').innerHTML=rows;
   document.getElementById('pSubtotal').textContent=fmt(subtotal);
   document.getElementById('pWht').textContent=fmt(wht);
   document.getElementById('pTotal').textContent=fmt(total);
 
-  // Baht text (receipt only)
-  document.getElementById('pBahtText').textContent=type==='receipt'?`(${bahtText(total)})`:'';
+  document.getElementById('pBahtText').textContent=isReceipt?`(${bahtText(total)})`:'';
 
-  // Bank info (quotation only)
-  document.getElementById('pBank').innerHTML=type==='quotation'?`
-    <br><strong style="font-size:13px">รายละเอียดการชำระเงิน</strong><br>
-    <strong>บัญชี :</strong>&nbsp;&nbsp;&nbsp;ธนาคารกสิกรไทย สาขาสี่แยกแสงเพชร สุราษฎร์ธานี<br>
-    <strong>ชื่อบัญชี :</strong>&nbsp;&nbsp;&nbsp;นายมณฑล ธนาโรจน์<br>
-    <strong>เลขที่บัญชี :</strong>&nbsp;&nbsp;&nbsp;476-2-25195-2
+  document.getElementById('pBank').innerHTML=!isReceipt?`
+    <strong>รายละเอียดการชำระเงิน</strong><br>
+    <strong>บัญชี :</strong>&ensp;ธนาคารกสิกรไทย สาขาสี่แยกแสงเพชร สุราษฎร์ธานี<br>
+    <strong>ชื่อบัญชี :</strong>&ensp;นายมณฑล ธนาโรจน์<br>
+    <strong>เลขที่บัญชี :</strong>&ensp;476-2-25195-2
   `:'';
 
-  document.getElementById('pSigner').innerHTML=type==='receipt'?
+  document.getElementById('pSigner').innerHTML=isReceipt?
     'มณฑล ธนาโรจน์ (ผู้รับเงิน)':
     'มณฑล ธนาโรจน์ (ผู้เสนอราคา)';
 
-  window.print();
+  document.getElementById('printLightbox').style.display='block';
 };
 
 // ── AUTO SLUG ─────────────────────────────────────
@@ -1463,7 +1502,7 @@ function renderQuoteList(){
     return `<div class="quote-row">
       <div style="font-size:12px;color:#888">${fmtDate(q.created_at)}</div>
       <div><span style="font-size:14px;font-weight:600;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
-      <div style="font-size:13px">${q.company||'—'}</div>
+      <div style="font-size:13px">${q.company_name||'—'}</div>
       <div style="font-size:12px;color:#888">${licenseLabel[q.license_type]||q.license_type||'—'}</div>
       <div><span class="${isSent?'badge-sent':'badge-pending'}">${isSent?'ส่งแล้ว':'รอดำเนินการ'}</span></div>
       <div><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openQuotePanel('${q.id}')">ดูรายละเอียด</button></div>
@@ -1502,7 +1541,7 @@ window.openQuotePanel=(id)=>{
     <div class="qdivider"></div>
     <div class="qfield"><div class="qfield-label">ชื่อผู้ติดต่อ</div><div class="qfield-val">${q.contact_name||'—'}</div></div>
     <div class="qfield"><div class="qfield-label">อีเมล</div><div class="qfield-val"><a href="mailto:${q.email}" style="color:var(--mint)">${q.email||'—'}</a></div></div>
-    <div class="qfield"><div class="qfield-label">บริษัท / ห้างร้าน / องค์กร</div><div class="qfield-val">${q.company||'—'}</div></div>
+    <div class="qfield"><div class="qfield-label">บริษัท / ห้างร้าน / องค์กร</div><div class="qfield-val">${q.company_name||'—'}</div></div>
     <div class="qfield"><div class="qfield-label">ที่อยู่</div><div class="qfield-val" style="white-space:pre-line">${q.address||'—'}</div></div>
     <div class="qfield"><div class="qfield-label">หมายเลขผู้เสียภาษี</div><div class="qfield-val">${q.tax_id||'—'}</div></div>
     <div class="qdivider"></div>
