@@ -6,6 +6,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, onSnapshot, query, where, serverTimestamp } from "firebase/firestore";
+import emailjs from "@emailjs/browser";
 
 interface FontItem {
   id: string;
@@ -110,6 +111,24 @@ export default function QuotePage() {
         fonts: fontNames,
         created_at: serverTimestamp(),
       });
+
+      const licenseLabel = LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+        {
+          contact_name: form.contact_name,
+          company_name: form.company_name,
+          email: form.email,
+          tax_id: form.tax_id,
+          address: form.address,
+          license_type: licenseLabel,
+          fonts: fontNames.join(", "),
+          note: form.note || "—",
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!,
+      );
+
       setStatus("success");
       setShowNote(true);
       setForm(EMPTY_FORM);
