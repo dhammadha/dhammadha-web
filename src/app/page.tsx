@@ -235,6 +235,8 @@ export default function HomePage() {
         </div>
       </div>
 
+      <AdBanner slot="1401819374" />
+
       {/* PRICING */}
       <section id="pricing" className="bg-bg">
         <div className="max-w-site mx-auto px-8 py-7">
@@ -279,8 +281,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <AdBanner slot="1401819374" />
 
       <Footer />
     </>

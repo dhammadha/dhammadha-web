@@ -55,14 +55,24 @@ export default function AllFontsPage() {
           ) : fonts.length === 0 ? (
             <div className="text-center text-[#aaa] py-20 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {pageFonts.map((f) => (
-                <FontCard key={f.id} font={f} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {pageFonts.slice(0, 8).map((f) => (
+                  <FontCard key={f.id} font={f} />
+                ))}
+              </div>
+              {pageFonts.length > 8 && (
+                <>
+                  <AdBanner slot="1401819374" className="my-4 -mx-8" />
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {pageFonts.slice(8).map((f) => (
+                      <FontCard key={f.id} font={f} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
           )}
-
-          <AdBanner slot="1401819374" className="mt-6 -mx-8" />
 
           {/* Pagination */}
           {totalPages > 1 && (
