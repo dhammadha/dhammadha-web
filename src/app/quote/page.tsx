@@ -46,6 +46,7 @@ export default function QuotePage() {
   // list of selected font ids, one row per entry
   const [selectedFonts, setSelectedFonts] = useState<string[]>([""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [showNote, setShowNote] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -106,6 +107,7 @@ export default function QuotePage() {
         created_at: serverTimestamp(),
       });
       setStatus("success");
+      setShowNote(true);
       setForm(EMPTY_FORM);
       setSelectedFonts([""]);
     } catch {
@@ -145,6 +147,30 @@ export default function QuotePage() {
 
   return (
     <>
+      {showNote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
+          <div className="bg-white rounded-2xl p-7 max-w-[420px] w-full shadow-lg">
+            <div className="w-12 h-12 rounded-full bg-mint-light flex items-center justify-center mb-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#0a8a84" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <h2 className="text-[18px] font-semibold text-navy mb-2">ส่งคำขอสำเร็จ</h2>
+            <p className="text-[14px] text-[#555] leading-[1.8] mb-6">
+              โดยปกติ จะจัดส่งใบเสนอราคากลับไปภายใน 1–2 วันทำการ
+              <br /><br />
+              อีเมลที่แนบใบเสนอราคากลับไปอาจตกหล่นอยู่ใน Junk Mail ได้ หากไม่พบอีเมลตอบกลับจากเรา รบกวนตรวจสอบใน Junk Mail นะครับ
+            </p>
+            <button
+              onClick={() => setShowNote(false)}
+              className="w-full py-3 bg-navy text-white rounded-[9px] text-[14px] font-medium border-none cursor-pointer hover:bg-mint transition-colors"
+            >
+              รับทราบ
+            </button>
+          </div>
+        </div>
+      )}
+
       <Nav />
       <div className="bg-bg min-h-[calc(100vh-56px)]">
         <div className="max-w-[680px] mx-auto px-8 py-12">
@@ -332,11 +358,6 @@ export default function QuotePage() {
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c]">{errorMsg}</p>
             )}
-
-            <div className="bg-[#f9f8f5] border border-[0.5px] border-border rounded-xl p-5 text-[13px] text-[#666] leading-[1.75]">
-              โดยปกติ จะจัดส่งใบเสนอราคากลับไปภายใน 1–2 วันทำการ อีเมลที่แนบใบเสนอราคากลับไปอาจตกหล่นอยู่ใน Junk Mail ได้
-              หากไม่พบอีเมลตอบกลับจากเรา รบกวนตรวจสอบใน Junk Mail นะครับ
-            </div>
 
             <div className="flex items-center gap-4">
               <button
