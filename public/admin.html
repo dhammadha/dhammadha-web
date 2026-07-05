@@ -312,7 +312,7 @@
       <div class="stat-card"><div class="stat-num" id="statActive">—</div><div class="stat-label">แสดงบนเว็บ</div></div>
       <div class="stat-card"><div class="stat-num" id="statFree">—</div><div class="stat-label">ฟรี</div></div>
       <div class="stat-card"><div class="stat-num" id="statSale">—</div><div class="stat-label">โปรโมชั่น</div></div>
-      <div class="stat-card alert" onclick="showSection('quotes')"><div class="stat-num" id="statPending">—</div><div class="stat-label" id="statPendingLabel">⚠️ ใบเสนอราคารอดำเนินการ</div></div>
+      <div class="stat-card" id="statPendingCard" onclick="showSection('quotes')" style="cursor:pointer"><div class="stat-num" id="statPending">—</div><div class="stat-label" id="statPendingLabel">ใบเสนอราคารอดำเนินการ</div></div>
     </div>
     <div class="section-nav">
       <button class="section-nav-btn active" id="navFonts" onclick="showSection('fonts')">ฟอนต์</button>
@@ -699,10 +699,19 @@ document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='E
 // ── DATA ──────────────────────────────────────────
 async function loadQuoteCount(){
   try{
-    const snap=await getDocs(query(collection(db,'quotes'),orderBy('submitted_at','desc')));
+    const snap=await getDocs(query(collection(db,'quotes'),orderBy('created_at','desc')));
     const all=snap.docs.map(d=>({id:d.id,...d.data()}));
     const pending=all.filter(q=>q.status!=='sent').length;
     document.getElementById('statPending').textContent=pending;
+    const card=document.getElementById('statPendingCard');
+    const label=document.getElementById('statPendingLabel');
+    if(pending>0){
+      card.classList.add('alert');
+      label.textContent='⚠️ ใบเสนอราคารอดำเนินการ';
+    } else {
+      card.classList.remove('alert');
+      label.textContent='ใบเสนอราคารอดำเนินการ';
+    }
     const badge=document.getElementById('navPendingBadge');
     if(pending>0){badge.textContent=pending;badge.style.display='inline';}
     else{badge.style.display='none';}
@@ -1335,7 +1344,7 @@ window.printDocument=async(type)=>{
 
   // Fill header
   document.getElementById('pDocType').textContent=type==='receipt'?'ใบเสร็จรับเงิน':'ใบเสนอราคา';
-  document.getElementById('pDate').textContent=fmtDate(q.submitted_at);
+  document.getElementById('pDate').textContent=fmtDate(q.created_at);
 
   // Customer block
   if(type==='receipt'){
@@ -1404,7 +1413,7 @@ let quotes=[],currentQuoteTab='pending',viewingQuoteId=null;
 async function loadQuotes(){
   document.getElementById('quoteList').innerHTML='<div class="loading"><div class="spin"></div>กำลังโหลด...</div>';
   try{
-    const snap=await getDocs(query(collection(db,'quotes'),orderBy('submitted_at','desc')));
+    const snap=await getDocs(query(collection(db,'quotes'),orderBy('created_at','desc')));
     quotes=snap.docs.map(d=>({id:d.id,...d.data()}));
     updatePendingCount();
     renderQuoteList();
@@ -1416,6 +1425,15 @@ async function loadQuotes(){
 function updatePendingCount(){
   const pending=quotes.filter(q=>q.status!=='sent').length;
   document.getElementById('statPending').textContent=pending;
+  const card=document.getElementById('statPendingCard');
+  const label=document.getElementById('statPendingLabel');
+  if(pending>0){
+    card.classList.add('alert');
+    label.textContent='⚠️ ใบเสนอราคารอดำเนินการ';
+  } else {
+    card.classList.remove('alert');
+    label.textContent='ใบเสนอราคารอดำเนินการ';
+  }
   const badge=document.getElementById('navPendingBadge');
   if(pending>0){badge.textContent=pending;badge.style.display='inline';}
   else{badge.style.display='none';}
@@ -1443,7 +1461,7 @@ function renderQuoteList(){
   c.innerHTML=list.map(q=>{
     const isSent=q.status==='sent';
     return `<div class="quote-row">
-      <div style="font-size:12px;color:#888">${fmtDate(q.submitted_at)}</div>
+      <div style="font-size:12px;color:#888">${fmtDate(q.created_at)}</div>
       <div><span style="font-size:14px;font-weight:600;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
       <div style="font-size:13px">${q.company||'—'}</div>
       <div style="font-size:12px;color:#888">${licenseLabel[q.license_type]||q.license_type||'—'}</div>
@@ -1480,7 +1498,7 @@ window.openQuotePanel=(id)=>{
   const fonts=(q.fonts||[]).map(f=>`<span class="font-tag">${f}</span>`).join('');
 
   document.getElementById('quotePanelBody').innerHTML=`
-    <div class="qfield"><div class="qfield-label">วันที่ส่ง</div><div class="qfield-val">${fmtDate(q.submitted_at)}</div></div>
+    <div class="qfield"><div class="qfield-label">วันที่ส่ง</div><div class="qfield-val">${fmtDate(q.created_at)}</div></div>
     <div class="qdivider"></div>
     <div class="qfield"><div class="qfield-label">ชื่อผู้ติดต่อ</div><div class="qfield-val">${q.contact_name||'—'}</div></div>
     <div class="qfield"><div class="qfield-label">อีเมล</div><div class="qfield-val"><a href="mailto:${q.email}" style="color:var(--mint)">${q.email||'—'}</a></div></div>
