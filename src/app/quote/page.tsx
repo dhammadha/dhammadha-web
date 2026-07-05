@@ -91,8 +91,12 @@ export default function QuotePage() {
       setErrorMsg("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกฟอนต์อย่างน้อย 1 รายการ");
       return;
     }
-    if (!form.email.includes("@")) {
-      setErrorMsg("กรุณากรอกอีเมลที่ถูกต้อง");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setErrorMsg("กรุณากรอกอีเมลให้ถูกต้อง เช่น name@company.com");
+      return;
+    }
+    if (!/^\d{13}$/.test(form.tax_id)) {
+      setErrorMsg("หมายเลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
     setErrorMsg("");
@@ -130,14 +134,15 @@ export default function QuotePage() {
             <h1 className="text-[26px] font-semibold text-navy mb-3">ส่งคำขอสำเร็จ</h1>
             <p className="text-[14px] text-[#666] leading-[1.7] mb-7">
               เราได้รับคำขอใบเสนอราคาของคุณแล้ว<br />
-              ทีมงานจะติดต่อกลับทางอีเมลภายใน 1–3 วันทำการ
+              ทีมงานจะติดต่อกลับทางอีเมลภายใน 1–2 วันทำการ<br />
+              <span className="text-[13px] text-[#aaa]">หากไม่พบอีเมลตอบกลับจากเรา รบกวนตรวจสอบใน Junk Mail</span>
             </p>
-            <button
-              onClick={() => setStatus("idle")}
-              className="px-5 py-2.5 bg-navy text-white rounded-[7px] text-[14px] font-medium cursor-pointer border-none hover:bg-mint transition-colors"
+            <Link
+              href="/"
+              className="px-5 py-2.5 bg-navy text-white rounded-[7px] text-[14px] font-medium no-underline hover:bg-mint transition-colors inline-block"
             >
-              ส่งคำขอใหม่
-            </button>
+              กลับหน้าแรก
+            </Link>
           </div>
         </div>
         <Footer />
