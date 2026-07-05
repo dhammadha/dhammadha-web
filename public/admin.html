@@ -43,10 +43,14 @@
 
   /* LIST PAGE */
   #listPage{padding:32px 36px}
-  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+  .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
   .stat-card{background:#fff;border-radius:12px;padding:20px 24px;border:0.5px solid var(--border)}
   .stat-num{font-size:32px;font-weight:600;color:var(--navy)}
   .stat-label{font-size:13px;color:#aaa;margin-top:4px}
+  .stat-card.alert{border-color:#fde68a;background:#fffbeb;cursor:pointer}
+  .stat-card.alert .stat-num{color:#92400e}
+  .stat-card.alert .stat-label{color:#92400e}
+  .stat-card.alert:hover{background:#fef9c3}
 
   .tabs{display:flex;gap:4px;margin-bottom:20px;background:#fff;border-radius:11px;padding:5px;border:0.5px solid var(--border);width:fit-content}
   .tab{padding:9px 22px;border-radius:8px;font-size:14px;cursor:pointer;color:#888;transition:all .15s;font-family:"Noto Sans Thai",sans-serif;user-select:none}
@@ -202,6 +206,37 @@
 
   /* REQUIRED INDICATOR */
   .req{color:var(--red);margin-left:2px}
+
+  /* SECTION NAV */
+  .section-nav{display:flex;gap:6px;margin-bottom:24px}
+  .section-nav-btn{padding:9px 20px;border-radius:8px;font-size:14px;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500;border:0.5px solid var(--border);background:#fff;color:#888;transition:all .15s}
+  .section-nav-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  /* QUOTE TABLE */
+  .quote-table{background:#fff;border-radius:12px;border:0.5px solid var(--border);overflow:hidden}
+  .quote-table-header{display:grid;grid-template-columns:110px 1.2fr 1.5fr 1.2fr 110px 80px;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .quote-row{display:grid;grid-template-columns:110px 1.2fr 1.5fr 1.2fr 110px 80px;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .quote-row:last-child{border-bottom:none}
+  .quote-row:hover{background:#fafaf8}
+  .quote-table-header>div,.quote-row>div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge-pending{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#fff3cd;color:#856404;border:0.5px solid #ffc107}
+  .badge-sent{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#dcfce7;color:#166534;border:0.5px solid #86efac}
+
+  /* QUOTE DETAIL PANEL */
+  #quotePanel{
+    position:fixed;top:0;right:0;bottom:0;width:100%;max-width:520px;
+    background:#fff;z-index:200;
+    transform:translateX(100%);
+    transition:transform .35s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+    box-shadow:-8px 0 40px rgba(0,0,0,.12);
+  }
+  #quotePanel.open{transform:translateX(0)}
+  .qfield{margin-bottom:16px}
+  .qfield-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+  .qfield-val{font-size:15px;color:#333;line-height:1.5}
+  .font-tag{display:inline-block;background:#f0f0ec;border:0.5px solid var(--border);border-radius:6px;padding:3px 10px;font-size:13px;color:var(--navy);margin:2px}
+  .qdivider{height:0.5px;background:var(--border);margin:20px 0}
 </style>
 </head>
 <body>
@@ -244,7 +279,13 @@
       <div class="stat-card"><div class="stat-num" id="statActive">—</div><div class="stat-label">แสดงบนเว็บ</div></div>
       <div class="stat-card"><div class="stat-num" id="statFree">—</div><div class="stat-label">ฟรี</div></div>
       <div class="stat-card"><div class="stat-num" id="statSale">—</div><div class="stat-label">โปรโมชั่น</div></div>
+      <div class="stat-card alert" onclick="showSection('quotes')"><div class="stat-num" id="statPending">—</div><div class="stat-label" id="statPendingLabel">⚠️ ใบเสนอราคารอดำเนินการ</div></div>
     </div>
+    <div class="section-nav">
+      <button class="section-nav-btn active" id="navFonts" onclick="showSection('fonts')">ฟอนต์</button>
+      <button class="section-nav-btn" id="navQuotes" onclick="showSection('quotes')">ใบเสนอราคา <span id="navPendingBadge" style="display:none;background:#f59e0b;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;margin-left:4px">0</span></button>
+    </div>
+    <div id="fontsSection">
     <div class="tabs">
       <div class="tab active" onclick="switchTab('all',this)">ทั้งหมด</div>
       <div class="tab" onclick="switchTab('active',this)">แสดงอยู่</div>
@@ -257,6 +298,23 @@
       </div>
       <div id="fontList"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
     </div>
+    </div><!-- end fontsSection -->
+
+    <!-- QUOTES SECTION -->
+    <div id="quotesSection" style="display:none">
+      <div class="tabs" style="margin-bottom:20px">
+        <div class="tab active" onclick="switchQuoteTab('pending',this)">รอดำเนินการ</div>
+        <div class="tab" onclick="switchQuoteTab('sent',this)">ส่งแล้ว</div>
+        <div class="tab" onclick="switchQuoteTab('all',this)">ทั้งหมด</div>
+      </div>
+      <div class="quote-table">
+        <div class="quote-table-header">
+          <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท / องค์กร</div><div>รูปแบบสิทธิ์</div><div>สถานะ</div><div>จัดการ</div>
+        </div>
+        <div id="quoteList"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
+      </div>
+    </div><!-- end quotesSection -->
+
   </div>
 
   <!-- LICENSING PAGE -->
@@ -307,8 +365,26 @@
     </div>
   </div>
 
-  <!-- OVERLAY -->
+  <!-- OVERLAY (shared) -->
   <div id="panelOverlay"></div>
+
+  <!-- QUOTE DETAIL PANEL -->
+  <div id="quotePanel">
+    <div class="panel-header">
+      <div class="panel-breadcrumb">Admin → <span>รายละเอียดใบเสนอราคา</span></div>
+      <div class="panel-header-actions">
+        <button class="panel-close" onclick="closeQuotePanel()">✕</button>
+      </div>
+    </div>
+    <div class="panel-body" id="quotePanelBody"></div>
+    <div class="panel-footer">
+      <div style="flex:1"></div>
+      <div class="panel-footer-right">
+        <button class="btn btn-danger" id="qDeleteBtn" onclick="deleteQuoteAction()">ลบใบเสนอราคา</button>
+        <button class="btn btn-mint" id="qSentBtn" onclick="markSentAction()">✓ ทำเครื่องหมายว่าส่งแล้ว</button>
+      </div>
+    </div>
+  </div>
 
   <!-- SLIDE PANEL -->
   <div id="slidePanel">
@@ -529,6 +605,7 @@ onAuthStateChanged(auth,u=>{
     document.getElementById('appScreen').style.display='block';
     document.getElementById('adminEmail').textContent=u.email;
     loadFonts();
+    loadQuoteCount();
   } else {
     document.getElementById('authScreen').style.display='flex';
     document.getElementById('appScreen').style.display='none';
@@ -544,6 +621,17 @@ window.doLogout=()=>signOut(auth);
 document.getElementById('authPass').addEventListener('keydown',e=>{if(e.key==='Enter')window.doLogin();});
 
 // ── DATA ──────────────────────────────────────────
+async function loadQuoteCount(){
+  try{
+    const snap=await getDocs(query(collection(db,'quotes'),orderBy('submitted_at','desc')));
+    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const pending=all.filter(q=>q.status!=='sent').length;
+    document.getElementById('statPending').textContent=pending;
+    const badge=document.getElementById('navPendingBadge');
+    if(pending>0){badge.textContent=pending;badge.style.display='inline';}
+    else{badge.style.display='none';}
+  }catch(e){document.getElementById('statPending').textContent='—';}
+}
 async function loadFonts(){
   const snap=await getDocs(query(collection(db,'fonts'),orderBy('created_at','desc')));
   fonts=snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -916,8 +1004,10 @@ window.rmExFont=(i,type)=>{
 let isSaving=false;
 let uploadedPaths=[];
 
-// Overlay does nothing — panel only closes via ✕ or cancel button
 document.getElementById('panelCloseBtn').addEventListener('click',()=>{if(!isSaving)closePanel();});
+document.getElementById('panelOverlay').addEventListener('click',()=>{
+  if(document.getElementById('quotePanel').classList.contains('open'))closeQuotePanel();
+});
 
 async function uploadFile(file,path,progId){
   const progEl=document.getElementById(progId);
@@ -1109,6 +1199,145 @@ function toast(msg,isError=false){
 document.getElementById('fName').addEventListener('input',function(){
   if(!editingId)document.getElementById('fSlug').value=this.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
 });
+
+// ── SECTION NAV ───────────────────────────────────
+let currentSection='fonts';
+window.showSection=(sec)=>{
+  currentSection=sec;
+  document.getElementById('fontsSection').style.display=sec==='fonts'?'block':'none';
+  document.getElementById('quotesSection').style.display=sec==='quotes'?'block':'none';
+  document.getElementById('navFonts').classList.toggle('active',sec==='fonts');
+  document.getElementById('navQuotes').classList.toggle('active',sec==='quotes');
+  // Show/hide Add Font button
+  document.querySelector('.btn-mint[onclick="openPanel()"]').style.display=sec==='fonts'?'':'none';
+  if(sec==='quotes')loadQuotes();
+};
+
+// ── QUOTES ────────────────────────────────────────
+let quotes=[],currentQuoteTab='pending',viewingQuoteId=null;
+
+async function loadQuotes(){
+  document.getElementById('quoteList').innerHTML='<div class="loading"><div class="spin"></div>กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'quotes'),orderBy('submitted_at','desc')));
+    quotes=snap.docs.map(d=>({id:d.id,...d.data()}));
+    updatePendingCount();
+    renderQuoteList();
+  }catch(e){
+    document.getElementById('quoteList').innerHTML='<div class="empty"><div class="empty-text">โหลดข้อมูลไม่ได้: '+e.message+'</div></div>';
+  }
+}
+
+function updatePendingCount(){
+  const pending=quotes.filter(q=>q.status!=='sent').length;
+  document.getElementById('statPending').textContent=pending;
+  const badge=document.getElementById('navPendingBadge');
+  if(pending>0){badge.textContent=pending;badge.style.display='inline';}
+  else{badge.style.display='none';}
+}
+
+function renderQuoteList(){
+  const c=document.getElementById('quoteList');
+  let list=quotes;
+  if(currentQuoteTab==='pending')list=quotes.filter(q=>q.status!=='sent');
+  if(currentQuoteTab==='sent')list=quotes.filter(q=>q.status==='sent');
+  if(!list.length){
+    c.innerHTML='<div class="empty"><div class="empty-text">ไม่มีใบเสนอราคาในหมวดนี้</div></div>';
+    return;
+  }
+  const licenseLabel={
+    small_medium:'บริษัทขนาดเล็ก / กลาง',
+    large_agency:'บริษัทขนาดใหญ่ / Ad Agency',
+    extended:'สิทธิ์เพิ่มเติม (Extended)',
+  };
+  const fmtDate=(ts)=>{
+    if(!ts)return'—';
+    const d=ts.toDate?ts.toDate():new Date(ts);
+    return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
+  };
+  c.innerHTML=list.map(q=>{
+    const isSent=q.status==='sent';
+    return `<div class="quote-row">
+      <div style="font-size:12px;color:#888">${fmtDate(q.submitted_at)}</div>
+      <div><span style="font-size:14px;font-weight:600;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
+      <div style="font-size:13px">${q.company||'—'}</div>
+      <div style="font-size:12px;color:#888">${licenseLabel[q.license_type]||q.license_type||'—'}</div>
+      <div><span class="${isSent?'badge-sent':'badge-pending'}">${isSent?'ส่งแล้ว':'รอดำเนินการ'}</span></div>
+      <div><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openQuotePanel('${q.id}')">ดูรายละเอียด</button></div>
+    </div>`;
+  }).join('');
+}
+
+window.switchQuoteTab=(tab,el)=>{
+  currentQuoteTab=tab;
+  document.querySelectorAll('#quotesSection .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderQuoteList();
+};
+
+window.openQuotePanel=(id)=>{
+  const q=quotes.find(x=>x.id===id);if(!q)return;
+  viewingQuoteId=id;
+  const isSent=q.status==='sent';
+  document.getElementById('qSentBtn').style.display=isSent?'none':'inline-flex';
+  document.getElementById('qSentBtn').textContent=isSent?'ส่งแล้ว':'✓ ทำเครื่องหมายว่าส่งแล้ว';
+
+  const licenseLabel={
+    small_medium:'บริษัทขนาดเล็ก / กลาง (ไม่เกิน 10 เครื่อง)',
+    large_agency:'บริษัทขนาดใหญ่ / Ad Agency (ไม่จำกัดจำนวนเครื่อง)',
+    extended:'สิทธิ์เพิ่มเติม เช่น TVC / Digital Video / WEBFONT / App',
+  };
+  const fmtDate=(ts)=>{
+    if(!ts)return'—';
+    const d=ts.toDate?ts.toDate():new Date(ts);
+    return d.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+  };
+  const fonts=(q.fonts||[]).map(f=>`<span class="font-tag">${f}</span>`).join('');
+
+  document.getElementById('quotePanelBody').innerHTML=`
+    <div class="qfield"><div class="qfield-label">วันที่ส่ง</div><div class="qfield-val">${fmtDate(q.submitted_at)}</div></div>
+    <div class="qdivider"></div>
+    <div class="qfield"><div class="qfield-label">ชื่อผู้ติดต่อ</div><div class="qfield-val">${q.contact_name||'—'}</div></div>
+    <div class="qfield"><div class="qfield-label">อีเมล</div><div class="qfield-val"><a href="mailto:${q.email}" style="color:var(--mint)">${q.email||'—'}</a></div></div>
+    <div class="qfield"><div class="qfield-label">บริษัท / ห้างร้าน / องค์กร</div><div class="qfield-val">${q.company||'—'}</div></div>
+    <div class="qfield"><div class="qfield-label">ที่อยู่</div><div class="qfield-val" style="white-space:pre-line">${q.address||'—'}</div></div>
+    <div class="qfield"><div class="qfield-label">หมายเลขผู้เสียภาษี</div><div class="qfield-val">${q.tax_id||'—'}</div></div>
+    <div class="qdivider"></div>
+    <div class="qfield"><div class="qfield-label">รูปแบบสิทธิ์การใช้งาน</div><div class="qfield-val">${licenseLabel[q.license_type]||q.license_type||'—'}</div></div>
+    <div class="qfield"><div class="qfield-label">ฟอนต์ที่ต้องการ</div><div class="qfield-val" style="margin-top:4px">${fonts||'—'}</div></div>
+    <div class="qfield"><div class="qfield-label">หมายเหตุ</div><div class="qfield-val" style="white-space:pre-line;color:#555">${q.note||'—'}</div></div>
+  `;
+  document.getElementById('quotePanel').classList.add('open');
+  document.getElementById('panelOverlay').classList.add('open');
+};
+
+window.closeQuotePanel=()=>{
+  document.getElementById('quotePanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('open');
+  viewingQuoteId=null;
+};
+
+window.markSentAction=async()=>{
+  if(!viewingQuoteId)return;
+  if(!confirm('ยืนยันว่าส่งใบเสนอราคาให้ลูกค้าแล้ว?'))return;
+  try{
+    await updateDoc(doc(db,'quotes',viewingQuoteId),{status:'sent',sent_at:serverTimestamp()});
+    toast('✓ ทำเครื่องหมายว่าส่งแล้ว');
+    closeQuotePanel();
+    await loadQuotes();
+  }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
+};
+
+window.deleteQuoteAction=async()=>{
+  if(!viewingQuoteId)return;
+  if(!confirm('ลบใบเสนอราคานี้?\n(ไม่สามารถกู้คืนได้)'))return;
+  try{
+    await deleteDoc(doc(db,'quotes',viewingQuoteId));
+    toast('ลบเรียบร้อย');
+    closeQuotePanel();
+    await loadQuotes();
+  }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
+};
 </script>
 </body>
 </html>
