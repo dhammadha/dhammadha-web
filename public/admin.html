@@ -217,37 +217,43 @@
   .plb-save{background:#fff;color:#1a1744}
   .plb-close{background:transparent;color:#aaa;border:0.5px solid #888!important;font-size:14px}
   #printArea{max-width:740px;margin:0 auto;background:#fff;border-radius:4px;padding:32px 40px}
+  /* Document styles — shared between lightbox preview and print */
+  #printDoc{font-family:"Noto Sans Thai",-apple-system,sans-serif;font-size:13px;color:#222;padding:32px 40px;max-width:210mm;margin:0 auto;box-sizing:border-box}
+  .ph-company{font-size:16px;font-weight:700;color:#1a1744;margin-bottom:3px}
+  .ph-detail{font-size:11px;color:#555;line-height:1.6}
+  .ph-line{border:none;border-top:2.5px solid #1a1744;margin:10px 0 14px}
+  .pd-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+  .pd-type{font-size:28px;font-weight:700;color:#1a1744;line-height:1.2}
+  .pd-date{font-size:12px;color:#555;margin-top:6px}
+  .pd-customer{text-align:right;font-size:12px;color:#333;line-height:1.7}
+  .pd-subject{font-size:12px;margin-bottom:4px}
+  .pd-note{font-size:11px;color:#888;margin-bottom:14px}
+  .pt{width:100%;border-collapse:collapse;margin-bottom:10px}
+  .pt th{background:#1a1744;color:#fff;text-align:left;padding:7px 10px;font-size:12px;font-weight:600}
+  .pt th:last-child,.pt td:last-child{text-align:right;width:90px}
+  .pt th:first-child,.pt td:first-child{text-align:center;width:40px}
+  .pt td{padding:6px 10px;font-size:12px;vertical-align:top}
+  .pt tbody tr.item-main td{font-weight:600;padding-top:9px}
+  .pt tbody tr.item-sub td{color:#555;padding-top:2px;padding-bottom:2px}
+  .pt tfoot tr td{padding:5px 10px;font-size:12px}
+  .pt tfoot .total-row td{font-weight:700;font-size:13px;background:#1a1744;color:#fff}
+  .pt-divider td{border-top:0.5px solid #ccc!important;padding:0!important;height:1px}
+  .pf-bank{font-size:12px;margin-top:16px;line-height:2}
+  .pf-bank .pf-bank-header{font-weight:700;margin-bottom:2px}
+  .pf-bank .pf-row{display:flex;gap:0}
+  .pf-bank .pf-label{font-weight:700;min-width:110px;color:#333}
+  .pf-bank .pf-val{color:#333}
+  .ps-wrap{margin-top:40px;text-align:right;font-size:12px}
+  .ps-line{display:inline-block;border-top:0.5px solid #999;padding-top:6px;min-width:180px;text-align:center}
+  .print-baht-text{font-size:11px;color:#444;margin:6px 0 0 0;font-style:italic}
+
   @media print{
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     body>*{display:none!important}
     #printLightbox{display:block!important;background:none!important;padding:0!important;overflow:visible!important;position:static!important}
     .print-lb-toolbar{display:none!important}
     #printArea{display:block!important;margin:0;padding:0;border-radius:0;box-shadow:none}
-    #printDoc{font-family:"Noto Sans Thai",-apple-system,sans-serif;font-size:13px;color:#222;padding:18mm 20mm;max-width:210mm;margin:0 auto}
-    .ph-company{font-size:16px;font-weight:700;color:#1a1744;margin-bottom:3px}
-    .ph-detail{font-size:11px;color:#555;line-height:1.6}
-    .ph-line{border:none;border-top:2.5px solid #1a1744;margin:10px 0 14px}
-    .pd-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-    .pd-type{font-size:22px;font-weight:700;color:#1a1744}
-    .pd-date{font-size:12px;color:#555;margin-top:4px}
-    .pd-customer{text-align:right;font-size:12px;color:#333;line-height:1.7}
-    .pd-subject{font-size:12px;margin-bottom:4px}
-    .pd-note{font-size:11px;color:#888;margin-bottom:14px}
-    .pt{width:100%;border-collapse:collapse;margin-bottom:10px}
-    .pt th{background:#1a1744;color:#fff;text-align:left;padding:7px 10px;font-size:12px;font-weight:600}
-    .pt th:last-child,.pt td:last-child{text-align:right;width:90px}
-    .pt th:first-child,.pt td:first-child{text-align:center;width:40px}
-    .pt td{padding:6px 10px;font-size:12px;vertical-align:top}
-    .pt tbody tr.item-main td{font-weight:600;padding-top:9px}
-    .pt tbody tr.item-sub td{color:#555;padding-top:2px;padding-bottom:2px}
-    .pt tfoot tr td{padding:5px 10px;font-size:12px}
-    .pt tfoot .total-row td{font-weight:700;font-size:13px;background:#1a1744;color:#fff}
-    .pt-divider td{border-top:0.5px solid #ccc!important;padding:0!important;height:1px}
-    .pf-bank{font-size:12px;margin-top:16px;line-height:1.8}
-    .pf-bank strong{display:inline-block;width:90px;color:#555}
-    .ps-wrap{margin-top:32px;text-align:right;font-size:12px}
-    .ps-line{display:inline-block;border-top:0.5px solid #999;padding-top:6px;min-width:160px;text-align:center}
-    .print-baht-text{font-size:11px;color:#444;margin:6px 0 0 0;font-style:italic}
+    #printDoc{padding:18mm 20mm}
   }
 
   /* SECTION NAV */
@@ -1415,9 +1421,10 @@ window.printDocument=async(type)=>{
   document.getElementById('pBahtText').textContent=isReceipt?`(${bahtText(total)})`:'';
 
   document.getElementById('pBank').innerHTML=!isReceipt?`
-    <strong>รายละเอียดการชำระเงิน</strong>&emsp;<strong>บัญชี :</strong>&ensp;ธนาคารกสิกรไทย สาขาสี่แยกแสงเพชร สุราษฎร์ธานี<br>
-    <strong>ชื่อบัญชี :</strong>&ensp;นายมณฑล ธนาโรจน์<br>
-    <strong>เลขที่บัญชี :</strong>&ensp;476-2-25195-2
+    <div class="pf-bank-header">รายละเอียดการชำระเงิน</div>
+    <div class="pf-row"><span class="pf-label">บัญชี :</span><span class="pf-val">ธนาคารกสิกรไทย สาขาสี่แยกแสงเพชร สุราษฎร์ธานี</span></div>
+    <div class="pf-row"><span class="pf-label">ชื่อบัญชี :</span><span class="pf-val">นายมณฑล ธนาโรจน์</span></div>
+    <div class="pf-row"><span class="pf-label">เลขที่บัญชี :</span><span class="pf-val">476-2-25195-2</span></div>
   `:'';
 
   document.getElementById('pSigner').innerHTML=isReceipt?
