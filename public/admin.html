@@ -207,6 +207,39 @@
   /* REQUIRED INDICATOR */
   .req{color:var(--red);margin-left:2px}
 
+  /* PRINT */
+  #printArea{display:none}
+  @media print{
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body>*{display:none!important}
+    #printArea{display:block!important;margin:0;padding:0}
+    #printDoc{font-family:"Noto Sans Thai",-apple-system,sans-serif;font-size:13px;color:#222;padding:18mm 20mm;max-width:210mm;margin:0 auto}
+    .ph-company{font-size:16px;font-weight:700;color:#1a1744;margin-bottom:3px}
+    .ph-detail{font-size:11px;color:#555;line-height:1.6}
+    .ph-line{border:none;border-top:2.5px solid #1a1744;margin:10px 0 14px}
+    .pd-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+    .pd-type{font-size:22px;font-weight:700;color:#1a1744}
+    .pd-date{font-size:12px;color:#555;margin-top:4px}
+    .pd-customer{text-align:right;font-size:12px;color:#333;line-height:1.7}
+    .pd-subject{font-size:12px;margin-bottom:4px}
+    .pd-note{font-size:11px;color:#888;margin-bottom:14px}
+    .pt{width:100%;border-collapse:collapse;margin-bottom:10px}
+    .pt th{background:#1a1744;color:#fff;text-align:left;padding:7px 10px;font-size:12px;font-weight:600}
+    .pt th:last-child,.pt td:last-child{text-align:right;width:90px}
+    .pt th:first-child,.pt td:first-child{text-align:center;width:40px}
+    .pt td{padding:6px 10px;font-size:12px;vertical-align:top}
+    .pt tbody tr.item-main td{font-weight:600;padding-top:9px}
+    .pt tbody tr.item-sub td{color:#555;padding-top:2px;padding-bottom:2px}
+    .pt tfoot tr td{padding:5px 10px;font-size:12px}
+    .pt tfoot .total-row td{font-weight:700;font-size:13px;background:#1a1744;color:#fff}
+    .pt-divider td{border-top:0.5px solid #ccc!important;padding:0!important;height:1px}
+    .pf-bank{font-size:12px;margin-top:16px;line-height:1.8}
+    .pf-bank strong{display:inline-block;width:90px;color:#555}
+    .ps-wrap{margin-top:32px;text-align:right;font-size:12px}
+    .ps-line{display:inline-block;border-top:0.5px solid #999;padding-top:6px;min-width:160px;text-align:center}
+    .print-baht-text{font-size:11px;color:#444;margin:6px 0 0 0;font-style:italic}
+  }
+
   /* SECTION NAV */
   .section-nav{display:flex;gap:6px;margin-bottom:24px}
   .section-nav-btn{padding:9px 20px;border-radius:8px;font-size:14px;cursor:pointer;font-family:"Noto Sans Thai",sans-serif;font-weight:500;border:0.5px solid var(--border);background:#fff;color:#888;transition:all .15s}
@@ -380,8 +413,10 @@
     <div class="panel-footer">
       <div style="flex:1"></div>
       <div class="panel-footer-right">
-        <button class="btn btn-danger" id="qDeleteBtn" onclick="deleteQuoteAction()">ลบใบเสนอราคา</button>
-        <button class="btn btn-mint" id="qSentBtn" onclick="markSentAction()">✓ ทำเครื่องหมายว่าส่งแล้ว</button>
+        <button class="btn btn-danger" id="qDeleteBtn" onclick="deleteQuoteAction()">ลบ</button>
+        <button class="btn btn-outline" onclick="printDocument('quotation')">🖨 ใบเสนอราคา</button>
+        <button class="btn btn-outline" onclick="printDocument('receipt')">🖨 ใบเสร็จ</button>
+        <button class="btn btn-mint" id="qSentBtn" onclick="markSentAction()">✓ ส่งแล้ว</button>
       </div>
     </div>
   </div>
@@ -565,6 +600,47 @@
   </div><!-- end slidePanel -->
 
 </div><!-- end appScreen -->
+
+<!-- PRINT AREA -->
+<div id="printArea">
+  <div id="printDoc">
+    <div class="ph-company">ธรรมดาสตูดิโอ</div>
+    <div class="ph-detail">โดย นายมณฑล ธนาโรจน์ &nbsp;หมายเลขประจำตัวผู้เสียภาษี 1849900005733</div>
+    <div class="ph-detail">96/9 การุณราษฎร์ 27 ต.ตลาด อ.เมืองสุราษฎร์ธานี จ.สุราษฎร์ธานี 84000</div>
+    <div class="ph-detail">โทรศัพท์ 09-2929-9882 / Email: dhammadha@outlook.com</div>
+    <hr class="ph-line">
+    <div class="pd-row">
+      <div>
+        <div class="pd-type" id="pDocType">ใบเสนอราคา</div>
+        <div class="pd-date" id="pDate"></div>
+      </div>
+      <div class="pd-customer" id="pCustomer"></div>
+    </div>
+    <div class="pd-subject" id="pSubject"></div>
+    <div class="pd-note" id="pNote"></div>
+    <table class="pt">
+      <thead>
+        <tr>
+          <th>ลำดับ</th>
+          <th>รายละเอียด</th>
+          <th>ราคา</th>
+        </tr>
+      </thead>
+      <tbody id="pItems"></tbody>
+      <tfoot>
+        <tr class="pt-divider"><td colspan="3"></td></tr>
+        <tr><td></td><td style="text-align:right">รวมจำนวนเงิน</td><td id="pSubtotal" style="text-align:right"></td></tr>
+        <tr><td></td><td style="text-align:right">หักภาษี ณ ที่จ่าย 3%</td><td id="pWht" style="text-align:right"></td></tr>
+        <tr class="total-row"><td></td><td style="text-align:right">ยอดชำระ</td><td id="pTotal" style="text-align:right"></td></tr>
+      </tfoot>
+    </table>
+    <div class="print-baht-text" id="pBahtText"></div>
+    <div class="pf-bank" id="pBank"></div>
+    <div class="ps-wrap">
+      <div class="ps-line" id="pSigner"></div>
+    </div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div class="status-toast" id="toast"></div>
@@ -1194,6 +1270,115 @@ function toast(msg,isError=false){
   clearTimeout(toastTimer);
   if(!isError)toastTimer=setTimeout(()=>t.className='status-toast',2500);
 }
+
+// ── PRINT ─────────────────────────────────────────
+let cachedLicensing=null;
+async function getLicensing(){
+  if(cachedLicensing)return cachedLicensing;
+  try{
+    const {getDoc,doc:fdoc}=await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+    const snap=await getDoc(fdoc(db,'settings','licensing'));
+    cachedLicensing=snap.exists()?snap.data():{small:3500,large:7000,extra:20000};
+  }catch{cachedLicensing={small:3500,large:7000,extra:20000};}
+  return cachedLicensing;
+}
+
+function bahtText(n){
+  const d=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+  const p=['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+  if(n===0)return'ศูนย์บาทถ้วน';
+  const parts=n.toFixed(2).split('.');
+  const intNum=parseInt(parts[0]),decNum=parseInt(parts[1]);
+  function cvt(num){
+    if(!num)return'';
+    const s=num.toString();const len=s.length;let r='';
+    for(let i=0;i<len;i++){
+      const dd=parseInt(s[i]),pos=len-1-i;
+      if(!dd)continue;
+      if(pos===1&&dd===1){r+='สิบ';continue;}
+      if(pos===1&&dd===2){r+='ยี่สิบ';continue;}
+      if(pos===0&&dd===1&&len>1){r+='เอ็ด';continue;}
+      r+=d[dd]+p[pos];
+    }
+    return r;
+  }
+  let res='';
+  if(intNum>=1000000){res+=cvt(Math.floor(intNum/1000000))+'ล้าน';res+=cvt(intNum%1000000);}
+  else res+=cvt(intNum);
+  res+='บาท';
+  res+=decNum?cvt(decNum)+'สตางค์':'ถ้วน';
+  return res;
+}
+
+const licDesc={
+  small_medium:{line1:'สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท',line2:'ขนาดเล็ก / กลาง (ผู้ใช้งานไม่เกิน 10 เครื่อง)',key:'small'},
+  large_agency:{line1:'สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท',line2:'บริษัทขนาดใหญ่ / Ad Agency (ไม่จำกัดจำนวนเครื่อง)',key:'large'},
+  extended:{line1:'สิทธิการใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต',line2:'',key:'extra'},
+};
+
+window.printDocument=async(type)=>{
+  const q=quotes.find(x=>x.id===viewingQuoteId);if(!q)return;
+  const lic=await getLicensing();
+  const desc=licDesc[q.license_type]||licDesc.small_medium;
+  const pricePerFont=lic[desc.key]||0;
+  const fonts=q.fonts||[];
+  const subtotal=pricePerFont*fonts.length;
+  const wht=Math.round(subtotal*0.03);
+  const total=subtotal-wht;
+
+  const fmtDate=(ts)=>{
+    if(!ts)return new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+    const dt=ts.toDate?ts.toDate():new Date(ts);
+    return dt.toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
+  };
+  const fmt=(n)=>n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Fill header
+  document.getElementById('pDocType').textContent=type==='receipt'?'ใบเสร็จรับเงิน':'ใบเสนอราคา';
+  document.getElementById('pDate').textContent=fmtDate(q.submitted_at);
+
+  // Customer block
+  if(type==='receipt'){
+    document.getElementById('pCustomer').innerHTML=
+      `<strong>ชื่อลูกค้า: ${q.company||q.contact_name||''}</strong><br>${q.address||''}<br>หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}`;
+    document.getElementById('pSubject').textContent='';
+    document.getElementById('pNote').textContent='';
+  } else {
+    document.getElementById('pCustomer').innerHTML=
+      `เรียน : คุณ ${q.contact_name||''}<br><strong>${q.company||''}</strong><br>${q.address||''}<br>หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}`;
+    document.getElementById('pSubject').innerHTML='<strong>เรื่อง :</strong> เสนอราคาสิทธิการใช้งานโปรแกรมคอมพิวเตอร์ฟอนต์';
+    document.getElementById('pNote').textContent='ใบเสนอราคานี้มีอายุ 15 วัน นับจากวันที่เสนอราคา';
+  }
+
+  // Items
+  let rows='',i=1;
+  for(const fn of fonts){
+    rows+=`<tr class="item-main"><td>${i++}</td><td>ชุดฟอนต์ "${fn}"</td><td>${fmt(pricePerFont)}</td></tr>`;
+    rows+=`<tr class="item-sub"><td></td><td>${desc.line1}</td><td></td></tr>`;
+    if(desc.line2)rows+=`<tr class="item-sub"><td></td><td>${desc.line2}</td><td></td></tr>`;
+  }
+  document.getElementById('pItems').innerHTML=rows;
+  document.getElementById('pSubtotal').textContent=fmt(subtotal);
+  document.getElementById('pWht').textContent=fmt(wht);
+  document.getElementById('pTotal').textContent=fmt(total);
+
+  // Baht text (receipt only)
+  document.getElementById('pBahtText').textContent=type==='receipt'?`(${bahtText(total)})`:'';
+
+  // Bank info (quotation only)
+  document.getElementById('pBank').innerHTML=type==='quotation'?`
+    <br><strong style="font-size:13px">รายละเอียดการชำระเงิน</strong><br>
+    <strong>บัญชี :</strong>&nbsp;&nbsp;&nbsp;ธนาคารกสิกรไทย สาขาสี่แยกแสงเพชร สุราษฎร์ธานี<br>
+    <strong>ชื่อบัญชี :</strong>&nbsp;&nbsp;&nbsp;นายมณฑล ธนาโรจน์<br>
+    <strong>เลขที่บัญชี :</strong>&nbsp;&nbsp;&nbsp;476-2-25195-2
+  `:'';
+
+  document.getElementById('pSigner').innerHTML=type==='receipt'?
+    'มณฑล ธนาโรจน์ (ผู้รับเงิน)':
+    'มณฑล ธนาโรจน์ (ผู้เสนอราคา)';
+
+  window.print();
+};
 
 // ── AUTO SLUG ─────────────────────────────────────
 document.getElementById('fName').addEventListener('input',function(){

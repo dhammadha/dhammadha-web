@@ -537,8 +537,6 @@ export default function FontDetail() {
 
               <div className="h-[0.5px] bg-border" />
 
-              <AdBanner slot="1401819374" className="-mx-5 my-1" />
-
               {/* Org tiers */}
               <div>
                 <div className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
@@ -586,6 +584,7 @@ export default function FontDetail() {
           {/* RELATED FONTS */}
           {related.length > 0 && (
             <div>
+              <AdBanner slot="1401819374" className="-mx-5 mb-6" />
               <div className="text-[15px] font-semibold text-navy mb-4">
                 ฟอนต์ที่คุณน่าจะสนใจ
               </div>
