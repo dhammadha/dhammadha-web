@@ -526,7 +526,7 @@ export default function FontDetail() {
                     </div>
                   </div>
                   <Link
-                    href="/coming-soon/"
+                    href="/subscribe/"
                     className="flex-shrink-0 text-[12px] font-medium text-[#0a8a84] no-underline bg-white border border-[0.5px] border-mint rounded-[7px] px-3 py-1.5 hover:bg-mint hover:text-navy transition-colors"
                   >
                     ดูแผนบริการ

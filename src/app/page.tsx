@@ -269,7 +269,7 @@ export default function HomePage() {
                 เข้าถึงฟอนต์ทุกชุดในคลัง ใช้งานง่ายผ่าน Desktop App
               </div>
               <Link
-                href="/coming-soon/"
+                href="/subscribe/"
                 className="mt-4 block w-full py-2.5 text-center rounded-[6px] text-[14px] font-medium text-navy border border-[0.25px] border-[#ddd] no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
               >
                 สมัครฟรี · เริ่มใช้ได้เลยทันที
