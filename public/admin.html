@@ -214,7 +214,7 @@
   .print-lb-btns{display:flex;gap:8px}
   .print-lb-btns button{padding:8px 18px;border-radius:8px;font-size:14px;font-family:"Noto Sans Thai",sans-serif;font-weight:500;cursor:pointer;border:none}
   .plb-print{background:#fff;color:#1a1744}
-  .plb-save{background:#1a1744;color:#fff}
+  .plb-save{background:#fff;color:#1a1744}
   .plb-close{background:transparent;color:#aaa;border:0.5px solid #888!important;font-size:14px}
   #printArea{max-width:740px;margin:0 auto;background:#fff;border-radius:4px;padding:32px 40px}
   @media print{
@@ -1415,10 +1415,7 @@ window.printDocument=async(type)=>{
   document.getElementById('pBahtText').textContent=isReceipt?`(${bahtText(total)})`:'';
 
   document.getElementById('pBank').innerHTML=!isReceipt?`
-    <strong>รายละเอียดการชำระเงิน</strong><br>
-    <strong>บัญชี :</strong>&ensp;ธนาคารกสิกรไทย สาขาสี่แยกแสงเพชร สุราษฎร์ธานี<br>
-    <strong>ชื่อบัญชี :</strong>&ensp;นายมณฑล ธนาโรจน์<br>
-    <strong>เลขที่บัญชี :</strong>&ensp;476-2-25195-2
+    <strong>รายละเอียดการชำระเงิน</strong>&emsp;<strong>บัญชี :</strong>&ensp;ธนาคารกสิกรไทย สาขาสี่แยกแสงเพชร สุราษฎร์ธานี&emsp;<strong>ชื่อบัญชี :</strong>&ensp;นายมณฑล ธนาโรจน์&emsp;<strong>เลขที่บัญชี :</strong>&ensp;476-2-25195-2
   `:'';
 
   document.getElementById('pSigner').innerHTML=isReceipt?
