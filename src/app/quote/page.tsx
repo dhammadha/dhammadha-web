@@ -153,6 +153,27 @@ export default function QuotePage() {
             <p className="text-[13px] text-[#aaa]">สำหรับสิทธิการใช้งานองค์กรและสิทธิพิเศษ</p>
           </div>
 
+          {/* Discount Info */}
+          <div className="bg-white border border-[0.5px] border-border rounded-xl p-6 mb-5">
+            <h2 className="text-[14px] font-semibold text-navy mb-3">เงื่อนไขส่วนลด</h2>
+            <div className="flex flex-col gap-2">
+              {[
+                { threshold: "25,000", discount: "5%" },
+                { threshold: "50,000", discount: "10%" },
+                { threshold: "75,000", discount: "15%" },
+              ].map(({ threshold, discount }) => (
+                <div key={threshold} className="flex items-center gap-3">
+                  <span className="inline-block min-w-[42px] text-center text-[11px] font-semibold text-[#0a8a84] bg-mint-light border border-[0.5px] border-mint-mid rounded-full px-2.5 py-0.5">
+                    {discount}
+                  </span>
+                  <span className="text-[13px] text-[#555]">
+                    เมื่อยอดสั่งซื้อตั้งแต่ <span className="font-medium text-navy">฿{threshold}</span> ขึ้นไป
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <form onSubmit={submit} className="flex flex-col gap-5">
             {/* Contact & Company */}
             <div className="bg-white border border-[0.5px] border-border rounded-xl p-6 flex flex-col gap-4">
@@ -311,6 +332,11 @@ export default function QuotePage() {
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c]">{errorMsg}</p>
             )}
+
+            <div className="bg-[#f9f8f5] border border-[0.5px] border-border rounded-xl p-5 text-[13px] text-[#666] leading-[1.75]">
+              โดยปกติ จะจัดส่งใบเสนอราคากลับไปภายใน 1–2 วันทำการ อีเมลที่แนบใบเสนอราคากลับไปอาจตกหล่นอยู่ใน Junk Mail ได้
+              หากไม่พบอีเมลตอบกลับจากเรา รบกวนตรวจสอบใน Junk Mail นะครับ
+            </div>
 
             <div className="flex items-center gap-4">
               <button
