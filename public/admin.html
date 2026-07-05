@@ -57,9 +57,9 @@
   .tab.active{background:var(--navy);color:#fff}
 
   .font-table{background:#fff;border-radius:12px;border:0.5px solid var(--border);overflow:hidden}
-  .font-table-header{display:grid;grid-template-columns:52px 2fr 90px 1fr 90px 80px 170px 160px;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .font-table-header{display:grid;grid-template-columns:52px 2fr 90px 1fr 90px 80px 170px 90px 160px;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
   .font-table-header>div,.font-row>div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .font-row{display:grid;grid-template-columns:52px 2fr 90px 1fr 90px 80px 170px 160px;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .font-row{display:grid;grid-template-columns:52px 2fr 90px 1fr 90px 80px 170px 90px 160px;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
   .font-row:last-child{border-bottom:none}
   .font-row:hover{background:#fafaf8}
   .font-name{font-size:14px;font-weight:600;color:var(--navy)}
@@ -345,7 +345,7 @@
     </div>
     <div class="font-table">
       <div class="font-table-header">
-        <div></div><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>สถานะ</div><div>โปรโมชั่น</div><div>จัดการ</div>
+        <div></div><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>สถานะ</div><div>โปรโมชั่น</div><div>วันที่เพิ่ม</div><div>จัดการ</div>
       </div>
       <div id="fontList"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
     </div>
@@ -783,6 +783,7 @@ function renderList(){
       <div>${priceText}</div>
       <div><span class="badge-pill ${isActive?'pill-active':'pill-hidden'}">${isActive?'แสดง':'ซ่อน'}</span></div>
       <div>${promoText}</div>
+      <div style="font-size:12px;color:#aaa">${f.created_at?(f.created_at.toDate?f.created_at.toDate():new Date(f.created_at)).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'—'}</div>
       <div class="row-actions">
         <button class="btn ${isActive?'btn-outline':'btn-mint'}" style="padding:4px 10px;font-size:11px" onclick="toggleActive('${f.id}',${isActive})">${isActive?'ซ่อน':'แสดง'}</button>
         <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="editFont('${f.id}')">แก้ไข</button>
