@@ -598,7 +598,7 @@ export default function FontDetail() {
         </div>
       </div>
 
-      <AdBanner slot="YOUR_SLOT_ID" />
+      <AdBanner slot="1401819374" />
 
       {/* SPECIMEN LIGHTBOX */}
       {specimenOpen && (

@@ -62,7 +62,7 @@ export default function AllFontsPage() {
             </div>
           )}
 
-          <AdBanner slot="YOUR_SLOT_ID" className="mt-6 -mx-8" />
+          <AdBanner slot="1401819374" className="mt-6 -mx-8" />
 
           {/* Pagination */}
           {totalPages > 1 && (

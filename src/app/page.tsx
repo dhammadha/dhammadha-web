@@ -201,7 +201,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <AdBanner slot="YOUR_SLOT_ID" />
+      <AdBanner slot="1401819374" />
 
       {/* FONT GRID */}
       <div id="fonts" className="bg-white">
@@ -280,7 +280,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <AdBanner slot="YOUR_SLOT_ID" />
+      <AdBanner slot="1401819374" />
 
       <Footer />
     </>
