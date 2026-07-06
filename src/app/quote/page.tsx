@@ -12,6 +12,7 @@ import emailjs from "@emailjs/browser";
 interface FontItem {
   id: string;
   name: string;
+  slug: string;
 }
 
 const LICENSE_TYPES = [
@@ -64,12 +65,16 @@ function QuoteForm() {
     const q = query(collection(db, "fonts"), where("is_active", "==", true));
     const unsub = onSnapshot(q, (snap) => {
       const list = snap.docs
-        .map((d) => ({ id: d.id, name: d.data().name as string }))
+        .map((d) => ({ id: d.id, name: d.data().name as string, slug: d.data().slug as string }))
         .sort((a, b) => a.name.localeCompare(b.name, "th"));
       setFonts(list);
+      if (preselectedFont) {
+        const match = list.find((f) => f.slug === preselectedFont || f.id === preselectedFont);
+        if (match) setSelectedFonts([match.id]);
+      }
     });
     return () => unsub();
-  }, []);
+  }, [preselectedFont]);
 
   function set(key: keyof typeof EMPTY_FORM, val: string) {
     setForm((f) => ({ ...f, [key]: val }));
