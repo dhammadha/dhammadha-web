@@ -50,23 +50,26 @@ export default function FontDetail() {
   const params = useParams();
   // slug starts empty — set from window.location.pathname on mount
   // (Firebase Hosting rewrites /fonts/[slug] → /fonts/_/, so useParams gives "_")
-  const [slug, setSlug] = useState("");
   const [font, setFont] = useState<Font | null>(null);
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
   const [licensing, setLicensing] = useState({ small: 3500, large: 7000, extra: 20000 });
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
 
-  // Resolve real slug from URL before any fetch
-  useEffect(() => {
+  const resolvedSlug = (() => {
     const paramSlug = typeof params?.slug === "string" ? params.slug : "";
-    if (paramSlug && paramSlug !== "_") {
-      setSlug(paramSlug);
-    } else {
+    if (paramSlug && paramSlug !== "_") return paramSlug;
+    if (typeof window !== "undefined") {
       const parts = window.location.pathname.split("/").filter(Boolean);
-      setSlug(parts[parts.length - 1] || "");
+      return parts[parts.length - 1] || "";
     }
-  }, [params?.slug]);
+    return "";
+  })();
+  const [slug, setSlug] = useState(resolvedSlug);
+
+  useEffect(() => {
+    if (resolvedSlug && resolvedSlug !== slug) setSlug(resolvedSlug);
+  }, [resolvedSlug]);
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedWeight, setSelectedWeight] = useState("");
   const [fontSize, setFontSize] = useState("36");
