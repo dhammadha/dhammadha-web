@@ -263,8 +263,8 @@
 
   /* QUOTE TABLE */
   .quote-table{background:#fff;border-radius:12px;border:0.5px solid var(--border);overflow:hidden}
-  .quote-table-header{display:grid;grid-template-columns:110px 1.2fr 1.5fr 1.2fr 110px 80px;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
-  .quote-row{display:grid;grid-template-columns:110px 1.2fr 1.5fr 1.2fr 110px 80px;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
+  .quote-table-header{display:grid;grid-template-columns:110px 1.2fr 1.5fr 1.2fr 90px 90px 80px;gap:12px;padding:11px 18px;background:var(--bg);font-size:11px;color:#aaa;font-weight:600;letter-spacing:.04em;border-bottom:0.5px solid var(--border)}
+  .quote-row{display:grid;grid-template-columns:110px 1.2fr 1.5fr 1.2fr 90px 90px 80px;gap:12px;padding:11px 18px;border-bottom:0.5px solid var(--border);align-items:center;transition:background .1s}
   .quote-row:last-child{border-bottom:none}
   .quote-row:hover{background:#fafaf8}
   .quote-table-header>div,.quote-row>div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -355,7 +355,7 @@
     <div id="quotesSection" style="display:none">
       <div class="quote-table">
         <div class="quote-table-header">
-          <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท / องค์กร</div><div>รูปแบบสิทธิ์</div><div>สถานะ</div><div>จัดการ</div>
+          <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท / องค์กร</div><div>รูปแบบสิทธิ์</div><div>ใบเสนอราคา</div><div>ใบเสร็จ</div><div>จัดการ</div>
         </div>
         <div id="quoteList"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
       </div>
@@ -634,6 +634,7 @@
     <div class="pd-row">
       <div>
         <div class="pd-type" id="pDocType">ใบเสนอราคา</div>
+        <div class="pd-date" id="pDocNo"></div>
         <div class="pd-date" id="pDate"></div>
       </div>
       <div class="pd-customer" id="pCustomer"></div>
@@ -1375,8 +1376,15 @@ window.printDocument=async(type)=>{
   const total=subtotal-wht;
 
   const isReceipt=type==='receipt';
+  const docField=isReceipt?'receipt_no':'quote_no';
+  let docNo=q[docField];
+  if(!docNo){
+    docNo=await genDocNo(isReceipt?'R':'Q');
+    await updateDoc(doc(db,'quotes',viewingQuoteId),{[docField]:docNo});
+    quotes=quotes.map(x=>x.id===viewingQuoteId?{...x,[docField]:docNo}:x);
+  }
   _prevDocTitle=document.title;
-  document.title=fmtFilename(q.created_at,q.company_name||q.contact_name,fonts,isReceipt?'receipt':'quotation');
+  document.title=docNo;
 
   const fmtDate=(ts)=>{
     if(!ts)return new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
@@ -1387,6 +1395,7 @@ window.printDocument=async(type)=>{
 
   document.getElementById('pLbTitle').textContent=isReceipt?'ตัวอย่างใบเสร็จรับเงิน':'ตัวอย่างใบเสนอราคา';
   document.getElementById('pDocType').textContent=isReceipt?'ใบเสร็จรับเงิน':'ใบเสนอราคา';
+  document.getElementById('pDocNo').textContent=`เลขที่ ${docNo}`;
   document.getElementById('pDate').textContent=fmtDate(q.created_at);
 
   // Customer block — 4 lines always
@@ -1430,6 +1439,23 @@ window.printDocument=async(type)=>{
 
   document.getElementById('printLightbox').style.display='block';
 };
+
+// ── DOC NUMBER ────────────────────────────────────
+async function genDocNo(type){
+  // type: 'Q' | 'R'
+  const now=new Date();
+  const yy=String(now.getFullYear()).slice(2);
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const dd=String(now.getDate()).padStart(2,'0');
+  const prefix=`${type}${yy}${mm}${dd}`;
+  const field=type==='Q'?'quote_no':'receipt_no';
+  const snap=await getDocs(query(collection(db,'quotes'),
+    where(field,'>=',prefix),
+    where(field,'<',prefix+'z')
+  ));
+  const nn=String(snap.size+1).padStart(2,'0');
+  return `${prefix}${nn}`;
+}
 
 // ── AUTO SLUG ─────────────────────────────────────
 document.getElementById('fName').addEventListener('input',function(){
@@ -1510,7 +1536,8 @@ function renderQuoteList(){
     <div><span style="font-size:14px;font-weight:600;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
     <div style="font-size:13px">${q.company_name||'—'}</div>
     <div style="font-size:12px;color:#888">${licenseLabel[q.license_type]||q.license_type||'—'}</div>
-    <div>${statusBadge(q.status)}</div>
+    <div style="font-size:11px;color:#888">${q.quote_no||'—'}</div>
+    <div style="font-size:11px;color:#888">${q.receipt_no||'—'}</div>
     <div><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openQuotePanel('${q.id}')">ดูรายละเอียด</button></div>
   </div>`).join('');
 }
