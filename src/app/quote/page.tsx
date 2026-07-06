@@ -368,7 +368,10 @@ function QuoteForm() {
               <p className="text-[13px] text-[#e74c3c]">{errorMsg}</p>
             )}
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-end gap-6">
+              <Link href={preselectedFont ? `/fonts/${preselectedFont}` : "/"} className="text-[13px] text-[#aaa] no-underline hover:text-navy transition-colors">
+                ยกเลิก
+              </Link>
               <button
                 type="submit"
                 disabled={status === "loading"}
@@ -376,9 +379,6 @@ function QuoteForm() {
               >
                 {status === "loading" ? "กำลังส่ง..." : "ส่งคำขอใบเสนอราคา"}
               </button>
-              <Link href={preselectedFont ? `/fonts/${preselectedFont}` : "/"} className="text-[13px] text-[#aaa] no-underline hover:text-navy transition-colors">
-                ยกเลิก
-              </Link>
             </div>
           </form>
         </div>
