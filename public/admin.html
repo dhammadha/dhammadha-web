@@ -225,7 +225,12 @@
   .pd-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
   .pd-type{font-size:28px;font-weight:700;color:#1a1744;line-height:1.2}
   .pd-date{font-size:12px;color:#555;margin-top:6px}
-  .pd-customer{text-align:right;font-size:12px;color:#333;line-height:1.7}
+  .pd-meta{display:grid;grid-template-columns:max-content auto;gap:2px 12px;margin-top:8px;font-size:12px;color:#555}
+  .pd-meta-label{font-weight:600;color:#333}
+  .pd-meta-val{color:#555}
+  .pd-cust-grid{display:grid;grid-template-columns:max-content auto;gap:2px 12px;font-size:12px}
+  .pd-cust-label{font-weight:600;color:#333;white-space:nowrap}
+  .pd-customer{text-align:left;font-size:12px;color:#333;line-height:1.7}
   .pd-subject{font-size:12px;margin-bottom:4px}
   .pd-note{font-size:11px;color:#888;margin-bottom:14px}
   .pt{width:100%;border-collapse:collapse;margin-bottom:10px}
@@ -427,9 +432,10 @@
       <div style="flex:1"></div>
       <div class="panel-footer-right">
         <button class="btn btn-danger" id="qDeleteBtn" onclick="deleteQuoteAction()">ลบ</button>
-        <button class="btn btn-outline" onclick="printDocument('quotation')">พิมพ์ใบเสนอราคา</button>
-        <button class="btn btn-outline" onclick="printDocument('receipt')">พิมพ์ใบเสร็จรับเงิน</button>
-        <button class="btn btn-mint" id="qActionBtn" onclick="quoteActionStep()"></button>
+        <button class="btn btn-outline" id="qBtnPrintQuote" onclick="printDocument('quotation')" style="display:none">พิมพ์ใบเสนอราคา</button>
+        <button class="btn btn-outline" id="qBtnPrintReceipt" onclick="printDocument('receipt')" style="display:none">พิมพ์ใบเสร็จรับเงิน</button>
+        <button class="btn btn-mint" id="qBtnIssueQuote" onclick="issueDocument('quotation')" style="display:none">ออกใบเสนอราคา</button>
+        <button class="btn btn-mint" id="qBtnIssueReceipt" onclick="issueDocument('receipt')" style="display:none">ออกใบเสร็จรับเงิน</button>
       </div>
     </div>
   </div>
@@ -634,10 +640,14 @@
     <div class="pd-row">
       <div>
         <div class="pd-type" id="pDocType">ใบเสนอราคา</div>
-        <div class="pd-date" id="pDocNo"></div>
-        <div class="pd-date" id="pDate"></div>
+        <div class="pd-customer" id="pCustomer" style="margin-top:10px"></div>
       </div>
-      <div class="pd-customer" id="pCustomer"></div>
+      <div>
+        <div class="pd-meta">
+          <span class="pd-meta-label">เลขที่</span><span class="pd-meta-val" id="pDocNo"></span>
+          <span class="pd-meta-label">วันที่</span><span class="pd-meta-val" id="pDate"></span>
+        </div>
+      </div>
     </div>
     <div class="pd-subject" id="pSubject"></div>
     <div class="pd-note" id="pNote"></div>
@@ -670,7 +680,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp }
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -724,7 +734,7 @@ async function loadQuoteCount(){
   try{
     const snap=await getDocs(query(collection(db,'quotes'),orderBy('created_at','desc')));
     const all=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const pending=all.filter(q=>q.status!=='completed').length;
+    const pending=all.filter(q=>!q.quote_no).length;
     document.getElementById('statPending').textContent=pending;
     const card=document.getElementById('statPendingCard');
     const label=document.getElementById('statPendingLabel');
@@ -1356,13 +1366,9 @@ window.closePrintLightbox=()=>{
 };
 
 const slugify=(s)=>(s||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9ก-๙-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
-const fmtFilename=(ts,companyName,fonts,docType)=>{
-  const dt=ts?(ts.toDate?ts.toDate():new Date(ts)):new Date();
-  const dd=String(dt.getDate()).padStart(2,'0');
-  const mm=String(dt.getMonth()+1).padStart(2,'0');
-  const yyyy=dt.getFullYear();
+const fmtFilename=(ts,companyName,fonts,docType,docNo)=>{
   const fontPart=fonts.map(f=>slugify(f)).join('-');
-  return `${dd}${mm}${yyyy}_${slugify(companyName)}_${fontPart}_${docType}`;
+  return `${docNo}_${slugify(companyName)}_${fontPart}_${docType}`;
 };
 
 window.printDocument=async(type)=>{
@@ -1384,7 +1390,7 @@ window.printDocument=async(type)=>{
     quotes=quotes.map(x=>x.id===viewingQuoteId?{...x,[docField]:docNo}:x);
   }
   _prevDocTitle=document.title;
-  document.title=docNo;
+  document.title=fmtFilename(q.created_at,q.company_name||q.contact_name,fonts,isReceipt?'receipt':'quotation',docNo);
 
   const fmtDate=(ts)=>{
     if(!ts)return new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'});
@@ -1395,19 +1401,24 @@ window.printDocument=async(type)=>{
 
   document.getElementById('pLbTitle').textContent=isReceipt?'ตัวอย่างใบเสร็จรับเงิน':'ตัวอย่างใบเสนอราคา';
   document.getElementById('pDocType').textContent=isReceipt?'ใบเสร็จรับเงิน':'ใบเสนอราคา';
-  document.getElementById('pDocNo').textContent=`เลขที่ ${docNo}`;
+  document.getElementById('pDocNo').textContent=docNo;
   document.getElementById('pDate').textContent=fmtDate(q.created_at);
 
   // Customer block — 4 lines always
   if(isReceipt){
     document.getElementById('pCustomer').innerHTML=
-      `<strong>${q.company_name||''}</strong><br><span style="color:#555">${q.address||''}</span><br><span style="color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</span>`;
+      `<div style="font-size:12px;line-height:1.8"><strong>${q.company_name||''}</strong><br>${q.address||''}<br><span style="color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</span></div>`;
     document.getElementById('pSubject').textContent='';
     document.getElementById('pNote').textContent='';
   } else {
     document.getElementById('pCustomer').innerHTML=
-      `เรียน : คุณ ${q.contact_name||''}<br><strong>${q.company_name||''}</strong><br><span style="color:#555">${q.address||''}</span><br><span style="color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</span>`;
-    document.getElementById('pSubject').innerHTML='<strong>เรื่อง :</strong> เสนอราคาสิทธิการใช้งานโปรแกรมคอมพิวเตอร์ฟอนต์';
+      `<div style="font-size:12px;line-height:1.8">
+        <div><span class="pd-cust-label" style="display:inline-block;min-width:40px">เรียน :</span>คุณ ${q.contact_name||''}</div>
+        <div style="padding-left:40px">${q.company_name||''}</div>
+        <div style="padding-left:40px;color:#555">${q.address||''}</div>
+        <div style="padding-left:40px;color:#555">หมายเลขประจำตัวผู้เสียภาษี ${q.tax_id||''}</div>
+      </div>`;
+    document.getElementById('pSubject').innerHTML='<span class="pd-cust-label" style="display:inline-block;min-width:40px">เรื่อง :</span>เสนอราคาสิทธิการใช้งานโปรแกรมคอมพิวเตอร์ฟอนต์';
     document.getElementById('pNote').textContent='ใบเสนอราคานี้มีอายุ 15 วัน นับจากวันที่เสนอราคา';
   }
 
@@ -1491,7 +1502,7 @@ async function loadQuotes(){
 }
 
 function updatePendingCount(){
-  const pending=quotes.filter(q=>q.status!=='sent').length;
+  const pending=quotes.filter(q=>!q.quote_no).length;
   document.getElementById('statPending').textContent=pending;
   const card=document.getElementById('statPendingCard');
   const label=document.getElementById('statPendingLabel');
@@ -1533,28 +1544,47 @@ function renderQuoteList(){
   };
   c.innerHTML=quotes.map(q=>`<div class="quote-row">
     <div style="font-size:12px;color:#888">${fmtDate(q.created_at)}</div>
-    <div><span style="font-size:14px;font-weight:600;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
-    <div style="font-size:13px">${q.company_name||'—'}</div>
+    <div><span style="font-size:14px;color:var(--navy)">${q.contact_name||'—'}</span><div style="font-size:12px;color:#aaa">${q.email||''}</div></div>
+    <div style="font-size:13px;font-weight:600">${q.company_name||'—'}</div>
     <div style="font-size:12px;color:#888">${licenseLabel[q.license_type]||q.license_type||'—'}</div>
-    <div style="font-size:11px;color:#888">${q.quote_no||'—'}</div>
-    <div style="font-size:11px;color:#888">${q.receipt_no||'—'}</div>
+    <div style="font-size:11px">${q.quote_no?`<span style="color:var(--mint);cursor:pointer;text-decoration:underline" onclick="printDocById('${q.id}','quotation')">${q.quote_no}</span>`:'<span style="color:#ccc">—</span>'}</div>
+    <div style="font-size:11px">${q.receipt_no?`<span style="color:var(--mint);cursor:pointer;text-decoration:underline" onclick="printDocById('${q.id}','receipt')">${q.receipt_no}</span>`:'<span style="color:#ccc">—</span>'}</div>
     <div><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="openQuotePanel('${q.id}')">ดูรายละเอียด</button></div>
   </div>`).join('');
 }
 
-const actionMeta={
-  pending:{label:'ส่งใบเสนอราคาแล้ว', next:'sent',   confirm:'ยืนยันว่าส่งใบเสนอราคาให้ลูกค้าแล้ว?'},
-  sent:   {label:'ชำระเงินแล้ว',       next:'paid',  confirm:'ยืนยันว่าลูกค้าชำระเงินแล้ว?'},
-  paid:   {label:'จัดส่งไฟล์แล้ว',    next:'completed',confirm:'ยืนยันว่าจัดส่งไฟล์ฟอนต์และใบเสร็จให้ลูกค้าแล้ว?'},
+
+function updateQuotePanelButtons(q){
+  const show=(id,v)=>document.getElementById(id).style.display=v?'inline-flex':'none';
+  const isPending=!q.quote_no;
+  const isQuoted=q.quote_no&&!q.receipt_no;
+  const isReceipted=!!q.receipt_no;
+  show('qDeleteBtn', isPending||isQuoted);
+  show('qBtnIssueQuote', isPending);
+  show('qBtnPrintQuote', isQuoted||isReceipted);
+  show('qBtnIssueReceipt', isQuoted);
+  show('qBtnPrintReceipt', isReceipted);
+}
+
+window.printDocById=(id,type)=>{viewingQuoteId=id;printDocument(type);};
+
+window.issueDocument=async(type)=>{
+  if(!viewingQuoteId)return;
+  const q=quotes.find(x=>x.id===viewingQuoteId);if(!q)return;
+  const docField=type==='quotation'?'quote_no':'receipt_no';
+  if(q[docField]){printDocument(type);return;}
+  const docNo=await genDocNo(type==='quotation'?'Q':'R');
+  const newStatus=type==='quotation'?'quoted':'receipted';
+  await updateDoc(doc(db,'quotes',viewingQuoteId),{[docField]:docNo,status:newStatus,updated_at:serverTimestamp()});
+  quotes=quotes.map(x=>x.id===viewingQuoteId?{...x,[docField]:docNo,status:newStatus}:x);
+  updateQuotePanelButtons({...q,[docField]:docNo,status:newStatus});
+  printDocument(type);
 };
 
 window.openQuotePanel=(id)=>{
   const q=quotes.find(x=>x.id===id);if(!q)return;
   viewingQuoteId=id;
-  const btn=document.getElementById('qActionBtn');
-  const meta=actionMeta[q.status];
-  if(meta){btn.textContent='✓ '+meta.label;btn.style.display='inline-flex';}
-  else{btn.style.display='none';}
+  updateQuotePanelButtons(q);
 
   const licenseLabel={
     small_medium:'บริษัทขนาดเล็ก / กลาง (ไม่เกิน 10 เครื่อง)',
@@ -1591,18 +1621,6 @@ window.closeQuotePanel=()=>{
   viewingQuoteId=null;
 };
 
-window.quoteActionStep=async()=>{
-  if(!viewingQuoteId)return;
-  const q=quotes.find(x=>x.id===viewingQuoteId);if(!q)return;
-  const meta=actionMeta[q.status];if(!meta)return;
-  if(!confirm(meta.confirm))return;
-  try{
-    await updateDoc(doc(db,'quotes',viewingQuoteId),{status:meta.next,updated_at:serverTimestamp()});
-    toast('✓ อัปเดตสถานะเรียบร้อย');
-    closeQuotePanel();
-    await loadQuotes();
-  }catch(e){toast('เกิดข้อผิดพลาด: '+e.message,true);}
-};
 
 window.deleteQuoteAction=async()=>{
   if(!viewingQuoteId)return;
