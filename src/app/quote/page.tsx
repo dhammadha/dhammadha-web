@@ -376,7 +376,7 @@ function QuoteForm() {
               >
                 {status === "loading" ? "กำลังส่ง..." : "ส่งคำขอใบเสนอราคา"}
               </button>
-              <Link href="/" className="text-[13px] text-[#aaa] no-underline hover:text-navy transition-colors">
+              <Link href={preselectedFont ? `/fonts/${preselectedFont}` : "/"} className="text-[13px] text-[#aaa] no-underline hover:text-navy transition-colors">
                 ยกเลิก
               </Link>
             </div>
