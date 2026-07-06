@@ -1577,6 +1577,7 @@ window.issueDocument=async(type)=>{
   const newStatus=type==='quotation'?'quoted':'receipted';
   await updateDoc(doc(db,'quotes',viewingQuoteId),{[docField]:docNo,status:newStatus,updated_at:serverTimestamp()});
   quotes=quotes.map(x=>x.id===viewingQuoteId?{...x,[docField]:docNo,status:newStatus}:x);
+  updatePendingCount();
   updateQuotePanelButtons({...q,[docField]:docNo,status:newStatus});
   printDocument(type);
 };
