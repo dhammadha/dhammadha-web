@@ -24,13 +24,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function fetchRole(uid: string) {
-    const { data } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", uid)
-      .single();
-    setRole((data?.role as UserRole) ?? "customer");
+  async function fetchRole(_uid: string) {
+    const { data } = await supabase.rpc("get_my_role");
+    setRole((data as UserRole) ?? "customer");
   }
 
   useEffect(() => {
