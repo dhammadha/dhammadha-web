@@ -8,6 +8,8 @@ export default function AdminSettingsPage() {
   const { user } = useAuth();
 
   // Seller info
+  const [entityType, setEntityType] = useState<"individual" | "juristic">("individual");
+  const [businessName, setBusinessName] = useState("");
   const [sellerName, setSellerName] = useState("");
   const [sellerTaxId, setSellerTaxId] = useState("");
   const [sellerAddress, setSellerAddress] = useState("");
@@ -36,8 +38,10 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (!user) return;
     // Load seller info
-    supabase.from("users").select("name, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
+    supabase.from("users").select("name, business_name, entity_type, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
       if (!data) return;
+      setEntityType((data.entity_type as "individual" | "juristic") ?? "individual");
+      setBusinessName(data.business_name ?? "");
       setSellerName(data.name ?? "");
       setSellerTaxId(data.tax_id ?? "");
       setSellerAddress(data.address ?? "");
@@ -68,7 +72,12 @@ export default function AdminSettingsPage() {
   const saveSeller = async () => {
     if (!user) return;
     const { error } = await supabase.from("users").update({
-      name: sellerName, tax_id: sellerTaxId, address: sellerAddress, phone: sellerPhone,
+      entity_type: entityType,
+      business_name: businessName || null,
+      name: sellerName,
+      tax_id: sellerTaxId,
+      address: sellerAddress,
+      phone: sellerPhone,
       bank: { bank_name: bankName, account_name: bankAccount, account_number: bankAccountNo },
     }).eq("id", user.id);
     if (error) showToast("เกิดข้อผิดพลาด: " + error.message, true);
@@ -128,8 +137,25 @@ export default function AdminSettingsPage() {
     <div className="p-6 max-w-[680px] flex flex-col gap-8">
       {/* Seller info */}
       <Section title="ข้อมูลผู้ขาย" desc="ใช้แสดงในใบเสนอราคาและใบเสร็จ">
+        {/* Entity type toggle */}
+        <div className="flex gap-2 mb-4">
+          {(["individual", "juristic"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setEntityType(t)}
+              className={`px-4 py-2 rounded-xl text-[13px] font-medium border cursor-pointer transition-colors ${entityType === t ? "bg-navy text-white border-navy" : "bg-white text-[#666] border-border hover:bg-[#f5f5f2]"}`}
+            >
+              {t === "individual" ? "บุคคลธรรมดา" : "นิติบุคคล"}
+            </button>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="ชื่อ / ชื่อบริษัท"><input value={sellerName} onChange={(e) => setSellerName(e.target.value)} className={iCls} /></Field>
+          <Field label="ชื่อแบรนด์ / ร้านค้า">
+            <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="เช่น DHAMMADHA STUDIO" className={iCls} />
+          </Field>
+          <Field label={entityType === "individual" ? "ชื่อ-สกุล (เจ้าของ)" : "ชื่อบริษัท (ทางการ)"}>
+            <input value={sellerName} onChange={(e) => setSellerName(e.target.value)} className={iCls} />
+          </Field>
           <Field label="เลขประจำตัวผู้เสียภาษี"><input value={sellerTaxId} onChange={(e) => setSellerTaxId(e.target.value)} className={iCls} /></Field>
         </div>
         <Field label="ที่อยู่" className="mt-3"><textarea value={sellerAddress} onChange={(e) => setSellerAddress(e.target.value)} rows={2} className={iCls} /></Field>

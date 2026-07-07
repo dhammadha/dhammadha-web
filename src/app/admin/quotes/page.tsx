@@ -16,7 +16,8 @@ type QuoteRow = Database["public"]["Tables"]["quotes"]["Row"] & {
 };
 
 type SellerInfo = {
-  name: string; tax_id: string | null; address: string | null;
+  name: string; business_name: string | null; entity_type: string;
+  tax_id: string | null; address: string | null;
   phone: string | null; email: string | null;
   bank: { bank_name?: string; account_name?: string; account_number?: string } | null;
 };
@@ -56,7 +57,7 @@ export default function AdminQuotesPage() {
 
   const loadSeller = useCallback(async () => {
     if (!user) return;
-    const { data } = await supabase.from("users").select("name, tax_id, address, phone, email, bank").eq("id", user.id).single();
+    const { data } = await supabase.from("users").select("name, business_name, entity_type, tax_id, address, phone, email, bank").eq("id", user.id).single();
     if (data) setSeller(data as SellerInfo);
   }, [user]);
 

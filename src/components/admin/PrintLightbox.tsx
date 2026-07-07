@@ -4,6 +4,8 @@ import { useEffect } from "react";
 
 interface SellerInfo {
   name: string;
+  business_name?: string | null;
+  entity_type?: string;
   tax_id: string | null;
   address: string | null;
   phone: string | null;
@@ -90,8 +92,13 @@ export default function PrintLightbox({ open, data, onClose }: Props) {
       <div className="flex-1 overflow-y-auto p-6 flex justify-center" id="printAreaWrapper">
         <div id="printDoc" className="bg-white w-[210mm] min-h-[297mm] p-[28mm_25mm] shadow-xl print:shadow-none print:p-[15mm_18mm]" style={{ fontFamily: "Noto Sans Thai, sans-serif" }}>
           {/* Header */}
-          <div className="text-[15px] font-semibold text-navy">{data.seller.name}</div>
-          {data.seller.tax_id && <div className="text-[12px] text-[#555]">หมายเลขประจำตัวผู้เสียภาษี {data.seller.tax_id}</div>}
+          <div className="text-[15px] font-semibold text-navy">
+            {data.seller.business_name || data.seller.name}
+            {data.seller.entity_type === "individual" && data.seller.business_name && data.seller.name && (
+              <span className="font-normal text-[13px] text-[#555]"> โดย {data.seller.name}</span>
+            )}
+          </div>
+          {data.seller.tax_id && <div className="text-[12px] text-[#555]">เลขประจำตัวผู้เสียภาษี {data.seller.tax_id}</div>}
           {data.seller.address && <div className="text-[12px] text-[#555]">{data.seller.address}</div>}
           <div className="text-[12px] text-[#555]">
             {data.seller.phone && `โทรศัพท์ ${data.seller.phone}`}

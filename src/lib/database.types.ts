@@ -172,6 +172,8 @@ export interface Database {
           id: string;
           role: string;
           name: string | null;
+          business_name: string | null;
+          entity_type: string;
           designer_id: string | null;
           email: string | null;
           phone: string | null;
@@ -188,6 +190,8 @@ export interface Database {
           id?: string;
           role?: string;
           name?: string | null;
+          business_name?: string | null;
+          entity_type?: string;
           designer_id?: string | null;
           email?: string | null;
           phone?: string | null;
@@ -204,6 +208,8 @@ export interface Database {
           id?: string;
           role?: string;
           name?: string | null;
+          business_name?: string | null;
+          entity_type?: string;
           designer_id?: string | null;
           email?: string | null;
           phone?: string | null;
