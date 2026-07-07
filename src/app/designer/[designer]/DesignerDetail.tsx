@@ -61,6 +61,7 @@ export default function DesignerDetail() {
         .select("*")
         .eq("owner_id", userData.id)
         .eq("is_active", true)
+        .not("published_at", "is", null)
         .order("created_at", { ascending: false });
 
       const allFonts = ((fontData ?? []) as Font[]).map((f) => ({
