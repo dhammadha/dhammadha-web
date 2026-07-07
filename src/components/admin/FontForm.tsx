@@ -31,7 +31,7 @@ function Toast({ msg, error }: { msg: string; error?: boolean }) {
   );
 }
 
-export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ownerId, isAdmin = true, mode = "panel" }: Props) {
+export default function FontForm({ open, onClose, editingFont, onSaved, ownerId, isAdmin = true, mode = "panel" }: Props) {
   const [name, setName] = useState("");
   const [nameTh, setNameTh] = useState("");
   const [slug, setSlug] = useState("");

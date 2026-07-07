@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import FontSlidePanel from "@/components/admin/FontSlidePanel";
+import FontForm from "@/components/admin/FontForm";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -146,7 +146,7 @@ export default function AdminFontsPage() {
         )}
       </div>
 
-      <FontSlidePanel
+      <FontForm
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
         editingFont={editingFont}

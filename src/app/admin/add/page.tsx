@@ -2,14 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import FontSlidePanel from "@/components/admin/FontSlidePanel";
+import FontForm from "@/components/admin/FontForm";
 
 export default function AdminAddFontPage() {
   const { user } = useAuth();
   const router = useRouter();
 
   return (
-    <FontSlidePanel
+    <FontForm
       mode="page"
       open={true}
       onClose={() => router.push("/admin")}
