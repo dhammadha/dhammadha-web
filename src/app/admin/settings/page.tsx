@@ -1,11 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
+const THAI_BANKS = [
+  "ธนาคารกรุงเทพ (BBL)",
+  "ธนาคารกสิกรไทย (KBANK)",
+  "ธนาคารกรุงไทย (KTB)",
+  "ธนาคารทหารไทยธนชาต (TTB)",
+  "ธนาคารไทยพาณิชย์ (SCB)",
+  "ธนาคารกรุงศรีอยุธยา (BAY)",
+  "ธนาคารเกียรตินาคินภัทร (KKP)",
+  "ธนาคารซีไอเอ็มบีไทย (CIMB)",
+  "ธนาคารทิสโก้ (TISCO)",
+  "ธนาคารยูโอบี (UOB)",
+  "ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)",
+  "ธนาคารออมสิน (GSB)",
+  "ธนาคารอาคารสงเคราะห์ (GHB)",
+  "ธนาคารเพื่อการเกษตรและสหกรณ์ (BAAC)",
+];
+
+const DRAFT_KEY = "settings_draft";
+
 export default function AdminSettingsPage() {
   const { user } = useAuth();
+  const loaded = useRef(false);
 
   // Seller info
   const [entityType, setEntityType] = useState<"individual" | "juristic">("individual");
@@ -16,6 +36,7 @@ export default function AdminSettingsPage() {
   const [sellerAddress, setSellerAddress] = useState("");
   const [sellerPhone, setSellerPhone] = useState("");
   const [bankName, setBankName] = useState("");
+  const [bankBranch, setBankBranch] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [bankAccountNo, setBankAccountNo] = useState("");
 
@@ -26,11 +47,32 @@ export default function AdminSettingsPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
+  // Load from DB on mount
   useEffect(() => {
     if (!user) return;
-    // Load seller info
     supabase.from("users").select("name, business_name, entity_type, designer_slug, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
       if (!data) return;
+      // Check for cached draft first
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        try {
+          const d = JSON.parse(raw);
+          setEntityType(d.entityType ?? "individual");
+          setBusinessName(d.businessName ?? "");
+          setDesignerSlug(d.designerSlug ?? "");
+          setSellerName(d.sellerName ?? "");
+          setSellerTaxId(d.sellerTaxId ?? "");
+          setSellerAddress(d.sellerAddress ?? "");
+          setSellerPhone(d.sellerPhone ?? "");
+          setBankName(d.bankName ?? "");
+          setBankBranch(d.bankBranch ?? "");
+          setBankAccount(d.bankAccount ?? "");
+          setBankAccountNo(d.bankAccountNo ?? "");
+          loaded.current = true;
+          return;
+        } catch { /* fall through to DB data */ }
+      }
+      const b = (data.bank as { bank_name?: string; branch?: string; account_name?: string; account_number?: string } | null) ?? {};
       setEntityType((data.entity_type as "individual" | "juristic") ?? "individual");
       setBusinessName(data.business_name ?? "");
       setDesignerSlug(data.designer_slug ?? "");
@@ -38,12 +80,28 @@ export default function AdminSettingsPage() {
       setSellerTaxId(data.tax_id ?? "");
       setSellerAddress(data.address ?? "");
       setSellerPhone(data.phone ?? "");
-      const b = (data.bank as { bank_name?: string; account_name?: string; account_number?: string } | null) ?? {};
       setBankName(b.bank_name ?? "");
+      setBankBranch(b.branch ?? "");
       setBankAccount(b.account_name ?? "");
       setBankAccountNo(b.account_number ?? "");
+      loaded.current = true;
     });
   }, [user]);
+
+  // Auto-fill bank account name from seller name when entityType or names change
+  useEffect(() => {
+    if (!loaded.current) return;
+    if (bankAccount) return; // don't overwrite if already set
+    const derived = entityType === "individual" ? sellerName : businessName;
+    if (derived) setBankAccount(derived);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityType, sellerName, businessName]);
+
+  // Save draft to localStorage
+  useEffect(() => {
+    if (!loaded.current) return;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ entityType, businessName, designerSlug, sellerName, sellerTaxId, sellerAddress, sellerPhone, bankName, bankBranch, bankAccount, bankAccountNo }));
+  }, [entityType, businessName, designerSlug, sellerName, sellerTaxId, sellerAddress, sellerPhone, bankName, bankBranch, bankAccount, bankAccountNo]);
 
   const saveSeller = async () => {
     if (!user) return;
@@ -55,10 +113,13 @@ export default function AdminSettingsPage() {
       tax_id: sellerTaxId,
       address: sellerAddress,
       phone: sellerPhone,
-      bank: { bank_name: bankName, account_name: bankAccount, account_number: bankAccountNo },
+      bank: { bank_name: bankName, branch: bankBranch, account_name: bankAccount, account_number: bankAccountNo },
     }).eq("id", user.id);
     if (error) showToast("เกิดข้อผิดพลาด: " + error.message, true);
-    else showToast("✓ บันทึกข้อมูลผู้ขายเรียบร้อย");
+    else {
+      localStorage.removeItem(DRAFT_KEY);
+      showToast("✓ บันทึกข้อมูลผู้ขายเรียบร้อย");
+    }
   };
 
   return (
@@ -91,12 +152,29 @@ export default function AdminSettingsPage() {
         </div>
         <Field label="ที่อยู่" className="mt-3"><textarea value={sellerAddress} onChange={(e) => setSellerAddress(e.target.value)} rows={2} className={iCls} /></Field>
         <Field label="โทรศัพท์" className="mt-3"><input value={sellerPhone} onChange={(e) => setSellerPhone(e.target.value)} className={iCls} /></Field>
+
         <div className="mt-3 pt-3 border-t border-border">
           <div className="text-[12px] font-medium text-[#666] mb-2">ข้อมูลบัญชีธนาคาร</div>
-          <div className="grid grid-cols-3 gap-3">
-            <Field label="ธนาคาร"><input value={bankName} onChange={(e) => setBankName(e.target.value)} className={iCls} /></Field>
-            <Field label="ชื่อบัญชี"><input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} className={iCls} /></Field>
-            <Field label="เลขที่บัญชี"><input value={bankAccountNo} onChange={(e) => setBankAccountNo(e.target.value)} className={iCls} /></Field>
+          {/* Row 1: bank + branch */}
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <Field label="ธนาคาร">
+              <select value={bankName} onChange={(e) => setBankName(e.target.value)} className={iCls}>
+                <option value="">— เลือกธนาคาร —</option>
+                {THAI_BANKS.map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </Field>
+            <Field label="สาขา">
+              <input value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} placeholder="เช่น สยามพารากอน" className={iCls} />
+            </Field>
+          </div>
+          {/* Row 2: account name + account number */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="ชื่อบัญชี">
+              <input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} className={iCls} />
+            </Field>
+            <Field label="เลขที่บัญชี">
+              <input value={bankAccountNo} onChange={(e) => setBankAccountNo(e.target.value)} className={iCls} />
+            </Field>
           </div>
         </div>
         <button onClick={saveSeller} className={btnMint + " mt-4"}>บันทึกข้อมูลผู้ขาย</button>
@@ -111,7 +189,7 @@ export default function AdminSettingsPage() {
   );
 }
 
-const iCls = "w-full px-3 py-2 rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+const iCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
 const btnMint = "w-full py-2.5 rounded-xl bg-mint text-white font-semibold text-[14px] border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors";
 
 function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
