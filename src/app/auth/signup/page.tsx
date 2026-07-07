@@ -21,16 +21,15 @@ export default function SignupPage() {
     if (password.length < 8) { setError("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร"); return; }
     setLoading(true);
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
     if (signUpError) {
       setError(signUpError.message);
       setLoading(false);
       return;
-    }
-
-    // Update name in users table (row created by trigger)
-    if (data.user) {
-      await supabase.from("users").update({ name }).eq("id", data.user.id);
     }
 
     router.push("/account");
