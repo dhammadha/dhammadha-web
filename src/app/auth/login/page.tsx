@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,7 +28,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-4">
+    <>
+      <Nav />
+      <div className="min-h-screen bg-bg flex items-center justify-center px-4">
       <div className="w-full max-w-[400px]">
         <div className="bg-white rounded-2xl shadow-sm border border-border p-8">
           <h1 className="text-[20px] font-semibold text-navy mb-6">เข้าสู่ระบบ</h1>
@@ -86,5 +90,7 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+      <Footer />
+    </>
   );
 }
