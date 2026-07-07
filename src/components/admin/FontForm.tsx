@@ -207,22 +207,27 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       // Upload cover
       let finalCover = coverUrl;
       if (coverFile) {
-        finalCover = await uploadFile("covers", storagePath(slugVal, "covers", coverFile.name), coverFile);
+        try {
+          finalCover = await uploadFile("covers", storagePath(slugVal, "covers", coverFile.name), coverFile);
+        } catch (e) { throw new Error("[Cover upload] " + (e instanceof Error ? e.message : String(e))); }
       }
 
       // Upload preview images
       const finalPreviews: string[] = [];
       for (const item of previewItems) {
         if (item.type === "ex") { finalPreviews.push(item.url); continue; }
-        const url = await uploadFile("previews", storagePath(slugVal, "previews", item.file.name), item.file);
-        finalPreviews.push(url);
+        try {
+          const url = await uploadFile("previews", storagePath(slugVal, "previews", item.file.name), item.file);
+          finalPreviews.push(url);
+        } catch (e) { throw new Error("[Preview upload] " + (e instanceof Error ? e.message : String(e))); }
       }
 
       // Upload font files
-      const finalFull = await uploadFontFiles(fullFonts, "fonts-full", slugVal);
-      const finalDemo = await uploadFontFiles(demoFonts, "fonts-demo", slugVal);
-      const finalFree = await uploadFontFiles(freeFonts, "fonts-free", slugVal);
-      const finalSpec = await uploadFontFiles(specimens, "specimens", slugVal);
+      let finalFull: string[], finalDemo: string[], finalFree: string[], finalSpec: string[];
+      try { finalFull = await uploadFontFiles(fullFonts, "fonts-full", slugVal); } catch (e) { throw new Error("[Full font upload] " + (e instanceof Error ? e.message : String(e))); }
+      try { finalDemo = await uploadFontFiles(demoFonts, "fonts-demo", slugVal); } catch (e) { throw new Error("[Demo font upload] " + (e instanceof Error ? e.message : String(e))); }
+      try { finalFree = await uploadFontFiles(freeFonts, "fonts-free", slugVal); } catch (e) { throw new Error("[Free font upload] " + (e instanceof Error ? e.message : String(e))); }
+      try { finalSpec = await uploadFontFiles(specimens, "specimens", slugVal); } catch (e) { throw new Error("[Specimen upload] " + (e instanceof Error ? e.message : String(e))); }
 
       const discountVal = parseInt(discount) || 0;
       const priceVal = parseFloat(price) || null;
