@@ -28,13 +28,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-4">
       <div className="w-full max-w-[400px]">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex flex-col items-center gap-1 no-underline">
-            <span className="text-xl font-semibold text-navy tracking-[0.05em]">DHAMMADHA</span>
-            <span className="text-xs text-[#aaa] tracking-[0.06em]">STUDIO</span>
-          </Link>
-        </div>
-
         <div className="bg-white rounded-2xl shadow-sm border border-border p-8">
           <h1 className="text-[20px] font-semibold text-navy mb-6">เข้าสู่ระบบ</h1>
 
@@ -85,6 +78,12 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
+
+        <p className="text-center text-[13px] text-[#aaa] mt-5">
+          <Link href="/" className="text-[#aaa] no-underline hover:text-navy transition-colors">
+            ← กลับหน้าแรก
+          </Link>
+        </p>
       </div>
     </div>
   );
