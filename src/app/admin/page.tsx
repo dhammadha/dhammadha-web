@@ -26,7 +26,7 @@ export default function AdminFontsPage() {
 
   const loadFonts = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("owner_id", user?.id ?? "").order("created_at", { ascending: false });
+    const { data } = await supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").order("created_at", { ascending: false });
     type RawRow = { designer_slug?: string | null; users?: { designer_slug?: string; business_name?: string } | null } & FontRow;
     const flat = ((data ?? []) as unknown as RawRow[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? null, designer_business_name: r.users?.business_name ?? null, users: undefined }));
     setFonts(flat as FontRow[]);
@@ -68,7 +68,7 @@ export default function AdminFontsPage() {
       const hookUrl = process.env.NEXT_PUBLIC_CF_DEPLOY_HOOK;
       if (!hookUrl) throw new Error("NEXT_PUBLIC_CF_DEPLOY_HOOK not set");
       await fetch(hookUrl, { method: "POST", mode: "no-cors" });
-      await supabase.rpc("publish_fonts", { p_owner_id: user?.id ?? "" });
+      await supabase.rpc("publish_fonts");
       showToast("กำลัง deploy… หน้าเว็บจะอัปเดตใน ~2 นาที");
       loadFonts();
     } catch (e) {

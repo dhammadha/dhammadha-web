@@ -242,7 +242,7 @@ export interface Database {
         Returns: Record<string, unknown>;
       };
       publish_fonts: {
-        Args: { p_owner_id: string };
+        Args: Record<string, never>;
         Returns: void;
       };
     };
