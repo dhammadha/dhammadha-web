@@ -104,8 +104,8 @@ export default function AdminFontsPage() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_80px_160px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
-          <div></div><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>สถานะ</div><div>จัดการ</div>
+        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_80px_160px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+          <div></div><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>โปรโมชั่น</div><div>สถานะ</div><div>จัดการ</div>
         </div>
 
         {loading ? (
@@ -114,7 +114,7 @@ export default function AdminFontsPage() {
           <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">ยังไม่มีฟอนต์ในหมวดนี้</div>
         ) : (
           filtered.map((f) => (
-            <div key={f.id} className="grid grid-cols-[52px_2fr_90px_1fr_90px_80px_160px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 hover:bg-[#fafaf8] transition-colors items-center">
+            <div key={f.id} className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_80px_160px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 hover:bg-[#fafaf8] transition-colors items-center">
               <div>
                 {f.cover_image_url
                   ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-10 h-[22px] rounded object-cover" />
@@ -128,6 +128,20 @@ export default function AdminFontsPage() {
               <div className="text-[11px] text-[#aaa] truncate">{(f.tags ?? []).slice(0, 3).join(", ") || "—"}</div>
               <div className="text-[13px] font-medium text-navy">
                 {f.is_free ? <span className="text-green-600">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
+              </div>
+              <div className="text-[11px] text-[#666]">
+                {f.is_sale && f.discount_percent ? (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[#e07000] font-semibold">ลด {f.discount_percent}%</span>
+                    {f.sale_end ? (
+                      <span className="text-[10px] text-[#aaa]">
+                        ถึง {new Date(f.sale_end).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  <span className="text-[#ddd]">—</span>
+                )}
               </div>
               <div>
                 <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${f.is_active ? "bg-green-50 text-green-600" : "bg-[#f5f5f2] text-[#aaa]"}`}>
