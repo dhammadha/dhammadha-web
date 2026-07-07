@@ -45,12 +45,12 @@ function getFormats(urls: string[]): string {
   return [...exts].join(", ") || "—";
 }
 
-export default function FontDetail() {
+export default function FontDetail({ initialFont }: { initialFont?: Font | null }) {
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
-  const [font, setFont] = useState<Font | null>(null);
+  const [font, setFont] = useState<Font | null>(initialFont ?? null);
   const [related, setRelated] = useState<Font[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialFont);
   const [licensing, setLicensing] = useState({ small: 3500, large: 7000, extra: 20000 });
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
@@ -63,22 +63,27 @@ export default function FontDetail() {
   useEffect(() => {
     if (!slug) return;
     async function load() {
-      setLoading(true);
+      // Flatten nested users join into font object
+      type RawFont = { users?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
+      const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.users?.designer_slug ?? undefined, designer_business_name: r.users?.business_name ?? undefined });
+
       try {
-        const [{ data: fontRows }, { data: allRows }, { data: settings }] = await Promise.all([
-          supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).limit(1),
+        // If initialFont was not provided (client-side nav), fetch the font too
+        const fontPromise = initialFont
+          ? Promise.resolve({ data: null })
+          : supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).limit(1);
+
+        const [fontResult, { data: allRows }, { data: settings }] = await Promise.all([
+          fontPromise,
           supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("is_active", true),
           supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
         ]);
 
-        if (!fontRows?.length) { setLoading(false); return; }
-
-        // Flatten nested users join into font object
-        type RawFont = { users?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
-        const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.users?.designer_slug ?? undefined, designer_business_name: r.users?.business_name ?? undefined });
-
-        const data = flattenFont(fontRows[0] as unknown as RawFont);
-        setFont(data);
+        if (!initialFont) {
+          const fontRows = (fontResult as { data: unknown[] | null }).data;
+          if (!fontRows?.length) { setLoading(false); return; }
+          setFont(flattenFont(fontRows[0] as unknown as RawFont));
+        }
 
         const others = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont).filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
