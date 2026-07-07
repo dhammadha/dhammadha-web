@@ -241,6 +241,10 @@ export interface Database {
         Args: { p_id: string | null; p_data: Record<string, unknown> };
         Returns: Record<string, unknown>;
       };
+      publish_fonts: {
+        Args: { p_owner_id: string };
+        Returns: void;
+      };
     };
     Enums: {
       user_role: UserRole;
