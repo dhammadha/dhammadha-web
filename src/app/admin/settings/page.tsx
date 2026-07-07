@@ -45,6 +45,7 @@ export default function AdminSettingsPage() {
   // ref mirrors current draft values so saveDraft() always has the latest snapshot
   type Draft = { entityType: string; businessName: string; designerSlug: string; sellerName: string; sellerTaxId: string; sellerAddress: string; sellerPhone: string; bankName: string; bankBranch: string; bankAccount: string; bankAccountNo: string };
   const draft = useRef<Draft>({ entityType: "individual", businessName: "", designerSlug: "", sellerName: "", sellerTaxId: "", sellerAddress: "", sellerPhone: "", bankName: "", bankBranch: "", bankAccount: "", bankAccountNo: "" });
+  const bankAccountEdited = useRef(false); // true = user manually typed in bankAccount field
 
   const saveDraft = useCallback((patch: Partial<Draft>) => {
     draft.current = { ...draft.current, ...patch };
@@ -80,7 +81,8 @@ export default function AdminSettingsPage() {
       // Auto-fill account name if still empty
       if (!values.bankAccount) values.bankAccount = values.sellerName;
 
-      setSavedSlug(dbValues.designerSlug); // lock based on DB value, not draft
+      setSavedSlug(dbValues.designerSlug);
+      if (dbValues.bankAccount) bankAccountEdited.current = true; // existing account name = don't auto-overwrite
       draft.current = values;
       setEntityType(values.entityType as "individual" | "juristic");
       setBusinessName(values.businessName);
@@ -98,10 +100,10 @@ export default function AdminSettingsPage() {
 
   // When user switches entityType, update account name to match
   const handleEntityType = (t: "individual" | "juristic") => {
-    const derived = sellerName;
     setEntityType(t);
-    if (derived) setBankAccount(derived);
-    saveDraft({ entityType: t, ...(derived ? { bankAccount: derived } : {}) });
+    bankAccountEdited.current = false;
+    if (sellerName) { setBankAccount(sellerName); saveDraft({ entityType: t, bankAccount: sellerName }); }
+    else saveDraft({ entityType: t });
   };
 
   const saveSeller = async () => {
@@ -162,7 +164,12 @@ export default function AdminSettingsPage() {
             )}
           </Field>
           <Field label={entityType === "individual" ? "ชื่อ-สกุล (เจ้าของ)" : "ชื่อบริษัท (ทางการ)"}>
-            <input value={sellerName} onChange={(e) => { setSellerName(e.target.value); saveDraft({ sellerName: e.target.value }); }} className={iCls} />
+            <input value={sellerName} onChange={(e) => {
+              const v = e.target.value;
+              setSellerName(v);
+              saveDraft({ sellerName: v });
+              if (!bankAccountEdited.current) { setBankAccount(v); saveDraft({ sellerName: v, bankAccount: v }); }
+            }} className={iCls} />
           </Field>
           <Field label="เลขประจำตัวผู้เสียภาษี (13 หลัก)">
             <input
@@ -196,7 +203,7 @@ export default function AdminSettingsPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="ชื่อบัญชี">
-              <input value={bankAccount} onChange={(e) => { setBankAccount(e.target.value); saveDraft({ bankAccount: e.target.value }); }} className={iCls} />
+              <input value={bankAccount} onChange={(e) => { bankAccountEdited.current = true; setBankAccount(e.target.value); saveDraft({ bankAccount: e.target.value }); }} className={iCls} />
             </Field>
             <Field label="เลขที่บัญชี">
               <input value={bankAccountNo} onChange={(e) => { setBankAccountNo(e.target.value); saveDraft({ bankAccountNo: e.target.value }); }} className={iCls} />
