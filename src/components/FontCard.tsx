@@ -67,7 +67,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
   return (
     <Link
       href={href}
-      className="block bg-white rounded-lg overflow-hidden hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition-all no-underline"
+      className="block bg-white rounded-lg overflow-hidden border border-[0.5px] border-border hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:border-transparent transition-all no-underline"
     >
       <div className={`${compact ? "h-[110px]" : "aspect-video"} relative flex items-center justify-center overflow-hidden rounded-t-lg`} style={{ ...bgStyle, ...(aspectRatio ? { aspectRatio, height: "auto" } : {}) }}>
         {badge && (
