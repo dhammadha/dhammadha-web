@@ -23,6 +23,7 @@ export default function Nav() {
   const { user, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<FontOption[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -30,12 +31,24 @@ export default function Nav() {
   const [fonts, setFonts] = useState<FontOption[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [userMenuOpen]);
 
   // Load fonts once, cache globally
   useEffect(() => {
@@ -144,20 +157,32 @@ export default function Nav() {
       <div className="flex gap-2.5 items-center">
         {/* Auth button */}
         {user ? (
-          <div className="hidden md:flex items-center gap-2">
-            <Link
-              href="/account"
-              className="w-8 h-8 rounded-full bg-mint-light border border-mint-mid flex items-center justify-center text-[13px] font-semibold text-mint no-underline hover:bg-mint-mid transition-colors"
+          <div ref={userMenuRef} className="hidden md:block relative">
+            <button
+              onClick={() => setUserMenuOpen((v) => !v)}
+              className="w-8 h-8 rounded-full bg-mint-light border border-mint-mid flex items-center justify-center text-[13px] font-semibold text-mint cursor-pointer hover:bg-mint-mid transition-colors"
               title={user.email ?? ""}
             >
               {(user.email?.[0] ?? "?").toUpperCase()}
-            </Link>
-            <Link
-              href="/account"
-              className="text-[13px] text-[#666] hover:text-navy no-underline transition-colors"
-            >
-              {user.email}
-            </Link>
+            </button>
+            {userMenuOpen && (
+              <div className="absolute right-0 top-10 w-48 bg-white rounded-xl border border-border shadow-lg py-1 z-50">
+                <div className="px-3 py-2 text-[11px] text-[#aaa] truncate border-b border-[#f0f0f0]">{user.email}</div>
+                <Link
+                  href="/account"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="block px-3 py-2.5 text-[13px] text-[#444] no-underline hover:bg-[#f8f8f6] transition-colors"
+                >
+                  เข้าหน้าโปรไฟล์
+                </Link>
+                <button
+                  onClick={() => { setUserMenuOpen(false); signOut().then(() => router.push("/")); }}
+                  className="w-full text-left px-3 py-2.5 text-[13px] text-red-500 bg-transparent border-none cursor-pointer hover:bg-red-50 transition-colors"
+                >
+                  ออกจากระบบ
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <Link
@@ -267,11 +292,17 @@ export default function Nav() {
           ))}
           {/* Mobile auth */}
           {user ? (
-            <div className="px-8 py-4 border-b border-[#f0f0f0]">
-              <Link href="/account" className="text-[14px] text-navy no-underline" onClick={() => setMenuOpen(false)}>
-                {user.email}
+            <>
+              <Link href="/account" className="px-8 py-4 border-b border-[#f0f0f0] text-[14px] text-navy no-underline block" onClick={() => setMenuOpen(false)}>
+                เข้าหน้าโปรไฟล์
               </Link>
-            </div>
+              <button
+                onClick={() => { signOut(); setMenuOpen(false); router.push("/"); }}
+                className="w-full text-left px-8 py-4 border-b border-[#f0f0f0] text-[14px] text-red-500 bg-transparent border-x-0 cursor-pointer"
+              >
+                ออกจากระบบ
+              </button>
+            </>
           ) : (
             <Link
               href="/auth/login"
