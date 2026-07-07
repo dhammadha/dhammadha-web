@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -38,19 +38,24 @@ export default function AdminSettingsPage() {
   const [bankAccount, setBankAccount] = useState("");
   const [bankAccountNo, setBankAccountNo] = useState("");
 
-  // track whether data has been loaded so we can enable draft saving
-  const [dataLoaded, setDataLoaded] = useState(false);
-
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
   const showToast = (msg: string, error = false) => { setToast({ msg, error }); setTimeout(() => setToast(null), 3500); };
+
+  // ref mirrors current draft values so saveDraft() always has the latest snapshot
+  type Draft = { entityType: string; businessName: string; designerSlug: string; sellerName: string; sellerTaxId: string; sellerAddress: string; sellerPhone: string; bankName: string; bankBranch: string; bankAccount: string; bankAccountNo: string };
+  const draft = useRef<Draft>({ entityType: "individual", businessName: "", designerSlug: "", sellerName: "", sellerTaxId: "", sellerAddress: "", sellerPhone: "", bankName: "", bankBranch: "", bankAccount: "", bankAccountNo: "" });
+
+  const saveDraft = useCallback((patch: Partial<Draft>) => {
+    draft.current = { ...draft.current, ...patch };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft.current));
+  }, []);
 
   // Load DB data on mount, then apply draft if exists
   useEffect(() => {
     if (!user) return;
     supabase.from("users").select("name, business_name, entity_type, designer_slug, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
-      // Start with DB values
       const b = (data?.bank as { bank_name?: string; branch?: string; account_name?: string; account_number?: string } | null) ?? {};
-      const dbValues = {
+      const dbValues: Draft = {
         entityType: (data?.entity_type as "individual" | "juristic") ?? "individual",
         businessName: data?.business_name ?? "",
         designerSlug: data?.designer_slug ?? "",
@@ -64,14 +69,18 @@ export default function AdminSettingsPage() {
         bankAccountNo: b.account_number ?? "",
       };
 
-      // Override with draft if exists
+      // Overlay cached draft on top of DB values
       let values = { ...dbValues };
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
         try { values = { ...values, ...JSON.parse(raw) }; } catch { /* ignore */ }
       }
 
-      setEntityType(values.entityType);
+      // Auto-fill account name if still empty
+      if (!values.bankAccount) values.bankAccount = values.entityType === "individual" ? values.sellerName : values.businessName;
+
+      draft.current = values;
+      setEntityType(values.entityType as "individual" | "juristic");
       setBusinessName(values.businessName);
       setDesignerSlug(values.designerSlug);
       setSellerName(values.sellerName);
@@ -80,24 +89,17 @@ export default function AdminSettingsPage() {
       setSellerPhone(values.sellerPhone);
       setBankName(values.bankName);
       setBankBranch(values.bankBranch);
-      // Auto-fill account name from owner name if empty
-      setBankAccount(values.bankAccount || (values.entityType === "individual" ? values.sellerName : values.businessName));
+      setBankAccount(values.bankAccount);
       setBankAccountNo(values.bankAccountNo);
-      setDataLoaded(true);
     });
   }, [user]);
 
-  // Save draft whenever any field changes (only after initial load)
-  useEffect(() => {
-    if (!dataLoaded) return;
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ entityType, businessName, designerSlug, sellerName, sellerTaxId, sellerAddress, sellerPhone, bankName, bankBranch, bankAccount, bankAccountNo }));
-  }, [dataLoaded, entityType, businessName, designerSlug, sellerName, sellerTaxId, sellerAddress, sellerPhone, bankName, bankBranch, bankAccount, bankAccountNo]);
-
   // When user switches entityType, update account name to match
   const handleEntityType = (t: "individual" | "juristic") => {
-    setEntityType(t);
     const derived = t === "individual" ? sellerName : businessName;
+    setEntityType(t);
     if (derived) setBankAccount(derived);
+    saveDraft({ entityType: t, ...(derived ? { bankAccount: derived } : {}) });
   };
 
   const saveSeller = async () => {
@@ -140,18 +142,18 @@ export default function AdminSettingsPage() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="ชื่อแบรนด์ / ร้านค้า">
-            <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="เช่น DHAMMADHA STUDIO" className={iCls} />
+            <input value={businessName} onChange={(e) => { setBusinessName(e.target.value); saveDraft({ businessName: e.target.value }); }} placeholder="เช่น DHAMMADHA STUDIO" className={iCls} />
           </Field>
           <Field label="Designer Slug (URL)">
-            <input value={designerSlug} onChange={(e) => setDesignerSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} placeholder="เช่น dhammadha" className={iCls} />
+            <input value={designerSlug} onChange={(e) => { const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""); setDesignerSlug(v); saveDraft({ designerSlug: v }); }} placeholder="เช่น dhammadha" className={iCls} />
           </Field>
           <Field label={entityType === "individual" ? "ชื่อ-สกุล (เจ้าของ)" : "ชื่อบริษัท (ทางการ)"}>
-            <input value={sellerName} onChange={(e) => setSellerName(e.target.value)} className={iCls} />
+            <input value={sellerName} onChange={(e) => { setSellerName(e.target.value); saveDraft({ sellerName: e.target.value }); }} className={iCls} />
           </Field>
           <Field label="เลขประจำตัวผู้เสียภาษี (13 หลัก)">
             <input
               value={sellerTaxId}
-              onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 13); setSellerTaxId(v); }}
+              onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 13); setSellerTaxId(v); saveDraft({ sellerTaxId: v }); }}
               placeholder="0000000000000"
               maxLength={13}
               inputMode="numeric"
@@ -162,28 +164,28 @@ export default function AdminSettingsPage() {
             )}
           </Field>
         </div>
-        <Field label="ที่อยู่" className="mt-3"><textarea value={sellerAddress} onChange={(e) => setSellerAddress(e.target.value)} rows={2} className={iCls} /></Field>
-        <Field label="โทรศัพท์" className="mt-3"><input value={sellerPhone} onChange={(e) => setSellerPhone(e.target.value)} className={iCls} /></Field>
+        <Field label="ที่อยู่" className="mt-3"><textarea value={sellerAddress} onChange={(e) => { setSellerAddress(e.target.value); saveDraft({ sellerAddress: e.target.value }); }} rows={2} className={iCls} /></Field>
+        <Field label="โทรศัพท์" className="mt-3"><input value={sellerPhone} onChange={(e) => { setSellerPhone(e.target.value); saveDraft({ sellerPhone: e.target.value }); }} className={iCls} /></Field>
 
         <div className="mt-3 pt-3 border-t border-border">
           <div className="text-[12px] font-medium text-[#666] mb-2">ข้อมูลบัญชีธนาคาร</div>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <Field label="ธนาคาร">
-              <select value={bankName} onChange={(e) => setBankName(e.target.value)} className={iCls}>
+              <select value={bankName} onChange={(e) => { setBankName(e.target.value); saveDraft({ bankName: e.target.value }); }} className={iCls}>
                 <option value="">— เลือกธนาคาร —</option>
                 {THAI_BANKS.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
             </Field>
             <Field label="สาขา">
-              <input value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} placeholder="เช่น สยามพารากอน" className={iCls} />
+              <input value={bankBranch} onChange={(e) => { setBankBranch(e.target.value); saveDraft({ bankBranch: e.target.value }); }} placeholder="เช่น สยามพารากอน" className={iCls} />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="ชื่อบัญชี">
-              <input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} className={iCls} />
+              <input value={bankAccount} onChange={(e) => { setBankAccount(e.target.value); saveDraft({ bankAccount: e.target.value }); }} className={iCls} />
             </Field>
             <Field label="เลขที่บัญชี">
-              <input value={bankAccountNo} onChange={(e) => setBankAccountNo(e.target.value)} className={iCls} />
+              <input value={bankAccountNo} onChange={(e) => { setBankAccountNo(e.target.value); saveDraft({ bankAccountNo: e.target.value }); }} className={iCls} />
             </Field>
           </div>
         </div>
