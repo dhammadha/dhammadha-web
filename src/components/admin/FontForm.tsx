@@ -274,10 +274,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
         <div className="grid grid-cols-1 gap-3 mt-3">
           <FormField label="คำอธิบาย (TH)">
-            <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} rows={2} className={inputCls} placeholder="คำอธิบายภาษาไทย..." />
+            <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} rows={4} className={inputCls} placeholder="คำอธิบายภาษาไทย..." />
           </FormField>
           <FormField label="คำอธิบาย (EN)">
-            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={2} className={inputCls} placeholder="English description..." />
+            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={4} className={inputCls} placeholder="English description..." />
           </FormField>
         </div>
       </section>
@@ -318,6 +318,21 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
           <Toggle label="อยู่ใน Subscription" desc="รวมอยู่ในแพลนรายเดือน" checked={isSub} onChange={setIsSub} />
         </div>
       </section>
+
+      {/* ไฟล์ฟอนต์ */}
+      <section>
+        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
+        {!isFree && (
+          <>
+            <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
+            <FontFileSection label="Demo Font" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
+          </>
+        )}
+        {isFree && (
+          <FontFileSection label="Free Font*" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
+        )}
+        <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
+      </section>
     </div>
   );
 
@@ -354,7 +369,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                     <button onClick={() => i > 0 && movePreview(i, i - 1)} disabled={i === 0} className="w-5 h-5 rounded flex items-center justify-center text-[#aaa] hover:text-navy disabled:opacity-20 bg-transparent border-none cursor-pointer">▲</button>
                     <button onClick={() => i < previewItems.length - 1 && movePreview(i, i + 1)} disabled={i === previewItems.length - 1} className="w-5 h-5 rounded flex items-center justify-center text-[#aaa] hover:text-navy disabled:opacity-20 bg-transparent border-none cursor-pointer">▼</button>
                   </div>
-                  <div className="relative flex-1 aspect-video rounded-lg overflow-hidden border border-border">
+                  <div className="relative w-[120px] aspect-video rounded-lg overflow-hidden border border-border flex-shrink-0">
                     <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover" />
                     <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded font-medium">{i + 1}</span>
                   </div>
@@ -366,20 +381,6 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </FormField>
       </section>
 
-      {/* ไฟล์ฟอนต์ */}
-      <section>
-        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
-        {!isFree && (
-          <>
-            <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
-            <FontFileSection label="Demo Font" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
-          </>
-        )}
-        {isFree && (
-          <FontFileSection label="Free Font*" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
-        )}
-        <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
-      </section>
     </div>
   );
 

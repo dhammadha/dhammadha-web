@@ -57,8 +57,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  const p = pathname.replace(/\/$/, "");
   const isActive = (href: string) =>
-    href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(href + "/");
+    href === "/admin" ? p === "/admin" : p === href || p.startsWith(href + "/");
 
   const NAV: { href: string; label: string; icon: React.ReactNode; badge?: number }[] = [
     {
