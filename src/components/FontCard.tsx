@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Timestamp } from "firebase/firestore";
 
 export interface Font {
   id: string;
@@ -33,13 +32,13 @@ export interface Font {
   obfuscated_map?: Record<string, string>;
   has_demo?: boolean;
   weight_count?: number;
-  created_at?: Timestamp;
-  updated_at?: Timestamp;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export function isNew(f: Font): boolean {
   if (!f.created_at) return false;
-  return Date.now() - f.created_at.toDate().getTime() < 45 * 24 * 60 * 60 * 1000;
+  return Date.now() - new Date(f.created_at).getTime() < 45 * 24 * 60 * 60 * 1000;
 }
 
 export default function FontCard({ font }: { font: Font }) {

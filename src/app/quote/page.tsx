@@ -5,8 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { db } from "@/lib/firebase";
-import { collection, addDoc, onSnapshot, query, where, serverTimestamp } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import emailjs from "@emailjs/browser";
 
 interface FontItem {
@@ -62,18 +61,19 @@ function QuoteForm() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    const q = query(collection(db, "fonts"), where("is_active", "==", true));
-    const unsub = onSnapshot(q, (snap) => {
-      const list = snap.docs
-        .map((d) => ({ id: d.id, name: d.data().name as string, slug: d.data().slug as string }))
-        .sort((a, b) => a.name.localeCompare(b.name, "th"));
-      setFonts(list);
-      if (preselectedFont) {
-        const match = list.find((f) => f.slug === preselectedFont || f.id === preselectedFont);
-        if (match) setSelectedFonts([match.id]);
-      }
-    });
-    return () => unsub();
+    supabase
+      .from("fonts")
+      .select("id, name, slug")
+      .eq("is_active", true)
+      .order("name")
+      .then(({ data }) => {
+        const list = (data ?? []) as FontItem[];
+        setFonts(list);
+        if (preselectedFont) {
+          const match = list.find((f) => f.slug === preselectedFont || f.id === preselectedFont);
+          if (match) setSelectedFonts([match.id]);
+        }
+      });
   }, [preselectedFont]);
 
   function set(key: keyof typeof EMPTY_FORM, val: string) {
@@ -121,11 +121,8 @@ function QuoteForm() {
       const fontNames = chosenFonts.map(
         (id) => fonts.find((f) => f.id === id)?.name ?? id
       );
-      await addDoc(collection(db, "quotes"), {
-        ...form,
-        fonts: fontNames,
-        created_at: serverTimestamp(),
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("quotes") as any).insert({ ...form, fonts: fontNames });
 
       const licenseLabel = LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
       const emailPayload = {

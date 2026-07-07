@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import { db } from "@/lib/firebase";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import FontCard, { Font, isNew } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
 
@@ -49,22 +48,18 @@ export default function HomePage() {
 
   useEffect(() => {
     setLoading(true);
-    const q = query(collection(db, "fonts"), where("is_active", "==", true));
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const active = (snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Font[])
-          .sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
+    supabase
+      .from("fonts")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) { console.error("Supabase error:", error); setLoading(false); return; }
+        const active = (data ?? []) as Font[];
         setFonts(active);
         setSliderPool(buildSliderPool(active));
         setLoading(false);
-      },
-      (err) => {
-        console.error("Firestore error:", err);
-        setLoading(false);
-      }
-    );
-    return () => unsub();
+      });
   }, []);
 
   const gridFonts = fonts.slice(0, GRID_SHOW);

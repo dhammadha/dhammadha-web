@@ -5,8 +5,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
-import { db } from "@/lib/firebase";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 
 const PAGE_SIZE = 16;
 
@@ -17,18 +16,15 @@ export default function AllFontsPage() {
 
   useEffect(() => {
     setLoading(true);
-    const q = query(collection(db, "fonts"), where("is_active", "==", true));
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const sorted = (snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Font[])
-          .sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
-        setFonts(sorted);
+    supabase
+      .from("fonts")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!error) setFonts((data ?? []) as Font[]);
         setLoading(false);
-      },
-      () => setLoading(false)
-    );
-    return () => unsub();
+      });
   }, []);
 
   const totalPages = Math.ceil(fonts.length / PAGE_SIZE);

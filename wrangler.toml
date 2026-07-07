@@ -1,0 +1,9 @@
+name = "dhammadha-web"
+compatibility_date = "2024-09-23"
+
+[env.production]
+name = "dhammadha-web"
+
+# Cloudflare Pages — build settings (configured in dashboard or via wrangler pages deploy)
+# Build command: npm run build
+# Output directory: out

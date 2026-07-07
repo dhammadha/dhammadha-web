@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 
 interface FontOption {
   slug: string;
@@ -39,16 +38,20 @@ export default function Nav() {
   // Load fonts once, cache globally
   useEffect(() => {
     if (cachedFonts) { setFonts(cachedFonts); return; }
-    getDocs(query(collection(db, "fonts"), where("is_active", "==", true))).then((snap) => {
-      const data = snap.docs.map((d) => {
-        const f = d.data();
-        const tags: string[] = [...(f.tags || [])];
-        if (f.is_free && !tags.includes("free")) tags.push("free");
-        return { slug: f.slug, name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
+    supabase
+      .from("fonts")
+      .select("slug, name, name_th, category, tags, is_free")
+      .eq("is_active", true)
+      .then(({ data }) => {
+        if (!data) return;
+        const mapped = (data as { slug: string; name: string | null; name_th: string | null; category: string | null; tags: string[] | null; is_free: boolean }[]).map((f) => {
+          const tags: string[] = [...(f.tags || [])];
+          if (f.is_free && !tags.includes("free")) tags.push("free");
+          return { slug: f.slug, name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
+        });
+        cachedFonts = mapped;
+        setFonts(mapped);
       });
-      cachedFonts = data;
-      setFonts(data);
-    }).catch(() => {});
   }, []);
 
   // Close on outside click

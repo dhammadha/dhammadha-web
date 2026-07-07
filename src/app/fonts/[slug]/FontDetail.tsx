@@ -7,8 +7,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
-import { db } from "@/lib/firebase";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 
 function parseWeight(url: string): string {
   const decoded = decodeURIComponent(url.split("?")[0]);
@@ -78,43 +77,35 @@ export default function FontDetail() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!slug) return; // wait until slug is resolved from URL
+    if (!slug) return;
     async function load() {
       setLoading(true);
       try {
-        const snap = await getDocs(
-          query(collection(db, "fonts"), where("slug", "==", slug), where("is_active", "==", true))
-        );
-        if (snap.empty) { setLoading(false); return; }
+        const [{ data: fontRows }, { data: allRows }, { data: settings }] = await Promise.all([
+          supabase.from("fonts").select("*").eq("slug", slug).eq("is_active", true).limit(1),
+          supabase.from("fonts").select("*").eq("is_active", true),
+          supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
+        ]);
 
-        const data = { id: snap.docs[0].id, ...snap.docs[0].data() } as Font;
+        if (!fontRows?.length) { setLoading(false); return; }
+
+        const data = fontRows[0] as Font;
         setFont(data);
 
-        const allSnap = await getDocs(
-          query(collection(db, "fonts"), where("is_active", "==", true))
-        );
-        const others = allSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }) as Font)
-          .filter((f) => f.slug !== slug);
+        const others = ((allRows ?? []) as Font[]).filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
-        const files = data.full_font_files?.length
-          ? data.full_font_files
-          : data.free_font_files || [];
+        const files = data.full_font_files?.length ? data.full_font_files : data.free_font_files || [];
         const weights = getUniqueWeights(files);
         if (weights.length) setSelectedWeight(weights[0]);
 
-        const [licSnap, promoSnap] = await Promise.all([
-          getDoc(doc(db, "settings", "licensing")),
-          getDoc(doc(db, "settings", "promotion")),
-        ]);
-        if (licSnap.exists()) {
-          const d = licSnap.data();
-          setLicensing({ small: d.small ?? 3500, large: d.large ?? 7000, extra: d.extra ?? 20000 });
-        }
-        if (promoSnap.exists()) {
-          const d = promoSnap.data();
-          setPromotion({ discount_percent: d.discount_percent ?? 0, sale_end: d.sale_end ?? "", active: !!d.active });
+        for (const row of (settings ?? []) as { key: string; value: Record<string, unknown> }[]) {
+          const v = row.value;
+          if (row.key === "licensing") {
+            setLicensing({ small: (v.small as number) ?? 3500, large: (v.large as number) ?? 7000, extra: (v.extra as number) ?? 20000 });
+          } else if (row.key === "promotion") {
+            setPromotion({ discount_percent: (v.discount_percent as number) ?? 0, sale_end: (v.sale_end as string) ?? "", active: !!(v.active) });
+          }
         }
       } catch (e) {
         console.error(e);
