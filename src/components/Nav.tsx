@@ -152,12 +152,12 @@ export default function Nav() {
             >
               {(user.email?.[0] ?? "?").toUpperCase()}
             </Link>
-            <button
-              onClick={() => signOut().then(() => router.push("/"))}
-              className="text-[13px] text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer transition-colors"
+            <Link
+              href="/account"
+              className="text-[13px] text-[#666] hover:text-navy no-underline transition-colors"
             >
-              ออกจากระบบ
-            </button>
+              {user.email}
+            </Link>
           </div>
         ) : (
           <Link
@@ -267,16 +267,10 @@ export default function Nav() {
           ))}
           {/* Mobile auth */}
           {user ? (
-            <div className="px-8 py-4 border-b border-[#f0f0f0] flex items-center justify-between">
+            <div className="px-8 py-4 border-b border-[#f0f0f0]">
               <Link href="/account" className="text-[14px] text-navy no-underline" onClick={() => setMenuOpen(false)}>
                 {user.email}
               </Link>
-              <button
-                onClick={() => { signOut(); setMenuOpen(false); router.push("/"); }}
-                className="text-[13px] text-[#aaa] bg-transparent border-none cursor-pointer"
-              >
-                ออกจากระบบ
-              </button>
             </div>
           ) : (
             <Link

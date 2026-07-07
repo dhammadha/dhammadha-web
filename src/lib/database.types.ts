@@ -234,6 +234,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: string;
       };
+      admin_upsert_font: {
+        Args: { p_id: string | null; p_data: Record<string, unknown> };
+        Returns: Record<string, unknown>;
+      };
     };
     Enums: {
       user_role: UserRole;

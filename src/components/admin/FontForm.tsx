@@ -227,7 +227,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       const discountVal = parseInt(discount) || 0;
       const priceVal = parseFloat(price) || null;
 
-      const payload: Database["public"]["Tables"]["fonts"]["Insert"] = {
+      const payload = {
         name: name.trim(),
         name_th: nameTh.trim() || null,
         slug: slugVal,
@@ -256,21 +256,30 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         owner_id: ownerId ?? null,
       };
 
-      if (editingFont) {
-        const { error } = await supabase.from("fonts").update(payload).eq("id", editingFont.id);
+      if (isAdmin) {
+        // Use SECURITY DEFINER RPC to bypass RLS for admin operations
+        const { error } = await supabase.rpc("admin_upsert_font", {
+          p_id: editingFont?.id ?? null,
+          p_data: payload,
+        });
         if (error) throw error;
-        showToast("✓ อัปเดตฟอนต์เรียบร้อย");
+      } else if (editingFont) {
+        const { error } = await supabase.from("fonts").update(payload as Database["public"]["Tables"]["fonts"]["Update"]).eq("id", editingFont.id);
+        if (error) throw error;
       } else {
-        const { error } = await supabase.from("fonts").insert(payload);
+        const { error } = await supabase.from("fonts").insert(payload as Database["public"]["Tables"]["fonts"]["Insert"]);
         if (error) throw error;
-        showToast("✓ เพิ่มฟอนต์เรียบร้อย");
       }
+      showToast(editingFont ? "✓ อัปเดตฟอนต์เรียบร้อย" : "✓ เพิ่มฟอนต์เรียบร้อย");
       if (!editingFont) localStorage.removeItem(DRAFT_KEY);
       onSaved();
       onClose();
 
     } catch (e: unknown) {
-      showToast("เกิดข้อผิดพลาด: " + (e instanceof Error ? e.message : String(e)), true);
+      const msg = e instanceof Error ? e.message : (e as Record<string, unknown>)?.message as string ?? String(e);
+      const hint = (e as Record<string, unknown>)?.hint as string ?? "";
+      const details = (e as Record<string, unknown>)?.details as string ?? "";
+      showToast("เกิดข้อผิดพลาด: " + [msg, hint, details].filter(Boolean).join(" | "), true);
     } finally {
       setSaving(false);
     }
@@ -364,20 +373,6 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
       </section>
 
-      {/* ไฟล์ฟอนต์ */}
-      <section>
-        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
-        {!isFree && (
-          <>
-            <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
-            <FontFileSection label="Demo Font" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
-          </>
-        )}
-        {isFree && (
-          <FontFileSection label="Free Font*" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
-        )}
-        <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
-      </section>
     </div>
   );
 
@@ -433,6 +428,20 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </FormField>
       </section>
 
+      {/* ไฟล์ฟอนต์ */}
+      <section>
+        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
+        {!isFree && (
+          <>
+            <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
+            <FontFileSection label="Demo Font" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
+          </>
+        )}
+        {isFree && (
+          <FontFileSection label="Free Font*" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
+        )}
+        <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
+      </section>
     </div>
   );
 
