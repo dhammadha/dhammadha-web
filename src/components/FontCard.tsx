@@ -43,7 +43,7 @@ export function isNew(f: Font): boolean {
   return Date.now() - new Date(f.created_at).getTime() < 45 * 24 * 60 * 60 * 1000;
 }
 
-export default function FontCard({ font, compact }: { font: Font; compact?: boolean }) {
+export default function FontCard({ font, compact, aspectRatio }: { font: Font; compact?: boolean; aspectRatio?: string }) {
   const href = font.designer_slug
     ? `/fonts/${font.designer_slug}/${font.slug || font.id}/`
     : `/fonts/${font.slug || font.id}/`;
@@ -69,7 +69,7 @@ export default function FontCard({ font, compact }: { font: Font; compact?: bool
       href={href}
       className="block bg-white rounded-lg overflow-hidden hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] transition-all no-underline"
     >
-      <div className={`${compact ? "h-[110px]" : "aspect-video"} relative flex items-center justify-center overflow-hidden rounded-t-lg`} style={bgStyle}>
+      <div className={`${compact ? "h-[110px]" : "aspect-video"} relative flex items-center justify-center overflow-hidden rounded-t-lg`} style={{ ...bgStyle, ...(aspectRatio ? { aspectRatio, height: "auto" } : {}) }}>
         {badge && (
           <span className={`absolute top-2 left-2 text-[9px] px-[7px] py-0.5 rounded-full font-semibold tracking-[0.03em] ${badge.cls}`}>
             {badge.text}
