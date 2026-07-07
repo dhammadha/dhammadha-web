@@ -100,24 +100,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar desktop */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-white border-r border-border sticky top-0 h-screen">
         <div className="px-5 py-5 border-b border-border">
-          <Link href="/" className="flex flex-col gap-0.5 no-underline">
-            <span className="text-[13px] font-semibold text-navy tracking-[0.05em]">DHAMMADHA</span>
-            <span className="text-[10px] text-[#aaa] tracking-[0.06em]">ADMIN PANEL</span>
-          </Link>
+          <span className="text-[13px] font-semibold text-navy tracking-[0.05em] block">DHAMMADHA</span>
+          <span className="text-[10px] text-[#aaa] tracking-[0.06em]">ADMIN PANEL</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
           {NAV.map((item) => (
             <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
           ))}
         </nav>
-        <div className="p-4 border-t border-border">
-          <div className="text-[11px] text-[#aaa] mb-2 truncate">{user.email}</div>
-          <button
-            onClick={() => signOut().then(() => router.push("/"))}
-            className="w-full text-left text-[13px] text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer transition-colors p-0"
-          >
-            ออกจากระบบ
-          </button>
+        <div className="p-3 border-t border-border flex flex-col gap-1">
+          <Link href="/" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] no-underline transition-colors text-[#666] hover:bg-[#f5f5f2] hover:text-navy`}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2l6 6M3.5 6.5V14h3v-3h3v3h3V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span>กลับหน้าแรก</span>
+          </Link>
+          <div className="px-3 pt-2 border-t border-border mt-1">
+            <div className="text-[11px] text-[#aaa] mb-2 truncate">{user.email}</div>
+            <button
+              onClick={() => signOut().then(() => router.push("/"))}
+              className="w-full text-left text-[13px] text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer transition-colors p-0"
+            >
+              ออกจากระบบ
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -145,11 +149,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
             </nav>
-            <div className="p-4 border-t border-border">
-              <div className="text-[11px] text-[#aaa] mb-2 truncate">{user.email}</div>
-              <button onClick={() => signOut().then(() => router.push("/"))} className="text-[13px] text-[#aaa] bg-transparent border-none cursor-pointer p-0">
-                ออกจากระบบ
-              </button>
+            <div className="p-3 border-t border-border flex flex-col gap-1">
+              <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] no-underline transition-colors text-[#666] hover:bg-[#f5f5f2] hover:text-navy" onClick={() => setMenuOpen(false)}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2l6 6M3.5 6.5V14h3v-3h3v3h3V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span>กลับหน้าแรก</span>
+              </Link>
+              <div className="px-3 pt-2 border-t border-border mt-1">
+                <div className="text-[11px] text-[#aaa] mb-2 truncate">{user.email}</div>
+                <button onClick={() => signOut().then(() => router.push("/"))} className="text-[13px] text-[#aaa] bg-transparent border-none cursor-pointer p-0">
+                  ออกจากระบบ
+                </button>
+              </div>
             </div>
           </div>
         </div>

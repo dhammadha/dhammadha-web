@@ -54,6 +54,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState("");
   const [previewItems, setPreviewItems] = useState<PreviewItem[]>([]);
+  const [draggingIdx, setDraggingIdx] = useState(-1);
+  const [dragOverIdx, setDragOverIdx] = useState(-1);
   const dragIdx = useRef(-1);
 
   // Font files
@@ -105,6 +107,38 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setSpecimens((f.specimen_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
   }, [open, editingFont, resetForm]);
 
+  // localStorage draft cache (new font only, text fields)
+  const DRAFT_KEY = "font_form_draft";
+  useEffect(() => {
+    if (editingFont) return;
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    try {
+      const d = JSON.parse(raw);
+      if (d.name) setName(d.name);
+      if (d.nameTh) setNameTh(d.nameTh);
+      if (d.slug) setSlug(d.slug);
+      if (d.designerName) setDesignerName(d.designerName);
+      if (d.category) setCategory(d.category);
+      if (d.tags) setTags(d.tags);
+      if (d.descTh) setDescTh(d.descTh);
+      if (d.descEn) setDescEn(d.descEn);
+      if (d.price) setPrice(d.price);
+      if (d.discount) setDiscount(d.discount);
+      if (d.saleLabel) setSaleLabel(d.saleLabel);
+      if (d.saleEnd) setSaleEnd(d.saleEnd);
+      if (typeof d.isActive === "boolean") setIsActive(d.isActive);
+      if (typeof d.isFree === "boolean") setIsFree(d.isFree);
+      if (typeof d.isSub === "boolean") setIsSub(d.isSub);
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingFont]);
+
+  useEffect(() => {
+    if (editingFont) return;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ name, nameTh, slug, designerName, category, tags, descTh, descEn, price, discount, saleLabel, saleEnd, isActive, isFree, isSub }));
+  }, [name, nameTh, slug, designerName, category, tags, descTh, descEn, price, discount, saleLabel, saleEnd, isActive, isFree, isSub, editingFont]);
+
   // Auto-fill slug from name EN (new font only)
   useEffect(() => {
     if (editingFont) return;
@@ -137,17 +171,21 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
   const removePreviewItem = (idx: number) => setPreviewItems((prev) => prev.filter((_, i) => i !== idx));
 
-  const onDragStart = (idx: number) => { dragIdx.current = idx; };
-  const onDrop = (idx: number) => {
-    if (dragIdx.current === idx) return;
-    setPreviewItems((prev) => {
-      const arr = [...prev];
-      const [moved] = arr.splice(dragIdx.current, 1);
-      arr.splice(idx, 0, moved);
-      return arr;
-    });
-    dragIdx.current = -1;
+  const onDragStart = (idx: number) => { dragIdx.current = idx; setDraggingIdx(idx); };
+  const onDragOver = (e: React.DragEvent, idx: number) => { e.preventDefault(); setDragOverIdx(idx); };
+  const onDrop = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    if (dragIdx.current !== -1 && dragIdx.current !== idx) {
+      setPreviewItems((prev) => {
+        const arr = [...prev];
+        const [moved] = arr.splice(dragIdx.current, 1);
+        arr.splice(idx, 0, moved);
+        return arr;
+      });
+    }
+    dragIdx.current = -1; setDraggingIdx(-1); setDragOverIdx(-1);
   };
+  const onDragEnd = () => { dragIdx.current = -1; setDraggingIdx(-1); setDragOverIdx(-1); };
 
   async function uploadFontFiles(entries: FontFileEntry[], bucket: StorageBucket, slugVal: string): Promise<string[]> {
     const results: string[] = [];
@@ -227,6 +265,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         if (error) throw error;
         showToast("✓ เพิ่มฟอนต์เรียบร้อย");
       }
+      if (!editingFont) localStorage.removeItem(DRAFT_KEY);
       onSaved();
       onClose();
     } catch (e: unknown) {
@@ -355,25 +394,32 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             </label>
           )}
         </FormField>
-        <FormField label="รูป Preview (กดลูกศรเพื่อเรียงลำดับ)" className="mt-3">
+        <FormField label="รูป Preview (ลากเพื่อเรียงลำดับ)" className="mt-3">
           <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[13px] text-[#666]">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             เพิ่มรูป Preview
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
           </label>
           {previewItems.length > 0 && (
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="grid grid-cols-3 gap-2 mt-2">
               {previewItems.map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <button onClick={() => i > 0 && movePreview(i, i - 1)} disabled={i === 0} className="w-5 h-5 rounded flex items-center justify-center text-[#aaa] hover:text-navy disabled:opacity-20 bg-transparent border-none cursor-pointer">▲</button>
-                    <button onClick={() => i < previewItems.length - 1 && movePreview(i, i + 1)} disabled={i === previewItems.length - 1} className="w-5 h-5 rounded flex items-center justify-center text-[#aaa] hover:text-navy disabled:opacity-20 bg-transparent border-none cursor-pointer">▼</button>
-                  </div>
-                  <div className="relative w-[120px] aspect-video rounded-lg overflow-hidden border border-border flex-shrink-0">
-                    <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover" />
-                    <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded font-medium">{i + 1}</span>
-                  </div>
-                  <button onClick={() => removePreviewItem(i)} className="w-6 h-6 rounded-full bg-[#f5f5f2] text-[#aaa] hover:bg-red-50 hover:text-red-500 text-[12px] border-none cursor-pointer flex items-center justify-center flex-shrink-0">✕</button>
+                <div
+                  key={i}
+                  draggable
+                  onDragStart={() => onDragStart(i)}
+                  onDragOver={(e) => onDragOver(e, i)}
+                  onDrop={(e) => onDrop(e, i)}
+                  onDragEnd={onDragEnd}
+                  className={`relative aspect-video rounded-lg overflow-hidden border cursor-grab select-none transition-all ${
+                    draggingIdx === i ? "opacity-40 border-dashed border-mint border-2" :
+                    dragOverIdx === i ? "border-mint border-2 shadow-[0_0_0_3px_#5ECEC840]" :
+                    "border-border"
+                  }`}
+                >
+                  <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+                  <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded font-medium leading-none">{i + 1}</span>
+                  <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full bg-black/60 text-white text-[11px] border-none cursor-pointer flex items-center justify-center hover:bg-red-600 transition-colors">✕</button>
+                  <div className="absolute bottom-1 left-1 text-[11px] bg-black/50 text-white px-1.5 py-0.5 rounded leading-none select-none">⠿</div>
                 </div>
               ))}
             </div>

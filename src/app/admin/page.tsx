@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
@@ -12,6 +13,7 @@ type Tab = "all" | "active" | "hidden" | "sale";
 
 export default function AdminFontsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [fonts, setFonts] = useState<FontRow[]>([]);
   const [tab, setTab] = useState<Tab>("all");
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ export default function AdminFontsPage() {
     loadFonts();
   };
 
-  const openAdd = () => { setEditingFont(null); setPanelOpen(true); };
+  const openAdd = () => router.push("/admin/add");
   const openEdit = (f: FontRow) => { setEditingFont(f); setPanelOpen(true); };
 
   const stats = [
