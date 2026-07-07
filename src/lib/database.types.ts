@@ -29,6 +29,7 @@ export interface Database {
           cover_image_url: string | null;
           preview_images: string[] | null;
           full_font_files: string[] | null;
+          published_at: string | null;
           demo_font_files: string[] | null;
           free_font_files: string[] | null;
           specimen_files: string[] | null;
@@ -73,6 +74,7 @@ export interface Database {
           owner_id?: string | null;
           created_at?: string;
           updated_at?: string;
+          published_at?: string | null;
         };
         Update: {
           id?: string;
@@ -107,6 +109,7 @@ export interface Database {
           owner_id?: string | null;
           created_at?: string;
           updated_at?: string;
+          published_at?: string | null;
         };
         Relationships: [];
       };
