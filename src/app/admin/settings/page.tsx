@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -25,9 +25,7 @@ const DRAFT_KEY = "settings_draft";
 
 export default function AdminSettingsPage() {
   const { user } = useAuth();
-  const loaded = useRef(false);
 
-  // Seller info
   const [entityType, setEntityType] = useState<"individual" | "juristic">("individual");
   const [businessName, setBusinessName] = useState("");
   const [designerSlug, setDesignerSlug] = useState("");
@@ -40,100 +38,102 @@ export default function AdminSettingsPage() {
   const [bankAccount, setBankAccount] = useState("");
   const [bankAccountNo, setBankAccountNo] = useState("");
 
+  // track whether data has been loaded so we can enable draft saving
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
+  const showToast = (msg: string, error = false) => { setToast({ msg, error }); setTimeout(() => setToast(null), 3500); };
 
-  const showToast = (msg: string, error = false) => {
-    setToast({ msg, error });
-    setTimeout(() => setToast(null), 3500);
-  };
-
-  // Load from DB on mount
+  // Load DB data on mount, then apply draft if exists
   useEffect(() => {
     if (!user) return;
     supabase.from("users").select("name, business_name, entity_type, designer_slug, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
-      if (!data) return;
-      // Check for cached draft first
+      // Start with DB values
+      const b = (data?.bank as { bank_name?: string; branch?: string; account_name?: string; account_number?: string } | null) ?? {};
+      const dbValues = {
+        entityType: (data?.entity_type as "individual" | "juristic") ?? "individual",
+        businessName: data?.business_name ?? "",
+        designerSlug: data?.designer_slug ?? "",
+        sellerName: data?.name ?? "",
+        sellerTaxId: data?.tax_id ?? "",
+        sellerAddress: data?.address ?? "",
+        sellerPhone: data?.phone ?? "",
+        bankName: b.bank_name ?? "",
+        bankBranch: b.branch ?? "",
+        bankAccount: b.account_name ?? "",
+        bankAccountNo: b.account_number ?? "",
+      };
+
+      // Override with draft if exists
+      let values = { ...dbValues };
       const raw = localStorage.getItem(DRAFT_KEY);
       if (raw) {
-        try {
-          const d = JSON.parse(raw);
-          setEntityType(d.entityType ?? "individual");
-          setBusinessName(d.businessName ?? "");
-          setDesignerSlug(d.designerSlug ?? "");
-          setSellerName(d.sellerName ?? "");
-          setSellerTaxId(d.sellerTaxId ?? "");
-          setSellerAddress(d.sellerAddress ?? "");
-          setSellerPhone(d.sellerPhone ?? "");
-          setBankName(d.bankName ?? "");
-          setBankBranch(d.bankBranch ?? "");
-          setBankAccount(d.bankAccount ?? "");
-          setBankAccountNo(d.bankAccountNo ?? "");
-          loaded.current = true;
-          return;
-        } catch { /* fall through to DB data */ }
+        try { values = { ...values, ...JSON.parse(raw) }; } catch { /* ignore */ }
       }
-      const b = (data.bank as { bank_name?: string; branch?: string; account_name?: string; account_number?: string } | null) ?? {};
-      setEntityType((data.entity_type as "individual" | "juristic") ?? "individual");
-      setBusinessName(data.business_name ?? "");
-      setDesignerSlug(data.designer_slug ?? "");
-      setSellerName(data.name ?? "");
-      setSellerTaxId(data.tax_id ?? "");
-      setSellerAddress(data.address ?? "");
-      setSellerPhone(data.phone ?? "");
-      setBankName(b.bank_name ?? "");
-      setBankBranch(b.branch ?? "");
-      setBankAccount(b.account_name ?? "");
-      setBankAccountNo(b.account_number ?? "");
-      loaded.current = true;
+
+      setEntityType(values.entityType);
+      setBusinessName(values.businessName);
+      setDesignerSlug(values.designerSlug);
+      setSellerName(values.sellerName);
+      setSellerTaxId(values.sellerTaxId);
+      setSellerAddress(values.sellerAddress);
+      setSellerPhone(values.sellerPhone);
+      setBankName(values.bankName);
+      setBankBranch(values.bankBranch);
+      // Auto-fill account name from owner name if empty
+      setBankAccount(values.bankAccount || (values.entityType === "individual" ? values.sellerName : values.businessName));
+      setBankAccountNo(values.bankAccountNo);
+      setDataLoaded(true);
     });
   }, [user]);
 
-  // Auto-fill bank account name from seller name when entityType or names change
+  // Save draft whenever any field changes (only after initial load)
   useEffect(() => {
-    if (!loaded.current) return;
-    if (bankAccount) return; // don't overwrite if already set
-    const derived = entityType === "individual" ? sellerName : businessName;
-    if (derived) setBankAccount(derived);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entityType, sellerName, businessName]);
-
-  // Save draft to localStorage
-  useEffect(() => {
-    if (!loaded.current) return;
+    if (!dataLoaded) return;
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ entityType, businessName, designerSlug, sellerName, sellerTaxId, sellerAddress, sellerPhone, bankName, bankBranch, bankAccount, bankAccountNo }));
-  }, [entityType, businessName, designerSlug, sellerName, sellerTaxId, sellerAddress, sellerPhone, bankName, bankBranch, bankAccount, bankAccountNo]);
+  }, [dataLoaded, entityType, businessName, designerSlug, sellerName, sellerTaxId, sellerAddress, sellerPhone, bankName, bankBranch, bankAccount, bankAccountNo]);
+
+  // When user switches entityType, update account name to match
+  const handleEntityType = (t: "individual" | "juristic") => {
+    setEntityType(t);
+    const derived = t === "individual" ? sellerName : businessName;
+    if (derived) setBankAccount(derived);
+  };
 
   const saveSeller = async () => {
     if (!user) return;
-    const { error } = await supabase.from("users").update({
+    if (sellerTaxId && sellerTaxId.replace(/\D/g, "").length !== 13) {
+      showToast("เลขประจำตัวผู้เสียภาษีต้องมี 13 หลัก", true);
+      return;
+    }
+    const basePayload = {
       entity_type: entityType,
       business_name: businessName || null,
-      designer_slug: designerSlug.toLowerCase().replace(/[^a-z0-9-]/g, "") || null,
       name: sellerName,
       tax_id: sellerTaxId,
       address: sellerAddress,
       phone: sellerPhone,
       bank: { bank_name: bankName, branch: bankBranch, account_name: bankAccount, account_number: bankAccountNo },
-    }).eq("id", user.id);
-    if (error) showToast("เกิดข้อผิดพลาด: " + error.message, true);
-    else {
-      localStorage.removeItem(DRAFT_KEY);
-      showToast("✓ บันทึกข้อมูลผู้ขายเรียบร้อย");
+    };
+    const { error } = await supabase.from("users").update(basePayload).eq("id", user.id);
+    if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, true); return; }
+
+    // Try to save designer_slug separately (column may not exist yet if migration not applied)
+    if (designerSlug) {
+      await supabase.from("users").update({ designer_slug: designerSlug.toLowerCase().replace(/[^a-z0-9-]/g, "") || null }).eq("id", user.id);
     }
+
+    localStorage.removeItem(DRAFT_KEY);
+    showToast("✓ บันทึกข้อมูลผู้ขายเรียบร้อย");
   };
 
   return (
     <div className="p-6 max-w-[680px] flex flex-col gap-8">
-      {/* Seller info */}
       <Section title="ข้อมูลผู้ขาย" desc="ใช้แสดงในใบเสนอราคาและใบเสร็จ">
-        {/* Entity type toggle */}
         <div className="flex gap-2 mb-4">
           {(["individual", "juristic"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setEntityType(t)}
-              className={`px-4 py-2 rounded-xl text-[13px] font-medium border cursor-pointer transition-colors ${entityType === t ? "bg-navy text-white border-navy" : "bg-white text-[#666] border-border hover:bg-[#f5f5f2]"}`}
-            >
+            <button key={t} onClick={() => handleEntityType(t)}
+              className={`px-4 py-2 rounded-xl text-[13px] font-medium border cursor-pointer transition-colors ${entityType === t ? "bg-navy text-white border-navy" : "bg-white text-[#666] border-border hover:bg-[#f5f5f2]"}`}>
               {t === "individual" ? "บุคคลธรรมดา" : "นิติบุคคล"}
             </button>
           ))}
@@ -148,14 +148,25 @@ export default function AdminSettingsPage() {
           <Field label={entityType === "individual" ? "ชื่อ-สกุล (เจ้าของ)" : "ชื่อบริษัท (ทางการ)"}>
             <input value={sellerName} onChange={(e) => setSellerName(e.target.value)} className={iCls} />
           </Field>
-          <Field label="เลขประจำตัวผู้เสียภาษี"><input value={sellerTaxId} onChange={(e) => setSellerTaxId(e.target.value)} className={iCls} /></Field>
+          <Field label="เลขประจำตัวผู้เสียภาษี (13 หลัก)">
+            <input
+              value={sellerTaxId}
+              onChange={(e) => { const v = e.target.value.replace(/\D/g, "").slice(0, 13); setSellerTaxId(v); }}
+              placeholder="0000000000000"
+              maxLength={13}
+              inputMode="numeric"
+              className={`${iCls} ${sellerTaxId && sellerTaxId.length !== 13 ? "border-red-400 focus:border-red-400 focus:shadow-[0_0_0_3px_#ef444420]" : ""}`}
+            />
+            {sellerTaxId && sellerTaxId.length !== 13 && (
+              <span className="text-[11px] text-red-500">{sellerTaxId.length}/13 หลัก</span>
+            )}
+          </Field>
         </div>
         <Field label="ที่อยู่" className="mt-3"><textarea value={sellerAddress} onChange={(e) => setSellerAddress(e.target.value)} rows={2} className={iCls} /></Field>
         <Field label="โทรศัพท์" className="mt-3"><input value={sellerPhone} onChange={(e) => setSellerPhone(e.target.value)} className={iCls} /></Field>
 
         <div className="mt-3 pt-3 border-t border-border">
           <div className="text-[12px] font-medium text-[#666] mb-2">ข้อมูลบัญชีธนาคาร</div>
-          {/* Row 1: bank + branch */}
           <div className="grid grid-cols-2 gap-3 mb-3">
             <Field label="ธนาคาร">
               <select value={bankName} onChange={(e) => setBankName(e.target.value)} className={iCls}>
@@ -167,7 +178,6 @@ export default function AdminSettingsPage() {
               <input value={bankBranch} onChange={(e) => setBankBranch(e.target.value)} placeholder="เช่น สยามพารากอน" className={iCls} />
             </Field>
           </div>
-          {/* Row 2: account name + account number */}
           <div className="grid grid-cols-2 gap-3">
             <Field label="ชื่อบัญชี">
               <input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} className={iCls} />
