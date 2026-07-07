@@ -58,12 +58,8 @@ export default function AdminFontsPage() {
   const openAdd = () => router.push("/admin/add");
   const openEdit = (f: FontRow) => { setEditingFont(f); setPanelOpen(true); };
 
-  // Fonts that have never been published OR were updated after last publish
-  const pendingFonts = fonts.filter((f) => {
-    if (!f.published_at) return true;
-    if (f.updated_at && new Date(f.updated_at) > new Date(f.published_at)) return true;
-    return false;
-  });
+  // Fonts that have never been published
+  const pendingFonts = fonts.filter((f) => !f.published_at);
 
   const handlePublish = async () => {
     if (!confirm(`Publish ตอนนี้เลยไหม?\n\nจะ deploy เว็บและ mark ฟอนต์ ${pendingFonts.length} ตัวว่า published`)) return;
