@@ -268,6 +268,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       if (!editingFont) localStorage.removeItem(DRAFT_KEY);
       onSaved();
       onClose();
+
     } catch (e: unknown) {
       showToast("เกิดข้อผิดพลาด: " + (e instanceof Error ? e.message : String(e)), true);
     } finally {
@@ -282,6 +283,11 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       arr.splice(to, 0, moved);
       return arr;
     });
+  };
+
+  const handleCancel = () => {
+    if (!editingFont) localStorage.removeItem(DRAFT_KEY);
+    onClose();
   };
 
   const leftCol = (
@@ -448,7 +454,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
         <div className="sticky bottom-0 border-t border-border bg-white px-6 py-4 flex justify-end gap-2 max-w-[720px] mx-auto w-full">
           {saving && <span className="text-[13px] text-[#aaa] mr-auto self-center">⏳ กำลังบันทึก…</span>}
-          <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-xl border border-border text-[14px] text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors disabled:opacity-50">
+          <button onClick={handleCancel} disabled={saving} className="px-4 py-2 rounded-xl border border-border text-[14px] text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors disabled:opacity-50">
             ยกเลิก
           </button>
           <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50">
@@ -477,7 +483,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             <span className="text-[11px] text-[#aaa] tracking-wide">Admin → </span>
             <span className="text-[14px] font-semibold text-navy">{editingFont ? `แก้ไข — ${editingFont.name}` : "เพิ่มฟอนต์ใหม่"}</span>
           </div>
-          <button onClick={onClose} className="text-[#aaa] hover:text-navy text-xl bg-transparent border-none cursor-pointer leading-none">✕</button>
+          <button onClick={handleCancel} className="text-[#aaa] hover:text-navy text-xl bg-transparent border-none cursor-pointer leading-none">✕</button>
         </div>
 
         {/* Body */}
