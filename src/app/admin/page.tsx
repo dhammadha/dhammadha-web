@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontSlidePanel from "@/components/admin/FontSlidePanel";
@@ -16,7 +17,6 @@ export default function AdminFontsPage() {
   const [loading, setLoading] = useState(true);
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingFont, setEditingFont] = useState<FontRow | null>(null);
-  const [pendingCount, setPendingCount] = useState(0);
   const [toast, setToast] = useState("");
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
@@ -28,12 +28,7 @@ export default function AdminFontsPage() {
     setLoading(false);
   }, []);
 
-  const loadPendingCount = useCallback(async () => {
-    const { data } = await supabase.from("quotes").select("id, quote_no").is("quote_no", null);
-    setPendingCount(data?.length ?? 0);
-  }, []);
-
-  useEffect(() => { loadFonts(); loadPendingCount(); }, [loadFonts, loadPendingCount]);
+  useEffect(() => { loadFonts(); }, [loadFonts]);
 
   const filtered = fonts.filter((f) => {
     if (tab === "active") return f.is_active;
@@ -63,7 +58,6 @@ export default function AdminFontsPage() {
     { label: "แสดงบนเว็บ", value: fonts.filter((f) => f.is_active).length },
     { label: "ฟรี", value: fonts.filter((f) => f.is_free).length },
     { label: "โปรโมชั่น", value: fonts.filter((f) => f.is_sale).length },
-    { label: pendingCount > 0 ? "⚠️ ใบเสนอราคารอ" : "ใบเสนอราคารอ", value: pendingCount, alert: pendingCount > 0 },
   ];
 
   const TABS: { key: Tab; label: string }[] = [
@@ -76,10 +70,10 @@ export default function AdminFontsPage() {
   return (
     <div className="p-6 max-w-[1200px]">
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {stats.map((s) => (
-          <div key={s.label} className={`bg-white rounded-2xl border p-4 ${s.alert ? "border-amber-300 bg-amber-50" : "border-border"}`}>
-            <div className={`text-[28px] font-semibold leading-none mb-1 ${s.alert ? "text-amber-600" : "text-navy"}`}>{s.value}</div>
+          <div key={s.label} className="bg-white rounded-2xl border border-border p-4">
+            <div className="text-[28px] font-semibold leading-none mb-1 text-navy">{s.value}</div>
             <div className="text-[12px] text-[#aaa]">{s.label}</div>
           </div>
         ))}

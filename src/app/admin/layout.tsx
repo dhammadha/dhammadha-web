@@ -58,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const isActive = (href: string) =>
-    href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+    href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(href + "/");
 
   const NAV: { href: string; label: string; icon: React.ReactNode; badge?: number }[] = [
     {
@@ -72,15 +72,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13L6 3l4 10M3.5 10h5M10 3h4M12 3v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     },
     {
-      href: "/admin/pricing",
-      label: "ราคาและโปรโมชั่น",
-      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/></svg>,
-    },
-    {
       href: "/admin/quotes",
       label: "ใบเสนอราคา",
       badge: pendingQuotes,
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
+    {
+      href: "/admin/pricing",
+      label: "ราคาและโปรโมชั่น",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/></svg>,
     },
     {
       href: "/admin/revenue",

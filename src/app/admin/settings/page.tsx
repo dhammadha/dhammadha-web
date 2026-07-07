@@ -10,6 +10,7 @@ export default function AdminSettingsPage() {
   // Seller info
   const [entityType, setEntityType] = useState<"individual" | "juristic">("individual");
   const [businessName, setBusinessName] = useState("");
+  const [designerSlug, setDesignerSlug] = useState("");
   const [sellerName, setSellerName] = useState("");
   const [sellerTaxId, setSellerTaxId] = useState("");
   const [sellerAddress, setSellerAddress] = useState("");
@@ -28,10 +29,11 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (!user) return;
     // Load seller info
-    supabase.from("users").select("name, business_name, entity_type, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
+    supabase.from("users").select("name, business_name, entity_type, designer_slug, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
       if (!data) return;
       setEntityType((data.entity_type as "individual" | "juristic") ?? "individual");
       setBusinessName(data.business_name ?? "");
+      setDesignerSlug(data.designer_slug ?? "");
       setSellerName(data.name ?? "");
       setSellerTaxId(data.tax_id ?? "");
       setSellerAddress(data.address ?? "");
@@ -48,6 +50,7 @@ export default function AdminSettingsPage() {
     const { error } = await supabase.from("users").update({
       entity_type: entityType,
       business_name: businessName || null,
+      designer_slug: designerSlug.toLowerCase().replace(/[^a-z0-9-]/g, "") || null,
       name: sellerName,
       tax_id: sellerTaxId,
       address: sellerAddress,
@@ -77,6 +80,9 @@ export default function AdminSettingsPage() {
         <div className="grid grid-cols-2 gap-3">
           <Field label="ชื่อแบรนด์ / ร้านค้า">
             <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="เช่น DHAMMADHA STUDIO" className={iCls} />
+          </Field>
+          <Field label="Designer Slug (URL)">
+            <input value={designerSlug} onChange={(e) => setDesignerSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} placeholder="เช่น dhammadha" className={iCls} />
           </Field>
           <Field label={entityType === "individual" ? "ชื่อ-สกุล (เจ้าของ)" : "ชื่อบริษัท (ทางการ)"}>
             <input value={sellerName} onChange={(e) => setSellerName(e.target.value)} className={iCls} />

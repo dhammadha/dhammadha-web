@@ -236,8 +236,17 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
     }
   };
 
-  const formSections = (
-    <>
+  const movePreview = (from: number, to: number) => {
+    setPreviewItems((prev) => {
+      const arr = [...prev];
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      return arr;
+    });
+  };
+
+  const leftCol = (
+    <div className="flex flex-col gap-6">
       {/* ข้อมูลพื้นฐาน */}
       <section>
         <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ข้อมูลพื้นฐาน</h3>
@@ -283,7 +292,7 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
               <FormField label="ราคาปกติ (฿)">
                 <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" min="0" className={inputCls} />
               </FormField>
-              <FormField label="ส่วนลด % (กรอกเพื่อเปิดโปรโมชั่น)">
+              <FormField label="ส่วนลด %">
                 <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="เช่น 30" min="0" max="100" className={inputCls} />
               </FormField>
             </div>
@@ -309,14 +318,18 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
           <Toggle label="อยู่ใน Subscription" desc="รวมอยู่ในแพลนรายเดือน" checked={isSub} onChange={setIsSub} />
         </div>
       </section>
+    </div>
+  );
 
+  const rightCol = (
+    <div className="flex flex-col gap-6">
       {/* รูปภาพ */}
       <section>
         <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">รูปภาพ</h3>
         <FormField label="Cover Image* — 1280×720 (16:9)">
           {coverUrl ? (
             <div className="relative inline-block">
-              <img src={coverUrl} alt="cover" className="w-full max-w-[320px] rounded-xl object-cover aspect-video" />
+              <img src={coverUrl} alt="cover" className="w-full rounded-xl object-cover aspect-video" />
               <button onClick={() => { setCoverFile(null); setCoverUrl(""); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white text-[12px] border-none cursor-pointer flex items-center justify-center">✕</button>
             </div>
           ) : (
@@ -327,18 +340,25 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
             </label>
           )}
         </FormField>
-        <FormField label="รูป Preview (เลือกได้หลายรูป — ลากเพื่อเรียงลำดับ)" className="mt-3">
+        <FormField label="รูป Preview (กดลูกศรเพื่อเรียงลำดับ)" className="mt-3">
           <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[13px] text-[#666]">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             เพิ่มรูป Preview
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
           </label>
           {previewItems.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mt-2">
+            <div className="flex flex-col gap-2 mt-2">
               {previewItems.map((item, i) => (
-                <div key={i} draggable onDragStart={() => onDragStart(i)} onDragOver={(e) => e.preventDefault()} onDrop={() => onDrop(i)} className="relative aspect-video rounded-lg overflow-hidden border border-border cursor-grab">
-                  <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" draggable={false} className="w-full h-full object-cover" />
-                  <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[10px] border-none cursor-pointer flex items-center justify-center">✕</button>
+                <div key={i} className="flex items-center gap-2">
+                  <div className="flex flex-col gap-0.5">
+                    <button onClick={() => i > 0 && movePreview(i, i - 1)} disabled={i === 0} className="w-5 h-5 rounded flex items-center justify-center text-[#aaa] hover:text-navy disabled:opacity-20 bg-transparent border-none cursor-pointer">▲</button>
+                    <button onClick={() => i < previewItems.length - 1 && movePreview(i, i + 1)} disabled={i === previewItems.length - 1} className="w-5 h-5 rounded flex items-center justify-center text-[#aaa] hover:text-navy disabled:opacity-20 bg-transparent border-none cursor-pointer">▼</button>
+                  </div>
+                  <div className="relative flex-1 aspect-video rounded-lg overflow-hidden border border-border">
+                    <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover" />
+                    <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded font-medium">{i + 1}</span>
+                  </div>
+                  <button onClick={() => removePreviewItem(i)} className="w-6 h-6 rounded-full bg-[#f5f5f2] text-[#aaa] hover:bg-red-50 hover:text-red-500 text-[12px] border-none cursor-pointer flex items-center justify-center flex-shrink-0">✕</button>
                 </div>
               ))}
             </div>
@@ -360,14 +380,24 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
         )}
         <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
       </section>
+    </div>
+  );
+
+  const formSections = (
+    <>
+      {leftCol}
+      {rightCol}
     </>
   );
 
   if (mode === "page") {
     return (
       <div className="flex flex-col min-h-screen bg-white">
-        <div className="flex-1 overflow-y-auto px-6 py-5 max-w-[720px] mx-auto w-full flex flex-col gap-6">
-          {formSections}
+        <div className="flex-1 overflow-y-auto px-6 py-5 w-full">
+          <div className="grid grid-cols-2 gap-8 max-w-[1100px] mx-auto">
+            {leftCol}
+            {rightCol}
+          </div>
         </div>
         <div className="sticky bottom-0 border-t border-border bg-white px-6 py-4 flex justify-end gap-2 max-w-[720px] mx-auto w-full">
           {saving && <span className="text-[13px] text-[#aaa] mr-auto self-center">⏳ กำลังบันทึก…</span>}
