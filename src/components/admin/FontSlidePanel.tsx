@@ -14,6 +14,7 @@ interface Props {
   onSaved: () => void;
   ownerId?: string;
   isAdmin?: boolean;
+  mode?: "panel" | "page";
 }
 
 type PreviewItem = { type: "ex"; url: string } | { type: "new"; file: File; objectUrl: string };
@@ -30,11 +31,11 @@ function Toast({ msg, error }: { msg: string; error?: boolean }) {
   );
 }
 
-export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ownerId, isAdmin = true }: Props) {
+export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ownerId, isAdmin = true, mode = "panel" }: Props) {
   const [name, setName] = useState("");
   const [nameTh, setNameTh] = useState("");
   const [slug, setSlug] = useState("");
-  const [designerName, setDesignerName] = useState("ธรรมดาสตูดิโอ");
+  const [designerName, setDesignerName] = useState("");
   const [category, setCategory] = useState("serif");
   const [tags, setTags] = useState("");
   const [descTh, setDescTh] = useState("");
@@ -67,13 +68,21 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
   };
 
   const resetForm = useCallback(() => {
-    setName(""); setNameTh(""); setSlug(""); setDesignerName("ธรรมดาสตูดิโอ");
+    setName(""); setNameTh(""); setSlug(""); setDesignerName("");
     setCategory("serif"); setTags(""); setDescTh(""); setDescEn("");
     setPrice(""); setDiscount(""); setSaleLabel(""); setSaleEnd("");
     setIsActive(true); setIsFree(false); setIsSub(true);
     setCoverFile(null); setCoverUrl(""); setPreviewItems([]);
     setFullFonts([]); setDemoFonts([]); setFreeFonts([]); setSpecimens([]);
   }, []);
+
+  // Load designer name from user's business_name when adding new font
+  useEffect(() => {
+    if (!open || editingFont || !ownerId) return;
+    supabase.from("users").select("business_name, name").eq("id", ownerId).single().then(({ data }) => {
+      if (data) setDesignerName(data.business_name || data.name || "");
+    });
+  }, [open, editingFont, ownerId]);
 
   useEffect(() => {
     if (!open) return;
@@ -96,11 +105,17 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
     setSpecimens((f.specimen_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
   }, [open, editingFont, resetForm]);
 
+  // Auto-fill slug from name EN (new font only)
+  useEffect(() => {
+    if (editingFont) return;
+    const auto = name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+    setSlug(auto);
+  }, [name, editingFont]);
+
   // Auto-fill sale label when discount changes
   useEffect(() => {
     const d = parseInt(discount) || 0;
-    if (d > 0 && !saleLabel) setSaleLabel(`ลด ${d}%`);
-    if (d === 0) setSaleLabel("");
+    setSaleLabel(d > 0 ? `ลด ${d}%` : "");
   }, [discount]);
 
   const handleCoverFile = (f: File) => {
@@ -221,12 +236,158 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
     }
   };
 
+  const formSections = (
+    <>
+      {/* ข้อมูลพื้นฐาน */}
+      <section>
+        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ข้อมูลพื้นฐาน</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="ชื่อฟอนต์ (EN)*">
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} />
+          </FormField>
+          <FormField label="ชื่อฟอนต์ (TH)">
+            <input value={nameTh} onChange={(e) => setNameTh(e.target.value)} placeholder="เช่น สุรัตนา" className={inputCls} />
+          </FormField>
+          <FormField label="Slug (URL)*">
+            <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="เช่น suratana" className={inputCls} />
+          </FormField>
+          <FormField label="นักออกแบบ">
+            <input value={designerName} onChange={(e) => setDesignerName(e.target.value)} className={inputCls} />
+          </FormField>
+          <FormField label="หมวดหมู่">
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </FormField>
+          <FormField label="Tags (คั่นด้วย comma)">
+            <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="thai, display, bold" className={inputCls} />
+          </FormField>
+        </div>
+        <div className="grid grid-cols-1 gap-3 mt-3">
+          <FormField label="คำอธิบาย (TH)">
+            <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} rows={2} className={inputCls} placeholder="คำอธิบายภาษาไทย..." />
+          </FormField>
+          <FormField label="คำอธิบาย (EN)">
+            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={2} className={inputCls} placeholder="English description..." />
+          </FormField>
+        </div>
+      </section>
+
+      {/* ราคาและโปรโมชั่น */}
+      <section>
+        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ราคาและโปรโมชั่น</h3>
+        <Toggle label="ฟอนต์ฟรี" desc="ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน" checked={isFree} onChange={setIsFree} />
+        {!isFree && (
+          <div className="mt-3 flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="ราคาปกติ (฿)">
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" min="0" className={inputCls} />
+              </FormField>
+              <FormField label="ส่วนลด % (กรอกเพื่อเปิดโปรโมชั่น)">
+                <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="เช่น 30" min="0" max="100" className={inputCls} />
+              </FormField>
+            </div>
+            {parseInt(discount) > 0 && (
+              <div className="grid grid-cols-2 gap-3">
+                <FormField label="ข้อความโปรโมชั่น (badge)">
+                  <input value={saleLabel} onChange={(e) => setSaleLabel(e.target.value)} placeholder="เช่น ลด 30%" className={inputCls} />
+                </FormField>
+                <FormField label="วันสิ้นสุดโปรโมชั่น">
+                  <input type="date" value={saleEnd} onChange={(e) => setSaleEnd(e.target.value)} className={inputCls} />
+                </FormField>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* การแสดงผล */}
+      <section>
+        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">การแสดงผล</h3>
+        <div className="flex flex-col gap-3">
+          <Toggle label="แสดงบนเว็บ" desc="ปิดเพื่อซ่อนโดยไม่ลบข้อมูล" checked={isActive} onChange={setIsActive} />
+          <Toggle label="อยู่ใน Subscription" desc="รวมอยู่ในแพลนรายเดือน" checked={isSub} onChange={setIsSub} />
+        </div>
+      </section>
+
+      {/* รูปภาพ */}
+      <section>
+        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">รูปภาพ</h3>
+        <FormField label="Cover Image* — 1280×720 (16:9)">
+          {coverUrl ? (
+            <div className="relative inline-block">
+              <img src={coverUrl} alt="cover" className="w-full max-w-[320px] rounded-xl object-cover aspect-video" />
+              <button onClick={() => { setCoverFile(null); setCoverUrl(""); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white text-[12px] border-none cursor-pointer flex items-center justify-center">✕</button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed border-[#ddd] bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#ccc]"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+              <span className="text-[13px] text-[#aaa]">คลิกเพื่อเลือกรูป Cover</span>
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleCoverFile(e.target.files[0])} />
+            </label>
+          )}
+        </FormField>
+        <FormField label="รูป Preview (เลือกได้หลายรูป — ลากเพื่อเรียงลำดับ)" className="mt-3">
+          <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[13px] text-[#666]">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            เพิ่มรูป Preview
+            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
+          </label>
+          {previewItems.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              {previewItems.map((item, i) => (
+                <div key={i} draggable onDragStart={() => onDragStart(i)} onDragOver={(e) => e.preventDefault()} onDrop={() => onDrop(i)} className="relative aspect-video rounded-lg overflow-hidden border border-border cursor-grab">
+                  <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" draggable={false} className="w-full h-full object-cover" />
+                  <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[10px] border-none cursor-pointer flex items-center justify-center">✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </FormField>
+      </section>
+
+      {/* ไฟล์ฟอนต์ */}
+      <section>
+        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
+        {!isFree && (
+          <>
+            <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
+            <FontFileSection label="Demo Font" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
+          </>
+        )}
+        {isFree && (
+          <FontFileSection label="Free Font*" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
+        )}
+        <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
+      </section>
+    </>
+  );
+
+  if (mode === "page") {
+    return (
+      <div className="flex flex-col min-h-screen bg-white">
+        <div className="flex-1 overflow-y-auto px-6 py-5 max-w-[720px] mx-auto w-full flex flex-col gap-6">
+          {formSections}
+        </div>
+        <div className="sticky bottom-0 border-t border-border bg-white px-6 py-4 flex justify-end gap-2 max-w-[720px] mx-auto w-full">
+          {saving && <span className="text-[13px] text-[#aaa] mr-auto self-center">⏳ กำลังบันทึก…</span>}
+          <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-xl border border-border text-[14px] text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors disabled:opacity-50">
+            ยกเลิก
+          </button>
+          <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50">
+            {saving ? "กำลังบันทึก…" : "บันทึก"}
+          </button>
+        </div>
+        {toast && <Toast msg={toast.msg} error={toast.error} />}
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay — no click-to-close to prevent accidental data loss */}
       <div
         className={`fixed inset-0 z-[90] bg-black/30 transition-opacity ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-        onClick={onClose}
       />
 
       {/* Panel */}
@@ -244,139 +405,7 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-6">
-
-          {/* ข้อมูลพื้นฐาน */}
-          <section>
-            <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ข้อมูลพื้นฐาน</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="ชื่อฟอนต์ (EN)*">
-                <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} />
-              </FormField>
-              <FormField label="ชื่อฟอนต์ (TH)">
-                <input value={nameTh} onChange={(e) => setNameTh(e.target.value)} placeholder="เช่น สุรัตนา" className={inputCls} />
-              </FormField>
-              <FormField label="Slug (URL)*">
-                <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="เช่น suratana" className={inputCls} />
-              </FormField>
-              <FormField label="นักออกแบบ">
-                <input value={designerName} onChange={(e) => setDesignerName(e.target.value)} className={inputCls} />
-              </FormField>
-              <FormField label="หมวดหมู่">
-                <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </FormField>
-              <FormField label="Tags (คั่นด้วย comma)">
-                <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="thai, display, bold" className={inputCls} />
-              </FormField>
-            </div>
-            <div className="grid grid-cols-1 gap-3 mt-3">
-              <FormField label="คำอธิบาย (TH)">
-                <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} rows={2} className={inputCls} placeholder="คำอธิบายภาษาไทย..." />
-              </FormField>
-              <FormField label="คำอธิบาย (EN)">
-                <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={2} className={inputCls} placeholder="English description..." />
-              </FormField>
-            </div>
-          </section>
-
-          {/* ราคาและโปรโมชั่น */}
-          {!isFree && (
-            <section>
-              <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ราคาและโปรโมชั่น</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="ราคาปกติ (฿)">
-                  <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" min="0" className={inputCls} />
-                </FormField>
-                <FormField label="ส่วนลด % (กรอกเพื่อเปิดโปรโมชั่น)">
-                  <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="เช่น 30" min="0" max="100" className={inputCls} />
-                </FormField>
-              </div>
-              {parseInt(discount) > 0 && (
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <FormField label="ข้อความโปรโมชั่น (badge)">
-                    <input value={saleLabel} onChange={(e) => setSaleLabel(e.target.value)} placeholder="เช่น ลด 30%" className={inputCls} />
-                  </FormField>
-                  <FormField label="วันสิ้นสุดโปรโมชั่น">
-                    <input type="date" value={saleEnd} onChange={(e) => setSaleEnd(e.target.value)} className={inputCls} />
-                  </FormField>
-                </div>
-              )}
-            </section>
-          )}
-
-          {/* การแสดงผล */}
-          <section>
-            <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">การแสดงผล</h3>
-            <div className="flex flex-col gap-3">
-              <Toggle label="แสดงบนเว็บ" desc="ปิดเพื่อซ่อนโดยไม่ลบข้อมูล" checked={isActive} onChange={setIsActive} />
-              <Toggle label="ฟอนต์ฟรี" desc="ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน" checked={isFree} onChange={setIsFree} />
-              <Toggle label="อยู่ใน Subscription" desc="รวมอยู่ในแพลนรายเดือน" checked={isSub} onChange={setIsSub} />
-            </div>
-          </section>
-
-          {/* รูปภาพ */}
-          <section>
-            <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">รูปภาพ</h3>
-
-            {/* Cover */}
-            <FormField label="Cover Image* — 1280×720 (16:9)">
-              {coverUrl ? (
-                <div className="relative inline-block">
-                  <img src={coverUrl} alt="cover" className="w-full max-w-[320px] rounded-xl object-cover aspect-video" />
-                  <button onClick={() => { setCoverFile(null); setCoverUrl(""); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white text-[12px] border-none cursor-pointer flex items-center justify-center">✕</button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed border-[#ddd] bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#ccc]"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
-                  <span className="text-[13px] text-[#aaa]">คลิกเพื่อเลือกรูป Cover</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleCoverFile(e.target.files[0])} />
-                </label>
-              )}
-            </FormField>
-
-            {/* Previews */}
-            <FormField label="รูป Preview (เลือกได้หลายรูป — ลากเพื่อเรียงลำดับ)" className="mt-3">
-              <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[13px] text-[#666]">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                เพิ่มรูป Preview
-                <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
-              </label>
-              {previewItems.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {previewItems.map((item, i) => (
-                    <div
-                      key={i}
-                      draggable
-                      onDragStart={() => onDragStart(i)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => onDrop(i)}
-                      className="relative aspect-video rounded-lg overflow-hidden border border-border cursor-grab"
-                    >
-                      <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover" />
-                      <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[10px] border-none cursor-pointer flex items-center justify-center">✕</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </FormField>
-          </section>
-
-          {/* ไฟล์ฟอนต์ */}
-          <section>
-            <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
-            {!isFree && (
-              <>
-                <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
-                <FontFileSection label="Demo Font" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
-              </>
-            )}
-            {isFree && (
-              <FontFileSection label="Free Font*" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
-            )}
-            <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
-          </section>
-
+          {formSections}
         </div>
 
         {/* Footer */}
@@ -400,7 +429,7 @@ export default function FontSlidePanel({ open, onClose, editingFont, onSaved, ow
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = "w-full px-3 py-2 rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+const inputCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
 
 function FormField({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
