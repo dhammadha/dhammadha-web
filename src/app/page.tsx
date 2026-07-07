@@ -169,7 +169,7 @@ export default function HomePage() {
                 >
                   {strip.map((f, i) => (
                     <div key={i} style={{ width: `${100 / strip.length}%`, padding: "0 10px" }}>
-                      <FontCard font={f} compact />
+                      <FontCard font={f} />
                     </div>
                   ))}
                 </div>
