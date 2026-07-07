@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 interface FontOption {
   slug: string;
@@ -19,6 +20,7 @@ let cachedFonts: FontOption[] | null = null;
 
 export default function Nav() {
   const router = useRouter();
+  const { user, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -140,6 +142,31 @@ export default function Nav() {
       </div>
 
       <div className="flex gap-2.5 items-center">
+        {/* Auth button */}
+        {user ? (
+          <div className="hidden md:flex items-center gap-2">
+            <Link
+              href="/account"
+              className="w-8 h-8 rounded-full bg-mint-light border border-mint-mid flex items-center justify-center text-[13px] font-semibold text-mint no-underline hover:bg-mint-mid transition-colors"
+              title={user.email ?? ""}
+            >
+              {(user.email?.[0] ?? "?").toUpperCase()}
+            </Link>
+            <button
+              onClick={() => signOut().then(() => router.push("/"))}
+              className="text-[13px] text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer transition-colors"
+            >
+              ออกจากระบบ
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/auth/login"
+            className="hidden md:inline-flex items-center px-4 py-2 rounded-xl bg-navy text-white text-[13px] font-medium no-underline hover:bg-[#3d2a56] transition-colors"
+          >
+            เข้าสู่ระบบ
+          </Link>
+        )}
         {/* Search box */}
         <div ref={searchRef} className="relative hidden md:block">
           <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-150 bg-[#f8f8f6] ${
@@ -238,6 +265,28 @@ export default function Nav() {
               {item.label}
             </Link>
           ))}
+          {/* Mobile auth */}
+          {user ? (
+            <div className="px-8 py-4 border-b border-[#f0f0f0] flex items-center justify-between">
+              <Link href="/account" className="text-[14px] text-navy no-underline" onClick={() => setMenuOpen(false)}>
+                {user.email}
+              </Link>
+              <button
+                onClick={() => { signOut(); setMenuOpen(false); router.push("/"); }}
+                className="text-[13px] text-[#aaa] bg-transparent border-none cursor-pointer"
+              >
+                ออกจากระบบ
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="px-8 py-4 border-b border-[#f0f0f0] text-[15px] text-mint no-underline font-medium"
+              onClick={() => setMenuOpen(false)}
+            >
+              เข้าสู่ระบบ
+            </Link>
+          )}
           {/* Mobile search */}
           <div className="px-8 py-4 border-b border-[#f0f0f0]">
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#eee] bg-[#f8f8f6]">
