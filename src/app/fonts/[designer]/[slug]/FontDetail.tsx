@@ -66,16 +66,16 @@ export default function FontDetail() {
       setLoading(true);
       try {
         const [{ data: fontRows }, { data: allRows }, { data: settings }] = await Promise.all([
-          supabase.from("fonts").select("*, users!owner_id(designer_slug)").eq("slug", slug).eq("is_active", true).limit(1),
-          supabase.from("fonts").select("*, users!owner_id(designer_slug)").eq("is_active", true),
+          supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).limit(1),
+          supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("is_active", true),
           supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
         ]);
 
         if (!fontRows?.length) { setLoading(false); return; }
 
         // Flatten nested users join into font object
-        type RawFont = { users?: { designer_slug?: string } | null } & Record<string, unknown>;
-        const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.users?.designer_slug ?? undefined });
+        type RawFont = { users?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
+        const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.users?.designer_slug ?? undefined, designer_business_name: r.users?.business_name ?? undefined });
 
         const data = flattenFont(fontRows[0] as unknown as RawFont);
         setFont(data);

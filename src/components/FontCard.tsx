@@ -9,6 +9,7 @@ export interface Font {
   slug?: string;
   designer_slug?: string;
   designer_name?: string;
+  designer_business_name?: string;
   category?: string;
   tags?: string[];
   description_th?: string;
@@ -87,7 +88,14 @@ export default function FontCard({ font }: { font: Font }) {
       <div className="px-3 pt-2.5 pb-3">
         <div className="text-[13px] font-semibold text-navy truncate">{font.name || "—"}</div>
         <div className="text-[11px] text-[#aaa] mt-0.5 mb-1.5 truncate">
-          โดย <span className="text-mint">{font.designer_name || "ธรรมดาสตูดิโอ"}</span>
+          โดย{" "}
+          {font.designer_slug ? (
+            <Link href={`/designer/${font.designer_slug}`} onClick={(e) => e.stopPropagation()} className="text-mint no-underline hover:underline">
+              {font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}
+            </Link>
+          ) : (
+            <span className="text-mint">{font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}</span>
+          )}
         </div>
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-[#aaa]">

@@ -50,12 +50,13 @@ export default function HomePage() {
     setLoading(true);
     supabase
       .from("fonts")
-      .select("*")
+      .select("*, users!owner_id(designer_slug, business_name)")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (error) { console.error("Supabase error:", error); setLoading(false); return; }
-        const active = (data ?? []) as Font[];
+        type RawFont = { users?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
+        const active = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? undefined, designer_business_name: r.users?.business_name ?? undefined, users: undefined })) as unknown as Font[];
         setFonts(active);
         setSliderPool(buildSliderPool(active));
         setLoading(false);

@@ -25,9 +25,9 @@ export default function AdminFontsPage() {
 
   const loadFonts = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("fonts").select("*, users!owner_id(designer_slug)").order("created_at", { ascending: false });
-    type RawRow = { designer_slug?: string | null; users?: { designer_slug?: string } | null } & FontRow;
-    const flat = ((data ?? []) as unknown as RawRow[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? null, users: undefined }));
+    const { data } = await supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").order("created_at", { ascending: false });
+    type RawRow = { designer_slug?: string | null; users?: { designer_slug?: string; business_name?: string } | null } & FontRow;
+    const flat = ((data ?? []) as unknown as RawRow[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? null, designer_business_name: r.users?.business_name ?? null, users: undefined }));
     setFonts(flat as FontRow[]);
     setLoading(false);
   }, []);
