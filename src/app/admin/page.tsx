@@ -20,6 +20,7 @@ export default function AdminFontsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingFont, setEditingFont] = useState<FontRow | null>(null);
   const [toast, setToast] = useState("");
+  const [publishing, setPublishing] = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -57,6 +58,30 @@ export default function AdminFontsPage() {
   const openAdd = () => router.push("/admin/add");
   const openEdit = (f: FontRow) => { setEditingFont(f); setPanelOpen(true); };
 
+  // Fonts that have never been published OR were updated after last publish
+  const pendingFonts = fonts.filter((f) => {
+    if (!f.published_at) return true;
+    if (f.updated_at && new Date(f.updated_at) > new Date(f.published_at)) return true;
+    return false;
+  });
+
+  const handlePublish = async () => {
+    if (!confirm(`Publish ตอนนี้เลยไหม?\n\nจะ deploy เว็บและ mark ฟอนต์ ${pendingFonts.length} ตัวว่า published`)) return;
+    setPublishing(true);
+    try {
+      const hookUrl = process.env.NEXT_PUBLIC_CF_DEPLOY_HOOK;
+      if (!hookUrl) throw new Error("NEXT_PUBLIC_CF_DEPLOY_HOOK not set");
+      await fetch(hookUrl, { method: "POST" });
+      await supabase.from("fonts").update({ published_at: new Date().toISOString() }).eq("owner_id", user?.id ?? "");
+      showToast("กำลัง deploy… หน้าเว็บจะอัปเดตใน ~2 นาที");
+      loadFonts();
+    } catch (e) {
+      showToast("เกิดข้อผิดพลาด: " + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   const stats = [
     { label: "ฟอนต์ทั้งหมด", value: fonts.length },
     { label: "แสดงบนเว็บ", value: fonts.filter((f) => f.is_active).length },
@@ -73,6 +98,29 @@ export default function AdminFontsPage() {
 
   return (
     <div className="p-6 max-w-[1200px]">
+      {/* Publish Banner */}
+      <div className={`mb-5 rounded-2xl border px-5 py-4 flex items-center justify-between gap-4 ${pendingFonts.length > 0 ? "bg-[#fffbf0] border-[#f0c040]" : "bg-[#f5faf9] border-[#c0e8e4]"}`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-2 h-2 rounded-full ${pendingFonts.length > 0 ? "bg-[#f0c040]" : "bg-mint"}`} />
+          <div>
+            {pendingFonts.length > 0 ? (
+              <>
+                <span className="text-[14px] font-semibold text-navy">มีฟอนต์รอ Publish {pendingFonts.length} ตัว</span>
+                <div className="text-[12px] text-[#888] mt-0.5">{pendingFonts.map((f) => f.name).join(", ")}</div>
+              </>
+            ) : (
+              <span className="text-[14px] font-medium text-[#555]">ฟอนต์ทุกตัว Publish แล้ว</span>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={handlePublish}
+          disabled={publishing || pendingFonts.length === 0}
+          className="flex-none px-5 py-2 rounded-xl bg-navy text-white text-[13px] font-semibold border-none cursor-pointer hover:bg-[#1a1a2e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {publishing ? "กำลัง Publish…" : "Publish"}
+        </button>
+      </div>
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {stats.map((s) => (
