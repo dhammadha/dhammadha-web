@@ -37,6 +37,7 @@ export default function AdminSettingsPage() {
   const [bankBranch, setBankBranch] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [bankAccountNo, setBankAccountNo] = useState("");
+  const [savedSlug, setSavedSlug] = useState(""); // slug that's actually saved in DB
 
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
   const showToast = (msg: string, error = false) => { setToast({ msg, error }); setTimeout(() => setToast(null), 3500); };
@@ -79,6 +80,7 @@ export default function AdminSettingsPage() {
       // Auto-fill account name if still empty
       if (!values.bankAccount) values.bankAccount = values.entityType === "individual" ? values.sellerName : values.businessName;
 
+      setSavedSlug(dbValues.designerSlug); // lock based on DB value, not draft
       draft.current = values;
       setEntityType(values.entityType as "individual" | "juristic");
       setBusinessName(values.businessName);
@@ -125,6 +127,7 @@ export default function AdminSettingsPage() {
       await supabase.from("users").update({ designer_slug: designerSlug.toLowerCase().replace(/[^a-z0-9-]/g, "") || null }).eq("id", user.id);
     }
 
+    if (designerSlug) setSavedSlug(designerSlug);
     localStorage.removeItem(DRAFT_KEY);
     showToast("✓ บันทึกข้อมูลผู้ขายเรียบร้อย");
   };
@@ -145,7 +148,7 @@ export default function AdminSettingsPage() {
             <input value={businessName} onChange={(e) => { setBusinessName(e.target.value); saveDraft({ businessName: e.target.value }); }} placeholder="เช่น DHAMMADHA STUDIO" className={iCls} />
           </Field>
           <Field label="Designer Slug (URL)">
-            {designerSlug ? (
+            {savedSlug ? (
               <div>
                 <div className={`${iCls} flex items-center gap-2 cursor-default text-[#888] bg-[#f5f5f2]`}>
                   <span className="text-[#aaa]">/designer/</span>
