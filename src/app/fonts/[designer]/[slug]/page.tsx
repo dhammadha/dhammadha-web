@@ -22,7 +22,8 @@ export async function generateStaticParams() {
   const { data } = await supabase
     .from("fonts")
     .select("slug, users!owner_id(designer_slug)")
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .not("published_at", "is", null);
 
   return (data ?? []).map((f) => {
     const raw = f as { slug: string; users?: { designer_slug?: string } | null };
@@ -40,6 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .select("name, name_th, description_th, cover_image_url")
     .eq("slug", slug)
     .eq("is_active", true)
+    .not("published_at", "is", null)
     .single();
 
   if (!data) return { title: "ฟอนต์ไทย — DHAMMADHA STUDIO" };
@@ -66,6 +68,7 @@ export default async function FontPage({ params }: { params: Promise<{ slug: str
     .select("*, users!owner_id(designer_slug, business_name)")
     .eq("slug", slug)
     .eq("is_active", true)
+    .not("published_at", "is", null)
     .single();
 
   const initialFont = data ? flattenFont(data as RawFont) : null;

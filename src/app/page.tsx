@@ -52,6 +52,7 @@ export default function HomePage() {
       .from("fonts")
       .select("*, users!owner_id(designer_slug, business_name)")
       .eq("is_active", true)
+      .not("published_at", "is", null)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (error) { console.error("Supabase error:", error); setLoading(false); return; }

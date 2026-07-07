@@ -71,11 +71,11 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         // If initialFont was not provided (client-side nav), fetch the font too
         const fontPromise = initialFont
           ? Promise.resolve({ data: null })
-          : supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).limit(1);
+          : supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).not("published_at", "is", null).limit(1);
 
         const [fontResult, { data: allRows }, { data: settings }] = await Promise.all([
           fontPromise,
-          supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("is_active", true),
+          supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("is_active", true).not("published_at", "is", null),
           supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
         ]);
 
