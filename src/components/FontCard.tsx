@@ -7,6 +7,7 @@ export interface Font {
   name?: string;
   name_th?: string;
   slug?: string;
+  designer_slug?: string;
   designer_name?: string;
   category?: string;
   tags?: string[];
@@ -42,7 +43,9 @@ export function isNew(f: Font): boolean {
 }
 
 export default function FontCard({ font }: { font: Font }) {
-  const href = `/fonts/${font.slug || font.id}/`;
+  const href = font.designer_slug
+    ? `/fonts/${font.designer_slug}/${font.slug || font.id}/`
+    : `/fonts/${font.slug || font.id}/`;
   const bgStyle: React.CSSProperties = font.cover_image_url
     ? {
         backgroundImage: `url('${font.cover_image_url}')`,

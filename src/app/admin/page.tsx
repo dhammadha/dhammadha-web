@@ -25,8 +25,10 @@ export default function AdminFontsPage() {
 
   const loadFonts = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("fonts").select("*").order("created_at", { ascending: false });
-    setFonts((data as FontRow[]) ?? []);
+    const { data } = await supabase.from("fonts").select("*, users!owner_id(designer_slug)").order("created_at", { ascending: false });
+    type RawRow = { designer_slug?: string | null; users?: { designer_slug?: string } | null } & FontRow;
+    const flat = ((data ?? []) as unknown as RawRow[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? null, users: undefined }));
+    setFonts(flat as FontRow[]);
     setLoading(false);
   }, []);
 
@@ -119,7 +121,7 @@ export default function AdminFontsPage() {
                   : <div className="w-10 h-[22px] rounded bg-[#eee]" />}
               </div>
               <div>
-                <a href={`/fonts/${f.slug}`} target="_blank" rel="noopener" className="text-[14px] font-semibold text-navy no-underline hover:text-mint">{f.name ?? "—"}</a>
+                <a href={(f as FontRow & { designer_slug?: string }).designer_slug ? `/fonts/${(f as FontRow & { designer_slug?: string }).designer_slug}/${f.slug}` : "#"} target="_blank" rel="noopener" className="text-[14px] font-semibold text-navy no-underline hover:text-mint">{f.name ?? "—"}</a>
                 {f.name_th && <div className="text-[11px] text-[#aaa]">{f.name_th}</div>}
               </div>
               <div className="text-[12px] text-[#888] capitalize">{f.category ?? "—"}</div>

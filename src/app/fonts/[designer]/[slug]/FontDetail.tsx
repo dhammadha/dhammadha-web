@@ -47,28 +47,12 @@ function getFormats(urls: string[]): string {
 
 export default function FontDetail() {
   const params = useParams();
-  // slug starts empty — set from window.location.pathname on mount
-  // (Firebase Hosting rewrites /fonts/[slug] → /fonts/_/, so useParams gives "_")
+  const slug = typeof params?.slug === "string" ? params.slug : "";
   const [font, setFont] = useState<Font | null>(null);
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
   const [licensing, setLicensing] = useState({ small: 3500, large: 7000, extra: 20000 });
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
-
-  const resolvedSlug = (() => {
-    const paramSlug = typeof params?.slug === "string" ? params.slug : "";
-    if (paramSlug && paramSlug !== "_") return paramSlug;
-    if (typeof window !== "undefined") {
-      const parts = window.location.pathname.split("/").filter(Boolean);
-      return parts[parts.length - 1] || "";
-    }
-    return "";
-  })();
-  const [slug, setSlug] = useState(resolvedSlug);
-
-  useEffect(() => {
-    if (resolvedSlug && resolvedSlug !== slug) setSlug(resolvedSlug);
-  }, [resolvedSlug]);
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedWeight, setSelectedWeight] = useState("");
   const [fontSize, setFontSize] = useState("36");
@@ -82,17 +66,21 @@ export default function FontDetail() {
       setLoading(true);
       try {
         const [{ data: fontRows }, { data: allRows }, { data: settings }] = await Promise.all([
-          supabase.from("fonts").select("*").eq("slug", slug).eq("is_active", true).limit(1),
-          supabase.from("fonts").select("*").eq("is_active", true),
+          supabase.from("fonts").select("*, users!owner_id(designer_slug)").eq("slug", slug).eq("is_active", true).limit(1),
+          supabase.from("fonts").select("*, users!owner_id(designer_slug)").eq("is_active", true),
           supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
         ]);
 
         if (!fontRows?.length) { setLoading(false); return; }
 
-        const data = fontRows[0] as Font;
+        // Flatten nested users join into font object
+        type RawFont = { users?: { designer_slug?: string } | null } & Record<string, unknown>;
+        const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.users?.designer_slug ?? undefined });
+
+        const data = flattenFont(fontRows[0] as unknown as RawFont);
         setFont(data);
 
-        const others = ((allRows ?? []) as Font[]).filter((f) => f.slug !== slug);
+        const others = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont).filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
         const files = data.full_font_files?.length ? data.full_font_files : data.free_font_files || [];

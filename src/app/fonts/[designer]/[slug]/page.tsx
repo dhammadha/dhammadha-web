@@ -1,7 +1,7 @@
 import FontDetail from "./FontDetail";
 
 export function generateStaticParams() {
-  return [{ slug: "_" }];
+  return [{ designer: "_", slug: "_" }];
 }
 
 export default function FontPage() {

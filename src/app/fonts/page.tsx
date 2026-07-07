@@ -18,11 +18,15 @@ export default function AllFontsPage() {
     setLoading(true);
     supabase
       .from("fonts")
-      .select("*")
+      .select("*, users!owner_id(designer_slug)")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
-        if (!error) setFonts((data ?? []) as Font[]);
+        if (!error) {
+          type RawFont = { users?: { designer_slug?: string } | null } & Record<string, unknown>;
+          const flat = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? undefined, users: undefined }));
+          setFonts(flat as unknown as Font[]);
+        }
         setLoading(false);
       });
   }, []);
