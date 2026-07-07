@@ -78,7 +78,7 @@ export default function AdminSettingsPage() {
       }
 
       // Auto-fill account name if still empty
-      if (!values.bankAccount) values.bankAccount = values.entityType === "individual" ? values.sellerName : values.businessName;
+      if (!values.bankAccount) values.bankAccount = values.sellerName;
 
       setSavedSlug(dbValues.designerSlug); // lock based on DB value, not draft
       draft.current = values;
@@ -98,7 +98,7 @@ export default function AdminSettingsPage() {
 
   // When user switches entityType, update account name to match
   const handleEntityType = (t: "individual" | "juristic") => {
-    const derived = t === "individual" ? sellerName : businessName;
+    const derived = sellerName;
     setEntityType(t);
     if (derived) setBankAccount(derived);
     saveDraft({ entityType: t, ...(derived ? { bankAccount: derived } : {}) });
