@@ -79,16 +79,18 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
           supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
         ]);
 
+        let currentFont = initialFont ?? null;
         if (!initialFont) {
           const fontRows = (fontResult as { data: unknown[] | null }).data;
           if (!fontRows?.length) { setLoading(false); return; }
-          setFont(flattenFont(fontRows[0] as unknown as RawFont));
+          currentFont = flattenFont(fontRows[0] as unknown as RawFont);
+          setFont(currentFont);
         }
 
         const others = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont).filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
-        const files = data.full_font_files?.length ? data.full_font_files : data.free_font_files || [];
+        const files = currentFont?.full_font_files?.length ? currentFont.full_font_files : currentFont?.free_font_files || [];
         const weights = getUniqueWeights(files);
         if (weights.length) setSelectedWeight(weights[0]);
 
