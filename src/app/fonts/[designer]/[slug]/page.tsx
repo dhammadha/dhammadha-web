@@ -22,8 +22,7 @@ export async function generateStaticParams() {
   const { data } = await supabase
     .from("fonts")
     .select("slug, users!owner_id(designer_slug)")
-    .eq("is_active", true)
-    .not("published_at", "is", null);
+    .eq("is_active", true);
 
   return (data ?? []).map((f) => {
     const raw = f as { slug: string; users?: { designer_slug?: string } | null };
