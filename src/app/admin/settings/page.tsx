@@ -145,7 +145,18 @@ export default function AdminSettingsPage() {
             <input value={businessName} onChange={(e) => { setBusinessName(e.target.value); saveDraft({ businessName: e.target.value }); }} placeholder="เช่น DHAMMADHA STUDIO" className={iCls} />
           </Field>
           <Field label="Designer Slug (URL)">
-            <input value={designerSlug} onChange={(e) => { const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""); setDesignerSlug(v); saveDraft({ designerSlug: v }); }} placeholder="เช่น dhammadha" className={iCls} />
+            {designerSlug ? (
+              <div>
+                <div className={`${iCls} flex items-center gap-2 cursor-default text-[#888] bg-[#f5f5f2]`}>
+                  <span className="text-[#aaa]">/designer/</span>
+                  <span className="font-medium text-navy">{designerSlug}</span>
+                  <span className="ml-auto text-[10px] text-[#bbb] bg-[#eee] px-2 py-0.5 rounded-full">ล็อก</span>
+                </div>
+                <p className="text-[11px] text-[#aaa] mt-1">URL ถูกล็อกหลังตั้งครั้งแรก — ติดต่อ admin เพื่อเปลี่ยน</p>
+              </div>
+            ) : (
+              <input value={designerSlug} onChange={(e) => { const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""); setDesignerSlug(v); saveDraft({ designerSlug: v }); }} placeholder="เช่น dhammadha" className={iCls} />
+            )}
           </Field>
           <Field label={entityType === "individual" ? "ชื่อ-สกุล (เจ้าของ)" : "ชื่อบริษัท (ทางการ)"}>
             <input value={sellerName} onChange={(e) => { setSellerName(e.target.value); saveDraft({ sellerName: e.target.value }); }} className={iCls} />
