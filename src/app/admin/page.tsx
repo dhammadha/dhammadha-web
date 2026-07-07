@@ -71,7 +71,7 @@ export default function AdminFontsPage() {
     try {
       const hookUrl = process.env.NEXT_PUBLIC_CF_DEPLOY_HOOK;
       if (!hookUrl) throw new Error("NEXT_PUBLIC_CF_DEPLOY_HOOK not set");
-      await fetch(hookUrl, { method: "POST" });
+      await fetch(hookUrl, { method: "POST", mode: "no-cors" });
       await supabase.from("fonts").update({ published_at: new Date().toISOString() }).eq("owner_id", user?.id ?? "");
       showToast("กำลัง deploy… หน้าเว็บจะอัปเดตใน ~2 นาที");
       loadFonts();
