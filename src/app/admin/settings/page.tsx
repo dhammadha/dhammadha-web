@@ -160,7 +160,10 @@ export default function AdminSettingsPage() {
                 <p className="text-[11px] text-[#aaa] mt-1">URL ถูกล็อกหลังตั้งครั้งแรก — ติดต่อ admin เพื่อเปลี่ยน</p>
               </div>
             ) : (
-              <input value={designerSlug} onChange={(e) => { const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""); setDesignerSlug(v); saveDraft({ designerSlug: v }); }} placeholder="เช่น dhammadha" className={iCls} />
+              <div>
+                <input value={designerSlug} onChange={(e) => { const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""); setDesignerSlug(v); saveDraft({ designerSlug: v }); }} placeholder="เช่น dhammadha" className={iCls} />
+                <p className="text-[11px] text-amber-600 mt-1">⚠️ ตั้งได้ครั้งเดียว — ไม่สามารถแก้ไขได้หลังบันทึก</p>
+              </div>
             )}
           </Field>
           <Field label={entityType === "individual" ? "ชื่อ-สกุล (เจ้าของ)" : "ชื่อบริษัท (ทางการ)"}>
