@@ -190,7 +190,7 @@ export default function DesignerDetail() {
                     </div>
                   ))}
                 </div>
-                {poolSize > showCount && (
+                {poolSize > 1 && (
                   <>
                     <button onClick={() => move(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">‹</button>
                     <button onClick={() => move(1)} className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">›</button>

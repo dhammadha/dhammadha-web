@@ -266,8 +266,8 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       onClick={() => setSlideIdx(i)}
                       className={`border-none cursor-pointer rounded-full transition-all ${
                         i === slideIdx
-                          ? "w-5 h-[3px] bg-mint"
-                          : "w-[5px] h-[3px] bg-white/30"
+                          ? "w-5 h-[3px] bg-navy"
+                          : "w-[5px] h-[3px] bg-[#ddd]"
                       }`}
                       aria-label={`รูป ${i + 1}`}
                     />

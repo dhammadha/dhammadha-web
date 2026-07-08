@@ -190,7 +190,7 @@ export default function HomePage() {
             <div className="flex gap-1.5 justify-center mt-3.5">
               {Array.from({ length: poolSize }, (_, i) => (
                 <button key={i} onClick={() => { setPos(showCount + i); }}
-                  className={`w-[7px] h-[7px] rounded-full border-none cursor-pointer transition-colors ${i === dotIdx ? "bg-navy" : "bg-[#ddd]"}`}
+                  className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-navy" : "w-[5px] h-[3px] bg-[#ddd]"}`}
                   aria-label={`ตำแหน่ง ${i + 1}`} />
               ))}
             </div>
