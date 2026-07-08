@@ -158,6 +158,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      font_files_private: {
+        Row: {
+          font_id: string;
+          full_font_files: string[] | null;
+          updated_at: string;
+        };
+        Insert: {
+          font_id: string;
+          full_font_files?: string[] | null;
+          updated_at?: string;
+        };
+        Update: {
+          font_id?: string;
+          full_font_files?: string[] | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       quotes: {
         Row: {
           id: string;

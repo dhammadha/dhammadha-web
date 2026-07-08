@@ -91,7 +91,10 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         const others = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont).filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
-        const files = currentFont?.full_font_files?.length ? currentFont.full_font_files : currentFont?.free_font_files || [];
+        // ไฟล์เต็มไม่ public แล้ว — ใช้ demo/free (public) สำหรับ type tester
+        const files = currentFont?.is_free
+          ? currentFont?.free_font_files || []
+          : currentFont?.demo_font_files || [];
         const weights = getUniqueWeights(files);
         if (weights.length) setSelectedWeight(weights[0]);
 
@@ -103,8 +106,8 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
             setPromotion({ discount_percent: (v.discount_percent as number) ?? 0, sale_end: (v.sale_end as string) ?? "", active: !!(v.active) });
           }
         }
-      } catch (e) {
-        console.error(e);
+      } catch {
+        // โหลดข้อมูลเสริมไม่สำเร็จ — หน้าเพจยังแสดงจาก initialFont ได้
       } finally {
         setLoading(false);
       }
@@ -138,22 +141,22 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
-  // Inject @font-face — free fonts use files directly; paid fonts use obfuscated files
+  // Inject @font-face — free fonts use files directly; paid fonts use the
+  // public demo files (ไฟล์เต็มอยู่ใน private bucket ไม่ถูกส่งถึง browser)
   useEffect(() => {
     if (!font?.slug) return;
 
     const isFree = font.is_free === true;
     const previewFiles = isFree
-      ? (font.free_font_files ?? font.full_font_files ?? [])
-      : (font.obfuscated_font_files ?? []);
+      ? (font.free_font_files ?? [])
+      : (font.demo_font_files ?? []);
     if (!previewFiles.length) return;
 
     const family = `preview-${font.slug}`;
     const faces = previewFiles.map((url) => {
       const ext = decodeURIComponent(url.split("?")[0]).split(".").pop()?.toLowerCase() || "woff2";
       const fmt = ext === "otf" ? "opentype" : ext === "ttf" ? "truetype" : ext;
-      const urlForWeight = isFree ? url : url.replace(/-obf\.(ttf|otf)(\?|$)/i, ".$1$2");
-      const w = weightToCss(parseWeight(urlForWeight));
+      const w = weightToCss(parseWeight(url));
       return `@font-face { font-family: "${family}"; font-weight: ${w}; src: url("${url}") format("${fmt}"); font-display: block; }`;
     }).join("\n");
 
@@ -202,14 +205,16 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     );
   }
 
-  const fontFiles = font.full_font_files?.length
-    ? font.full_font_files
-    : font.free_font_files || [];
+  // แสดงข้อมูลจากไฟล์ public (demo/free); จำนวน weight จริงใช้ weight_count
+  // ที่บันทึกไว้ตอนอัปโหลด เพราะไฟล์เต็มไม่ถูกส่งถึง browser แล้ว
+  const fontFiles = font.is_free
+    ? font.free_font_files || []
+    : font.demo_font_files || [];
   const weights = getUniqueWeights(fontFiles);
   const formats = getFormats(fontFiles);
-  const styleCount = fontFiles.filter(
-    (u) => !u.toLowerCase().endsWith(".zip")
-  ).length;
+  const styleCount = font.weight_count
+    || fontFiles.filter((u) => !u.toLowerCase().endsWith(".zip")).length;
+  const weightTotal = font.weight_count || weights.length;
 
   const mainTitle = font.name_th || font.name || "—";
   const subTitle = font.name_th ? font.name : undefined;
@@ -318,11 +323,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                   color: testerInput ? "var(--color-navy, #2B1B3D)" : "#bbb",
                 }}
               >
-                {testerInput
-                  ? ((!font?.is_free && font?.obfuscated_map)
-                      ? [...testerInput].map((ch) => font.obfuscated_map![ch] ?? ch).join("")
-                      : testerInput)
-                  : "พิมพ์ทดสอบได้ที่นี่"}
+                {testerInput || "พิมพ์ทดสอบได้ที่นี่"}
               </div>
               {/* Input layer: same font applied so cursor aligns with display */}
               <textarea
@@ -361,7 +362,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                   <tr>
                     <td className="py-1 text-[#888] w-[45%]">น้ำหนัก</td>
                     <td className="py-1 font-medium text-navy text-right">
-                      {weights.length || "—"}{weights.length ? " weights" : ""}
+                      {weightTotal || "—"}{weightTotal ? " weights" : ""}
                     </td>
                   </tr>
                   <tr>

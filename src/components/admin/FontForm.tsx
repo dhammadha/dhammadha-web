@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { uploadFile, storagePath, type StorageBucket } from "@/lib/storage";
+import { uploadFile, uploadProtectedFile, storagePath, type StorageBucket } from "@/lib/storage";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -101,7 +101,18 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setIsActive(f.is_active); setIsFree(f.is_free); setIsSub(f.is_subscription);
     setCoverFile(null); setCoverUrl(f.cover_image_url ?? "");
     setPreviewItems((f.preview_images ?? []).map((url) => ({ type: "ex", url })));
-    setFullFonts((f.full_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
+    // ไฟล์ฟอนต์เต็มอยู่ในตาราง font_files_private (เก็บเป็น storage path)
+    // อ่านได้เฉพาะเจ้าของ/แอดมินภายใต้ RLS
+    setFullFonts([]);
+    supabase
+      .from("font_files_private")
+      .select("full_font_files")
+      .eq("font_id", f.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const paths = data?.full_font_files ?? [];
+        setFullFonts(paths.map((p) => ({ type: "ex", url: p, name: p.split("/").pop() ?? p })));
+      });
     setDemoFonts((f.demo_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
     setFreeFonts((f.free_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
     setSpecimens((f.specimen_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
@@ -192,7 +203,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     for (const e of entries) {
       if (e.type === "ex") { results.push(e.url); continue; }
       const path = storagePath(slugVal, bucket, e.name);
-      const url = await uploadFile(bucket, path, e.file);
+      // fonts-full เป็น private bucket — เก็บเป็น path, ที่เหลือเป็น public URL
+      const url = bucket === "fonts-full"
+        ? await uploadProtectedFile(bucket, path, e.file)
+        : await uploadFile(bucket, path, e.file);
       results.push(url);
     }
     return results;
@@ -252,7 +266,6 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         is_subscription: isSub,
         cover_image_url: finalCover || null,
         preview_images: finalPreviews.length ? finalPreviews : null,
-        full_font_files: finalFull.length ? finalFull : null,
         demo_font_files: finalDemo.length ? finalDemo : null,
         free_font_files: finalFree.length ? finalFree : null,
         specimen_files: finalSpec.length ? finalSpec : null,
@@ -261,19 +274,31 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         owner_id: ownerId ?? null,
       };
 
+      let fontId: string | null = editingFont?.id ?? null;
       if (isAdmin) {
         // Use SECURITY DEFINER RPC to bypass RLS for admin operations
-        const { error } = await supabase.rpc("admin_upsert_font", {
+        const { data, error } = await supabase.rpc("admin_upsert_font", {
           p_id: editingFont?.id ?? null,
           p_data: payload,
         });
         if (error) throw error;
+        fontId = (data as { id?: string } | null)?.id ?? fontId;
       } else if (editingFont) {
         const { error } = await supabase.from("fonts").update(payload as Database["public"]["Tables"]["fonts"]["Update"]).eq("id", editingFont.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("fonts").insert(payload as Database["public"]["Tables"]["fonts"]["Insert"]);
+        const { data, error } = await supabase.from("fonts").insert(payload as Database["public"]["Tables"]["fonts"]["Insert"]).select("id").single();
         if (error) throw error;
+        fontId = (data as { id: string } | null)?.id ?? null;
+      }
+
+      // ไฟล์ฟอนต์เต็ม (storage paths) เก็บแยกในตาราง RLS เฉพาะเจ้าของ/แอดมิน
+      if (fontId) {
+        const { error: filesError } = await supabase.from("font_files_private").upsert({
+          font_id: fontId,
+          full_font_files: finalFull.length ? finalFull : null,
+        });
+        if (filesError) throw new Error("[Full font files] " + filesError.message);
       }
       showToast(editingFont ? "✓ อัปเดตฟอนต์เรียบร้อย" : "✓ เพิ่มฟอนต์เรียบร้อย");
       if (!editingFont) localStorage.removeItem(DRAFT_KEY);
