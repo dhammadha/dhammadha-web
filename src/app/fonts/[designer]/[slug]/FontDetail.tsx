@@ -223,7 +223,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
           {/* IMAGE SLIDER */}
           <div
             className="relative bg-navy rounded-xl overflow-hidden mb-6"
-            style={{ aspectRatio: "16/7" }}
+            style={{ aspectRatio: "16/9" }}
           >
             {images.length > 0 ? (
               <img
