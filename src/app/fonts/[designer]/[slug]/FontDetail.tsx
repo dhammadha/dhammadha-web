@@ -377,8 +377,14 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                   </tr>
                   <tr>
                     <td className="py-1 text-[#888]">ผู้ออกแบบ</td>
-                    <td className="py-1 font-medium text-navy text-right">
-                      {font.designer_name || "ธรรมดาสตูดิโอ"}
+                    <td className="py-1 font-medium text-right">
+                      {font.designer_slug ? (
+                        <Link href={`/designer/${font.designer_slug}`} className="text-mint no-underline hover:underline">
+                          {font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}
+                        </Link>
+                      ) : (
+                        <span className="text-navy">{font.designer_name || "ธรรมดาสตูดิโอ"}</span>
+                      )}
                     </td>
                   </tr>
                 </tbody>

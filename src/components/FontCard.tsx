@@ -92,7 +92,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
           {font.designer_slug ? (
             <span
               role="link"
-              onClick={(e) => { e.preventDefault(); window.location.href = `/designer/${font.designer_slug}`; }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/designer/${font.designer_slug}`; }}
               className="text-mint cursor-pointer hover:underline"
             >
               {font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}

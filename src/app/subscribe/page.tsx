@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
@@ -48,6 +49,7 @@ const features = [
 ];
 
 export default function SubscribePage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [note, setNote] = useState({ text: "กรอกอีเมลเพื่อรับการแจ้งเตือนเมื่อเปิดให้บริการ", color: "#aaa" });
 
@@ -104,15 +106,12 @@ export default function SubscribePage() {
             ))}
           </div>
 
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-1.5 text-[13px] text-[#888] no-underline mt-8 hover:text-navy transition-colors"
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center justify-center gap-1.5 text-[13px] text-[#888] bg-transparent border-none cursor-pointer mt-8 hover:text-navy transition-colors"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            กลับหน้าแรก
-          </Link>
+            ← ย้อนกลับ
+          </button>
         </div>
       </div>
       <Footer />

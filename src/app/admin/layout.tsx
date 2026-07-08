@@ -66,7 +66,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isActive = (href: string) =>
     href === "/admin" ? p === "/admin" : p === href || p.startsWith(href + "/");
 
-  const NAV: { href: string; label: string; icon: React.ReactNode; badge?: number }[] = [
+  const MAIN_NAV: { href: string; label: string; icon: React.ReactNode; badge?: number }[] = [
     {
       href: "/admin/add",
       label: "เพิ่มฟอนต์",
@@ -82,12 +82,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: "ใบเสนอราคา",
       badge: pendingQuotes,
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-    },
-    {
-      href: "/admin/designers",
-      label: "Designers",
-      badge: pendingDesigners,
-      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 13c0-2.485 2.015-4 4.5-4s4.5 1.515 4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 7.5l1.5 1.5L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     },
     {
       href: "/admin/pricing",
@@ -106,6 +100,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
   ];
 
+  const DESIGNERS_NAV = {
+    href: "/admin/designers",
+    label: "Designers",
+    badge: pendingDesigners,
+    icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 13c0-2.485 2.015-4 4.5-4s4.5 1.515 4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 7.5l1.5 1.5L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  };
+
   return (
     <div className="flex min-h-screen bg-bg">
       {/* Sidebar desktop */}
@@ -115,9 +116,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span className="text-[10px] text-[#aaa] tracking-[0.06em]">ADMIN PANEL</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
-          {NAV.map((item) => (
+          {MAIN_NAV.map((item) => (
             <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
           ))}
+          <div className="h-[0.5px] bg-border my-2" />
+          <NavItem {...DESIGNERS_NAV} isActive={isActive(DESIGNERS_NAV.href)} />
         </nav>
         <div className="p-3 border-t border-border flex flex-col gap-1">
           <Link href="/" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] no-underline transition-colors text-[#666] hover:bg-[#f5f5f2] hover:text-navy`}>
@@ -156,9 +159,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="text-[13px] font-semibold text-navy tracking-[0.05em]">DHAMMADHA ADMIN</span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
-              {NAV.map((item) => (
+              {MAIN_NAV.map((item) => (
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
+              <div className="h-[0.5px] bg-border my-2" />
+              <NavItem {...DESIGNERS_NAV} isActive={isActive(DESIGNERS_NAV.href)} onClick={() => setMenuOpen(false)} />
             </nav>
             <div className="p-3 border-t border-border flex flex-col gap-1">
               <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] no-underline transition-colors text-[#666] hover:bg-[#f5f5f2] hover:text-navy" onClick={() => setMenuOpen(false)}>

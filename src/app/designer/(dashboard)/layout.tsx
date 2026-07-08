@@ -33,6 +33,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingQuotes, setPendingQuotes] = useState(0);
+  const [designerSlug, setDesignerSlug] = useState("");
 
   const loadPending = useCallback(async () => {
     if (!user) return;
@@ -51,7 +52,17 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
   }, [loading, user, role, router]);
 
   useEffect(() => {
-    if (user && (role === "designer" || role === "admin")) loadPending();
+    if (user && (role === "designer" || role === "admin")) {
+      loadPending();
+      supabase
+        .from("users")
+        .select("designer_slug")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.designer_slug) setDesignerSlug(data.designer_slug);
+        });
+    }
   }, [user, role, loadPending]);
 
   if (loading || !user || (role !== "designer" && role !== "admin")) {
@@ -90,7 +101,9 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
       {/* Sidebar desktop */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-white border-r border-border sticky top-0 h-screen">
         <div className="px-5 py-5 border-b border-border">
-          <span className="text-[13px] font-semibold text-navy tracking-[0.05em] block">DHAMMADHA</span>
+          <span className="text-[13px] font-semibold text-navy tracking-[0.05em] block">
+            {designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}
+          </span>
           <span className="text-[10px] text-[#aaa] tracking-[0.06em]">DESIGNER</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
@@ -123,7 +136,9 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-border flex items-center justify-between px-4 py-3">
-        <span className="text-[13px] font-semibold text-navy tracking-[0.05em]">DESIGNER</span>
+        <span className="text-[13px] font-semibold text-navy tracking-[0.05em]">
+          {designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}
+        </span>
         <button onClick={() => setMenuOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-1 text-navy">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -136,7 +151,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
         <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setMenuOpen(false)}>
           <div className="w-[220px] bg-white h-full flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-5 border-b border-border">
-              <span className="text-[13px] font-semibold text-navy">DESIGNER</span>
+              <span className="text-[13px] font-semibold text-navy">{designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}</span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
               {NAV.map((item) => (

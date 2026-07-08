@@ -125,9 +125,10 @@ export default function AdminDesignersPage() {
               <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>สถานะ</div>
             </div>
           )}
+
           {tab === "designers" && (
-            <div className="grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
-              <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>Role</div>
+            <div className="grid grid-cols-[100px_1fr_1fr_120px_80px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+              <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>ลิงก์</div><div>Role</div>
             </div>
           )}
 
@@ -141,13 +142,30 @@ export default function AdminDesignersPage() {
             <div
               key={u.id}
               onClick={() => setSelected(selected?.id === u.id ? null : u)}
-              className={`grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 cursor-pointer transition-colors items-center ${
-                selected?.id === u.id ? "bg-mint-light" : "hover:bg-[#fafaf8]"
-              }`}
+              className={`grid gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 cursor-pointer transition-colors items-center ${
+                tab === "designers" ? "grid-cols-[100px_1fr_1fr_120px_80px]" : "grid-cols-[100px_1fr_1.5fr_80px]"
+              } ${selected?.id === u.id ? "bg-mint-light" : "hover:bg-[#fafaf8]"}`}
             >
               <div className="text-[12px] text-[#888]">{fmtDate(u.created_at)}</div>
               <div className="text-[13px] text-navy font-medium truncate">{u.name ?? "—"}</div>
               <div className="text-[13px] text-[#555] truncate">{u.email ?? "—"}</div>
+              {tab === "designers" && (
+                <div>
+                  {u.designer_slug ? (
+                    <a
+                      href={`/designer/${u.designer_slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[12px] text-mint no-underline hover:underline truncate block"
+                    >
+                      {u.designer_slug}
+                    </a>
+                  ) : (
+                    <span className="text-[12px] text-[#ccc]">—</span>
+                  )}
+                </div>
+              )}
               <div>
                 {tab === "applications" ? (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">รอพิจารณา</span>

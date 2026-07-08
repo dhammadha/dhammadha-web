@@ -112,7 +112,6 @@ export default function DesignerPricingPage() {
         )}
       </div>
 
-      {/* Toggle */}
       <div className="bg-white rounded-2xl border border-border p-5 mb-4">
         <label className="flex items-start gap-3 cursor-pointer">
           <input
@@ -133,7 +132,6 @@ export default function DesignerPricingPage() {
         </label>
       </div>
 
-      {/* Tiers editor */}
       {!useDefault && (
         <>
           <div className="bg-white rounded-2xl border border-border p-5 mb-4">
@@ -189,7 +187,6 @@ export default function DesignerPricingPage() {
             )}
           </div>
 
-          {/* PDF upload */}
           <div className="bg-white rounded-2xl border border-border p-5 mb-4">
             <h2 className="text-[14px] font-semibold text-navy mb-1">ไฟล์สัญญาอนุญาต (PDF)</h2>
             <p className="text-[12px] text-[#aaa] mb-4 leading-[1.6]">
@@ -229,7 +226,6 @@ export default function DesignerPricingPage() {
         </>
       )}
 
-      {/* Default preview */}
       {useDefault && (
         <div className="bg-white rounded-2xl border border-border p-5 mb-4">
           <h2 className="text-[14px] font-semibold text-navy mb-3">สิทธิ default ของเว็บ</h2>
