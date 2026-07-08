@@ -7,6 +7,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
 import { supabase } from "@/lib/supabase";
+import PdfLightbox from "@/components/PdfLightbox";
 
 const SLIDER_SIZE = 5;
 const MAX_VISIBLE = 3;
@@ -34,6 +35,8 @@ export default function DesignerDetail() {
   const [fonts, setFonts] = useState<Font[]>([]);
   const [sliderPool, setSliderPool] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
+  const [licenseConfig, setLicenseConfig] = useState<{ use_default: boolean; license_pdf_url: string | null } | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   const poolSize = sliderPool.length;
   const showCount = Math.min(poolSize, MAX_VISIBLE);
@@ -55,6 +58,13 @@ export default function DesignerDetail() {
 
       if (!userData) { setLoading(false); return; }
       setDesignerName(userData.business_name || userData.name || designerSlug);
+
+      const { data: licenseData } = await supabase
+        .from("designer_license_config")
+        .select("use_default, license_pdf_url")
+        .eq("designer_id", userData.id)
+        .single();
+      setLicenseConfig(licenseData ?? null);
 
       const { data: fontData } = await supabase
         .from("fonts")
@@ -144,7 +154,21 @@ export default function DesignerDetail() {
               {" / "}นักออกแบบ
             </p>
             <h1 className="text-[32px] font-semibold text-navy">{designerName}</h1>
-            <p className="text-[13px] text-[#aaa] mt-1">{fonts.length} ฟอนต์</p>
+            <div className="flex items-center gap-4 mt-1">
+              <p className="text-[13px] text-[#aaa]">{fonts.length} ฟอนต์</p>
+              {licenseConfig && !licenseConfig.use_default && licenseConfig.license_pdf_url ? (
+                <button
+                  onClick={() => setPdfOpen(true)}
+                  className="text-[13px] text-mint bg-transparent border-none cursor-pointer p-0 hover:underline"
+                >
+                  สัญญาอนุญาต →
+                </button>
+              ) : (
+                <Link href="/agreement/" className="text-[13px] text-mint no-underline hover:underline">
+                  สัญญาอนุญาต →
+                </Link>
+              )}
+            </div>
           </div>
 
           {sliderPool.length > 0 && (
@@ -192,6 +216,13 @@ export default function DesignerDetail() {
         </div>
       </div>
       <Footer />
+      {licenseConfig?.license_pdf_url && (
+        <PdfLightbox
+          open={pdfOpen}
+          url={licenseConfig.license_pdf_url}
+          onClose={() => setPdfOpen(false)}
+        />
+      )}
     </>
   );
 }

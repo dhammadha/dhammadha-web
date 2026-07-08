@@ -112,7 +112,7 @@ export default function AdminFontsPage() {
         <button
           onClick={handlePublish}
           disabled={publishing || pendingFonts.length === 0}
-          className="flex-none px-5 py-2 rounded-xl bg-navy text-white text-[13px] font-semibold border-none cursor-pointer hover:bg-[#1a1a2e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-none px-5 py-2 rounded-xl bg-mint text-white text-[13px] font-semibold border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {publishing ? "กำลัง Publish…" : "Publish"}
         </button>
@@ -134,7 +134,7 @@ export default function AdminFontsPage() {
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-colors border-none cursor-pointer ${tab === t.key ? "bg-navy text-white" : "text-[#888] bg-transparent hover:bg-[#f5f5f2]"}`}
+              className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-colors border-none cursor-pointer ${tab === t.key ? "bg-mint text-white" : "text-[#888] bg-transparent hover:bg-[#f5f5f2]"}`}
             >
               {t.label}
             </button>

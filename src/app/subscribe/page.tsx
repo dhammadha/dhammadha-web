@@ -87,7 +87,7 @@ export default function SubscribePage() {
             />
             <button
               onClick={submit}
-              className="px-[22px] py-3 bg-navy text-white border-none rounded-[9px] text-[14px] font-medium cursor-pointer whitespace-nowrap hover:bg-mint transition-colors"
+              className="px-[22px] py-3 bg-mint text-white border-none rounded-[9px] text-[14px] font-medium cursor-pointer whitespace-nowrap hover:bg-navy transition-colors"
             >
               แจ้งเตือนฉัน
             </button>

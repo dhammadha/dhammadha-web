@@ -140,7 +140,7 @@ export default function AdminSettingsPage() {
         <div className="flex gap-2 mb-4">
           {(["individual", "juristic"] as const).map((t) => (
             <button key={t} onClick={() => handleEntityType(t)}
-              className={`px-4 py-2 rounded-xl text-[13px] font-medium border cursor-pointer transition-colors ${entityType === t ? "bg-navy text-white border-navy" : "bg-white text-[#666] border-border hover:bg-[#f5f5f2]"}`}>
+              className={`px-4 py-2 rounded-xl text-[13px] font-medium border cursor-pointer transition-colors ${entityType === t ? "bg-mint text-white border-mint" : "bg-white text-[#666] border-border hover:bg-[#f5f5f2]"}`}>
               {t === "individual" ? "บุคคลธรรมดา" : "นิติบุคคล"}
             </button>
           ))}

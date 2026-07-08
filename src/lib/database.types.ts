@@ -131,6 +131,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      designer_license_config: {
+        Row: {
+          id: string;
+          designer_id: string;
+          use_default: boolean;
+          license_pdf_url: string | null;
+          tiers: Json | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          designer_id: string;
+          use_default?: boolean;
+          license_pdf_url?: string | null;
+          tiers?: Json | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          designer_id?: string;
+          use_default?: boolean;
+          license_pdf_url?: string | null;
+          tiers?: Json | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       quotes: {
         Row: {
           id: string;
@@ -142,6 +169,7 @@ export interface Database {
           license_type: string;
           fonts: string[];
           note: string | null;
+          designer_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -154,6 +182,7 @@ export interface Database {
           license_type: string;
           fonts: string[];
           note?: string | null;
+          designer_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -166,6 +195,7 @@ export interface Database {
           license_type?: string;
           fonts?: string[];
           note?: string | null;
+          designer_id?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -187,6 +217,8 @@ export interface Database {
           is_active: boolean;
           revenue_share_percent: number | null;
           payout_method: string | null;
+          portfolio_url: string | null;
+          designer_application_status: 'pending' | 'approved' | 'rejected' | null;
           created_at: string;
           updated_at: string;
         };
@@ -206,6 +238,8 @@ export interface Database {
           is_active?: boolean;
           revenue_share_percent?: number | null;
           payout_method?: string | null;
+          portfolio_url?: string | null;
+          designer_application_status?: 'pending' | 'approved' | 'rejected' | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -225,6 +259,8 @@ export interface Database {
           is_active?: boolean;
           revenue_share_percent?: number | null;
           payout_method?: string | null;
+          portfolio_url?: string | null;
+          designer_application_status?: 'pending' | 'approved' | 'rejected' | null;
           created_at?: string;
           updated_at?: string;
         };

@@ -90,9 +90,13 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         <div className="text-[11px] text-[#aaa] mt-0.5 mb-1.5 truncate">
           โดย{" "}
           {font.designer_slug ? (
-            <Link href={`/designer/${font.designer_slug}`} onClick={(e) => e.stopPropagation()} className="text-mint no-underline hover:underline">
+            <span
+              role="link"
+              onClick={(e) => { e.preventDefault(); window.location.href = `/designer/${font.designer_slug}`; }}
+              className="text-mint cursor-pointer hover:underline"
+            >
               {font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}
-            </Link>
+            </span>
           ) : (
             <span className="text-mint">{font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}</span>
           )}

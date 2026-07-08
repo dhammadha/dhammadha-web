@@ -69,7 +69,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 py-2.5 rounded-xl bg-mint text-white font-semibold text-[15px] border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="mt-2 py-2.5 rounded-xl bg-mint text-white font-semibold text-[15px] border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
             </button>
@@ -84,9 +84,13 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-[13px] text-[#aaa] mt-5">
-          <Link href="/" className="text-[#aaa] no-underline hover:text-navy transition-colors">
-            ← กลับหน้าแรก
-          </Link>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="text-[#aaa] bg-transparent border-none cursor-pointer hover:text-navy transition-colors p-0 text-[13px] font-[inherit]"
+          >
+            ← ย้อนกลับ
+          </button>
         </p>
       </div>
     </div>

@@ -187,7 +187,7 @@ export default function Nav() {
         ) : (
           <Link
             href="/auth/login"
-            className="hidden md:inline-flex items-center px-4 py-2 rounded-xl bg-navy text-white text-[13px] font-medium no-underline hover:bg-[#3d2a56] transition-colors"
+            className="hidden md:inline-flex items-center px-4 py-2 rounded-xl bg-mint text-white text-[13px] font-medium no-underline hover:bg-navy transition-colors"
           >
             เข้าสู่ระบบ
           </Link>

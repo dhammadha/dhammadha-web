@@ -7,11 +7,25 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import emailjs from "@emailjs/browser";
+import PdfLightbox from "@/components/PdfLightbox";
 
 interface FontItem {
   id: string;
   name: string;
   slug: string;
+}
+
+interface DesignerInfo {
+  id: string;
+  email: string | null;
+  name: string | null;
+  business_name: string | null;
+}
+
+interface LicenseConfig {
+  use_default: boolean;
+  license_pdf_url: string | null;
+  tiers: { name: string; price: number }[] | null;
 }
 
 const LICENSE_TYPES = [
@@ -53,28 +67,61 @@ export default function QuotePage() {
 function QuoteForm() {
   const searchParams = useSearchParams();
   const preselectedFont = searchParams.get("font") ?? "";
+  const designerSlug = searchParams.get("designer_slug") ?? "";
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [fonts, setFonts] = useState<FontItem[]>([]);
+  const [designer, setDesigner] = useState<DesignerInfo | null>(null);
+  const [licenseConfig, setLicenseConfig] = useState<LicenseConfig | null>(null);
   const [selectedFonts, setSelectedFonts] = useState<string[]>([preselectedFont || ""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   useEffect(() => {
-    supabase
-      .from("fonts")
-      .select("id, name, slug")
-      .eq("is_active", true)
-      .order("name")
-      .then(({ data }) => {
-        const list = (data ?? []) as FontItem[];
-        setFonts(list);
-        if (preselectedFont) {
-          const match = list.find((f) => f.slug === preselectedFont || f.id === preselectedFont);
-          if (match) setSelectedFonts([match.id]);
-        }
-      });
-  }, [preselectedFont]);
+    async function load() {
+      let designerInfo: DesignerInfo | null = null;
+
+      if (designerSlug) {
+        const { data: dData } = await supabase
+          .from("users")
+          .select("id, email, name, business_name")
+          .eq("designer_slug", designerSlug)
+          .single();
+        if (dData) designerInfo = dData as DesignerInfo;
+
+        const { data: licData } = await supabase
+          .from("designer_license_config")
+          .select("use_default, license_pdf_url, tiers")
+          .eq("designer_id", dData!.id)
+          .single();
+        setLicenseConfig(licData as LicenseConfig ?? null);
+      }
+      setDesigner(designerInfo);
+
+      let query = supabase
+        .from("fonts")
+        .select("id, name, slug")
+        .eq("is_active", true)
+        .order("name");
+
+      if (designerInfo) {
+        query = query.eq("owner_id", designerInfo.id);
+      } else {
+        query = query.not("published_at", "is", null);
+      }
+
+      const { data } = await query;
+      const list = (data ?? []) as FontItem[];
+      setFonts(list);
+
+      if (preselectedFont) {
+        const match = list.find((f) => f.slug === preselectedFont || f.id === preselectedFont);
+        if (match) setSelectedFonts([match.id]);
+      }
+    }
+    load();
+  }, [preselectedFont, designerSlug]);
 
   function set(key: keyof typeof EMPTY_FORM, val: string) {
     setForm((f) => ({ ...f, [key]: val }));
@@ -122,9 +169,14 @@ function QuoteForm() {
         (id) => fonts.find((f) => f.id === id)?.name ?? id
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from("quotes") as any).insert({ ...form, fonts: fontNames });
+      await (supabase.from("quotes") as any).insert({
+        ...form,
+        fonts: fontNames,
+        designer_id: designer?.id ?? null,
+      });
 
       const licenseLabel = LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
+      const designerLabel = designer?.business_name ?? designer?.name ?? "DHAMMADHA STUDIO";
       const emailPayload = {
         contact_name: form.contact_name,
         company_name: form.company_name,
@@ -134,14 +186,18 @@ function QuoteForm() {
         license_type: licenseLabel,
         fonts: fontNames.join(", "),
         note: form.note || "—",
+        designer_name: designerLabel,
+        designer_email: designer?.email ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "",
       };
       await Promise.all([
+        // แจ้ง designer (หรือ admin ถ้าไม่มี designer)
         emailjs.send(
           process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
           process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
           emailPayload,
           process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!,
         ),
+        // ยืนยันหาลูกค้า
         emailjs.send(
           process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
           "template_yuu8pzf",
@@ -178,7 +234,7 @@ function QuoteForm() {
             </p>
             <Link
               href="/"
-              className="px-5 py-2.5 bg-navy text-white rounded-[7px] text-[14px] font-medium no-underline hover:bg-mint transition-colors inline-block"
+              className="px-5 py-2.5 bg-mint text-white rounded-[7px] text-[14px] font-medium no-underline hover:bg-navy transition-colors inline-block"
             >
               กลับหน้าแรก
             </Link>
@@ -196,7 +252,16 @@ function QuoteForm() {
         <div className="max-w-[680px] mx-auto px-8 py-12">
           <div className="mb-8">
             <h1 className="text-[28px] font-semibold text-navy mb-1">ขอใบเสนอราคา</h1>
-            <p className="text-[13px] text-[#aaa]">สำหรับสิทธิการใช้งานองค์กรและสิทธิพิเศษ</p>
+            {designer ? (
+              <p className="text-[13px] text-[#aaa]">
+                ฟอนต์โดย{" "}
+                <span className="text-navy font-medium">
+                  {designer.business_name ?? designer.name}
+                </span>
+              </p>
+            ) : (
+              <p className="text-[13px] text-[#aaa]">สำหรับสิทธิการใช้งานองค์กรและสิทธิพิเศษ</p>
+            )}
           </div>
 
           {/* Discount Info */}
@@ -288,29 +353,76 @@ function QuoteForm() {
               <h2 className="text-[14px] font-semibold text-navy">
                 รูปแบบสิทธิการใช้งานที่ต้องการ <span className="text-[#e74c3c]">*</span>
               </h2>
-              {LICENSE_TYPES.map((lt) => (
-                <label
-                  key={lt.value}
-                  className={`flex items-start gap-3 p-3.5 rounded-[9px] border border-[0.5px] cursor-pointer transition-colors ${
-                    form.license_type === lt.value
-                      ? "border-mint bg-mint-light"
-                      : "border-border hover:border-[#bbb]"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="license_type"
-                    value={lt.value}
-                    checked={form.license_type === lt.value}
-                    onChange={() => set("license_type", lt.value)}
-                    className="mt-0.5 accent-[#0a8a84]"
-                  />
-                  <div>
-                    <div className="text-[13px] font-medium text-navy">{lt.label}</div>
-                    <div className="text-[12px] text-[#888] mt-0.5">{lt.desc}</div>
-                  </div>
-                </label>
-              ))}
+
+              {/* custom tiers ของ designer */}
+              {licenseConfig && !licenseConfig.use_default && licenseConfig.tiers ? (
+                licenseConfig.tiers.map((tier, i) => {
+                  const val = `custom_${i}`;
+                  return (
+                    <label
+                      key={i}
+                      className={`flex items-start gap-3 p-3.5 rounded-[9px] border border-[0.5px] cursor-pointer transition-colors ${
+                        form.license_type === val ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="license_type"
+                        value={val}
+                        checked={form.license_type === val}
+                        onChange={() => set("license_type", val)}
+                        className="mt-0.5 accent-[#0a8a84]"
+                      />
+                      <div className="flex-1 flex items-center justify-between">
+                        <div className="text-[13px] font-medium text-navy">{tier.name}</div>
+                        <div className="text-[13px] font-semibold text-navy ml-3 shrink-0">
+                          ฿{tier.price.toLocaleString()}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })
+              ) : (
+                LICENSE_TYPES.map((lt) => (
+                  <label
+                    key={lt.value}
+                    className={`flex items-start gap-3 p-3.5 rounded-[9px] border border-[0.5px] cursor-pointer transition-colors ${
+                      form.license_type === lt.value ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="license_type"
+                      value={lt.value}
+                      checked={form.license_type === lt.value}
+                      onChange={() => set("license_type", lt.value)}
+                      className="mt-0.5 accent-[#0a8a84]"
+                    />
+                    <div>
+                      <div className="text-[13px] font-medium text-navy">{lt.label}</div>
+                      <div className="text-[12px] text-[#888] mt-0.5">{lt.desc}</div>
+                    </div>
+                  </label>
+                ))
+              )}
+
+              {/* link สัญญาอนุญาต */}
+              <p className="text-[12px] text-[#aaa] mt-1">
+                รายละเอียด{" "}
+                {licenseConfig && !licenseConfig.use_default && licenseConfig.license_pdf_url ? (
+                  <button
+                    type="button"
+                    onClick={() => setPdfOpen(true)}
+                    className="text-mint bg-transparent border-none cursor-pointer p-0 text-[12px] font-[inherit] hover:underline"
+                  >
+                    สัญญาอนุญาต
+                  </button>
+                ) : (
+                  <Link href="/agreement/" target="_blank" className="text-mint no-underline hover:underline">
+                    สัญญาอนุญาต
+                  </Link>
+                )}
+              </p>
             </div>
 
             {/* Font Selection */}
@@ -386,7 +498,7 @@ function QuoteForm() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="px-6 py-3 bg-navy text-white rounded-[8px] text-[14px] font-medium border-none cursor-pointer hover:bg-mint transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-mint text-white rounded-[8px] text-[14px] font-medium border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === "loading" ? "กำลังส่ง..." : "ส่งคำขอใบเสนอราคา"}
               </button>
@@ -395,6 +507,13 @@ function QuoteForm() {
         </div>
       </div>
       <Footer />
+      {licenseConfig?.license_pdf_url && (
+        <PdfLightbox
+          open={pdfOpen}
+          url={licenseConfig.license_pdf_url}
+          onClose={() => setPdfOpen(false)}
+        />
+      )}
     </>
   );
 }
