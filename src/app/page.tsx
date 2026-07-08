@@ -55,7 +55,7 @@ export default function HomePage() {
       .not("published_at", "is", null)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
-        if (error) { console.error("Supabase error:", error); setLoading(false); return; }
+        if (error) { setLoading(false); return; }
         type RawFont = { users?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
         const active = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? undefined, designer_business_name: r.users?.business_name ?? undefined, users: undefined })) as unknown as Font[];
         setFonts(active);

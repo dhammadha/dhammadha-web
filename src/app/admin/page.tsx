@@ -27,7 +27,12 @@ export default function AdminFontsPage() {
 
   const loadFonts = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").order("created_at", { ascending: false });
+    if (error) {
+      showToast("โหลดรายการฟอนต์ไม่สำเร็จ: " + error.message);
+      setLoading(false);
+      return;
+    }
     type RawRow = { designer_slug?: string | null; users?: { designer_slug?: string; business_name?: string } | null } & FontRow;
     const flat = ((data ?? []) as unknown as RawRow[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? null, designer_business_name: r.users?.business_name ?? null, users: undefined }));
     setFonts(flat as FontRow[]);
@@ -44,15 +49,15 @@ export default function AdminFontsPage() {
   });
 
   const toggleActive = async (f: FontRow) => {
-    await supabase.from("fonts").update({ is_active: !f.is_active }).eq("id", f.id);
-    showToast(f.is_active ? "ซ่อนฟอนต์แล้ว" : "แสดงฟอนต์แล้ว");
+    const { error } = await supabase.from("fonts").update({ is_active: !f.is_active }).eq("id", f.id);
+    showToast(error ? "เกิดข้อผิดพลาด: " + error.message : f.is_active ? "ซ่อนฟอนต์แล้ว" : "แสดงฟอนต์แล้ว");
     loadFonts();
   };
 
   const deleteFont = async (f: FontRow) => {
     if (!confirm(`ลบฟอนต์ "${f.name}"?\n(ไม่สามารถกู้คืนได้)`)) return;
-    await supabase.from("fonts").delete().eq("id", f.id);
-    showToast("ลบเรียบร้อย");
+    const { error } = await supabase.from("fonts").delete().eq("id", f.id);
+    showToast(error ? "ลบไม่สำเร็จ: " + error.message : "ลบเรียบร้อย");
     loadFonts();
   };
 

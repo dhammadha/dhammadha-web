@@ -21,7 +21,7 @@ let cachedFonts: FontOption[] | null = null;
 
 export default function Nav() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -156,8 +156,10 @@ export default function Nav() {
       </div>
 
       <div className="flex gap-2.5 items-center">
-        {/* Auth button */}
-        {user ? (
+        {/* Auth button — ระหว่างเช็ค session แสดง placeholder กันปุ่มกระพริบ */}
+        {authLoading ? (
+          <div className="hidden md:block w-8 h-8 rounded-full bg-[#f5f5f2]" aria-hidden />
+        ) : user ? (
           <div ref={userMenuRef} className="hidden md:block relative">
             <button
               onClick={() => setUserMenuOpen((v) => !v)}
@@ -289,7 +291,7 @@ export default function Nav() {
             </Link>
           ))}
           {/* Mobile auth */}
-          {user ? (
+          {authLoading ? null : user ? (
             <>
               <Link href="/account" className="px-8 py-4 border-b border-[#f0f0f0] text-[14px] text-navy no-underline block" onClick={() => setMenuOpen(false)}>
                 เข้าหน้าโปรไฟล์

@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /designer/quotes/
+Disallow: /designer/pricing/
+Disallow: /account/
+Disallow: /auth/
+
+Sitemap: https://www.dhammadha.com/sitemap.xml
