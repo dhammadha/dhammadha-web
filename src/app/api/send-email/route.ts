@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "DHAMMADHA STUDIO <noreply@dhammadha.com>";
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "dhammadha@outlook.com";
 
@@ -82,6 +81,7 @@ type EmailRequest =
 // ── Handler ─────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const body: EmailRequest = await req.json();
 
   try {
