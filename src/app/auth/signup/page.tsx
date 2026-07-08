@@ -21,6 +21,14 @@ export default function SignupPage() {
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const normalizeUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return trimmed;
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return "https://" + trimmed;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +41,18 @@ export default function SignupPage() {
     }
     setLoading(true);
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: {
+        data: {
+          name,
+          ...(applyDesigner ? {
+            portfolio_url: normalizeUrl(portfolioUrl),
+            designer_application_status: "pending",
+          } : {}),
+        },
+      },
     });
     if (signUpError) {
       setError(signUpError.message);
@@ -44,15 +60,36 @@ export default function SignupPage() {
       return;
     }
 
-    if (applyDesigner && data.user) {
-      await supabase.from("users").update({
-        portfolio_url: portfolioUrl.trim(),
-        designer_application_status: "pending",
-      }).eq("id", data.user.id);
-    }
-
-    router.push("/account");
+    setDone(true);
+    setLoading(false);
   };
+
+  if (done) {
+    return (
+      <>
+        <Nav />
+        <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-8">
+          <div className="w-full max-w-[400px]">
+            <div className="bg-white rounded-2xl shadow-sm border border-border p-8 text-center">
+              <div className="text-4xl mb-4">📧</div>
+              <h1 className="text-[20px] font-semibold text-navy mb-3">ตรวจสอบอีเมลของคุณ</h1>
+              <p className="text-[14px] text-[#555] leading-[1.7] mb-2">
+                เราได้ส่งลิงก์ยืนยันไปที่
+              </p>
+              <p className="text-[14px] font-semibold text-navy mb-4">{email}</p>
+              <p className="text-[13px] text-[#aaa] leading-[1.6] mb-6">
+                กรุณาคลิกลิงก์ในอีเมลเพื่อเปิดใช้งานบัญชี หากไม่พบอีเมลให้ตรวจสอบในโฟลเดอร์ Spam
+              </p>
+              <Link href="/auth/login" className="block">
+                <Button size="lg" className="w-full">ไปหน้าเข้าสู่ระบบ</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -137,11 +174,12 @@ export default function SignupPage() {
                       ลิงก์ผลงาน <span className="text-red-400">*</span>
                     </label>
                     <input
-                      type="url"
+                      type="text"
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
+                      onBlur={(e) => setPortfolioUrl(normalizeUrl(e.target.value))}
                       className={inputCls}
-                      placeholder="https://behance.net/yourname หรือ Instagram / website ฯลฯ"
+                      placeholder="behance.net/yourname หรือ Instagram / website ฯลฯ"
                     />
                     <p className="text-[11px] text-[#bbb] leading-[1.5]">
                       กรอกลิงก์แสดงผลงานออกแบบฟอนต์ที่มีอยู่ เช่น Behance, Instagram, เว็บไซต์ส่วนตัว
