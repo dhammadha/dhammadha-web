@@ -9,17 +9,15 @@ import FontCard, { Font } from "@/components/FontCard";
 import { supabase } from "@/lib/supabase";
 import PdfLightbox from "@/components/PdfLightbox";
 
-const SLIDER_SIZE = 5;
-const MAX_VISIBLE = 3;
+const SLIDER_SIZE = 3;
+const MAX_VISIBLE = 1;
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
 function buildSliderPool(fonts: Font[]): Font[] {
-  const sale = fonts.filter((f) => f.is_sale);
-  const others = shuffle(fonts.filter((f) => !f.is_sale));
-  return [...sale, ...others].slice(0, SLIDER_SIZE);
+  return shuffle(fonts).slice(0, SLIDER_SIZE);
 }
 
 function buildStrip(pool: Font[], v: number): Font[] {
@@ -173,8 +171,7 @@ export default function DesignerDetail() {
 
           {sliderPool.length > 0 && (
             <section className="mb-10">
-              <h2 className="text-[13px] font-semibold text-[#aaa] tracking-[0.06em] uppercase mb-4">แนะนำ</h2>
-              <div className="relative overflow-hidden">
+              <div className="relative overflow-hidden rounded-2xl">
                 <div
                   className="flex"
                   style={{
@@ -185,25 +182,34 @@ export default function DesignerDetail() {
                   onTransitionEnd={handleTransitionEnd}
                 >
                   {strip.map((f, i) => (
-                    <div key={i} style={{ width: `calc(100% / ${strip.length})` }} className="px-1.5">
-                      <FontCard font={f} />
-                    </div>
+                    <Link
+                      key={i}
+                      href={`/fonts/${f.designer_slug ?? designerSlug}/${f.slug}`}
+                      style={{ width: `calc(100% / ${strip.length})` }}
+                      className="block no-underline shrink-0"
+                    >
+                      <div className="aspect-video w-full bg-[#eee] overflow-hidden">
+                        {f.cover_image_url
+                          ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full bg-[#ddd]" />}
+                      </div>
+                    </Link>
                   ))}
                 </div>
                 {poolSize > 1 && (
                   <>
-                    <button onClick={() => move(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">‹</button>
-                    <button onClick={() => move(1)} className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">›</button>
+                    <button onClick={() => move(-1)} className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center border-none cursor-pointer transition-colors text-white text-[18px] leading-none">‹</button>
+                    <button onClick={() => move(1)} className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center border-none cursor-pointer transition-colors text-white text-[18px] leading-none">›</button>
                   </>
                 )}
+                {poolSize > 1 && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {sliderPool.map((_, i) => (
+                      <button key={i} onClick={() => setPos(i + showCount)} className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-navy" : "w-[5px] h-[3px] bg-white/50"}`} />
+                    ))}
+                  </div>
+                )}
               </div>
-              {poolSize > 1 && (
-                <div className="flex justify-center gap-1.5 mt-3">
-                  {sliderPool.map((_, i) => (
-                    <button key={i} onClick={() => setPos(i + showCount)} className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-navy" : "w-[5px] h-[3px] bg-[#ddd]"}`} />
-                  ))}
-                </div>
-              )}
             </section>
           )}
 
