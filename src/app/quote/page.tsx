@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
@@ -57,6 +57,18 @@ const EMPTY_FORM = {
   note: "",
 };
 
+// Cloudflare Turnstile — bot protection on the quote form. Rendered only when
+// NEXT_PUBLIC_TURNSTILE_SITE_KEY is set (dev without the key skips it).
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+    };
+  }
+}
+
 export default function QuotePage() {
   return (
     <Suspense>
@@ -78,6 +90,28 @@ function QuoteForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [pdfOpen, setPdfOpen] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
+    const el = turnstileRef.current;
+    if (!el) return;
+    const render = () => {
+      if (el.childElementCount > 0) return;
+      window.turnstile?.render(el, {
+        sitekey: TURNSTILE_SITE_KEY,
+        callback: (token: string) => setTurnstileToken(token),
+        "expired-callback": () => setTurnstileToken(""),
+      });
+    };
+    if (window.turnstile) { render(); return; }
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/api.js?render=explicit";
+    script.async = true;
+    script.onload = render;
+    document.head.appendChild(script);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -163,6 +197,10 @@ function QuoteForm() {
       setErrorMsg("หมายเลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErrorMsg("กรุณายืนยันตัวตนผ่านกล่องตรวจสอบด้านล่างก่อนส่งคำขอ");
+      return;
+    }
     setErrorMsg("");
     setStatus("loading");
     try {
@@ -177,7 +215,8 @@ function QuoteForm() {
       });
 
       const licenseLabel = LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
-      const designerLabel = designer?.business_name ?? designer?.name ?? "DHAMMADHA STUDIO";
+      // Designer contact info is looked up server-side from designer_id —
+      // the client never chooses the recipient address.
       const emailPayload = {
         contact_name: form.contact_name,
         company_name: form.company_name,
@@ -187,15 +226,12 @@ function QuoteForm() {
         license_type: licenseLabel,
         fonts: fontNames.join(", "),
         note: form.note || "—",
-        designer_name: designerLabel,
-        designer_email: designer?.email ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "",
-        designer_phone: designer?.phone ?? "",
-        designer_brand: designer?.business_name ?? designer?.name ?? "DHAMMADHA STUDIO",
+        designer_id: designer?.id ?? null,
       };
       await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "quote", payload: emailPayload }),
+        body: JSON.stringify({ type: "quote", turnstile_token: turnstileToken, payload: emailPayload }),
       });
 
       setStatus("success");
@@ -473,6 +509,8 @@ function QuoteForm() {
                 />
               </Field>
             </div>
+
+            {TURNSTILE_SITE_KEY && <div ref={turnstileRef} />}
 
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c]">{errorMsg}</p>

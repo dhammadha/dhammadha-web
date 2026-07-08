@@ -54,18 +54,27 @@ export default function AdminDesignersPage() {
       designer_application_status: "approved",
     } as never).eq("id", u.id);
 
+    // Recipient is resolved server-side from user_id; the endpoint verifies
+    // the caller's admin role from the Supabase access token.
+    let emailOk = true;
     if (u.email) {
-      await fetch("/api/send-email", {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/send-email", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "promote",
-          payload: { designer_name: u.name ?? u.email, designer_email: u.email },
-        }),
-      });
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ type: "promote", payload: { user_id: u.id } }),
+      }).catch(() => null);
+      emailOk = !!res?.ok;
     }
 
-    showToast(`✓ Promote ${u.name ?? u.email} เป็น designer แล้ว`);
+    showToast(
+      emailOk
+        ? `✓ Promote ${u.name ?? u.email} เป็น designer แล้ว`
+        : `✓ Promote สำเร็จ แต่ส่งอีเมลแจ้ง designer ไม่สำเร็จ`
+    );
     setSelected(null);
     loadUsers();
   };
