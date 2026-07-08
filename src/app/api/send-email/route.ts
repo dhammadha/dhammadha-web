@@ -6,51 +6,70 @@ const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "dhammadha@outlook.co
 
 // ── Email HTML builders ─────────────────────────────────────────────────────
 
+const FOOTER = `
+<br>
+<p style="color:#888;font-size:13px;border-top:1px solid #eee;padding-top:12px;margin-top:16px">
+  ธรรมดาสตูดิโอ<br>
+  <a href="https://www.dhammadha.com" style="color:#888">www.dhammadha.com</a><br>
+  Mobile: 09-2929-9882<br>
+  Line: @dhammadha
+</p>
+`;
+
 function quoteNotifyHtml(d: QuotePayload) {
   return `
-<p>สวัสดี ${d.designer_name},</p>
-<p>มีคำขอใบเสนอราคาใหม่เข้ามาในระบบ</p>
+<p>คุณได้รับคำขอใบเสนอราคาใหม่</p>
 <table style="border-collapse:collapse;width:100%;max-width:480px">
-  <tr><td style="padding:6px 0;color:#888;width:140px">ชื่อผู้ติดต่อ</td><td style="padding:6px 0">${d.contact_name}</td></tr>
+  <tr><td style="padding:6px 0;color:#888;width:160px">ชื่อผู้ติดต่อ</td><td style="padding:6px 0">${d.contact_name}</td></tr>
   <tr><td style="padding:6px 0;color:#888">บริษัท</td><td style="padding:6px 0">${d.company_name || "—"}</td></tr>
   <tr><td style="padding:6px 0;color:#888">อีเมล</td><td style="padding:6px 0">${d.email}</td></tr>
-  <tr><td style="padding:6px 0;color:#888">ฟอนต์</td><td style="padding:6px 0">${d.fonts}</td></tr>
-  <tr><td style="padding:6px 0;color:#888">ประเภทลิขสิทธิ์</td><td style="padding:6px 0">${d.license_type}</td></tr>
+  <tr><td style="padding:6px 0;color:#888">เลขประจำตัวผู้เสียภาษี</td><td style="padding:6px 0">${d.tax_id || "—"}</td></tr>
+  <tr><td style="padding:6px 0;color:#888">ที่อยู่</td><td style="padding:6px 0">${d.address || "—"}</td></tr>
+  <tr><td style="padding:6px 0;color:#888">ประเภทสิทธิ์</td><td style="padding:6px 0">${d.license_type}</td></tr>
+  <tr><td style="padding:6px 0;color:#888">ฟอนต์ที่ต้องการ</td><td style="padding:6px 0">${d.fonts}</td></tr>
   ${d.note && d.note !== "—" ? `<tr><td style="padding:6px 0;color:#888">หมายเหตุ</td><td style="padding:6px 0">${d.note}</td></tr>` : ""}
 </table>
 <br>
-<p style="color:#888;font-size:13px">— DHAMMADHA STUDIO</p>
+<p><a href="https://dhammadha.com/designer" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">จัดการใบเสนอราคา →</a></p>
+${FOOTER}
 `;
 }
 
 function quoteConfirmHtml(d: QuotePayload) {
-  return `
-<p>สวัสดี ${d.contact_name},</p>
-<p>เราได้รับคำขอใบเสนอราคาของคุณเรียบร้อยแล้ว ทีมงานจะติดต่อกลับโดยเร็วที่สุด</p>
-<table style="border-collapse:collapse;width:100%;max-width:480px">
-  <tr><td style="padding:6px 0;color:#888;width:140px">ฟอนต์</td><td style="padding:6px 0">${d.fonts}</td></tr>
-  <tr><td style="padding:6px 0;color:#888">ประเภทลิขสิทธิ์</td><td style="padding:6px 0">${d.license_type}</td></tr>
-</table>
+  const designerFooter = `
 <br>
-<p>ขอบคุณที่สนใจ DHAMMADHA STUDIO</p>
-<p style="color:#888;font-size:13px">— ทีมงาน DHAMMADHA STUDIO</p>
+<p style="color:#888;font-size:13px;border-top:1px solid #eee;padding-top:12px;margin-top:16px">
+  ${d.designer_brand}<br>
+  ${d.designer_email ? `<a href="mailto:${d.designer_email}" style="color:#888">${d.designer_email}</a><br>` : ""}
+  ${d.designer_phone ? `Mobile: ${d.designer_phone}` : ""}
+</p>
+`;
+  return `
+<p>เรียน คุณ ${d.contact_name}</p>
+<p>เราได้รับคำขอใบเสนอราคาของคุณแล้ว และจะติดต่อกลับภายใน 1-2 วันทำการ</p>
+<p><strong>รายละเอียดคำขอ:</strong></p>
+<p>
+  - ฟอนต์: ${d.fonts}<br>
+  - ประเภทสิทธิ์: ${d.license_type}<br>
+  ${d.note && d.note !== "—" ? `- หมายเหตุ: ${d.note}` : ""}
+</p>
+<p>หากมีคำถามเพิ่มเติม ติดต่อได้ที่ <a href="mailto:${d.designer_email}">${d.designer_email}</a></p>
+<p>ขอบคุณมากครับ</p>
+${designerFooter}
 `;
 }
 
 function promoteHtml(d: PromotePayload) {
   return `
-<p>สวัสดี ${d.designer_name},</p>
+<p>สวัสดี คุณ ${d.designer_name},</p>
 <p>ทีมงาน DHAMMADHA STUDIO ได้ตรวจสอบผลงานของคุณแล้ว และยินดีต้อนรับคุณเป็นส่วนหนึ่งของครอบครัวนักออกแบบฟอนต์ของเรา</p>
-<p><strong>ขั้นตอนต่อไป:</strong></p>
-<ul>
-  <li>เข้าสู่ระบบที่ <a href="https://dhammadha.com">dhammadha.com</a></li>
-  <li>ไปที่ Dashboard → อัปโหลดฟอนต์ได้เลย</li>
-  <li>ตั้งราคาและรายละเอียดฟอนต์ของคุณ</li>
-</ul>
+<p><strong>ขั้นตอนต่อไป:</strong><br>
+• เข้าสู่ระบบที่ <a href="https://dhammadha.com">dhammadha.com</a><br>
+• ไปที่ Dashboard → อัปโหลดฟอนต์ได้เลย<br>
+• ตั้งราคาและรายละเอียดฟอนต์ของคุณ</p>
 <p>หากมีคำถามสามารถติดต่อทีมงานได้ที่ <a href="mailto:${ADMIN_EMAIL}">${ADMIN_EMAIL}</a></p>
-<br>
-<p>ขอบคุณที่เลือก DHAMMADHA STUDIO<br>
-<span style="color:#888;font-size:13px">ทีมงาน DHAMMADHA STUDIO</span></p>
+<p>ขอบคุณที่เลือก DHAMMADHA STUDIO</p>
+${FOOTER}
 `;
 }
 
@@ -67,6 +86,8 @@ type QuotePayload = {
   note: string;
   designer_name: string;
   designer_email: string;
+  designer_phone: string;
+  designer_brand: string;
 };
 
 type PromotePayload = {
@@ -91,13 +112,13 @@ export async function POST(req: NextRequest) {
         resend.emails.send({
           from: FROM,
           to: d.designer_email,
-          subject: `คำขอใบเสนอราคาใหม่ — ${d.fonts}`,
+          subject: `คำขอใบเสนอราคาใหม่ — ฟอนต์ ${d.fonts}`,
           html: quoteNotifyHtml(d),
         }),
         resend.emails.send({
           from: FROM,
           to: d.email,
-          subject: "ได้รับคำขอใบเสนอราคาของคุณแล้ว — DHAMMADHA STUDIO",
+          subject: `ได้รับคำขอใบเสนอราคาของคุณแล้ว — ${d.company_name || "DHAMMADHA STUDIO"}`,
           html: quoteConfirmHtml(d),
         }),
       ]);

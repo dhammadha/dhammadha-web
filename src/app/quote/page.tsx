@@ -20,6 +20,7 @@ interface DesignerInfo {
   email: string | null;
   name: string | null;
   business_name: string | null;
+  phone: string | null;
 }
 
 interface LicenseConfig {
@@ -85,7 +86,7 @@ function QuoteForm() {
       if (designerSlug) {
         const { data: dData } = await supabase
           .from("users")
-          .select("id, email, name, business_name")
+          .select("id, email, name, business_name, phone")
           .eq("designer_slug", designerSlug)
           .single();
         if (dData) designerInfo = dData as DesignerInfo;
@@ -188,6 +189,8 @@ function QuoteForm() {
         note: form.note || "—",
         designer_name: designerLabel,
         designer_email: designer?.email ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "",
+        designer_phone: designer?.phone ?? "",
+        designer_brand: designer?.business_name ?? designer?.name ?? "DHAMMADHA STUDIO",
       };
       await fetch("/api/send-email", {
         method: "POST",
