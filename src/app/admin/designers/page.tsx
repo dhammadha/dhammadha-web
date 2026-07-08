@@ -53,6 +53,18 @@ export default function AdminDesignersPage() {
       role: "designer",
       designer_application_status: "approved",
     } as never).eq("id", u.id);
+
+    if (u.email) {
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "promote",
+          payload: { designer_name: u.name ?? u.email, designer_email: u.email },
+        }),
+      });
+    }
+
     showToast(`✓ Promote ${u.name ?? u.email} เป็น designer แล้ว`);
     setSelected(null);
     loadUsers();

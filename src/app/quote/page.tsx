@@ -6,7 +6,6 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
-import emailjs from "@emailjs/browser";
 import PdfLightbox from "@/components/PdfLightbox";
 import Button from "@/components/Button";
 
@@ -190,22 +189,11 @@ function QuoteForm() {
         designer_name: designerLabel,
         designer_email: designer?.email ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "",
       };
-      await Promise.all([
-        // แจ้ง designer (หรือ admin ถ้าไม่มี designer)
-        emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-          process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-          emailPayload,
-          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!,
-        ),
-        // ยืนยันหาลูกค้า
-        emailjs.send(
-          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-          "template_yuu8pzf",
-          emailPayload,
-          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!,
-        ),
-      ]);
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "quote", payload: emailPayload }),
+      });
 
       setStatus("success");
       setForm(EMPTY_FORM);
