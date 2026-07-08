@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/Button";
 
 const THAI_BANKS = [
   "ธนาคารกรุงเทพ (BBL)",
@@ -139,10 +140,10 @@ export default function AdminSettingsPage() {
       <Section title="ข้อมูลผู้ขาย" desc="ใช้แสดงในใบเสนอราคาและใบเสร็จ">
         <div className="flex gap-2 mb-4">
           {(["individual", "juristic"] as const).map((t) => (
-            <button key={t} onClick={() => handleEntityType(t)}
-              className={`px-4 py-2 rounded-xl text-[13px] font-medium border cursor-pointer transition-colors ${entityType === t ? "bg-mint text-white border-mint" : "bg-white text-[#666] border-border hover:bg-[#f5f5f2]"}`}>
+            <Button key={t} onClick={() => handleEntityType(t)} size="sm"
+              variant={entityType === t ? "primary" : "outline"}>
               {t === "individual" ? "บุคคลธรรมดา" : "นิติบุคคล"}
-            </button>
+            </Button>
           ))}
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -213,7 +214,7 @@ export default function AdminSettingsPage() {
             </Field>
           </div>
         </div>
-        <button onClick={saveSeller} className={btnMint + " mt-4"}>บันทึกข้อมูลผู้ขาย</button>
+        <Button onClick={saveSeller} className="w-full mt-4">บันทึกข้อมูลผู้ขาย</Button>
       </Section>
 
       {toast && (
@@ -226,7 +227,6 @@ export default function AdminSettingsPage() {
 }
 
 const iCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
-const btnMint = "w-full py-2.5 rounded-xl bg-mint text-white font-semibold text-[14px] border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors";
 
 function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
   return (

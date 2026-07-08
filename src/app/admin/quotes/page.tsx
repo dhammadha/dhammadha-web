@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import PrintLightbox from "@/components/admin/PrintLightbox";
 import type { Database } from "@/lib/database.types";
+import Button from "@/components/Button";
 
 type QuoteRow = Database["public"]["Tables"]["quotes"]["Row"] & {
   quote_no?: string | null;
@@ -192,24 +193,24 @@ export default function AdminQuotesPage() {
 
             <div className="flex flex-col gap-2 border-t border-border pt-3">
               {!selected.quote_no && (
-                <button onClick={() => issueDocument(selected, "quotation")} className="w-full py-2 rounded-xl bg-mint text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors">
+                <Button onClick={() => issueDocument(selected, "quotation")} className="w-full">
                   ออกใบเสนอราคา
-                </button>
+                </Button>
               )}
               {selected.quote_no && !selected.receipt_no && (
-                <button onClick={() => issueDocument(selected, "receipt")} className="w-full py-2 rounded-xl bg-mint text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors">
+                <Button onClick={() => issueDocument(selected, "receipt")} className="w-full">
                   ออกใบเสร็จรับเงิน
-                </button>
+                </Button>
               )}
               {selected.quote_no && (
-                <button onClick={() => openPrint(selected, "quotation")} className="w-full py-2 rounded-xl border border-border text-[13px] text-[#555] bg-white cursor-pointer hover:bg-[#f5f5f2] transition-colors">
+                <Button variant="outline" onClick={() => openPrint(selected, "quotation")} className="w-full">
                   พิมพ์ใบเสนอราคา ({selected.quote_no})
-                </button>
+                </Button>
               )}
               {selected.receipt_no && (
-                <button onClick={() => openPrint(selected, "receipt")} className="w-full py-2 rounded-xl border border-border text-[13px] text-[#555] bg-white cursor-pointer hover:bg-[#f5f5f2] transition-colors">
+                <Button variant="outline" onClick={() => openPrint(selected, "receipt")} className="w-full">
                   พิมพ์ใบเสร็จ ({selected.receipt_no})
-                </button>
+                </Button>
               )}
               <button onClick={() => deleteQuote(selected)} className="w-full py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[13px] cursor-pointer hover:bg-red-100 transition-colors">
                 ลบ

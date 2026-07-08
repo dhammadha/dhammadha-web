@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import Button from "@/components/Button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -66,13 +67,9 @@ export default function LoginPage() {
               <p className="text-[13px] text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 py-2.5 rounded-xl bg-mint text-white font-semibold text-[15px] border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" disabled={loading} size="lg" className="mt-2 w-full">
               {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
-            </button>
+            </Button>
           </form>
 
           <p className="text-center text-[13px] text-[#aaa] mt-6">

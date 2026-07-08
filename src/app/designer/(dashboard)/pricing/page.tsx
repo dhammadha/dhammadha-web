@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/Button";
 
 type Tier = { name: string; price: number };
 
@@ -244,13 +245,12 @@ export default function DesignerPricingPage() {
       )}
 
       <div className="flex justify-end">
-        <button
+        <Button
           onClick={save}
           disabled={saving || (!useDefault && !pdfUrl && !pdfFile)}
-          className="px-6 py-2.5 bg-mint text-white rounded-xl text-[14px] font-medium border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? "กำลังบันทึก…" : "บันทึก"}
-        </button>
+        </Button>
       </div>
 
       {toast && (

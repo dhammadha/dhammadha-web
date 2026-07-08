@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
+import Button from "@/components/Button";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -109,13 +110,14 @@ export default function AdminFontsPage() {
             )}
           </div>
         </div>
-        <button
+        <Button
           onClick={handlePublish}
           disabled={publishing || pendingFonts.length === 0}
-          className="flex-none px-5 py-2 rounded-xl bg-mint text-white text-[13px] font-semibold border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          size="sm"
+          className="flex-none"
         >
           {publishing ? "กำลัง Publish…" : "Publish"}
-        </button>
+        </Button>
       </div>
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -140,10 +142,10 @@ export default function AdminFontsPage() {
             </button>
           ))}
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors">
+        <Button onClick={openAdd}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           เพิ่มฟอนต์
-        </button>
+        </Button>
       </div>
 
       {/* Table */}

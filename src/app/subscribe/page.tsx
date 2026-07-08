@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Button from "@/components/Button";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 
@@ -87,12 +88,9 @@ export default function SubscribePage() {
               placeholder="อีเมลของคุณ"
               className="flex-1 px-4 py-3 border border-[0.5px] border-[#ddd] rounded-[9px] text-[14px] outline-none focus:border-mint transition-colors"
             />
-            <button
-              onClick={submit}
-              className="px-[22px] py-3 bg-mint text-white border-none rounded-[9px] text-[14px] font-medium cursor-pointer whitespace-nowrap hover:bg-navy transition-colors"
-            >
+            <Button onClick={submit} className="whitespace-nowrap">
               แจ้งเตือนฉัน
-            </button>
+            </Button>
           </div>
           <p className="text-[12px]" style={{ color: note.color }}>{note.text}</p>
 

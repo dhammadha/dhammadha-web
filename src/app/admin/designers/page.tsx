@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import Button from "@/components/Button";
 
 type UserRow = {
   id: string;
@@ -208,12 +209,9 @@ export default function AdminDesignersPage() {
             <div className="flex flex-col gap-2 border-t border-border pt-3">
               {tab === "applications" && (
                 <>
-                  <button
-                    onClick={() => promote(selected)}
-                    className="w-full py-2 rounded-xl bg-mint text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors"
-                  >
+                  <Button onClick={() => promote(selected)} className="w-full">
                     Promote เป็น Designer
-                  </button>
+                  </Button>
                   <button
                     onClick={() => reject(selected)}
                     className="w-full py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[13px] cursor-pointer hover:bg-red-100 transition-colors"
@@ -225,20 +223,14 @@ export default function AdminDesignersPage() {
               {tab === "designers" && selected.role !== "admin" && (
                 <>
                   {selected.role === "customer" && (
-                    <button
-                      onClick={() => promoteExisting(selected)}
-                      className="w-full py-2 rounded-xl bg-mint text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors"
-                    >
+                    <Button onClick={() => promoteExisting(selected)} className="w-full">
                       Promote เป็น Designer
-                    </button>
+                    </Button>
                   )}
                   {selected.role === "designer" && (
-                    <button
-                      onClick={() => demote(selected)}
-                      className="w-full py-2 rounded-xl border border-border text-[#888] bg-white text-[13px] cursor-pointer hover:bg-[#f5f5f2] transition-colors"
-                    >
+                    <Button variant="outline" onClick={() => demote(selected)} className="w-full">
                       เปลี่ยนกลับเป็น Customer
-                    </button>
+                    </Button>
                   )}
                 </>
               )}

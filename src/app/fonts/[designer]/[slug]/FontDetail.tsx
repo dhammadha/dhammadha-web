@@ -7,6 +7,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
+import Button from "@/components/Button";
 import { supabase } from "@/lib/supabase";
 
 function parseWeight(url: string): string {
@@ -480,18 +481,13 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 </div>
 
                 {font.is_free ? (
-                  <a
-                    href={font.free_font_files?.[0] || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full py-2.5 text-center bg-navy text-white rounded-[9px] text-[15px] font-semibold no-underline hover:bg-mint hover:text-navy transition-colors"
-                  >
+                  <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full">
                     ดาวน์โหลดฟรี
-                  </a>
+                  </Button>
                 ) : (
-                  <button className="w-full py-2.5 bg-navy text-white rounded-[9px] text-[15px] font-semibold border-none cursor-pointer hover:bg-mint hover:text-navy transition-colors">
+                  <Button size="lg" className="w-full" disabled>
                     ซื้อฟอนต์นี้
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -561,16 +557,18 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                     </div>
                   </div>
                 </div>
-                <Link
+                <Button
+                  as="link"
                   href={`/quote/?font=${font.slug}&designer_slug=${font.designer_slug ?? ""}`}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-navy border border-[0.5px] border-navy rounded-[9px] text-[15px] text-white no-underline hover:bg-mint hover:border-mint hover:text-navy transition-colors"
+                  size="lg"
+                  className="w-full"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                     <polyline points="22,6 12,13 2,6" />
                   </svg>
                   ขอใบเสนอราคา
-                </Link>
+                </Button>
               </div>
 
             </div>

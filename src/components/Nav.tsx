@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Button from "@/components/Button";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -185,12 +186,9 @@ export default function Nav() {
             )}
           </div>
         ) : (
-          <Link
-            href="/auth/login"
-            className="hidden md:inline-flex items-center px-4 py-2 rounded-xl bg-mint text-white text-[13px] font-medium no-underline hover:bg-navy transition-colors"
-          >
+          <Button as="link" href="/auth/login" size="sm" className="hidden md:inline-flex">
             เข้าสู่ระบบ
-          </Link>
+          </Button>
         )}
         {/* Search box */}
         <div ref={searchRef} className="relative hidden md:block">

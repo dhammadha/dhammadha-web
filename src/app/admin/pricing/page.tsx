@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import Button from "@/components/Button";
 
 export default function AdminPricingPage() {
   const [licSmall, setLicSmall] = useState("3500");
@@ -99,7 +100,7 @@ export default function AdminPricingPage() {
             <input type="number" value={licExtra} onChange={(e) => setLicExtra(e.target.value)} className={iCls} />
           </Field>
         </div>
-        <button onClick={saveLicensing} className={btnMint + " mt-4"}>บันทึกราคา Licensing</button>
+        <Button onClick={saveLicensing} className="w-full mt-4">บันทึกราคา Licensing</Button>
       </Section>
 
       {/* Promotion */}
@@ -118,7 +119,7 @@ export default function AdminPricingPage() {
           </Field>
         </div>
         <div className="flex gap-2 mt-4">
-          <button onClick={savePromotion} className={btnMint + " flex-1"}>บันทึก / เปิดโปรโมชั่น</button>
+          <Button onClick={savePromotion} className="flex-1">บันทึก / เปิดโปรโมชั่น</Button>
           {promoActive && (
             <button onClick={clearPromotion} className="px-4 py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[14px] font-medium cursor-pointer hover:bg-red-100 transition-colors">
               ปิดโปรโมชั่น
@@ -137,7 +138,6 @@ export default function AdminPricingPage() {
 }
 
 const iCls = "w-full px-3 py-2 rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
-const btnMint = "w-full py-2.5 rounded-xl bg-mint text-white font-semibold text-[14px] border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors";
 
 function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
   return (

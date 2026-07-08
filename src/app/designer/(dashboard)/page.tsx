@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import Button from "@/components/Button";
 
 type FontRow = {
   id: string;
@@ -45,12 +46,9 @@ export default function DesignerFontsPage() {
     <div className="p-6 max-w-[900px]">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-[20px] font-semibold text-navy">ฟอนต์ของฉัน</h1>
-        <Link
-          href="/admin/add"
-          className="px-4 py-2 bg-mint text-white rounded-xl text-[13px] font-medium no-underline hover:bg-navy transition-colors"
-        >
+        <Button as="link" href="/admin/add" size="sm">
           + เพิ่มฟอนต์
-        </Link>
+        </Button>
       </div>
 
       {/* Stats */}
@@ -82,9 +80,7 @@ export default function DesignerFontsPage() {
         ) : fonts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <p className="text-[#aaa] text-[14px]">ยังไม่มีฟอนต์</p>
-            <Link href="/admin/add" className="text-mint text-[13px] no-underline hover:underline">
-              เพิ่มฟอนต์แรก →
-            </Link>
+            <Button as="link" href="/admin/add" size="sm">เพิ่มฟอนต์แรก →</Button>
           </div>
         ) : fonts.map((f) => (
           <div key={f.id} className="grid grid-cols-[48px_1fr_100px_100px_80px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 items-center">
