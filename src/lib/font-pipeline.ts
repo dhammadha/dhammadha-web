@@ -7,7 +7,12 @@
 // โหลด Pyodide จาก CDN ครั้งแรก ~10MB แล้ว browser cache ไว้
 
 const PYODIDE_VERSION = "0.26.4";
-const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+// mirror หลายตัว — บางเครือข่าย/adblock บล็อก cdn.jsdelivr.net จึงลองตามลำดับ
+const PYODIDE_BASES = [
+  `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`,
+  `https://fastly.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`,
+  `https://gcore.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`,
+];
 
 interface PyodideFS {
   writeFile(path: string, data: Uint8Array): void;
@@ -129,20 +134,42 @@ def make_demo(in_path, family):
 
 let pyodidePromise: Promise<Pyodide> | null = null;
 
+function injectScript(src: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => { s.remove(); reject(new Error(`load failed: ${src}`)); };
+    document.head.appendChild(s);
+  });
+}
+
 function loadPyodideOnce(onProgress: (msg: string) => void): Promise<Pyodide> {
   if (pyodidePromise) return pyodidePromise;
   pyodidePromise = (async () => {
-    if (!window.loadPyodide) {
+    let base: string | null = null;
+    const errors: string[] = [];
+    if (window.loadPyodide) {
+      base = PYODIDE_BASES[0];
+    } else {
       onProgress("กำลังโหลดเครื่องมือ (ครั้งแรก ~10MB)…");
-      await new Promise<void>((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = `${PYODIDE_BASE}pyodide.js`;
-        s.onload = () => resolve();
-        s.onerror = () => reject(new Error("โหลด Pyodide ไม่สำเร็จ — ตรวจสอบอินเทอร์เน็ต"));
-        document.head.appendChild(s);
-      });
+      for (const candidate of PYODIDE_BASES) {
+        try {
+          await injectScript(`${candidate}pyodide.js`);
+          base = candidate;
+          break;
+        } catch (e) {
+          errors.push(e instanceof Error ? e.message : String(e));
+        }
+      }
+      if (!base || !window.loadPyodide) {
+        throw new Error(
+          "โหลด Pyodide ไม่สำเร็จจากทุก CDN — ตรวจสอบอินเทอร์เน็ต/adblock (ดู DevTools → Network) | " +
+          errors.join(" | ")
+        );
+      }
     }
-    const pyodide = await window.loadPyodide!({ indexURL: PYODIDE_BASE });
+    const pyodide = await window.loadPyodide!({ indexURL: base });
     onProgress("กำลังโหลด fonttools…");
     await pyodide.loadPackage(["fonttools", "brotli"]);
     pyodide.runPython(PY_SOURCE);
