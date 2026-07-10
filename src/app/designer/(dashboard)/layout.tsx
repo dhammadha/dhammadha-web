@@ -15,7 +15,7 @@ function NavItem({ href, label, icon, badge, isActive, onClick }: {
       href={href}
       onClick={onClick}
       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] no-underline transition-colors ${
-        isActive ? "bg-mint text-white" : "text-[#666] hover:bg-[#f5f5f2] hover:text-navy"
+        isActive ? "bg-navy text-white" : "text-[#666] hover:bg-[#f5f5f2] hover:text-navy"
       }`}
     >
       {icon}
@@ -79,6 +79,11 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
 
   const NAV = [
     {
+      href: "/designer/add",
+      label: "เพิ่มฟอนต์",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
+    {
       href: "/designer",
       label: "ฟอนต์ของฉัน",
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13L6 3l4 10M3.5 10h5M10 3h4M12 3v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -91,7 +96,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
     },
     {
       href: "/designer/pricing",
-      label: "ราคาและสิทธิการใช้งาน",
+      label: "ราคาและโปรโมชั่น",
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/></svg>,
     },
     {

@@ -77,7 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
     {
       href: "/admin",
-      label: "ฟอนต์",
+      label: "ฟอนต์ของฉัน",
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13L6 3l4 10M3.5 10h5M10 3h4M12 3v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
       badge: undefined,
     },

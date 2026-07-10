@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/Button";
 
 type Tier = { name: string; price: number };
+type PromoState = { discount: string; end: string; active: boolean };
 
 const DEFAULT_TIERS: Tier[] = [
   { name: "บริษัทขนาดเล็ก / กลาง", price: 3500 },
@@ -22,6 +23,8 @@ export default function DesignerPricingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState("");
+  const [promo, setPromo] = useState<PromoState>({ discount: "", end: "", active: false });
+  const [promoSaving, setPromoSaving] = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -39,10 +42,61 @@ export default function DesignerPricingPage() {
         setTiers(data.tiers as Tier[]);
       }
     }
+    // Load active promo from own fonts
+    const { data: promoFont } = await supabase
+      .from("fonts")
+      .select("discount_percent, sale_end, is_sale")
+      .eq("owner_id", user.id)
+      .eq("is_sale", true)
+      .limit(1)
+      .single();
+    if (promoFont) {
+      setPromo({ discount: String(promoFont.discount_percent ?? ""), end: promoFont.sale_end ?? "", active: true });
+    }
     setLoading(false);
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
+
+  const savePromo = async () => {
+    if (!user) return;
+    const disc = parseInt(promo.discount) || 0;
+    if (!disc) { showToast("กรุณาใส่ส่วนลด %"); return; }
+    if (!confirm(`ยืนยันเปิดโปรโมชั่น ลด ${disc}%${promo.end ? ` ถึง ${promo.end}` : ""}?\nจะอัปเดตฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีทันที`)) return;
+    setPromoSaving(true);
+    try {
+      const { data: fonts } = await supabase.from("fonts").select("id, price").eq("owner_id", user.id).eq("is_free", false);
+      if (fonts) {
+        for (const f of fonts) {
+          await supabase.from("fonts").update({
+            is_sale: true, discount_percent: disc,
+            sale_price: Math.round((f.price ?? 0) * (1 - disc / 100)),
+            sale_end: promo.end || null, sale_label: `ลด ${disc}%`,
+          }).eq("id", f.id);
+        }
+      }
+      setPromo((p) => ({ ...p, active: true }));
+      showToast("✓ เปิดโปรโมชั่น — อัปเดตฟอนต์ทั้งหมดแล้ว");
+    } catch { showToast("เกิดข้อผิดพลาด กรุณาลองใหม่"); }
+    setPromoSaving(false);
+  };
+
+  const clearPromo = async () => {
+    if (!user) return;
+    if (!confirm("ปิดโปรโมชั่นทั้งหมด?")) return;
+    setPromoSaving(true);
+    try {
+      const { data: fonts } = await supabase.from("fonts").select("id").eq("owner_id", user.id).eq("is_sale", true);
+      if (fonts) {
+        for (const f of fonts) {
+          await supabase.from("fonts").update({ is_sale: false, discount_percent: null, sale_price: null, sale_end: null, sale_label: null }).eq("id", f.id);
+        }
+      }
+      setPromo({ discount: "", end: "", active: false });
+      showToast("✓ ปิดโปรโมชั่นแล้ว");
+    } catch { showToast("เกิดข้อผิดพลาด กรุณาลองใหม่"); }
+    setPromoSaving(false);
+  };
 
   const resetToDefault = () => {
     setTiers(DEFAULT_TIERS);
@@ -102,7 +156,7 @@ export default function DesignerPricingPage() {
   return (
     <div className="p-6 max-w-[640px]">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-[20px] font-semibold text-navy">ราคาและสิทธิการใช้งาน</h1>
+        <h1 className="text-[20px] font-semibold text-navy">ราคาและโปรโมชั่น</h1>
         {!useDefault && (
           <button
             onClick={resetToDefault}
@@ -113,6 +167,38 @@ export default function DesignerPricingPage() {
         )}
       </div>
 
+      {/* Promotion section */}
+      <div className="bg-white rounded-2xl border border-border p-5 mb-4">
+        <h2 className="text-[15px] font-semibold text-navy mb-1">โปรโมชั่น</h2>
+        <p className="text-[12px] text-[#aaa] mb-4">เปิด/ปิดส่วนลดสำหรับฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีพร้อมกัน</p>
+        {promo.active && (
+          <div className="mb-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-700">
+            ⚡ โปรโมชั่นเปิดอยู่: ลด {promo.discount}%{promo.end ? ` ถึง ${promo.end}` : ""}
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">ส่วนลด (%)</label>
+            <input type="number" value={promo.discount} onChange={(e) => setPromo((p) => ({ ...p, discount: e.target.value }))} placeholder="เช่น 20" min="1" max="100" className={iCls} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">วันสิ้นสุด (ไม่บังคับ)</label>
+            <input type="date" value={promo.end} onChange={(e) => setPromo((p) => ({ ...p, end: e.target.value }))} className={iCls} />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={savePromo} disabled={promoSaving} className="flex-1 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50">
+            {promoSaving ? "กำลังบันทึก…" : "บันทึก / เปิดโปรโมชั่น"}
+          </button>
+          {promo.active && (
+            <button onClick={clearPromo} disabled={promoSaving} className="px-4 py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[14px] font-medium cursor-pointer hover:bg-red-100 transition-colors disabled:opacity-50">
+              ปิดโปรโมชั่น
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* License section */}
       <div className="bg-white rounded-2xl border border-border p-5 mb-4">
         <label className="flex items-start gap-3 cursor-pointer">
           <input
@@ -261,3 +347,5 @@ export default function DesignerPricingPage() {
     </div>
   );
 }
+
+const iCls = "w-full px-3 py-2 rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
