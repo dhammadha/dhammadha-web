@@ -1,7 +1,7 @@
 # DHAMMADHA — แผนพัฒนาแพลตฟอร์มตลาดฟอนต์ไทย
 
-> อัปเดตล่าสุด: 10 ก.ค. 2026 — **งานโค้ด Phase 0 + Phase 1 + Phase 2 เสร็จครบแล้ว**
-> ที่เหลือเป็นงานปฏิบัติการ (ย้ายฟอนต์, อีเมล, DNS) — ดู "เช็คลิสต์ตามงาน" ด้านล่าง
+> อัปเดตล่าสุด: 10 ก.ค. 2026 — **งานโค้ด Phase 0 + Phase 1 + Phase 2 + Phase 3 เสร็จครบแล้ว**
+> ที่เหลือเป็นงานปฏิบัติการ (ย้ายฟอนต์, อีเมล, DNS, ตั้งค่า Stripe) — ดู "เช็คลิสต์ตามงาน" ด้านล่าง
 
 ## ✅ เช็คลิสต์ตามงาน (อัปเดตตรงนี้เมื่อทำเสร็จ)
 
@@ -16,6 +16,7 @@
 - [x] Admin publish checklist: ปุ่ม "ตรวจ & Publish" ใน Font Review เช็คไฟล์/ข้อมูลครบก่อน (1.5)
 - [x] Migrations ครบ: 0028 (protect files), 0029 (tester/waitlist/consent), 0031 (แก้ regression sale_end) — apply บน DB จริงแล้วทั้งหมด
 - [x] **Phase 2 quote-to-cash ทั้งชุด** (10 ก.ค. 2026): migration 0032 (orders/entitlements/download_logs + RPC + ปิดช่องโหว่ bucket fonts-full ที่ user login อ่านได้), Edge Function `download-font` (ตรวจสิทธิ์ + stamp license + limit 30/วัน — deploy แล้ว), ปุ่ม "ยืนยันรับชำระ" ในหน้า quotes ทั้ง designer/admin, อีเมลส่งมอบอัตโนมัติ, หน้า "ดาวน์โหลดของฉัน" ใน /account, หน้า /verify สาธารณะ — ทดสอบ DB layer + หน้าเว็บแล้ว (รอทดสอบ e2e กับไฟล์จริงบน production)
+- [x] **Phase 3 Stripe checkout ทั้งชุด** (10 ก.ค. 2026): migration 0033 (orders เพิ่ม source/provider_session_id/ส่วนแบ่ง 75-25 + RPC `create_checkout_order` idempotent + `checkout_order_status`), migration 0034 (แก้ grant `settings` ที่ขาด — admin บันทึกโปรโมชันไม่ได้/user login ไม่เห็นราคาโปร), `src/lib/checkout-service.ts` + Pages Functions `/api/checkout` `/api/stripe-webhook` (ตรวจลายเซ็นเอง ไม่พึ่ง Stripe SDK), ปุ่ม "ซื้อฟอนต์นี้" ใน FontDetail, หน้า `/checkout/success` — unit test 34 ข้อ + ทดสอบ DB จริง + UI จริงแล้ว (รอ user ตั้งค่า Stripe จริง)
 
 ### งานปฏิบัติการที่เหลือ (เรียงตามลำดับที่ควรทำ)
 
@@ -36,6 +37,20 @@
 - [ ] **ทดสอบ Phase 2 e2e กับไฟล์จริง** — สร้าง quote → ยืนยันรับชำระ → เช็คอีเมลลูกค้า →
   login ด้วยอีเมลลูกค้า → ดาวน์โหลดจาก /account → เปิดไฟล์ใน Font Book ดู License
   Description ต้องมีเลข order → เลขนั้นตรวจผ่านที่ /verify
+- [ ] **ตั้งค่า Stripe (Phase 3)** — ทำตามลำดับ:
+  (1) สมัคร/เปิดบัญชี Stripe ประเทศไทย + เปิดใช้ **PromptPay** ใน Dashboard →
+  Settings → Payment methods (ถ้ายังไม่เปิด ปุ่มซื้อจะ error ตอนสร้าง session)
+  (2) Cloudflare Pages → Settings → Environment variables เพิ่ม:
+  `STRIPE_SECRET_KEY` (sk_live_... หรือ sk_test_... ทดสอบก่อน),
+  `STRIPE_WEBHOOK_SECRET` (จากข้อ 3), `SUPABASE_SERVICE_ROLE_KEY`
+  (Supabase → Settings → API — ตัวเดียวกับที่ Edge Function ใช้)
+  (3) Stripe Dashboard → Developers → Webhooks → Add endpoint:
+  URL = `https://dhammadha.com/api/stripe-webhook` เลือก event
+  `checkout.session.completed` + `checkout.session.async_payment_succeeded`
+  → copy Signing secret (whsec_...) ไปใส่ข้อ 2
+  (4) ทดสอบ test mode: ซื้อฟอนต์ด้วยบัตรทดสอบ 4242... → เช็คอีเมล →
+  /account เห็นไฟล์ → ดาวน์โหลด → /verify ผ่าน → order มี platform_amount 25%
+  (5) สลับเป็น live keys + webhook ใหม่ของ live mode
 
 เอกสารนี้อธิบายแผนงานทั้ง 5 เฟสอย่างละเอียด: แต่ละอย่างคืออะไร ทำไปทำไม
 ทำงานยังไง และเสร็จเมื่อไหร่ถึงเรียกว่า "เสร็จ" — เขียนไว้ให้กลับมาอ่านแล้ว
@@ -408,6 +423,28 @@ Windows หรือ fontdrop.info เปิดดูได้):
 # Phase 3 — B2C self-serve checkout (รายได้หลักของเว็บ)
 
 เป้าหมาย: ลูกค้ารายย่อยกดซื้อ → จ่าย → ได้ไฟล์ทันที ไม่ต้องมีคนกดอะไรเลย
+
+> **สถานะ: โค้ดเสร็จครบ + migration apply แล้ว (10 ก.ค. 2026)** — เหลืองาน
+> ปฏิบัติการฝั่ง user: เปิดบัญชี Stripe + ตั้ง env + webhook (ดูเช็คลิสต์ต้นเอกสาร)
+>
+> **ที่สร้างจริง:**
+> - `POST /api/checkout` (Pages Function) — รับ `font_id` คำนวณราคาจาก DB ฝั่ง
+>   server (ราคา sale / โปรโมชันส่วนกลาง ตรงกับที่ FontDetail โชว์) → สร้าง
+>   Stripe Checkout Session (PromptPay ขึ้นก่อนบัตร, THB, locale th) → redirect
+> - `POST /api/stripe-webhook` (Pages Function) — ตรวจลายเซ็นด้วย WebCrypto
+>   (ไม่ใช้ Stripe SDK — ไม่มี dependency เพิ่ม) → RPC `create_checkout_order`
+>   (service_role เท่านั้น, idempotent ด้วย unique session id — Stripe ยิงซ้ำ
+>   ได้ปลอดภัย) → ส่งอีเมล delivery ระบบเดียวกับ Phase 2 → ลูกค้าโหลดผ่าน
+>   Edge Function `download-font` (ไฟล์ stamp license เหมือน order จาก quote)
+> - order จาก checkout บันทึก `platform_rate/platform_amount/designer_amount`
+>   (25/75) ทุกใบ — เป็นข้อมูลตั้งต้น payout Phase 4 / order จาก quote ไม่หัก
+> - หน้า `/checkout/success` — poll สถานะจนกว่า webhook สร้าง order เสร็จ
+>   แล้วโชว์เลขที่คำสั่งซื้อ + ผูกสิทธิ์เข้าบัญชีอัตโนมัติถ้า login อยู่
+> - dev routes (`src/app/api/checkout`, `src/app/api/stripe-webhook`) สำหรับ
+>   ทดสอบ local — logic ร่วมอยู่ที่ `src/lib/checkout-service.ts`
+>
+> **ขอบเขตที่ตั้งใจ:** ขาย self-serve เฉพาะสิทธิ์บุคคลทั่วไป — license องค์กร
+> ยังไปทาง quote (B2B flow เดิม) ตามโมเดลธุรกิจ
 
 ## 3.1 Payment gateway
 

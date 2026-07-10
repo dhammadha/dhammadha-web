@@ -61,6 +61,8 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [fontSize, setFontSize] = useState("36");
   const [testerInput, setTesterInput] = useState("");
   const [specimenOpen, setSpecimenOpen] = useState(false);
+  const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState("");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -130,6 +132,37 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     }
     return promotion;
   })();
+
+  // ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — สร้าง Stripe Checkout Session ฝั่ง server
+  // แล้วพาไปหน้าจ่ายเงิน ราคาคำนวณจาก DB ที่ server ไม่ได้ส่งจาก client
+  async function handleBuy() {
+    if (!font || buying) return;
+    setBuying(true);
+    setBuyError("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          font_id: font.id,
+          cancel_path: `/fonts/${font.designer_slug ?? ""}/${font.slug}/`,
+        }),
+      });
+      const data = (await res.json()) as { ok?: boolean; url?: string };
+      if (data.ok && data.url) {
+        window.location.href = data.url;
+        return; // คง loading ไว้ระหว่าง browser พาไป Stripe
+      }
+      setBuyError("เริ่มการชำระเงินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+    } catch {
+      setBuyError("เริ่มการชำระเงินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+    }
+    setBuying(false);
+  }
 
   const images: string[] = font
     ? [font.cover_image_url, ...(font.preview_images || [])].filter(
@@ -516,9 +549,22 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                     </div>
                   )
                 ) : (
-                  <Button size="lg" className="w-full" disabled>
-                    ซื้อฟอนต์นี้
-                  </Button>
+                  <div>
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      disabled={!font.price || buying}
+                      onClick={handleBuy}
+                    >
+                      {buying ? "กำลังไปหน้าชำระเงิน..." : "ซื้อฟอนต์นี้"}
+                    </Button>
+                    {buyError && (
+                      <p className="text-[12px] text-[#c0392b] text-center mt-1.5">{buyError}</p>
+                    )}
+                    <p className="text-[11px] text-[#aaa] text-center mt-1.5">
+                      ชำระผ่าน PromptPay หรือบัตรเครดิต — ดาวน์โหลดได้ทันที
+                    </p>
+                  </div>
                 )}
               </div>
 

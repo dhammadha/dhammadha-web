@@ -253,6 +253,13 @@ export interface Database {
           total_amount: number;
           status: "pending" | "paid" | "cancelled";
           paid_at: string | null;
+          source: "quote" | "checkout";
+          payment_provider: string | null;
+          provider_session_id: string | null;
+          provider_payment_intent: string | null;
+          platform_rate: number | null;
+          platform_amount: number | null;
+          designer_amount: number | null;
           created_at: string;
         };
         Insert: never;
@@ -403,6 +410,10 @@ export interface Database {
       };
       verify_order: {
         Args: { p_order_no: string };
+        Returns: Json;
+      };
+      checkout_order_status: {
+        Args: { p_session_id: string };
         Returns: Json;
       };
     };
