@@ -67,6 +67,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   const [testerFonts, setTesterFonts] = useState<FontFileEntry[]>([]);
   const [obfMap, setObfMap] = useState<Record<string, string> | null>(null);
   const [obfMapName, setObfMapName] = useState("");
+  const [genProgress, setGenProgress] = useState<string | null>(null);
 
   const showToast = (msg: string, error = false) => {
     setToast({ msg, error });
@@ -182,6 +183,38 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
   const removeFontFile = (idx: number, setter: React.Dispatch<React.SetStateAction<FontFileEntry[]>>) => {
     setter((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // สร้าง tester (obfuscated) + demo อัตโนมัติจากไฟล์เต็ม — ประมวลผลใน
+  // เบราว์เซอร์ด้วย fonttools ผ่าน Pyodide (ดู src/lib/font-pipeline.ts)
+  const handleGenerateAssets = async () => {
+    const newFiles = fullFonts.flatMap((f) => (f.type === "new" ? [f.file] : []));
+    if (!newFiles.length) {
+      showToast("ต้องมีไฟล์ Full Family ที่เลือกจากเครื่องก่อน (ไฟล์ที่อัปโหลดไว้แล้วใช้ generate ซ้ำไม่ได้)", true);
+      return;
+    }
+    const family = name.trim() || nameTh.trim();
+    if (!family) {
+      showToast("กรอกชื่อฟอนต์ก่อน generate (ใช้ตั้งชื่อไฟล์ TESTER/DEMO)", true);
+      return;
+    }
+    setGenProgress("เริ่มประมวลผล…");
+    try {
+      const { generateFontAssets } = await import("@/lib/font-pipeline");
+      const result = await generateFontAssets(newFiles, family, setGenProgress);
+      setTesterFonts(result.testerFiles.map((file) => ({ type: "new" as const, file, name: file.name })));
+      setObfMap(result.map);
+      setObfMapName("map สร้างอัตโนมัติ ✓");
+      if (result.demoFile) {
+        const demoFile = result.demoFile;
+        setDemoFonts([{ type: "new" as const, file: demoFile, name: demoFile.name }]);
+      }
+      showToast(`สร้างเรียบร้อย — tester ${result.testerFiles.length} ไฟล์ + demo 1 ไฟล์`);
+    } catch (e) {
+      showToast("Generate ไม่สำเร็จ: " + (e instanceof Error ? e.message : String(e)), true);
+    } finally {
+      setGenProgress(null);
+    }
   };
 
   const addPreviewFiles = (files: FileList) => {
@@ -481,7 +514,27 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
           <>
             <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
 
-            {/* Tester (obfuscated) — จาก scripts/prepare_font_assets.py */}
+            {/* Auto-generate tester + demo จากไฟล์เต็ม (ประมวลผลในเบราว์เซอร์) */}
+            <div className="mt-2.5 rounded-xl border border-[0.5px] border-mint-mid bg-mint-light/40 p-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleGenerateAssets}
+                  disabled={!!genProgress}
+                  className="px-3.5 py-2 rounded-lg bg-navy text-white text-[12px] font-medium border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {genProgress ? "กำลังประมวลผล…" : "⚡ สร้าง Tester + Demo อัตโนมัติ"}
+                </button>
+                {genProgress && (
+                  <span className="text-[12px] text-[#0a8a84] animate-pulse">{genProgress}</span>
+                )}
+              </div>
+              <p className="text-[11px] text-[#888] mt-2 leading-[1.6]">
+                สร้างจากไฟล์ Full Family ที่เลือกไว้ด้านบน — ได้ tester (obfuscated) ครบทุก weight + map และ demo ภาษาไทย (Regular) เติมลงช่องด้านล่างให้อัตโนมัติ ประมวลผลในเบราว์เซอร์ทั้งหมด ครั้งแรกจะโหลดเครื่องมือ ~10MB
+              </p>
+            </div>
+
+            {/* Tester (obfuscated) — จากปุ่ม generate ด้านบน หรือ scripts/prepare_font_assets.py */}
             <div className="rounded-xl border border-border p-3 mt-3">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[13px] font-medium text-navy">Tester Font (แสดงบนเว็บ)</span>
