@@ -76,21 +76,29 @@ export default function Footer() {
           </div>
         </div>
 
-        <div /> {/* empty col */}
-
         {/* Fonts */}
         <div>
           <h4 className="text-[12px] font-semibold text-navy mb-3 tracking-[0.02em]">ผลิตภัณฑ์</h4>
           <Link href="/fonts/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ฟอนต์ทั้งหมด</Link>
           <Link href="/agreement/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">สัญญาอนุญาต</Link>
           <Link href="/#pricing" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ราคาและแผนบริการ</Link>
+          <Link href="/become-a-designer/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ร่วมเป็น Designer</Link>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h4 className="text-[12px] font-semibold text-navy mb-3 tracking-[0.02em]">นโยบาย</h4>
+          <Link href="/privacy/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">นโยบายความเป็นส่วนตัว</Link>
+          <Link href="/terms/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ข้อกำหนดการใช้งาน</Link>
+          <Link href="/refund-policy/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">นโยบายการคืนเงิน</Link>
+          <Link href="/designer-agreement/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ข้อตกลงสำหรับนักออกแบบ</Link>
         </div>
 
         {/* Help */}
         <div>
           <h4 className="text-[12px] font-semibold text-navy mb-3 tracking-[0.02em]">ช่วยเหลือ</h4>
-          <Link href="#" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ติดต่อสอบถาม</Link>
-          <Link href="#" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">คำถามที่พบบ่อย</Link>
+          <a href="mailto:info@dhammadha.com" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ติดต่อสอบถาม</a>
+          <Link href="/become-a-designer/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">สมัครเป็นนักออกแบบ</Link>
         </div>
       </div>
 

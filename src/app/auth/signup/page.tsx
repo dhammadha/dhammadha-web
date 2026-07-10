@@ -19,6 +19,8 @@ export default function SignupPage() {
   const [confirm, setConfirm] = useState("");
   const [applyDesigner, setApplyDesigner] = useState(false);
   const [portfolioUrl, setPortfolioUrl] = useState("");
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -39,6 +41,10 @@ export default function SignupPage() {
       setError("กรุณากรอกลิงก์ผลงานเพื่อสมัครเป็น designer");
       return;
     }
+    if (applyDesigner && !agreementAccepted) {
+      setError("กรุณาอ่านและยอมรับข้อตกลงสำหรับนักออกแบบก่อนสมัคร");
+      return;
+    }
     setLoading(true);
 
     const { error: signUpError } = await supabase.auth.signUp({
@@ -47,9 +53,11 @@ export default function SignupPage() {
       options: {
         data: {
           name,
+          ...(marketingConsent ? { marketing_consent: true } : {}),
           ...(applyDesigner ? {
             portfolio_url: normalizeUrl(portfolioUrl),
             designer_application_status: "pending",
+            designer_agreement_accepted: true,
           } : {}),
         },
       },
@@ -169,23 +177,56 @@ export default function SignupPage() {
                 </label>
 
                 {applyDesigner && (
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[13px] text-[#555] font-medium">
-                      ลิงก์ผลงาน <span className="text-red-400">*</span>
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[13px] text-[#555] font-medium">
+                        ลิงก์ผลงาน <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={portfolioUrl}
+                        onChange={(e) => setPortfolioUrl(e.target.value)}
+                        onBlur={(e) => setPortfolioUrl(normalizeUrl(e.target.value))}
+                        className={inputCls}
+                        placeholder="behance.net/yourname หรือ Instagram / website ฯลฯ"
+                      />
+                      <p className="text-[11px] text-[#bbb] leading-[1.5]">
+                        กรอกลิงก์แสดงผลงานออกแบบฟอนต์ที่มีอยู่ เช่น Behance, Instagram, เว็บไซต์ส่วนตัว
+                      </p>
+                    </div>
+
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={agreementAccepted}
+                        onChange={(e) => setAgreementAccepted(e.target.checked)}
+                        className="mt-0.5 accent-[#0a8a84] shrink-0"
+                      />
+                      <span className="text-[12px] text-[#555] leading-[1.6]">
+                        ฉันได้อ่านและยอมรับ{" "}
+                        <Link href="/designer-agreement/" target="_blank" className="text-mint no-underline hover:underline">
+                          ข้อตกลงสำหรับนักออกแบบ
+                        </Link>{" "}
+                        <span className="text-red-400">*</span>
+                      </span>
                     </label>
-                    <input
-                      type="text"
-                      value={portfolioUrl}
-                      onChange={(e) => setPortfolioUrl(e.target.value)}
-                      onBlur={(e) => setPortfolioUrl(normalizeUrl(e.target.value))}
-                      className={inputCls}
-                      placeholder="behance.net/yourname หรือ Instagram / website ฯลฯ"
-                    />
-                    <p className="text-[11px] text-[#bbb] leading-[1.5]">
-                      กรอกลิงก์แสดงผลงานออกแบบฟอนต์ที่มีอยู่ เช่น Behance, Instagram, เว็บไซต์ส่วนตัว
-                    </p>
-                  </div>
+                  </>
                 )}
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={marketingConsent}
+                    onChange={(e) => setMarketingConsent(e.target.checked)}
+                    className="mt-0.5 accent-[#0a8a84] shrink-0"
+                  />
+                  <span className="text-[12px] text-[#888] leading-[1.6]">
+                    ยินยอมรับข่าวสาร ฟอนต์ใหม่ และโปรโมชั่นทางอีเมล (ยกเลิกได้ทุกเมื่อ — ดู{" "}
+                    <Link href="/privacy/" target="_blank" className="text-mint no-underline hover:underline">
+                      นโยบายความเป็นส่วนตัว
+                    </Link>)
+                  </span>
+                </label>
               </div>
 
               {error && (
