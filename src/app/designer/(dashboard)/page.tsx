@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
 import Button from "@/components/Button";
+import { DesignerSetupCard } from "@/components/designer/SetupGate";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -67,6 +68,9 @@ export default function DesignerFontsPage() {
 
   return (
     <div className="p-6 max-w-[1200px]">
+      {/* Checklist ตั้งค่าร้าน — ซ่อนเองเมื่อครบ */}
+      <DesignerSetupCard />
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {stats.map((s) => (
