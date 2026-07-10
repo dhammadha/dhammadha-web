@@ -43,6 +43,16 @@ const BENEFITS = [
       </svg>
     ),
   },
+  {
+    title: "ทุกไฟล์ตรวจสอบย้อนกลับได้",
+    desc: "ไฟล์ที่ลูกค้าดาวน์โหลดถูกประทับชื่อผู้ซื้อ เลขที่คำสั่งซื้อ และวันที่ ลงใน license metadata ของไฟล์ฟอนต์โดยอัตโนมัติ — หากไฟล์หลุดสู่สาธารณะ ตรวจย้อนถึงต้นทางได้ทันที และช่วยป้องปรามการแชร์ไฟล์ตั้งแต่แรก",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <polyline points="9 12 11 14 15 10" />
+      </svg>
+    ),
+  },
 ];
 
 const STEPS = [
@@ -83,7 +93,7 @@ export default function BecomeADesignerPage() {
       {/* BENEFITS */}
       <section className="bg-bg">
         <div className="max-w-site mx-auto px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {BENEFITS.map((b) => (
               <div key={b.title} className="bg-white border border-[0.5px] border-border rounded-xl p-6">
                 <div className="w-11 h-11 rounded-xl bg-mint-light text-[#0a8a84] flex items-center justify-center mb-4">
