@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
@@ -16,6 +15,7 @@ export default function AdminFontsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [fonts, setFonts] = useState<FontRow[]>([]);
+  const [designerSlug, setDesignerSlug] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [loading, setLoading] = useState(true);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -27,19 +27,22 @@ export default function AdminFontsPage() {
 
   const loadFonts = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("fonts").select("*").eq("owner_id", user!.id).order("created_at", { ascending: false });
     if (error) {
       showToast("โหลดรายการฟอนต์ไม่สำเร็จ: " + error.message);
       setLoading(false);
       return;
     }
-    type RawRow = { designer_slug?: string | null; users?: { designer_slug?: string; business_name?: string } | null } & FontRow;
-    const flat = ((data ?? []) as unknown as RawRow[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? null, designer_business_name: r.users?.business_name ?? null, users: undefined }));
-    setFonts(flat as FontRow[]);
+    setFonts((data as FontRow[]) ?? []);
     setLoading(false);
-  }, []);
+  }, [user]);
 
-  useEffect(() => { loadFonts(); }, [loadFonts]);
+  useEffect(() => {
+    if (!user) return;
+    loadFonts();
+    supabase.from("users").select("designer_slug").eq("id", user.id).single()
+      .then(({ data }) => setDesignerSlug(data?.designer_slug ?? null));
+  }, [user, loadFonts]);
 
   const filtered = fonts.filter((f) => {
     if (tab === "active") return !!f.published_at && f.is_active;
@@ -148,7 +151,11 @@ export default function AdminFontsPage() {
                   : <div className="w-10 h-[22px] rounded bg-[#eee]" />}
               </div>
               <div>
-                <a href={(f as FontRow & { designer_slug?: string }).designer_slug ? `/fonts/${(f as FontRow & { designer_slug?: string }).designer_slug}/${f.slug}` : "#"} target="_blank" rel="noopener" className="text-[14px] font-semibold text-navy no-underline hover:text-mint">{f.name ?? "—"}</a>
+                {designerSlug && f.published_at ? (
+                  <a href={`/fonts/${designerSlug}/${f.slug}`} target="_blank" rel="noopener" className="text-[14px] font-semibold text-navy no-underline hover:text-mint">{f.name ?? "—"}</a>
+                ) : (
+                  <div className="text-[14px] font-semibold text-navy">{f.name ?? "—"}</div>
+                )}
                 {f.name_th && <div className="text-[11px] text-[#aaa]">{f.name_th}</div>}
               </div>
               <div className="text-[12px] text-[#888] capitalize">{f.category ?? "—"}</div>

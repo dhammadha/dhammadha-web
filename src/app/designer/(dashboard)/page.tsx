@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
 import Button from "@/components/Button";
-import { DesignerSetupCard } from "@/components/designer/SetupGate";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -19,6 +18,7 @@ export default function DesignerFontsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingFont, setEditingFont] = useState<FontRow | null>(null);
   const [toast, setToast] = useState("");
+  const [designerSlug, setDesignerSlug] = useState<string | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -35,7 +35,13 @@ export default function DesignerFontsPage() {
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { loadFonts(); }, [loadFonts]);
+  useEffect(() => {
+    loadFonts();
+    if (user) {
+      supabase.from("users").select("designer_slug").eq("id", user.id).single()
+        .then(({ data }) => setDesignerSlug(data?.designer_slug ?? null));
+    }
+  }, [user, loadFonts]);
 
   const filtered = fonts.filter((f) => {
     if (tab === "active") return !!f.published_at && f.is_active;
@@ -68,9 +74,6 @@ export default function DesignerFontsPage() {
 
   return (
     <div className="p-6 max-w-[1200px]">
-      {/* Checklist ตั้งค่าร้าน — ซ่อนเองเมื่อครบ */}
-      <DesignerSetupCard />
-
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {stats.map((s) => (
@@ -123,7 +126,11 @@ export default function DesignerFontsPage() {
                 : <div className="w-10 h-[22px] rounded bg-[#eee]" />}
             </div>
             <div>
-              <div className="text-[14px] font-semibold text-navy">{f.name ?? "—"}</div>
+              {designerSlug && f.published_at ? (
+                <a href={`/fonts/${designerSlug}/${f.slug}`} target="_blank" rel="noopener" className="text-[14px] font-semibold text-navy no-underline hover:text-mint">{f.name ?? "—"}</a>
+              ) : (
+                <div className="text-[14px] font-semibold text-navy">{f.name ?? "—"}</div>
+              )}
               {f.name_th && <div className="text-[11px] text-[#aaa]">{f.name_th}</div>}
             </div>
             <div className="text-[12px] text-[#888] capitalize">{f.category ?? "—"}</div>

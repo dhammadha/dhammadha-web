@@ -6,26 +6,25 @@ import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/Button";
 
 const THAI_BANKS = [
-  "ธนาคารกรุงเทพ (BBL)",
   "ธนาคารกสิกรไทย (KBANK)",
-  "ธนาคารกรุงไทย (KTB)",
-  "ธนาคารทหารไทยธนชาต (TTB)",
   "ธนาคารไทยพาณิชย์ (SCB)",
+  "ธนาคารกรุงเทพ (BBL)",
+  "ธนาคารกรุงไทย (KTB)",
   "ธนาคารกรุงศรีอยุธยา (BAY)",
-  "ธนาคารเกียรตินาคินภัทร (KKP)",
-  "ธนาคารซีไอเอ็มบีไทย (CIMB)",
-  "ธนาคารทิสโก้ (TISCO)",
-  "ธนาคารยูโอบี (UOB)",
-  "ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)",
+  "ธนาคารทหารไทยธนชาต (TTB)",
   "ธนาคารออมสิน (GSB)",
   "ธนาคารอาคารสงเคราะห์ (GHB)",
-  "ธนาคารเพื่อการเกษตรและสหกรณ์ (BAAC)",
+  "ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร (BAAC)",
+  "ธนาคารยูโอบี (UOB)",
+  "ธนาคารซีไอเอ็มบีไทย (CIMB)",
+  "ธนาคารเกียรตินาคินภัทร (KKP)",
+  "ธนาคารทิสโก้ (TISCO)",
+  "ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)",
 ];
-
-const DRAFT_KEY = "settings_draft";
 
 export default function DesignerSettingsPage() {
   const { user } = useAuth();
+  const DRAFT_KEY = `settings_draft_${user?.id ?? "anon"}`;
 
   const [entityType, setEntityType] = useState<"individual" | "juristic">("individual");
   const [businessName, setBusinessName] = useState("");

@@ -107,7 +107,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const REVIEW_NAV = [
     {
       href: "/admin/font-review",
-      label: "Font Review",
+      label: "Fonts",
       badge: pendingFonts,
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13L6 3l4 10M3.5 10h5M10 3h4M12 3v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="13" cy="13" r="2.5" fill="currentColor" className="text-amber-400"/></svg>,
     },

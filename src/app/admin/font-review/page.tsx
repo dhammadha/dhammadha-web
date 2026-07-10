@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import FontForm from "@/components/admin/FontForm";
 import type { Database } from "@/lib/database.types";
@@ -10,11 +11,9 @@ type FontRow = Database["public"]["Tables"]["fonts"]["Row"] & {
   designer_business_name?: string | null;
 };
 
-function fmtDate(s: string) {
-  return new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" });
-}
+type Tab = "all" | "active" | "hidden" | "pending" | "sale";
 
-// ── Quality checklist ก่อน publish ──────────────────────────────────────────
+// ── Quality checklist ────────────────────────────────────────────────────────
 
 type Check = { label: string; ok: boolean; required: boolean; hint?: string };
 
@@ -87,11 +86,7 @@ function PublishChecklist({ font, privateFiles, publishing, onClose, onPublish }
         <div className="flex flex-col gap-2 mb-4">
           {checks.map((c) => (
             <div key={c.label} className="flex items-start gap-2.5">
-              <span
-                className={`mt-0.5 text-[13px] leading-none ${
-                  c.ok ? "text-green-500" : c.required ? "text-red-500" : "text-amber-500"
-                }`}
-              >
+              <span className={`mt-0.5 text-[13px] leading-none ${c.ok ? "text-green-500" : c.required ? "text-red-500" : "text-amber-500"}`}>
                 {c.ok ? "✓" : c.required ? "✗" : "⚠"}
               </span>
               <div className="flex-1">
@@ -109,7 +104,7 @@ function PublishChecklist({ font, privateFiles, publishing, onClose, onPublish }
 
         {requiredFailed.length > 0 && (
           <p className="text-[12px] text-red-500 bg-red-50 rounded-lg px-3 py-2 mb-3">
-            ยังขาดข้อบังคับ {requiredFailed.length} ข้อ — แก้ผ่านปุ่ม &quot;ดูรายละเอียด&quot; ก่อน
+            ยังขาดข้อบังคับ {requiredFailed.length} ข้อ — แก้ผ่านปุ่ม &quot;แก้ไข&quot; ก่อน
           </p>
         )}
         {requiredFailed.length === 0 && warnings.length > 0 && (
@@ -138,24 +133,25 @@ function PublishChecklist({ font, privateFiles, publishing, onClose, onPublish }
   );
 }
 
-export default function AdminFontReviewPage() {
+// ── Main page ────────────────────────────────────────────────────────────────
+
+export default function AdminAllFontsPage() {
   const [fonts, setFonts] = useState<FontRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Tab>("all");
   const [editing, setEditing] = useState<FontRow | null>(null);
-  const [publishing, setPublishing] = useState<string | null>(null);
-  // ฟอนต์ที่กำลังตรวจ checklist ก่อน publish + ไฟล์เต็มจากตาราง private
   const [reviewing, setReviewing] = useState<FontRow | null>(null);
   const [privateFiles, setPrivateFiles] = useState<string[] | null>(null);
+  const [publishing, setPublishing] = useState<string | null>(null);
   const [toast, setToast] = useState("");
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3500); };
 
   const load = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
       .from("fonts")
       .select("*, users!owner_id(designer_slug, business_name)")
-      .is("published_at", null)
       .order("created_at", { ascending: false });
     type RawRow = FontRow & { users?: { designer_slug?: string; business_name?: string } | null };
     const flat = ((data ?? []) as unknown as RawRow[]).map((r) => ({
@@ -170,7 +166,14 @@ export default function AdminFontReviewPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // เปิด checklist ตรวจคุณภาพก่อน publish (โหลดไฟล์เต็มจากตาราง private มาเช็คด้วย)
+  const filtered = fonts.filter((f) => {
+    if (tab === "active") return !!f.published_at && f.is_active;
+    if (tab === "hidden") return !!f.published_at && !f.is_active;
+    if (tab === "pending") return !f.published_at;
+    if (tab === "sale") return f.is_sale;
+    return true;
+  });
+
   const openReview = async (f: FontRow) => {
     setPrivateFiles(null);
     setReviewing(f);
@@ -184,71 +187,152 @@ export default function AdminFontReviewPage() {
 
   const publishFont = async (f: FontRow) => {
     setPublishing(f.id);
-    const now = new Date().toISOString();
-    const { error } = await supabase.from("fonts").update({ published_at: now, is_active: true }).eq("id", f.id);
+    const { error } = await supabase
+      .from("fonts")
+      .update({ published_at: new Date().toISOString(), is_active: true })
+      .eq("id", f.id);
     if (error) showToast("เกิดข้อผิดพลาด: " + error.message);
     else {
-      showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว — อย่าลืม Publish เว็บไซต์เพื่อสร้างหน้า static`);
+      showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว — อย่าลืม Deploy เว็บ`);
       load();
     }
     setPublishing(null);
     setReviewing(null);
   };
 
+  const toggleActive = async (f: FontRow) => {
+    const { error } = await supabase.from("fonts").update({ is_active: !f.is_active }).eq("id", f.id);
+    showToast(error ? "เกิดข้อผิดพลาด: " + error.message : f.is_active ? "ซ่อนฟอนต์แล้ว" : "แสดงฟอนต์แล้ว");
+    load();
+  };
+
+  const pendingCount = fonts.filter((f) => !f.published_at).length;
+
+  const TABS: { key: Tab; label: string; badge?: number }[] = [
+    { key: "all", label: "ทั้งหมด" },
+    { key: "active", label: "แสดงอยู่" },
+    { key: "hidden", label: "ซ่อนอยู่" },
+    { key: "pending", label: "รอ Publish", badge: pendingCount },
+    { key: "sale", label: "โปรโมชั่น" },
+  ];
+
   return (
-    <div className="p-6 max-w-[900px]">
-      <div className="mb-6">
-        <h1 className="text-[20px] font-semibold text-navy">Font Review</h1>
-        <p className="text-[13px] text-[#aaa] mt-0.5">ฟอนต์ที่รอตรวจสอบและ Publish</p>
+    <div className="p-6 max-w-[1300px]">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h1 className="text-[20px] font-semibold text-navy">Fonts</h1>
+          <p className="text-[13px] text-[#aaa] mt-0.5">ฟอนต์ทั้งหมดจากทุก designer</p>
+        </div>
+        <div className="text-[13px] font-medium text-navy bg-white border border-border rounded-xl px-4 py-2">
+          {fonts.length} ฟอนต์
+        </div>
       </div>
 
-      {loading ? (
-        <div className="text-[#aaa] text-[14px]">กำลังโหลด…</div>
-      ) : fonts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-border p-12 flex flex-col items-center justify-center text-center gap-2">
-          <div className="text-[15px] font-medium text-navy">ไม่มีฟอนต์รอ Publish</div>
-          <div className="text-[13px] text-[#aaa]">ทุกฟอนต์ได้รับการ Publish แล้ว</div>
+      {/* Tabs */}
+      <div className="flex gap-1 bg-white border border-border rounded-xl p-1 mb-4 w-fit">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-colors border-none cursor-pointer flex items-center gap-1.5 ${tab === t.key ? "bg-mint text-white" : "text-[#888] bg-transparent hover:bg-[#f5f5f2]"}`}
+          >
+            {t.label}
+            {t.badge != null && t.badge > 0 && (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none ${tab === t.key ? "bg-white/30 text-white" : "bg-red-500 text-white"}`}>
+                {t.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-border overflow-hidden">
+        <div className="grid grid-cols-[52px_2fr_110px_90px_1fr_90px_140px_90px_170px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+          <div /><div>ฟอนต์</div><div>Designer</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>โปรโมชั่น</div><div>สถานะ</div><div>จัดการ</div>
         </div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {fonts.map((f) => (
-            <div key={f.id} className="bg-white rounded-2xl border border-amber-200 p-4 flex items-center gap-4">
-              {/* Cover */}
-              <div className="w-12 h-12 rounded-xl bg-[#f5f5f2] overflow-hidden shrink-0">
-                {f.cover_image_url && (
-                  <img src={f.cover_image_url} alt="" className="w-full h-full object-cover" />
-                )}
-              </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="text-[14px] font-semibold text-navy truncate">{f.name ?? f.slug}</div>
-                <div className="text-[12px] text-[#aaa] mt-0.5">
-                  {f.designer_business_name ?? f.designer_slug ?? "—"}
-                  {" · "}เพิ่มเมื่อ {fmtDate(f.created_at)}
+        {loading ? (
+          <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">กำลังโหลด…</div>
+        ) : filtered.length === 0 ? (
+          <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">ไม่มีฟอนต์ในหมวดนี้</div>
+        ) : filtered.map((f) => (
+          <div key={f.id} className="grid grid-cols-[52px_2fr_110px_90px_1fr_90px_140px_90px_170px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 hover:bg-[#fafaf8] transition-colors items-center">
+            <div>
+              {f.cover_image_url
+                ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-10 h-[22px] rounded object-cover" />
+                : <div className="w-10 h-[22px] rounded bg-[#eee]" />}
+            </div>
+            <div>
+              {f.designer_slug && f.published_at ? (
+                <a href={`/fonts/${f.designer_slug}/${f.slug}`} target="_blank" rel="noopener" className="text-[14px] font-semibold text-navy no-underline hover:text-mint">{f.name ?? "—"}</a>
+              ) : (
+                <div className="text-[14px] font-semibold text-navy">{f.name ?? "—"}</div>
+              )}
+              {f.name_th && <div className="text-[11px] text-[#aaa]">{f.name_th}</div>}
+            </div>
+            <div className="text-[12px] truncate">
+              {f.designer_slug ? (
+                <Link href={`/designer/${f.designer_slug}`} target="_blank" className="text-mint no-underline hover:underline">
+                  {f.designer_slug}
+                </Link>
+              ) : <span className="text-[#ddd]">—</span>}
+            </div>
+            <div className="text-[12px] text-[#888] capitalize">{f.category ?? "—"}</div>
+            <div className="text-[11px] text-[#aaa] truncate">{(f.tags ?? []).slice(0, 3).join(", ") || "—"}</div>
+            <div className="text-[13px] font-medium text-navy">
+              {f.is_free ? <span className="text-green-600">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
+            </div>
+            <div className="text-[11px] text-[#666]">
+              {f.is_sale && f.discount_percent ? (
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[#e07000] font-semibold">ลด {f.discount_percent}%</span>
+                  {f.sale_end && (
+                    <span className="text-[10px] text-[#aaa]">
+                      ถึง {new Date(f.sale_end).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}
+                    </span>
+                  )}
                 </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 shrink-0">
+              ) : <span className="text-[#ddd]">—</span>}
+            </div>
+            <div>
+              {f.published_at ? (
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${f.is_active ? "bg-green-50 text-green-600" : "bg-[#f5f5f2] text-[#aaa]"}`}>
+                  {f.is_active ? "แสดงบนเว็บ" : "ซ่อน"}
+                </span>
+              ) : (
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600">รอ Publish</span>
+              )}
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {f.published_at && (
                 <button
-                  onClick={() => setEditing(f)}
-                  className="px-3 py-1.5 rounded-xl border border-border text-[13px] text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors"
+                  onClick={() => toggleActive(f)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border cursor-pointer transition-colors ${f.is_active ? "border-border text-[#666] bg-white hover:bg-[#f5f5f2]" : "border-mint text-mint hover:bg-[#f0fffe]"}`}
                 >
-                  ดูรายละเอียด
+                  {f.is_active ? "ซ่อน" : "แสดง"}
                 </button>
+              )}
+              {!f.published_at ? (
                 <button
                   onClick={() => openReview(f)}
                   disabled={publishing === f.id}
-                  className="px-4 py-1.5 rounded-xl bg-mint text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50"
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium border-none bg-mint text-white cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50"
                 >
-                  {publishing === f.id ? "กำลัง…" : "ตรวจ & Publish"}
+                  {publishing === f.id ? "…" : "ตรวจ & Publish"}
                 </button>
-              </div>
+              ) : (
+                <button
+                  onClick={() => setEditing(f)}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-medium border border-border text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors"
+                >
+                  แก้ไข
+                </button>
+              )}
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
       {reviewing && (
         <PublishChecklist
@@ -262,7 +346,6 @@ export default function AdminFontReviewPage() {
 
       {editing && (
         <FontForm
-          mode="panel"
           open={true}
           onClose={() => setEditing(null)}
           editingFont={editing}

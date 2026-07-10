@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { useDesignerSetup } from "@/components/designer/SetupGate";
 
 function NavItem({ href, label, icon, badge, isActive, onClick }: {
   href: string; label: string; icon: React.ReactNode;
@@ -34,6 +35,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingQuotes, setPendingQuotes] = useState(0);
   const [designerSlug, setDesignerSlug] = useState("");
+  const setup = useDesignerSetup();
 
   const loadPending = useCallback(async () => {
     if (!user) return;
@@ -50,6 +52,12 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
       router.replace(user ? "/" : "/auth/login");
     }
   }, [loading, user, role, router]);
+
+  useEffect(() => {
+    if (!setup.loading && !setup.complete) {
+      router.replace("/designer/onboarding");
+    }
+  }, [setup.loading, setup.complete, router]);
 
   useEffect(() => {
     if (user && (role === "designer" || role === "admin")) {
