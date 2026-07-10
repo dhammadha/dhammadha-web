@@ -34,14 +34,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingQuotes, setPendingQuotes] = useState(0);
   const [pendingDesigners, setPendingDesigners] = useState(0);
+  const [pendingFonts, setPendingFonts] = useState(0);
 
   const loadPending = useCallback(async () => {
-    const [quotesRes, designersRes] = await Promise.all([
+    const [quotesRes, designersRes, fontsRes] = await Promise.all([
       supabase.from("quotes").select("id").is("quote_no", null),
       supabase.from("users").select("id").eq("designer_application_status", "pending"),
+      supabase.from("fonts").select("id").is("published_at", null),
     ]);
     setPendingQuotes(quotesRes.data?.length ?? 0);
     setPendingDesigners(designersRes.data?.length ?? 0);
+    setPendingFonts(fontsRes.data?.length ?? 0);
   }, []);
 
   useEffect(() => {
@@ -76,6 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       href: "/admin",
       label: "ฟอนต์",
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13L6 3l4 10M3.5 10h5M10 3h4M12 3v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+      badge: undefined,
     },
     {
       href: "/admin/quotes",
@@ -100,12 +104,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
   ];
 
-  const DESIGNERS_NAV = {
-    href: "/admin/designers",
-    label: "Designers",
-    badge: pendingDesigners,
-    icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 13c0-2.485 2.015-4 4.5-4s4.5 1.515 4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 7.5l1.5 1.5L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-  };
+  const REVIEW_NAV = [
+    {
+      href: "/admin/font-review",
+      label: "Font Review",
+      badge: pendingFonts,
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13L6 3l4 10M3.5 10h5M10 3h4M12 3v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="13" cy="13" r="2.5" fill="currentColor" className="text-amber-400"/></svg>,
+    },
+    {
+      href: "/admin/designers",
+      label: "Designers",
+      badge: pendingDesigners,
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 13c0-2.485 2.015-4 4.5-4s4.5 1.515 4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 7.5l1.5 1.5L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    },
+  ];
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -120,7 +132,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
           ))}
           <div className="h-[0.5px] bg-border my-2" />
-          <NavItem {...DESIGNERS_NAV} isActive={isActive(DESIGNERS_NAV.href)} />
+          {REVIEW_NAV.map((item) => (
+            <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
+          ))}
         </nav>
         <div className="p-3 border-t border-border flex flex-col gap-1">
           <Link href="/" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] no-underline transition-colors text-[#666] hover:bg-[#f5f5f2] hover:text-navy`}>
@@ -163,7 +177,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
               <div className="h-[0.5px] bg-border my-2" />
-              <NavItem {...DESIGNERS_NAV} isActive={isActive(DESIGNERS_NAV.href)} onClick={() => setMenuOpen(false)} />
+              {REVIEW_NAV.map((item) => (
+                <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
+              ))}
             </nav>
             <div className="p-3 border-t border-border flex flex-col gap-1">
               <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] no-underline transition-colors text-[#666] hover:bg-[#f5f5f2] hover:text-navy" onClick={() => setMenuOpen(false)}>
