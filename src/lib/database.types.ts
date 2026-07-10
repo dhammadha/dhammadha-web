@@ -218,6 +218,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      subscription_waitlist: {
+        Row: {
+          id: string;
+          email: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       users: {
         Row: {
           id: string;
@@ -237,6 +255,8 @@ export interface Database {
           payout_method: string | null;
           portfolio_url: string | null;
           designer_application_status: 'pending' | 'approved' | 'rejected' | null;
+          marketing_consent_at: string | null;
+          designer_agreement_accepted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -258,6 +278,8 @@ export interface Database {
           payout_method?: string | null;
           portfolio_url?: string | null;
           designer_application_status?: 'pending' | 'approved' | 'rejected' | null;
+          marketing_consent_at?: string | null;
+          designer_agreement_accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -279,6 +301,8 @@ export interface Database {
           payout_method?: string | null;
           portfolio_url?: string | null;
           designer_application_status?: 'pending' | 'approved' | 'rejected' | null;
+          marketing_consent_at?: string | null;
+          designer_agreement_accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

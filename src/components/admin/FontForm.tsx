@@ -63,6 +63,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   const [demoFonts, setDemoFonts] = useState<FontFileEntry[]>([]);
   const [freeFonts, setFreeFonts] = useState<FontFileEntry[]>([]);
   const [specimens, setSpecimens] = useState<FontFileEntry[]>([]);
+  // Tester (obfuscated) — จาก scripts/prepare_font_assets.py
+  const [testerFonts, setTesterFonts] = useState<FontFileEntry[]>([]);
+  const [obfMap, setObfMap] = useState<Record<string, string> | null>(null);
+  const [obfMapName, setObfMapName] = useState("");
 
   const showToast = (msg: string, error = false) => {
     setToast({ msg, error });
@@ -76,6 +80,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setIsActive(true); setIsFree(false); setIsSub(true);
     setCoverFile(null); setCoverUrl(""); setPreviewItems([]);
     setFullFonts([]); setDemoFonts([]); setFreeFonts([]); setSpecimens([]);
+    setTesterFonts([]); setObfMap(null); setObfMapName("");
   }, []);
 
   // Load designer name from user's business_name when adding new font
@@ -116,6 +121,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setDemoFonts((f.demo_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
     setFreeFonts((f.free_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
     setSpecimens((f.specimen_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
+    setTesterFonts((f.obfuscated_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
+    const existingMap = f.obfuscated_map as Record<string, string> | null;
+    setObfMap(existingMap ?? null);
+    setObfMapName(existingMap ? "ใช้ map เดิมที่บันทึกไว้" : "");
   }, [open, editingFont, resetForm]);
 
   // localStorage draft cache (new font only, text fields)
@@ -237,11 +246,16 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       }
 
       // Upload font files
-      let finalFull: string[], finalDemo: string[], finalFree: string[], finalSpec: string[];
+      let finalFull: string[], finalDemo: string[], finalFree: string[], finalSpec: string[], finalTester: string[];
       try { finalFull = await uploadFontFiles(fullFonts, "fonts-full", slugVal); } catch (e) { throw new Error("[Full font upload] " + (e instanceof Error ? e.message : String(e))); }
       try { finalDemo = await uploadFontFiles(demoFonts, "fonts-demo", slugVal); } catch (e) { throw new Error("[Demo font upload] " + (e instanceof Error ? e.message : String(e))); }
       try { finalFree = await uploadFontFiles(freeFonts, "fonts-free", slugVal); } catch (e) { throw new Error("[Free font upload] " + (e instanceof Error ? e.message : String(e))); }
       try { finalSpec = await uploadFontFiles(specimens, "specimens", slugVal); } catch (e) { throw new Error("[Specimen upload] " + (e instanceof Error ? e.message : String(e))); }
+      // tester (obfuscated) เก็บใน bucket fonts-demo (public — ไฟล์ผ่านการสลับรหัสแล้ว)
+      try { finalTester = await uploadFontFiles(testerFonts, "fonts-demo", slugVal); } catch (e) { throw new Error("[Tester font upload] " + (e instanceof Error ? e.message : String(e))); }
+      if (!isFree && finalTester.length > 0 && !obfMap) {
+        throw new Error("Tester font ต้องแนบไฟล์ obfuscated_map.json ที่ได้จาก script ด้วย (ไม่งั้นตัวอักษรบนเว็บจะแสดงผลมั่ว)");
+      }
 
       const discountVal = parseInt(discount) || 0;
       const priceVal = parseFloat(price) || null;
@@ -269,6 +283,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         demo_font_files: finalDemo.length ? finalDemo : null,
         free_font_files: finalFree.length ? finalFree : null,
         specimen_files: finalSpec.length ? finalSpec : null,
+        obfuscated_font_files: finalTester.length ? finalTester : null,
+        obfuscated_map: finalTester.length && obfMap ? obfMap : null,
         has_demo: finalDemo.length > 0,
         weight_count: finalFull.length || finalFree.length || null,
         owner_id: ownerId ?? null,
@@ -464,7 +480,57 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         {!isFree && (
           <>
             <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
-            <FontFileSection label="Demo Font" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
+
+            {/* Tester (obfuscated) — จาก scripts/prepare_font_assets.py */}
+            <div className="rounded-xl border border-border p-3 mt-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[13px] font-medium text-navy">Tester Font (แสดงบนเว็บ)</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-600">🔀 Obfuscated</span>
+              </div>
+              <p className="text-[11px] text-[#aaa] mb-2 leading-[1.5]">
+                ไฟล์ .woff2 ทุก weight + map.json จาก <code className="text-[10px]">scripts/prepare_font_assets.py</code> — ใช้แสดง type tester ด้วยฟอนต์จริงที่ผ่านการสลับรหัสอักษร (ไฟล์ถูกดูดไปใช้จริงไม่ได้)
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[12px] text-[#666]">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  ไฟล์ฟอนต์ (.woff2)
+                  <input type="file" accept=".woff2,.ttf,.otf" multiple className="hidden" onChange={(e) => e.target.files && addFontFiles(Array.from(e.target.files), setTesterFonts)} />
+                </label>
+                <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[12px] text-[#666]">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  {obfMapName || "ไฟล์ map (.json)"}
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        const parsed = JSON.parse(await file.text()) as Record<string, string>;
+                        setObfMap(parsed);
+                        setObfMapName(file.name);
+                      } catch {
+                        setObfMap(null); setObfMapName("");
+                        showToast("ไฟล์ map ไม่ใช่ JSON ที่ถูกต้อง", true);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              {testerFonts.length > 0 && (
+                <div className="mt-2 flex flex-col gap-1">
+                  {testerFonts.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#fafaf8] text-[12px] text-[#555]">
+                      <span className="truncate mr-2">{f.name}</span>
+                      <button onClick={() => removeFontFile(i, setTesterFonts)} className="text-[#bbb] hover:text-red-500 bg-transparent border-none cursor-pointer text-[14px] leading-none flex-shrink-0">✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <FontFileSection label="Demo Font (ให้ลูกค้าดาวน์โหลดทดลอง)" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
           </>
         )}
         {isFree && (

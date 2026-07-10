@@ -9,6 +9,7 @@ import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
 import Button from "@/components/Button";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 function parseWeight(url: string): string {
   const decoded = decodeURIComponent(url.split("?")[0]);
@@ -47,6 +48,7 @@ function getFormats(urls: string[]): string {
 }
 
 export default function FontDetail({ initialFont }: { initialFont?: Font | null }) {
+  const { user } = useAuth();
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const [font, setFont] = useState<Font | null>(initialFont ?? null);
@@ -91,10 +93,13 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         const others = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont).filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
-        // ไฟล์เต็มไม่ public แล้ว — ใช้ demo/free (public) สำหรับ type tester
+        // Type tester: ฟอนต์ขายใช้ tester files (obfuscated — glyph ครบทุก weight
+        // แต่รหัสอักษรถูกสลับ ไฟล์ที่ดูดไปใช้จริงไม่ได้) ถ้าไม่มีค่อย fallback demo
         const files = currentFont?.is_free
           ? currentFont?.free_font_files || []
-          : currentFont?.demo_font_files || [];
+          : (currentFont?.obfuscated_font_files?.length
+              ? currentFont.obfuscated_font_files
+              : currentFont?.demo_font_files || []);
         const weights = getUniqueWeights(files);
         if (weights.length) setSelectedWeight(weights[0]);
 
@@ -141,15 +146,17 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
-  // Inject @font-face — free fonts use files directly; paid fonts use the
-  // public demo files (ไฟล์เต็มอยู่ใน private bucket ไม่ถูกส่งถึง browser)
+  // Inject @font-face — ฟอนต์ฟรีใช้ไฟล์ตรง; ฟอนต์ขายใช้ tester files
+  // (obfuscated) เป็นหลัก ไม่มีค่อยใช้ demo (ไฟล์เต็มอยู่ใน private bucket)
   useEffect(() => {
     if (!font?.slug) return;
 
     const isFree = font.is_free === true;
     const previewFiles = isFree
       ? (font.free_font_files ?? [])
-      : (font.demo_font_files ?? []);
+      : (font.obfuscated_font_files?.length
+          ? font.obfuscated_font_files
+          : font.demo_font_files ?? []);
     if (!previewFiles.length) return;
 
     const family = `preview-${font.slug}`;
@@ -205,15 +212,18 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     );
   }
 
-  // แสดงข้อมูลจากไฟล์ public (demo/free); จำนวน weight จริงใช้ weight_count
-  // ที่บันทึกไว้ตอนอัปโหลด เพราะไฟล์เต็มไม่ถูกส่งถึง browser แล้ว
-  const fontFiles = font.is_free
+  // ไฟล์สำหรับ render tester + รายชื่อ weight ใน dropdown: tester (obfuscated)
+  // มีครบทุก weight; ส่วน Font Format แสดงจาก demo/free (ตรงกับไฟล์ที่ขายจริง
+  // — tester เป็น woff2 เสมอ ไม่ใช่ format ของสินค้า)
+  const useObfuscated = !font.is_free && !!font.obfuscated_font_files?.length;
+  const renderFiles = font.is_free
     ? font.free_font_files || []
-    : font.demo_font_files || [];
-  const weights = getUniqueWeights(fontFiles);
-  const formats = getFormats(fontFiles);
+    : (useObfuscated ? font.obfuscated_font_files! : font.demo_font_files || []);
+  const infoFiles = font.is_free ? font.free_font_files || [] : font.demo_font_files || [];
+  const weights = getUniqueWeights(renderFiles);
+  const formats = getFormats(infoFiles);
   const styleCount = font.weight_count
-    || fontFiles.filter((u) => !u.toLowerCase().endsWith(".zip")).length;
+    || renderFiles.filter((u) => !u.toLowerCase().endsWith(".zip")).length;
   const weightTotal = font.weight_count || weights.length;
 
   const mainTitle = font.name_th || font.name || "—";
@@ -323,7 +333,11 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                   color: testerInput ? "var(--color-navy, #2B1B3D)" : "#bbb",
                 }}
               >
-                {testerInput || "พิมพ์ทดสอบได้ที่นี่"}
+                {testerInput
+                  ? (useObfuscated && font.obfuscated_map
+                      ? [...testerInput].map((ch) => font.obfuscated_map![ch] ?? ch).join("")
+                      : testerInput)
+                  : "พิมพ์ทดสอบได้ที่นี่"}
               </div>
               {/* Input layer: same font applied so cursor aligns with display */}
               <textarea
@@ -482,9 +496,25 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 </div>
 
                 {font.is_free ? (
-                  <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full">
-                    ดาวน์โหลดฟรี
-                  </Button>
+                  user ? (
+                    <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full">
+                      ดาวน์โหลดฟรี
+                    </Button>
+                  ) : (
+                    <div>
+                      <Button
+                        as="link"
+                        href={`/auth/login/?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`}
+                        size="lg"
+                        className="w-full"
+                      >
+                        เข้าสู่ระบบเพื่อดาวน์โหลดฟรี
+                      </Button>
+                      <p className="text-[11px] text-[#aaa] text-center mt-1.5">
+                        สมัครสมาชิกฟรี ใช้เวลาไม่ถึงนาที
+                      </p>
+                    </div>
+                  )
                 ) : (
                   <Button size="lg" className="w-full" disabled>
                     ซื้อฟอนต์นี้
