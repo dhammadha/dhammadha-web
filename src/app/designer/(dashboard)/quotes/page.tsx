@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
+import Button from "@/components/Button";
 
 type QuoteRow = {
   id: string;
@@ -11,10 +13,14 @@ type QuoteRow = {
   email: string;
   license_type: string;
   fonts: string[];
+  fonts_detail: Array<{ name: string; price: number; license_type: string }> | null;
   note: string | null;
-  quote_no?: string | null;
+  quote_no: string | null;
+  designer_id: string | null;
   created_at: string;
 };
+
+type OrderRow = { id: string; quote_id: string | null; order_no: string };
 
 function fmtDate(s: string) {
   return new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" });
@@ -23,24 +29,33 @@ function fmtDate(s: string) {
 export default function DesignerQuotesPage() {
   const { user } = useAuth();
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
+  const [orders, setOrders] = useState<Record<string, OrderRow>>({});
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<QuoteRow | null>(null);
+  const [confirming, setConfirming] = useState<QuoteRow | null>(null);
+  const [toast, setToast] = useState("");
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 5000); };
 
   const loadQuotes = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("quotes")
-      .select("*")
-      .eq("designer_id", user.id)
-      .order("created_at", { ascending: false });
-    setQuotes((data as QuoteRow[]) ?? []);
+    const [{ data: quoteData }, { data: orderData }] = await Promise.all([
+      supabase.from("quotes").select("*").eq("designer_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("orders").select("id, quote_id, order_no").eq("designer_id", user.id),
+    ]);
+    setQuotes((quoteData as QuoteRow[]) ?? []);
+    const byQuote: Record<string, OrderRow> = {};
+    for (const o of (orderData as OrderRow[]) ?? []) {
+      if (o.quote_id) byQuote[o.quote_id] = o;
+    }
+    setOrders(byQuote);
     setLoading(false);
   }, [user]);
 
   useEffect(() => { loadQuotes(); }, [loadQuotes]);
 
-  const pending = quotes.filter((q) => !(q as never as { quote_no: string | null }).quote_no);
+  const pending = quotes.filter((q) => !orders[q.id]);
 
   return (
     <div className="p-6 max-w-[1000px]">
@@ -55,7 +70,7 @@ export default function DesignerQuotesPage() {
 
       <div className="flex gap-4 items-start">
         <div className="flex-1 bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_110px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
             <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท/องค์กร</div><div>รูปแบบสิทธิ์</div><div>สถานะ</div>
           </div>
 
@@ -67,7 +82,7 @@ export default function DesignerQuotesPage() {
             <div
               key={q.id}
               onClick={() => setSelected(selected?.id === q.id ? null : q)}
-              className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 cursor-pointer transition-colors items-center ${
+              className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_110px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 cursor-pointer transition-colors items-center ${
                 selected?.id === q.id ? "bg-mint-light" : "hover:bg-[#fafaf8]"
               }`}
             >
@@ -76,8 +91,10 @@ export default function DesignerQuotesPage() {
               <div className="text-[13px] text-[#555] truncate">{q.company_name}</div>
               <div className="text-[12px] text-[#888]">{q.license_type}</div>
               <div>
-                {(q as never as { quote_no: string | null }).quote_no ? (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">ดำเนินการแล้ว</span>
+                {orders[q.id] ? (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">ชำระแล้ว · {orders[q.id].order_no}</span>
+                ) : q.quote_no ? (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">รอชำระ · {q.quote_no}</span>
                 ) : (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">รอดำเนินการ</span>
                 )}
@@ -114,7 +131,18 @@ export default function DesignerQuotesPage() {
                 ))}
               </div>
             </div>
-            <div className="border-t border-border pt-3">
+
+            <div className="flex flex-col gap-2 border-t border-border pt-3">
+              {orders[selected.id] ? (
+                <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2">
+                  ✓ ยืนยันรับชำระแล้ว — {orders[selected.id].order_no}
+                  <p className="text-[11px] text-[#888] mt-1">ลูกค้าดาวน์โหลดไฟล์ได้จากหน้าบัญชีของตัวเอง</p>
+                </div>
+              ) : (
+                <Button onClick={() => setConfirming(selected)} className="w-full">
+                  ยืนยันรับชำระ
+                </Button>
+              )}
               <p className="text-[12px] text-[#aaa]">
                 การออกใบเสนอราคา / ใบเสร็จ จัดการได้ที่{" "}
                 <a href="/admin/quotes" className="text-mint no-underline hover:underline">Admin Panel</a>
@@ -123,6 +151,27 @@ export default function DesignerQuotesPage() {
           </div>
         )}
       </div>
+
+      {confirming && (
+        <ConfirmPaidModal
+          quote={confirming as ConfirmQuote}
+          onClose={() => setConfirming(null)}
+          onConfirmed={(orderNo, emailOk) => {
+            setConfirming(null);
+            setSelected(null);
+            showToast(
+              emailOk
+                ? `✓ ยืนยันรับชำระ ${orderNo} แล้ว — ส่งอีเมลแจ้งลูกค้าเรียบร้อย`
+                : `✓ ยืนยันรับชำระ ${orderNo} แล้ว แต่ส่งอีเมลไม่สำเร็จ — แจ้งลูกค้าเองอีกทาง`
+            );
+            loadQuotes();
+          }}
+        />
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 rounded-xl bg-navy text-white text-[13px] font-medium shadow-lg">{toast}</div>
+      )}
     </div>
   );
 }

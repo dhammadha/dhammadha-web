@@ -179,6 +179,43 @@ ${STUDIO_FOOTER}
 `;
 }
 
+interface OrderRow {
+  order_no: string;
+  customer_email: string;
+  customer_name: string | null;
+  designer_id: string | null;
+  items: Array<{ name?: string; license_type?: string; price?: number }>;
+  total_amount: number;
+  paid_at: string | null;
+}
+
+function deliveryHtml(order: OrderRow, designerBrand: string, licensePdfUrl: string | null): string {
+  const rows = order.items
+    .map(
+      (i) => `<tr>
+  <td style="padding:6px 0">${escapeHtml(i.name ?? "")}<br><span style="color:#888;font-size:12px">สิทธิ์ใช้งาน: ${escapeHtml(i.license_type ?? "")}</span></td>
+  <td style="padding:6px 0;text-align:right;white-space:nowrap">฿${Number(i.price ?? 0).toLocaleString()}</td>
+</tr>`
+    )
+    .join("");
+  return `
+<p>เรียน คุณ ${escapeHtml(order.customer_name ?? "")}</p>
+<p>ขอบคุณสำหรับการสั่งซื้อ — เราได้รับการยืนยันการชำระเงินของคุณแล้ว (เลขที่คำสั่งซื้อ <strong>${escapeHtml(order.order_no)}</strong>)</p>
+<table style="border-collapse:collapse;width:100%;max-width:480px">
+  ${rows}
+  <tr><td style="padding:8px 0;border-top:1px solid #eee;font-weight:bold">รวม</td><td style="padding:8px 0;border-top:1px solid #eee;text-align:right;font-weight:bold">฿${Number(order.total_amount).toLocaleString()}</td></tr>
+</table>
+<p><strong>ดาวน์โหลดไฟล์ฟอนต์:</strong><br>
+เข้าสู่ระบบที่ dhammadha.com ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) แล้วไปที่หน้า "บัญชีของฉัน" — ไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด<br>
+หากยังไม่มีบัญชี สมัครสมาชิกด้วยอีเมลนี้ ระบบจะผูกสิทธิ์ให้อัตโนมัติ</p>
+<p><a href="https://dhammadha.com/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a></p>
+${licensePdfUrl ? `<p>เอกสารข้อตกลงสิทธิ์การใช้งาน (License): <a href="${escapeHtml(licensePdfUrl)}">ดาวน์โหลด PDF</a></p>` : ""}
+<p style="color:#888;font-size:13px">ไฟล์ฟอนต์ของคุณถูกประทับข้อมูลการซื้อ (เลขคำสั่งซื้อ) ไว้ในไฟล์ ตรวจสอบได้ที่ dhammadha.com/verify</p>
+<br>
+<p style="color:#888;font-size:13px;border-top:1px solid #eee;padding-top:12px;margin-top:16px">${escapeHtml(designerBrand)}<br>via dhammadha.com</p>
+`;
+}
+
 // ── Handlers ────────────────────────────────────────────────────────────────
 
 type UserRow = {
@@ -288,6 +325,51 @@ async function handlePromote(
   return { status: 200, body: { ok: true } };
 }
 
+async function handleDelivery(
+  raw: Record<string, unknown>,
+  authToken: string | null | undefined,
+  env: EmailEnv
+): Promise<EmailResult> {
+  if (!authToken) return { status: 401, body: { ok: false, error: "unauthorized" } };
+  const orderId = str(raw.order_id, 40);
+  if (!UUID_RE.test(orderId)) return { status: 400, body: { ok: false, error: "invalid_payload" } };
+
+  // อ่าน order ด้วย token ของผู้เรียก — RLS บังคับให้เห็นเฉพาะ order ของตัวเอง
+  // (designer เจ้าของ / admin) จึงยิงอีเมลแทน order คนอื่นไม่ได้
+  const orders = await supabaseSelect<OrderRow>(
+    env,
+    `orders?id=eq.${orderId}&select=order_no,customer_email,customer_name,designer_id,items,total_amount,paid_at`,
+    authToken
+  );
+  const order = orders?.[0];
+  if (!order?.customer_email) return { status: 404, body: { ok: false, error: "order_not_found" } };
+  if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
+
+  let brand = "DHAMMADHA STUDIO";
+  let licensePdfUrl: string | null = null;
+  if (order.designer_id) {
+    const [users, configs] = await Promise.all([
+      supabaseSelect<UserRow>(env, `users?id=eq.${order.designer_id}&select=email,name,business_name,phone`, authToken),
+      supabaseSelect<{ license_pdf_url: string | null }>(
+        env,
+        `designer_license_config?designer_id=eq.${order.designer_id}&select=license_pdf_url`,
+        authToken
+      ),
+    ]);
+    const u = users?.[0];
+    if (u) brand = u.business_name ?? u.name ?? brand;
+    licensePdfUrl = configs?.[0]?.license_pdf_url ?? null;
+  }
+
+  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+    to: order.customer_email,
+    subject: `คำสั่งซื้อ ${order.order_no} สำเร็จ — ดาวน์โหลดฟอนต์ของคุณได้แล้ว`,
+    html: deliveryHtml(order, brand, licensePdfUrl),
+  });
+  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  return { status: 200, body: { ok: true } };
+}
+
 // ── Entry point ─────────────────────────────────────────────────────────────
 
 export async function handleEmailRequest(ctx: EmailRequestContext, env: EmailEnv): Promise<EmailResult> {
@@ -303,6 +385,9 @@ export async function handleEmailRequest(ctx: EmailRequestContext, env: EmailEnv
     }
     if (body.type === "promote") {
       return await handlePromote(payload, ctx.authToken, env);
+    }
+    if (body.type === "delivery") {
+      return await handleDelivery(payload, ctx.authToken, env);
     }
     return { status: 400, body: { ok: false, error: "unknown_type" } };
   } catch {

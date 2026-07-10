@@ -7,6 +7,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import MyDownloads from "@/components/account/MyDownloads";
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "Admin",
@@ -97,6 +98,8 @@ export default function AccountPage() {
               </>
             )}
           </div>
+
+          <MyDownloads />
         </div>
       </main>
       <Footer />

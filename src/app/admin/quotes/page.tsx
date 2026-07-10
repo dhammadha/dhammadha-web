@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import PrintLightbox from "@/components/admin/PrintLightbox";
+import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
 import type { Database } from "@/lib/database.types";
 import Button from "@/components/Button";
 
@@ -45,14 +46,24 @@ export default function AdminQuotesPage() {
   const [seller, setSeller] = useState<SellerInfo | null>(null);
   const [printData, setPrintData] = useState<Parameters<typeof PrintLightbox>[0]["data"]>(null);
   const [printOpen, setPrintOpen] = useState(false);
+  const [orders, setOrders] = useState<Record<string, { id: string; order_no: string }>>({});
+  const [confirming, setConfirming] = useState<QuoteRow | null>(null);
   const [toast, setToast] = useState("");
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   const loadQuotes = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("quotes").select("*").order("created_at", { ascending: false });
+    const [{ data }, { data: orderData }] = await Promise.all([
+      supabase.from("quotes").select("*").order("created_at", { ascending: false }),
+      supabase.from("orders").select("id, quote_id, order_no"),
+    ]);
     setQuotes((data as QuoteRow[]) ?? []);
+    const byQuote: Record<string, { id: string; order_no: string }> = {};
+    for (const o of (orderData as Array<{ id: string; quote_id: string | null; order_no: string }>) ?? []) {
+      if (o.quote_id) byQuote[o.quote_id] = { id: o.id, order_no: o.order_no };
+    }
+    setOrders(byQuote);
     setLoading(false);
   }, []);
 
@@ -192,6 +203,15 @@ export default function AdminQuotesPage() {
             </div>
 
             <div className="flex flex-col gap-2 border-t border-border pt-3">
+              {orders[selected.id] ? (
+                <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2">
+                  ✓ ยืนยันรับชำระแล้ว — {orders[selected.id].order_no}
+                </div>
+              ) : (
+                <Button onClick={() => setConfirming(selected)} className="w-full">
+                  ยืนยันรับชำระ + ส่งไฟล์
+                </Button>
+              )}
               {!selected.quote_no && (
                 <Button onClick={() => issueDocument(selected, "quotation")} className="w-full">
                   ออกใบเสนอราคา
@@ -219,6 +239,23 @@ export default function AdminQuotesPage() {
           </div>
         )}
       </div>
+
+      {confirming && (
+        <ConfirmPaidModal
+          quote={confirming as unknown as ConfirmQuote}
+          onClose={() => setConfirming(null)}
+          onConfirmed={(orderNo, emailOk) => {
+            setConfirming(null);
+            setSelected(null);
+            showToast(
+              emailOk
+                ? `✓ ยืนยันรับชำระ ${orderNo} — ส่งอีเมลแจ้งลูกค้าเรียบร้อย`
+                : `✓ ยืนยันรับชำระ ${orderNo} แล้ว แต่ส่งอีเมลไม่สำเร็จ`
+            );
+            loadQuotes();
+          }}
+        />
+      )}
 
       <PrintLightbox open={printOpen} data={printData} onClose={() => setPrintOpen(false)} />
 

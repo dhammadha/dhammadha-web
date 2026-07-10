@@ -188,6 +188,13 @@ export interface Database {
           fonts: string[];
           note: string | null;
           designer_id: string | null;
+          quote_no: string | null;
+          receipt_no: string | null;
+          quote_issued_at: string | null;
+          receipt_issued_at: string | null;
+          total_amount: number | null;
+          fonts_detail: Json | null;
+          issued_by: string | null;
           created_at: string;
         };
         Insert: {
@@ -201,6 +208,13 @@ export interface Database {
           fonts: string[];
           note?: string | null;
           designer_id?: string | null;
+          quote_no?: string | null;
+          receipt_no?: string | null;
+          quote_issued_at?: string | null;
+          receipt_issued_at?: string | null;
+          total_amount?: number | null;
+          fonts_detail?: Json | null;
+          issued_by?: string | null;
           created_at?: string;
         };
         Update: {
@@ -214,8 +228,64 @@ export interface Database {
           fonts?: string[];
           note?: string | null;
           designer_id?: string | null;
+          quote_no?: string | null;
+          receipt_no?: string | null;
+          quote_issued_at?: string | null;
+          receipt_issued_at?: string | null;
+          total_amount?: number | null;
+          fonts_detail?: Json | null;
+          issued_by?: string | null;
           created_at?: string;
         };
+        Relationships: [];
+      };
+      orders: {
+        Row: {
+          id: string;
+          order_no: string;
+          quote_id: string | null;
+          designer_id: string | null;
+          customer_user_id: string | null;
+          customer_email: string;
+          customer_name: string | null;
+          company_name: string | null;
+          items: Json;
+          total_amount: number;
+          status: "pending" | "paid" | "cancelled";
+          paid_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      entitlements: {
+        Row: {
+          id: string;
+          order_id: string;
+          font_id: string;
+          user_id: string | null;
+          email: string;
+          license_type: string;
+          revoked_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      download_logs: {
+        Row: {
+          id: number;
+          entitlement_id: string;
+          user_id: string | null;
+          font_id: string | null;
+          file_path: string | null;
+          ip: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
         Relationships: [];
       };
       subscription_waitlist: {
@@ -322,6 +392,18 @@ export interface Database {
       publish_fonts: {
         Args: Record<string, never>;
         Returns: void;
+      };
+      confirm_quote_paid: {
+        Args: { p_quote_id: string; p_items: Json };
+        Returns: Json;
+      };
+      claim_my_entitlements: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+      verify_order: {
+        Args: { p_order_no: string };
+        Returns: Json;
       };
     };
     Enums: {
