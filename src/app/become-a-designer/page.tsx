@@ -75,8 +75,8 @@ export default function BecomeADesignerPage() {
             ขายฟอนต์ของคุณ<br />ได้ส่วนแบ่ง <em className="text-mint not-italic">75%</em> สูงกว่าทุกที่
           </h1>
           <p className="text-[15px] text-[#666] leading-[1.7] max-w-[520px] mb-7">
-            DHAMMADHA คือแพลตฟอร์มตลาดฟอนต์ไทยที่สร้างโดยนักออกแบบฟอนต์
-            เราจัดการเรื่องเว็บ ระบบป้องกันไฟล์ เอกสาร และลูกค้าองค์กรให้ — คุณโฟกัสแค่การออกแบบ
+            เราคือแพลตฟอร์มตลาดฟอนต์ไทยที่สร้างโดยนักออกแบบฟอนต์
+เราจัดการเรื่องเว็บ ระบบป้องกันไฟล์ เอกสาร และลูกค้าองค์กรให้ — คุณโฟกัสแค่การออกแบบ
           </p>
           <div className="flex gap-2.5 items-center">
             <Button as="link" href="/auth/signup" size="lg">สมัครเป็น Designer</Button>
