@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/Button";
 
 export default function AdminPricingPage() {
+  const { user } = useAuth();
   const [licSmall, setLicSmall] = useState("3500");
   const [licLarge, setLicLarge] = useState("7000");
   const [licExtra, setLicExtra] = useState("20000");
@@ -50,7 +52,7 @@ export default function AdminPricingPage() {
     if (!confirm(`ยืนยันเปิดโปรโมชั่น ลด ${disc}%${promoEnd ? ` ถึง ${promoEnd}` : ""}?\nจะอัปเดตฟอนต์ทุกตัวที่ไม่ใช่ฟรีทันที`)) return;
     try {
       await supabase.from("settings").upsert({ key: "promotion", value: { discount_percent: disc, sale_end: promoEnd, active: true } });
-      const { data: fonts } = await supabase.from("fonts").select("id, price").eq("is_free", false);
+      const { data: fonts } = await supabase.from("fonts").select("id, price").eq("is_free", false).eq("owner_id", user!.id);
       if (fonts) {
         for (const f of fonts) {
           const price = f.price ?? 0;
@@ -72,7 +74,7 @@ export default function AdminPricingPage() {
     if (!confirm("ปิดโปรโมชั่นทั้งหมด?")) return;
     try {
       await supabase.from("settings").upsert({ key: "promotion", value: { discount_percent: 0, sale_end: "", active: false } });
-      const { data: fonts } = await supabase.from("fonts").select("id").eq("is_sale", true).eq("is_free", false);
+      const { data: fonts } = await supabase.from("fonts").select("id").eq("is_sale", true).eq("is_free", false).eq("owner_id", user!.id);
       if (fonts) {
         for (const f of fonts) {
           await supabase.from("fonts").update({ is_sale: false, discount_percent: null, sale_price: null, sale_end: null, sale_label: null }).eq("id", f.id);

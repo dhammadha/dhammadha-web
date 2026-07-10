@@ -91,6 +91,8 @@ async function verifyTurnstile(env: EmailEnv, token: string, ip?: string | null)
 
 // ── Email HTML builders ─────────────────────────────────────────────────────
 
+const STUDIO_CONTACT_EMAIL = "info@dhammadha.com";
+
 const STUDIO_FOOTER = `
 <br>
 <p style="color:#888;font-size:13px;border-top:1px solid #eee;padding-top:12px;margin-top:16px">
@@ -163,6 +165,7 @@ ${designerFooter}
 }
 
 function promoteHtml(designerName: string, adminEmail: string): string {
+  const contactEmail = adminEmail || STUDIO_CONTACT_EMAIL;
   return `
 <p>สวัสดี คุณ ${escapeHtml(designerName)},</p>
 <p>ทีมงาน DHAMMADHA STUDIO ได้ตรวจสอบผลงานของคุณแล้ว และยินดีต้อนรับคุณเป็นส่วนหนึ่งของครอบครัวนักออกแบบฟอนต์ของเรา</p>
@@ -170,7 +173,7 @@ function promoteHtml(designerName: string, adminEmail: string): string {
 • เข้าสู่ระบบที่ <a href="https://dhammadha.com">dhammadha.com</a><br>
 • ไปที่ Dashboard → อัปโหลดฟอนต์ได้เลย<br>
 • ตั้งราคาและรายละเอียดฟอนต์ของคุณ</p>
-<p>หากมีคำถามสามารถติดต่อทีมงานได้ที่ <a href="mailto:${escapeHtml(adminEmail)}">${escapeHtml(adminEmail)}</a></p>
+<p>หากมีคำถามสามารถติดต่อทีมงานได้ที่ <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a></p>
 <p>ขอบคุณที่เลือก DHAMMADHA STUDIO</p>
 ${STUDIO_FOOTER}
 `;

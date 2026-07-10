@@ -70,10 +70,10 @@ export default function DesignerPricingPage() {
         const ext = pdfFile.name.split(".").pop();
         const path = `license-pdf/${user.id}.${ext}`;
         const { error: uploadError } = await supabase.storage
-          .from("fonts")
+          .from("license-pdf")
           .upload(path, pdfFile, { upsert: true, contentType: "application/pdf" });
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("fonts").getPublicUrl(path);
+        const { data: urlData } = supabase.storage.from("license-pdf").getPublicUrl(path);
         uploadedPdfUrl = urlData.publicUrl;
       }
 

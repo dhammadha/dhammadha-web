@@ -46,7 +46,7 @@ export default function DesignerFontsPage() {
     <div className="p-6 max-w-[900px]">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-[20px] font-semibold text-navy">ฟอนต์ของฉัน</h1>
-        <Button as="link" href="/admin/add" size="sm">
+        <Button as="link" href="/designer/add" size="sm">
           + เพิ่มฟอนต์
         </Button>
       </div>
@@ -80,7 +80,7 @@ export default function DesignerFontsPage() {
         ) : fonts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <p className="text-[#aaa] text-[14px]">ยังไม่มีฟอนต์</p>
-            <Button as="link" href="/admin/add" size="sm">เพิ่มฟอนต์แรก →</Button>
+            <Button as="link" href="/designer/add" size="sm">เพิ่มฟอนต์แรก →</Button>
           </div>
         ) : fonts.map((f) => (
           <div key={f.id} className="grid grid-cols-[48px_1fr_100px_100px_80px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 items-center">

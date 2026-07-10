@@ -84,15 +84,15 @@ export default function AccountPage() {
               <span className="text-navy">{profile?.phone ?? "-"}</span>
             </div>
 
-            {/* Admin shortcut */}
-            {role === "admin" && (
+            {/* Role shortcuts */}
+            {(role === "admin" || role === "designer") && (
               <>
                 <hr className="border-border" />
                 <Link
-                  href="/admin"
+                  href={role === "admin" ? "/admin" : "/designer"}
                   className="inline-flex items-center gap-2 text-[14px] text-mint no-underline hover:underline font-medium"
                 >
-                  ไปที่ Admin Panel →
+                  {role === "admin" ? "ไปที่ Admin Panel →" : "ไปที่ Designer Dashboard →"}
                 </Link>
               </>
             )}
