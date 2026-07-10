@@ -1,0 +1,9 @@
+# Cloudflare Pages security headers
+# หมายเหตุ: ยังไม่ใส่ Content-Security-Policy เพราะต้อง allowlist ให้
+# AdSense + Turnstile + Supabase ครบก่อน — ถ้าใส่พลาดสคริปต์เหล่านี้จะพัง
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

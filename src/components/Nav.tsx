@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 
 interface FontOption {
   slug: string;
+  designer_slug: string;
   name: string;
   name_th: string;
   category: string;
@@ -56,14 +57,15 @@ export default function Nav() {
     if (cachedFonts) { setFonts(cachedFonts); return; }
     supabase
       .from("fonts")
-      .select("slug, name, name_th, category, tags, is_free")
+      .select("slug, name, name_th, category, tags, is_free, users!owner_id(designer_slug)")
       .eq("is_active", true)
+      .not("published_at", "is", null)
       .then(({ data }) => {
         if (!data) return;
-        const mapped = (data as { slug: string; name: string | null; name_th: string | null; category: string | null; tags: string[] | null; is_free: boolean }[]).map((f) => {
+        const mapped = (data as unknown as { slug: string; name: string | null; name_th: string | null; category: string | null; tags: string[] | null; is_free: boolean; users?: { designer_slug?: string } | null }[]).map((f) => {
           const tags: string[] = [...(f.tags || [])];
           if (f.is_free && !tags.includes("free")) tags.push("free");
-          return { slug: f.slug, name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
+          return { slug: f.slug, designer_slug: f.users?.designer_slug || "", name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
         });
         cachedFonts = mapped;
         setFonts(mapped);
@@ -97,12 +99,13 @@ export default function Nav() {
     setSearchOpen(true);
   }, [fonts]);
 
-  const goToFont = (slug: string) => {
+  const goToFont = (f: FontOption) => {
     setSearchQuery("");
     setSuggestions([]);
     setSearchOpen(false);
     setActiveIdx(-1);
-    router.push(`/fonts/${slug}`);
+    // route จริงคือ /fonts/[designer]/[slug] — ไม่มี designer_slug จะ 404
+    router.push(f.designer_slug ? `/fonts/${f.designer_slug}/${f.slug}` : "/fonts/");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -111,8 +114,8 @@ export default function Nav() {
     else if (e.key === "ArrowUp") { e.preventDefault(); setActiveIdx((i) => Math.max(i - 1, -1)); }
     else if (e.key === "Enter") {
       e.preventDefault();
-      if (activeIdx >= 0) goToFont(suggestions[activeIdx].slug);
-      else if (suggestions.length === 1) goToFont(suggestions[0].slug);
+      if (activeIdx >= 0) goToFont(suggestions[activeIdx]);
+      else if (suggestions.length === 1) goToFont(suggestions[0]);
     }
     else if (e.key === "Escape") { setSearchOpen(false); inputRef.current?.blur(); }
   };
@@ -225,7 +228,7 @@ export default function Nav() {
               {suggestions.map((f, i) => (
                 <div
                   key={f.slug}
-                  onMouseDown={() => goToFont(f.slug)}
+                  onMouseDown={() => goToFont(f)}
                   onMouseEnter={() => setActiveIdx(i)}
                   className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors border-b border-[#f8f8f8] last:border-0 ${
                     i === activeIdx ? "bg-[#f0fffe]" : "hover:bg-[#fafaf8]"
@@ -335,7 +338,7 @@ export default function Nav() {
               />
             </div>
             {suggestions.map((f) => (
-              <div key={f.slug} onMouseDown={() => { goToFont(f.slug); setMenuOpen(false); }}
+              <div key={f.slug} onMouseDown={() => { goToFont(f); setMenuOpen(false); }}
                 className="px-2 py-2.5 text-[14px] text-navy border-b border-[#f5f5f5] cursor-pointer hover:text-mint">
                 {f.name} {f.name_th && <span className="text-[#aaa] text-[12px]">— {f.name_th}</span>}
               </div>
