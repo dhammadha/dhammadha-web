@@ -74,3 +74,6 @@ out/
 .dataconnect
 tsconfig.tsbuildinfo
 supabase/.temp
+.DS_Store
+src/.DS_Store
+supabase/.DS_Store
