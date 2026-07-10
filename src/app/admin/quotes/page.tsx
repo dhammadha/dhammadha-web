@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import PrintLightbox from "@/components/admin/PrintLightbox";
@@ -28,14 +28,16 @@ function fmtDate(s: string) {
   return new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" });
 }
 
-function genDocNo(prefix: "QT" | "RC", existing: (string | null | undefined)[]): string {
-  const year = new Date().getFullYear() + 543;
-  const nums = existing
-    .filter(Boolean)
-    .map((n) => parseInt((n as string).split("-").pop() ?? "0"))
-    .filter((n) => !isNaN(n));
-  const next = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `${prefix}-${year}-${String(next).padStart(4, "0")}`;
+const SELLER_FIELDS = "name, business_name, entity_type, tax_id, address, phone, email, bank";
+
+// chunk-safe Uint8Array → base64 (avoids String.fromCharCode(...bigArray) spread overflow)
+function uint8ToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
 }
 
 export default function AdminQuotesPage() {
@@ -43,12 +45,14 @@ export default function AdminQuotesPage() {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<QuoteRow | null>(null);
-  const [seller, setSeller] = useState<SellerInfo | null>(null);
   const [printData, setPrintData] = useState<Parameters<typeof PrintLightbox>[0]["data"]>(null);
+  const [printQuoteId, setPrintQuoteId] = useState<string | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
   const [orders, setOrders] = useState<Record<string, { id: string; order_no: string }>>({});
   const [confirming, setConfirming] = useState<QuoteRow | null>(null);
   const [toast, setToast] = useState("");
+  // ผู้ขายต่างกันตาม designer ของแต่ละ quote — cache กันดึงซ้ำ (key: designer_id ?? "self")
+  const sellerCacheRef = useRef<Record<string, SellerInfo>>({});
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -67,48 +71,82 @@ export default function AdminQuotesPage() {
     setLoading(false);
   }, []);
 
-  const loadSeller = useCallback(async () => {
-    if (!user) return;
-    const { data } = await supabase.from("users").select("name, business_name, entity_type, tax_id, address, phone, email, bank").eq("id", user.id).single();
-    if (data) setSeller(data as SellerInfo);
+  useEffect(() => { loadQuotes(); }, [loadQuotes]);
+
+  // ดึงข้อมูลผู้ขาย (สำหรับพิมพ์/ออกเอกสาร) ของ designer เจ้าของ quote นั้น ๆ
+  // ถ้า designer_id เป็น null หรือดึงแถวของ designer ไม่ได้ (RLS) → fallback เป็นผู้ใช้ที่ login อยู่
+  const getSeller = useCallback(async (designerId: string | null): Promise<SellerInfo | null> => {
+    const key = designerId ?? "self";
+    if (sellerCacheRef.current[key]) return sellerCacheRef.current[key];
+
+    const targetId = designerId ?? user?.id;
+    if (!targetId) return null;
+
+    const { data, error } = await supabase.from("users").select(SELLER_FIELDS).eq("id", targetId).single();
+    if (!error && data) {
+      // cache เฉพาะแถวของเจ้าตัวจริงเท่านั้น — ห้าม cache ค่า fallback ใต้ key ของ designer
+      // ไม่งั้น error ชั่วคราวครั้งเดียวจะทำให้เอกสารของ designer คนนั้นใช้ชื่อ/เลขภาษี admin ไปตลอด
+      sellerCacheRef.current[key] = data as SellerInfo;
+      return data as SellerInfo;
+    }
+
+    if (designerId && user) {
+      const { data: own } = await supabase.from("users").select(SELLER_FIELDS).eq("id", user.id).single();
+      return own ? (own as SellerInfo) : null;
+    }
+    return null;
   }, [user]);
 
-  useEffect(() => { loadQuotes(); loadSeller(); }, [loadQuotes, loadSeller]);
-
   const issueDocument = async (q: QuoteRow, type: "quotation" | "receipt") => {
-    if (!seller) { showToast("กรุณาเพิ่มข้อมูลบัญชีใน Settings ก่อน"); return; }
+    const sellerInfo = await getSeller(q.designer_id ?? null);
+    if (!sellerInfo) { showToast("กรุณาเพิ่มข้อมูลบัญชีใน Settings ก่อน"); return; }
 
-    const allQuotes = quotes;
-    let docNo: string;
+    const { data, error } = await supabase.rpc("issue_quote_doc", {
+      p_quote_id: q.id,
+      p_doc_type: type,
+    });
 
-    if (type === "quotation") {
-      if (q.quote_no) { showToast("ออกใบเสนอราคาไปแล้ว"); return; }
-      docNo = genDocNo("QT", allQuotes.map((x) => x.quote_no));
-      await supabase.from("quotes").update({ quote_no: docNo, quote_issued_at: new Date().toISOString() } as never).eq("id", q.id);
-    } else {
-      if (!q.quote_no) { showToast("ต้องออกใบเสนอราคาก่อน"); return; }
-      if (q.receipt_no) { showToast("ออกใบเสร็จไปแล้ว"); return; }
-      docNo = genDocNo("RC", allQuotes.map((x) => x.receipt_no));
-      await supabase.from("quotes").update({ receipt_no: docNo, receipt_issued_at: new Date().toISOString() } as never).eq("id", q.id);
+    if (error) {
+      const msg = error.message.includes("quote_required_first")
+        ? "ต้องออกใบเสนอราคาก่อน"
+        : error.message.includes("not_authorized")
+        ? "คุณไม่มีสิทธิ์ออกเอกสารนี้"
+        : error.message.includes("quote_not_found")
+        ? "ไม่พบใบเสนอราคานี้"
+        : error.message.includes("invalid_doc_type")
+        ? "ประเภทเอกสารไม่ถูกต้อง"
+        : `ออกเอกสารไม่สำเร็จ: ${error.message}`;
+      showToast(msg);
+      return;
     }
-    showToast(`✓ ออก${type === "quotation" ? "ใบเสนอราคา" : "ใบเสร็จ"} ${docNo} เรียบร้อย`);
+
+    const result = data as unknown as { doc_no: string; issued_at: string; already_issued: boolean };
+    showToast(
+      result.already_issued
+        ? `ออก${type === "quotation" ? "ใบเสนอราคา" : "ใบเสร็จ"}ไปแล้ว: ${result.doc_no}`
+        : `✓ ออก${type === "quotation" ? "ใบเสนอราคา" : "ใบเสร็จ"} ${result.doc_no} เรียบร้อย`
+    );
+
     await loadQuotes();
     const updated: QuoteRow = type === "quotation"
-      ? { ...q, quote_no: docNo, quote_issued_at: new Date().toISOString() }
-      : { ...q, receipt_no: docNo, receipt_issued_at: new Date().toISOString() };
+      ? { ...q, quote_no: result.doc_no, quote_issued_at: result.issued_at }
+      : { ...q, receipt_no: result.doc_no, receipt_issued_at: result.issued_at };
     setSelected(updated);
-    openPrint(updated, type);
+    await openPrint(updated, type);
   };
 
-  const openPrint = (q: QuoteRow, type: "quotation" | "receipt") => {
-    if (!seller) return;
+  const openPrint = async (q: QuoteRow, type: "quotation" | "receipt") => {
     const docNo = type === "quotation" ? q.quote_no : q.receipt_no;
     if (!docNo) return;
+    const sellerInfo = await getSeller(q.designer_id ?? null);
+    if (!sellerInfo) { showToast("ไม่พบข้อมูลผู้ขาย"); return; }
     const items = (q.fonts_detail ?? q.fonts.map((name) => ({ name, license_type: q.license_type, price: 0 })));
+    // ใช้วันที่ออกเอกสารจริงจาก DB — พิมพ์/ส่งซ้ำภายหลังต้องได้วันที่เดิม ไม่ใช่วันนี้
+    const issuedAt = type === "quotation" ? q.quote_issued_at : q.receipt_issued_at;
     setPrintData({
       type,
       doc_no: docNo,
-      date: new Date().toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }),
+      date: new Date(issuedAt ?? Date.now()).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }),
       contact_name: q.contact_name,
       company_name: q.company_name,
       address: q.address,
@@ -116,10 +154,54 @@ export default function AdminQuotesPage() {
       email: q.email,
       note: q.note,
       items,
-      seller,
+      seller: sellerInfo,
     });
+    setPrintQuoteId(q.id);
     setPrintOpen(true);
   };
+
+  const handleDownloadPdf = useCallback(async () => {
+    if (!printData) return;
+    const { generateQuotePdf } = await import("@/lib/quote-doc");
+    const bytes = await generateQuotePdf(printData);
+    const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${printData.doc_no}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [printData]);
+
+  const handleSendEmail = useCallback(async () => {
+    if (!printData || !printQuoteId) return;
+    const { generateQuotePdf } = await import("@/lib/quote-doc");
+    const bytes = await generateQuotePdf(printData);
+    const base64 = uint8ToBase64(bytes);
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({
+        type: "document",
+        payload: {
+          quote_id: printQuoteId,
+          doc_type: printData.type,
+          pdf_base64: base64,
+          filename: `${printData.doc_no}.pdf`,
+        },
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null as { error?: string } | null);
+      throw new Error(body?.error ?? "ส่งอีเมลไม่สำเร็จ");
+    }
+  }, [printData, printQuoteId]);
 
   const deleteQuote = async (q: QuoteRow) => {
     if (!confirm(`ลบใบเสนอราคาของ "${q.company_name}"?`)) return;
@@ -257,7 +339,13 @@ export default function AdminQuotesPage() {
         />
       )}
 
-      <PrintLightbox open={printOpen} data={printData} onClose={() => setPrintOpen(false)} />
+      <PrintLightbox
+        open={printOpen}
+        data={printData}
+        onClose={() => setPrintOpen(false)}
+        onDownloadPdf={handleDownloadPdf}
+        onSendEmail={handleSendEmail}
+      />
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 rounded-xl bg-navy text-white text-[13px] font-medium shadow-lg">{toast}</div>

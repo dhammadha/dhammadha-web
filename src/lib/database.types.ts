@@ -416,6 +416,10 @@ export interface Database {
         Args: { p_session_id: string };
         Returns: Json;
       };
+      issue_quote_doc: {
+        Args: { p_quote_id: string; p_doc_type: string };
+        Returns: Json;
+      };
     };
     Enums: {
       user_role: UserRole;
