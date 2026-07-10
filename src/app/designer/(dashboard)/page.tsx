@@ -37,8 +37,8 @@ export default function DesignerFontsPage() {
   useEffect(() => { loadFonts(); }, [loadFonts]);
 
   const filtered = fonts.filter((f) => {
-    if (tab === "active") return f.is_active;
-    if (tab === "hidden") return !f.is_active;
+    if (tab === "active") return !!f.published_at && f.is_active;
+    if (tab === "hidden") return !!f.published_at && !f.is_active;
     if (tab === "sale") return f.is_sale;
     return true;
   });
@@ -53,7 +53,7 @@ export default function DesignerFontsPage() {
 
   const stats = [
     { label: "ฟอนต์ทั้งหมด", value: fonts.length },
-    { label: "แสดงบนเว็บ", value: fonts.filter((f) => f.is_active).length },
+    { label: "แสดงบนเว็บ", value: fonts.filter((f) => !!f.published_at && f.is_active).length },
     { label: "รอ Publish", value: fonts.filter((f) => !f.published_at).length },
     { label: "โปรโมชั่น", value: fonts.filter((f) => f.is_sale).length },
   ];
@@ -139,18 +139,21 @@ export default function DesignerFontsPage() {
                 </div>
               ) : <span className="text-[#ddd]">—</span>}
             </div>
-            <div className="flex flex-col gap-1">
-              <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium w-fit ${f.published_at ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
-                {f.published_at ? "เผยแพร่แล้ว" : "รอ Publish"}
-              </span>
-              {!f.is_active && (
-                <span className="text-[11px] px-2 py-0.5 rounded-full font-medium w-fit bg-[#f5f5f2] text-[#aaa]">ซ่อน</span>
+            <div>
+              {f.published_at ? (
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${f.is_active ? "bg-green-50 text-green-600" : "bg-[#f5f5f2] text-[#aaa]"}`}>
+                  {f.is_active ? "แสดงบนเว็บ" : "ซ่อน"}
+                </span>
+              ) : (
+                <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600">รอ Publish</span>
               )}
             </div>
             <div className="flex gap-1.5">
-              <button onClick={() => toggleActive(f)} className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border cursor-pointer transition-colors ${f.is_active ? "border-border text-[#666] bg-white hover:bg-[#f5f5f2]" : "border-mint text-mint bg-mint-light hover:bg-mint-mid"}`}>
-                {f.is_active ? "ซ่อน" : "แสดง"}
-              </button>
+              {f.published_at && (
+                <button onClick={() => toggleActive(f)} className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border cursor-pointer transition-colors ${f.is_active ? "border-border text-[#666] bg-white hover:bg-[#f5f5f2]" : "border-mint text-mint bg-mint-light hover:bg-mint-mid"}`}>
+                  {f.is_active ? "ซ่อน" : "แสดง"}
+                </button>
+              )}
               <button onClick={() => openEdit(f)} className="px-2.5 py-1 rounded-lg text-[11px] font-medium border border-border text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors">
                 แก้ไข
               </button>

@@ -42,8 +42,8 @@ export default function AdminFontsPage() {
   useEffect(() => { loadFonts(); }, [loadFonts]);
 
   const filtered = fonts.filter((f) => {
-    if (tab === "active") return f.is_active;
-    if (tab === "hidden") return !f.is_active;
+    if (tab === "active") return !!f.published_at && f.is_active;
+    if (tab === "hidden") return !!f.published_at && !f.is_active;
     if (tab === "sale") return f.is_sale;
     return true;
   });
@@ -86,7 +86,7 @@ export default function AdminFontsPage() {
 
   const stats = [
     { label: "ฟอนต์ทั้งหมด", value: fonts.length },
-    { label: "แสดงบนเว็บ", value: fonts.filter((f) => f.is_active).length },
+    { label: "แสดงบนเว็บ", value: fonts.filter((f) => f.is_active && !!f.published_at).length },
     { label: "ฟรี", value: fonts.filter((f) => f.is_free).length },
     { label: "โปรโมชั่น", value: fonts.filter((f) => f.is_sale).length },
   ];
@@ -100,30 +100,6 @@ export default function AdminFontsPage() {
 
   return (
     <div className="p-6 max-w-[1200px]">
-      {/* Publish Banner */}
-      <div className={`mb-5 rounded-2xl border px-5 py-4 flex items-center justify-between gap-4 ${pendingFonts.length > 0 ? "bg-[#fffbf0] border-[#f0c040]" : "bg-[#f5faf9] border-[#c0e8e4]"}`}>
-        <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 rounded-full ${pendingFonts.length > 0 ? "bg-[#f0c040]" : "bg-mint"}`} />
-          <div>
-            {pendingFonts.length > 0 ? (
-              <>
-                <span className="text-[14px] font-semibold text-navy">มีฟอนต์รอ Publish {pendingFonts.length} ตัว</span>
-                <div className="text-[12px] text-[#888] mt-0.5">{pendingFonts.map((f) => f.name).join(", ")}</div>
-              </>
-            ) : (
-              <span className="text-[14px] font-medium text-[#555]">ฟอนต์ทุกตัว Publish แล้ว</span>
-            )}
-          </div>
-        </div>
-        <Button
-          onClick={handlePublish}
-          disabled={publishing || pendingFonts.length === 0}
-          size="sm"
-          className="flex-none"
-        >
-          {publishing ? "กำลัง Publish…" : "Publish"}
-        </Button>
-      </div>
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {stats.map((s) => (

@@ -167,37 +167,6 @@ export default function DesignerPricingPage() {
         )}
       </div>
 
-      {/* Promotion section */}
-      <div className="bg-white rounded-2xl border border-border p-5 mb-4">
-        <h2 className="text-[15px] font-semibold text-navy mb-1">โปรโมชั่น</h2>
-        <p className="text-[12px] text-[#aaa] mb-4">เปิด/ปิดส่วนลดสำหรับฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีพร้อมกัน</p>
-        {promo.active && (
-          <div className="mb-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-700">
-            ⚡ โปรโมชั่นเปิดอยู่: ลด {promo.discount}%{promo.end ? ` ถึง ${promo.end}` : ""}
-          </div>
-        )}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">ส่วนลด (%)</label>
-            <input type="number" value={promo.discount} onChange={(e) => setPromo((p) => ({ ...p, discount: e.target.value }))} placeholder="เช่น 20" min="1" max="100" className={iCls} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">วันสิ้นสุด (ไม่บังคับ)</label>
-            <input type="date" value={promo.end} onChange={(e) => setPromo((p) => ({ ...p, end: e.target.value }))} className={iCls} />
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={savePromo} disabled={promoSaving} className="flex-1 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50">
-            {promoSaving ? "กำลังบันทึก…" : "บันทึก / เปิดโปรโมชั่น"}
-          </button>
-          {promo.active && (
-            <button onClick={clearPromo} disabled={promoSaving} className="px-4 py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[14px] font-medium cursor-pointer hover:bg-red-100 transition-colors disabled:opacity-50">
-              ปิดโปรโมชั่น
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* License section */}
       <div className="bg-white rounded-2xl border border-border p-5 mb-4">
         <label className="flex items-start gap-3 cursor-pointer">
@@ -330,13 +299,44 @@ export default function DesignerPricingPage() {
         </div>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end mb-8">
         <Button
           onClick={save}
           disabled={saving || (!useDefault && !pdfUrl && !pdfFile)}
         >
           {saving ? "กำลังบันทึก…" : "บันทึก"}
         </Button>
+      </div>
+
+      {/* Promotion section */}
+      <div className="bg-white rounded-2xl border border-border p-5 mb-4">
+        <h2 className="text-[15px] font-semibold text-navy mb-1">โปรโมชั่น</h2>
+        <p className="text-[12px] text-[#aaa] mb-4">เปิด/ปิดส่วนลดสำหรับฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีพร้อมกัน</p>
+        {promo.active && (
+          <div className="mb-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-700">
+            ⚡ โปรโมชั่นเปิดอยู่: ลด {promo.discount}%{promo.end ? ` ถึง ${promo.end}` : ""}
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">ส่วนลด (%)</label>
+            <input type="number" value={promo.discount} onChange={(e) => setPromo((p) => ({ ...p, discount: e.target.value }))} placeholder="เช่น 20" min="1" max="100" className={iCls} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">วันสิ้นสุด (ไม่บังคับ)</label>
+            <input type="date" value={promo.end} onChange={(e) => setPromo((p) => ({ ...p, end: e.target.value }))} className={iCls} />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={savePromo} disabled={promoSaving} className="flex-1 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50">
+            {promoSaving ? "กำลังบันทึก…" : "บันทึก / เปิดโปรโมชั่น"}
+          </button>
+          {promo.active && (
+            <button onClick={clearPromo} disabled={promoSaving} className="px-4 py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[14px] font-medium cursor-pointer hover:bg-red-100 transition-colors disabled:opacity-50">
+              ปิดโปรโมชั่น
+            </button>
+          )}
+        </div>
       </div>
 
       {toast && (

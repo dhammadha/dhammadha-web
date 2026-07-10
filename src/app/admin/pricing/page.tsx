@@ -106,7 +106,7 @@ export default function AdminPricingPage() {
       </Section>
 
       {/* Promotion */}
-      <Section title="โปรโมชั่นทั้งหมด" desc="เปิด/ปิดโปรโมชั่นสำหรับฟอนต์ทุกตัวที่ไม่ใช่ฟรีพร้อมกัน">
+      <Section title="โปรโมชั่น" desc="เปิด/ปิดส่วนลดสำหรับฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีพร้อมกัน">
         {promoActive && (
           <div className="mb-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-700">
             ⚡ โปรโมชั่นเปิดอยู่: ลด {promoDiscount}%{promoEnd ? ` ถึง ${promoEnd}` : ""}
