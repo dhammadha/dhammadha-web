@@ -77,3 +77,7 @@ supabase/.temp
 .DS_Store
 src/.DS_Store
 supabase/.DS_Store
+.claude/agents/builder.md
+.claude/agents/researcher.md
+.claude/agents/verifier.md
+.claude/subagents.md
