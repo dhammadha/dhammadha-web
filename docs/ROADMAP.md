@@ -489,6 +489,34 @@ Windows หรือ fontdrop.info เปิดดูได้):
 
 # Phase 4 — Growth
 
+> **สถานะ (11 ก.ค. 2026): 4.2 + 4.3 โค้ดเสร็จ + apply DB จริงแล้ว** (4.1
+> Subscription รอข้อมูลยอดขายจริง + waitlist ตามแผน)
+>
+> **4.2 Revenue & Payout:** ตาราง `payouts` (migration 0037 — 1 แถว/designer/เดือน
+> บันทึกการโอนมือ, RLS admin เขียน/designer อ่านของตัวเอง), `src/lib/revenue.ts`
+> (สรุปยอดรายเดือน: B2C checkout หัก 25/75 จาก platform_amount/designer_amount,
+> B2B quote รับตรง 100% แยกหมวด ไม่มี payout), หน้า `/admin/revenue` (เลือกเดือน →
+> แถวต่อ designer + ยอดสตูดิโอ (order ไม่ผูก designer) → panel เห็นบัญชีธนาคาร +
+> ปุ่ม "บันทึกจ่ายแล้ว"/ยกเลิก, tile "ค้างโอน" หักที่จ่ายแล้ว), หน้า
+> `/designer/revenue` (statement รายเดือน + สถานะจ่าย + note เลขอ้างอิงสลิป)
+>
+> **4.3 Analytics + Search:** ตาราง `font_events` (migration 0038 — kind
+> view/free_download ขยายรองรับ subscription metrics อนาคตได้, anon insert +
+> กัน spoof user_id, designer เห็นเฉพาะฟอนต์ตัวเอง), `src/lib/track.ts` (dedupe
+> view 1/ฟอนต์/วัน ผ่าน localStorage, fire-and-forget ไม่พัง UX), FontDetail
+> ยิง view + free download event, หน้าใหม่ `/designer/analytics` ("สถิติ" ใน
+> sidebar — tiles เดือนนี้ + ตารางต่อฟอนต์ รวม download_logs ยอดโหลดซื้อ),
+> หน้า `/fonts` มี filter: ค้นหาชื่อ/tag + หมวดหมู่ + ฟรี/ลดราคา/ขาย + designer
+> (ตัดสินใจ: ไม่ทำ filter น้ำหนัก — ไม่มีข้อมูลชื่อ weight และ user ไม่ค้นจากมุมนี้)
+>
+> **การตัดสินใจ:** ส่วนแบ่งคงที่ 25% ทุกคน (`users.revenue_share_percent` เป็น
+> field เผื่ออนาคตจาก 0004 ก่อนตัดสินใจโมเดล — ยังไม่ใช้) / ทุก query สถิติ/รายได้
+> ใช้ `src/lib/fetch-all.ts` วน .range() กันเพดาน 1000 แถวของ PostgREST นับขาดเงียบ ๆ
+>
+> **ทดสอบแล้ว:** RLS ทั้ง payouts + font_events ผ่าน transaction+rollback บน DB
+> จริง, /fonts filter + view tracking + dedupe ทดสอบผ่านเบราว์เซอร์จริง, build ผ่าน
+> / ยังไม่ทดสอบ: หน้า revenue/analytics บน production ด้วยบัญชีจริง (ต้อง login)
+
 ## 4.1 Subscription
 
 - **โมเดล:** ลูกค้าจ่ายรายเดือน → ใช้ได้ทุกฟอนต์ที่ designer opt-in /

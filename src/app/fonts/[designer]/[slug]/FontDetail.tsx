@@ -10,6 +10,7 @@ import AdBanner from "@/components/AdBanner";
 import Button from "@/components/Button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { trackFontView, trackFreeDownload } from "@/lib/track";
 
 function parseWeight(url: string): string {
   const decoded = decodeURIComponent(url.split("?")[0]);
@@ -121,6 +122,11 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     }
     load();
   }, [slug]);
+
+  useEffect(() => {
+    if (!font?.id) return;
+    trackFontView(font.id);
+  }, [font?.id]);
 
   // Global promotion — applies when font has no individual sale
   const activePromo = (() => {
@@ -530,7 +536,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
                 {font.is_free ? (
                   user ? (
-                    <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full">
+                    <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full" onClick={() => trackFreeDownload(font.id)}>
                       ดาวน์โหลดฟรี
                     </Button>
                   ) : (
