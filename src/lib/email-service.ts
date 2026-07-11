@@ -3,6 +3,8 @@
 // (src/app/api/send-email/route.ts, dev only). Must stay framework-free:
 // fetch + plain objects only, no Next.js or Node-specific imports.
 
+import { licenseLabel } from "./license";
+
 const FROM = "DHAMMADHA STUDIO <noreply@dhammadha.com>";
 
 export interface EmailEnv {
@@ -201,29 +203,41 @@ interface OrderRow {
   designer_id: string | null;
   items: Array<{ name?: string; license_type?: string; price?: number }>;
   total_amount: number;
+  discount: number;
   paid_at: string | null;
 }
 
-function deliveryHtml(order: OrderRow, designerBrand: string, licensePdfUrl: string | null): string {
+function deliveryHtml(
+  order: OrderRow,
+  designerBrand: string,
+  licensePdfUrl: string | null,
+  receiptNo: string | null = null
+): string {
   const rows = order.items
     .map(
       (i) => `<tr>
-  <td style="padding:6px 0">${escapeHtml(i.name ?? "")}<br><span style="color:#888;font-size:12px">สิทธิ์ใช้งาน: ${escapeHtml(i.license_type ?? "")}</span></td>
+  <td style="padding:6px 0">${escapeHtml(i.name ?? "")}<br><span style="color:#888;font-size:12px">สิทธิ์ใช้งาน: ${escapeHtml(licenseLabel(i.license_type))}</span></td>
   <td style="padding:6px 0;text-align:right;white-space:nowrap">฿${Number(i.price ?? 0).toLocaleString()}</td>
 </tr>`
     )
     .join("");
+  const discountRow =
+    Number(order.discount) > 0
+      ? `<tr><td style="padding:6px 0;color:#888">ส่วนลด</td><td style="padding:6px 0;text-align:right;white-space:nowrap;color:#c0392b">-฿${Number(order.discount).toLocaleString()}</td></tr>`
+      : "";
   return `
 <p>เรียน คุณ ${escapeHtml(order.customer_name ?? "")}</p>
 <p>ขอบคุณสำหรับการสั่งซื้อ — เราได้รับการยืนยันการชำระเงินของคุณแล้ว (เลขที่คำสั่งซื้อ <strong>${escapeHtml(order.order_no)}</strong>)</p>
 <table style="border-collapse:collapse;width:100%;max-width:480px">
   ${rows}
+  ${discountRow}
   <tr><td style="padding:8px 0;border-top:1px solid #eee;font-weight:bold">รวม</td><td style="padding:8px 0;border-top:1px solid #eee;text-align:right;font-weight:bold">฿${Number(order.total_amount).toLocaleString()}</td></tr>
 </table>
 <p><strong>ดาวน์โหลดไฟล์ฟอนต์:</strong><br>
 เข้าสู่ระบบที่ dhammadha.com ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) แล้วไปที่หน้า "บัญชีของฉัน" — ไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด<br>
 หากยังไม่มีบัญชี สมัครสมาชิกด้วยอีเมลนี้ ระบบจะผูกสิทธิ์ให้อัตโนมัติ</p>
 <p><a href="https://dhammadha.com/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a></p>
+${receiptNo ? `<p style="color:#555;font-size:13px">แนบใบเสร็จรับเงินเลขที่ <strong>${escapeHtml(receiptNo)}</strong> มาพร้อมอีเมลฉบับนี้แล้ว</p>` : ""}
 ${licensePdfUrl ? `<p>เอกสารข้อตกลงสิทธิ์การใช้งาน (License): <a href="${escapeHtml(licensePdfUrl)}">ดาวน์โหลด PDF</a></p>` : ""}
 <p style="color:#888;font-size:13px">ไฟล์ฟอนต์ของคุณถูกประทับข้อมูลการซื้อ (เลขคำสั่งซื้อ) ไว้ในไฟล์ ตรวจสอบได้ที่ dhammadha.com/verify</p>
 <br>
@@ -370,11 +384,28 @@ async function handleDelivery(
   const orderId = str(raw.order_id, 40);
   if (!UUID_RE.test(orderId)) return { status: 400, body: { ok: false, error: "invalid_payload" } };
 
+  // ไฟล์แนบใบเสร็จ (ถ้ามี) — ออปชันนัล ไม่มีก็ยังส่งอีเมลได้ตามปกติ
+  const pdfBase64 = typeof raw.pdf_base64 === "string" ? raw.pdf_base64.trim() : "";
+  const filename = str(raw.filename, 200);
+  const receiptNo = str(raw.receipt_no, 40);
+
+  let attachments: { filename: string; content: string }[] | undefined;
+  if (pdfBase64) {
+    if (
+      !PDF_FILENAME_RE.test(filename) ||
+      pdfBase64.length > PDF_BASE64_MAX_LEN ||
+      !BASE64_RE.test(pdfBase64)
+    ) {
+      return { status: 400, body: { ok: false, error: "invalid_attachment" } };
+    }
+    attachments = [{ filename, content: pdfBase64 }];
+  }
+
   // อ่าน order ด้วย token ของผู้เรียก — RLS บังคับให้เห็นเฉพาะ order ของตัวเอง
   // (designer เจ้าของ / admin) จึงยิงอีเมลแทน order คนอื่นไม่ได้
   const orders = await supabaseSelect<OrderRow>(
     env,
-    `orders?id=eq.${orderId}&select=order_no,customer_email,customer_name,designer_id,items,total_amount,paid_at`,
+    `orders?id=eq.${orderId}&select=order_no,customer_email,customer_name,designer_id,items,total_amount,discount,paid_at`,
     authToken
   );
   const order = orders?.[0];
@@ -400,7 +431,8 @@ async function handleDelivery(
   const ok = await sendResendEmail(env.RESEND_API_KEY, {
     to: order.customer_email,
     subject: `คำสั่งซื้อ ${order.order_no} สำเร็จ — ดาวน์โหลดฟอนต์ของคุณได้แล้ว`,
-    html: deliveryHtml(order, brand, licensePdfUrl),
+    html: deliveryHtml(order, brand, licensePdfUrl, receiptNo || null),
+    ...(attachments ? { attachments } : {}),
   });
   if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
   return { status: 200, body: { ok: true } };

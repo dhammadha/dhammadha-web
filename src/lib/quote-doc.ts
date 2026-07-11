@@ -52,6 +52,7 @@ export type QuoteDocData = {
   note?: string | null;
   items: QuoteDocItem[];
   seller: QuoteDocSeller;
+  discount?: number;
 };
 
 export { bahtText } from "./baht-text";
@@ -194,8 +195,10 @@ export async function generateQuotePdf(data: QuoteDocData): Promise<Uint8Array> 
 
   const isReceipt = data.type === "receipt";
   const subtotal = data.items.reduce((s, i) => s + i.price, 0);
-  const wht = Math.round(subtotal * 0.03);
-  const total = subtotal - wht;
+  const discount = data.discount ?? 0;
+  const discountedSubtotal = subtotal - discount;
+  const wht = Math.round(discountedSubtotal * 0.03);
+  const total = discountedSubtotal - wht;
 
   const ensureSpace = (needed: number) => {
     if (y - needed < MARGIN_BOTTOM) {
@@ -450,6 +453,9 @@ export async function generateQuotePdf(data: QuoteDocData): Promise<Uint8Array> 
     };
 
     drawFootRow("รวมจำนวนเงิน", `฿${subtotal.toLocaleString()}`);
+    if (discount > 0) {
+      drawFootRow("ส่วนลด", `-฿${discount.toLocaleString()}`, { valueColor: COLOR.red500 });
+    }
     drawFootRow("หักภาษี ณ ที่จ่าย 3%", `-฿${wht.toLocaleString()}`, { valueColor: COLOR.red500 });
 
     ensureSpace(px(44));

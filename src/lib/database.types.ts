@@ -193,6 +193,7 @@ export interface Database {
           quote_issued_at: string | null;
           receipt_issued_at: string | null;
           total_amount: number | null;
+          discount: number;
           fonts_detail: Json | null;
           issued_by: string | null;
           created_at: string;
@@ -213,6 +214,7 @@ export interface Database {
           quote_issued_at?: string | null;
           receipt_issued_at?: string | null;
           total_amount?: number | null;
+          discount?: number;
           fonts_detail?: Json | null;
           issued_by?: string | null;
           created_at?: string;
@@ -233,6 +235,7 @@ export interface Database {
           quote_issued_at?: string | null;
           receipt_issued_at?: string | null;
           total_amount?: number | null;
+          discount?: number;
           fonts_detail?: Json | null;
           issued_by?: string | null;
           created_at?: string;
@@ -251,6 +254,7 @@ export interface Database {
           company_name: string | null;
           items: Json;
           total_amount: number;
+          discount: number;
           status: "pending" | "paid" | "cancelled";
           paid_at: string | null;
           source: "quote" | "checkout";
@@ -474,6 +478,10 @@ export interface Database {
       };
       issue_quote_doc: {
         Args: { p_quote_id: string; p_doc_type: string };
+        Returns: Json;
+      };
+      issue_quotation_priced: {
+        Args: { p_quote_id: string; p_items: Json; p_discount?: number };
         Returns: Json;
       };
     };

@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { licenseLabel } from "@/lib/license";
 
 type Entitlement = {
   id: string;
@@ -107,7 +108,7 @@ export default function MyDownloads() {
                 <div className="flex-1 min-w-0">
                   <div className="text-[14px] font-medium text-navy truncate">{fontName}</div>
                   <div className="text-[12px] text-[#aaa]">
-                    สิทธิ์: {ent.license_type}
+                    สิทธิ์: {licenseLabel(ent.license_type)}
                     {ent.orders?.order_no ? ` · ${ent.orders.order_no}` : ""}
                   </div>
                 </div>

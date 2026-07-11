@@ -33,6 +33,7 @@ export interface PrintData {
   note: string | null;
   items: FontItem[];
   seller: SellerInfo;
+  discount?: number;
 }
 
 interface Props {
@@ -70,8 +71,10 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
   if (!open || !data) return null;
 
   const subtotal = data.items.reduce((s, i) => s + i.price, 0);
-  const wht = Math.round(subtotal * 0.03);
-  const total = subtotal - wht;
+  const discount = data.discount ?? 0;
+  const discountedSubtotal = subtotal - discount;
+  const wht = Math.round(discountedSubtotal * 0.03);
+  const total = discountedSubtotal - wht;
   const isReceipt = data.type === "receipt";
 
   const handleDownload = async () => {
@@ -213,6 +216,12 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
                 <td colSpan={2} className="text-right py-1.5 text-[#555]">รวมจำนวนเงิน</td>
                 <td className="text-right py-1.5">฿{subtotal.toLocaleString()}</td>
               </tr>
+              {discount > 0 && (
+                <tr>
+                  <td colSpan={2} className="text-right py-1.5 text-[#555]">ส่วนลด</td>
+                  <td className="text-right py-1.5 text-red-500">-฿{discount.toLocaleString()}</td>
+                </tr>
+              )}
               <tr>
                 <td colSpan={2} className="text-right py-1.5 text-[#555]">หักภาษี ณ ที่จ่าย 3%</td>
                 <td className="text-right py-1.5 text-red-500">-฿{wht.toLocaleString()}</td>

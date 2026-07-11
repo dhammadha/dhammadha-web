@@ -3,8 +3,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import PrintLightbox from "@/components/admin/PrintLightbox";
+import { licenseLabel } from "@/lib/license";
+import PrintLightbox, { type PrintData } from "@/components/admin/PrintLightbox";
 import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
+import IssueQuoteModal, { type IssueQuote, type InitialItem } from "@/components/IssueQuoteModal";
 import type { Database } from "@/lib/database.types";
 import Button from "@/components/Button";
 
@@ -14,7 +16,7 @@ type QuoteRow = Database["public"]["Tables"]["quotes"]["Row"] & {
   quote_issued_at?: string | null;
   receipt_issued_at?: string | null;
   total_amount?: number | null;
-  fonts_detail?: Array<{ name: string; price: number; license_type: string }> | null;
+  fonts_detail?: Array<{ name: string; price: number; license_type: string; font_id?: string | null }> | null;
 };
 
 type SellerInfo = {
@@ -29,12 +31,6 @@ function fmtDate(s: string) {
 }
 
 const SELLER_FIELDS = "name, business_name, entity_type, tax_id, address, phone, email, bank";
-
-const LICENSE_LABEL: Record<string, string> = {
-  small_medium: "บริษัทขนาดเล็ก / กลาง",
-  large_agency: "บริษัทขนาดใหญ่ / Ad Agency",
-  extended: "สิทธิการใช้งานเพิ่มเติม",
-};
 
 const DEFAULT_PRICES: Record<string, number> = {
   small_medium: 3500,
@@ -57,11 +53,13 @@ export default function AdminQuotesPage() {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<QuoteRow | null>(null);
-  const [printData, setPrintData] = useState<Parameters<typeof PrintLightbox>[0]["data"]>(null);
+  const [printData, setPrintData] = useState<PrintData | null>(null);
   const [printQuoteId, setPrintQuoteId] = useState<string | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
   const [orders, setOrders] = useState<Record<string, { id: string; order_no: string }>>({});
   const [confirming, setConfirming] = useState<QuoteRow | null>(null);
+  const [issuing, setIssuing] = useState<QuoteRow | null>(null);
+  const [issuingItems, setIssuingItems] = useState<InitialItem[]>([]);
   const [toast, setToast] = useState("");
   // ผู้ขายต่างกันตาม designer ของแต่ละ quote — cache กันดึงซ้ำ (key: designer_id ?? "self")
   const sellerCacheRef = useRef<Record<string, SellerInfo>>({});
@@ -135,7 +133,7 @@ export default function AdminQuotesPage() {
       extended: sv?.extra ?? DEFAULT_PRICES.extended,
     };
 
-    const label = LICENSE_LABEL[licenseType] ?? licenseType;
+    const label = licenseLabel(licenseType);
     const price = prices[licenseType] ?? 0;
     return fontNames.map((name) => ({ name, license_type: label, price }));
   }, [user]);
@@ -164,56 +162,22 @@ export default function AdminQuotesPage() {
     return null;
   }, [user]);
 
-  const issueDocument = async (q: QuoteRow, type: "quotation" | "receipt") => {
-    const sellerInfo = await getSeller(q.designer_id ?? null);
-    if (!sellerInfo) { showToast("กรุณาเพิ่มข้อมูลบัญชีใน Settings ก่อน"); return; }
-
-    const { data, error } = await supabase.rpc("issue_quote_doc", {
-      p_quote_id: q.id,
-      p_doc_type: type,
-    });
-
-    if (error) {
-      const msg = error.message.includes("quote_required_first")
-        ? "ต้องออกใบเสนอราคาก่อน"
-        : error.message.includes("not_authorized")
-        ? "คุณไม่มีสิทธิ์ออกเอกสารนี้"
-        : error.message.includes("quote_not_found")
-        ? "ไม่พบใบเสนอราคานี้"
-        : error.message.includes("invalid_doc_type")
-        ? "ประเภทเอกสารไม่ถูกต้อง"
-        : `ออกเอกสารไม่สำเร็จ: ${error.message}`;
-      showToast(msg);
-      return;
-    }
-
-    const result = data as unknown as { doc_no: string; issued_at: string; already_issued: boolean };
-    showToast(
-      result.already_issued
-        ? `ออก${type === "quotation" ? "ใบเสนอราคา" : "ใบเสร็จ"}ไปแล้ว: ${result.doc_no}`
-        : `✓ ออก${type === "quotation" ? "ใบเสนอราคา" : "ใบเสร็จ"} ${result.doc_no} เรียบร้อย`
-    );
-
-    await loadQuotes();
-    const updated: QuoteRow = type === "quotation"
-      ? { ...q, quote_no: result.doc_no, quote_issued_at: result.issued_at }
-      : { ...q, receipt_no: result.doc_no, receipt_issued_at: result.issued_at };
-    setSelected(updated);
-    await openPrint(updated, type);
-  };
-
-  const openPrint = async (q: QuoteRow, type: "quotation" | "receipt") => {
+  // สร้าง PrintData สำหรับใบเสนอราคา/ใบเสร็จ — ใช้ราคาที่บันทึกไว้ (fonts_detail) ถ้ามี
+  const buildPrintData = useCallback(async (
+    q: QuoteRow,
+    type: "quotation" | "receipt",
+  ): Promise<PrintData | null> => {
     const docNo = type === "quotation" ? q.quote_no : q.receipt_no;
-    if (!docNo) return;
+    if (!docNo) return null;
     const sellerInfo = await getSeller(q.designer_id ?? null);
-    if (!sellerInfo) { showToast("ไม่พบข้อมูลผู้ขาย"); return; }
+    if (!sellerInfo) { showToast("ไม่พบข้อมูลผู้ขาย"); return null; }
 
-    // ถ้ามี fonts_detail ให้ map label แทน raw key; ถ้าไม่มีให้ดึงราคาจาก settings
     let items: Array<{ name: string; license_type: string; price: number }>;
     if (q.fonts_detail && q.fonts_detail.length > 0) {
       items = q.fonts_detail.map((d) => ({
-        ...d,
-        license_type: LICENSE_LABEL[d.license_type] ?? d.license_type,
+        name: d.name,
+        license_type: licenseLabel(d.license_type),
+        price: d.price,
       }));
     } else {
       items = await getLicenseItems(q.designer_id ?? null, q.license_type, q.fonts);
@@ -221,7 +185,7 @@ export default function AdminQuotesPage() {
 
     // ใช้วันที่ออกเอกสารจริงจาก DB — พิมพ์/ส่งซ้ำภายหลังต้องได้วันที่เดิม ไม่ใช่วันนี้
     const issuedAt = type === "quotation" ? q.quote_issued_at : q.receipt_issued_at;
-    setPrintData({
+    return {
       type,
       doc_no: docNo,
       date: new Date(issuedAt ?? Date.now()).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }),
@@ -232,11 +196,69 @@ export default function AdminQuotesPage() {
       email: q.email,
       note: q.note,
       items,
+      discount: q.discount ?? 0,
       seller: sellerInfo,
-    });
+    };
+  }, [getSeller, getLicenseItems]);
+
+  const openPrint = useCallback(async (q: QuoteRow, type: "quotation" | "receipt") => {
+    const data = await buildPrintData(q, type);
+    if (!data) return;
+    setPrintData(data);
     setPrintQuoteId(q.id);
     setPrintOpen(true);
+  }, [buildPrintData]);
+
+  // เปิด modal ออกใบเสนอราคา — ตั้งราคาเริ่มต้นจาก fonts_detail (ถ้าเคยตั้ง) หรือ license config
+  const openIssueModal = async (q: QuoteRow) => {
+    let initial: InitialItem[];
+    if (q.fonts_detail && q.fonts_detail.length > 0) {
+      initial = q.fonts_detail.map((d) => ({ name: d.name, license_type: d.license_type, price: d.price }));
+    } else {
+      initial = await getLicenseItems(q.designer_id ?? null, q.license_type, q.fonts);
+    }
+    setIssuingItems(initial);
+    setIssuing(q);
   };
+
+  // หลังยืนยันรับชำระ: สร้าง PDF ใบเสร็จ + ส่งอีเมล delivery พร้อมแนบไฟล์ให้ลูกค้า
+  const sendReceiptEmail = useCallback(async (
+    q: QuoteRow,
+    orderId: string,
+    receiptNo: string | null,
+  ): Promise<boolean> => {
+    if (!orderId) return false;
+    let pdf_base64: string | undefined;
+    let filename: string | undefined;
+    if (receiptNo) {
+      const data = await buildPrintData(
+        { ...q, receipt_no: receiptNo, receipt_issued_at: new Date().toISOString() },
+        "receipt",
+      );
+      if (data) {
+        const { generateQuotePdf } = await import("@/lib/quote-doc");
+        const bytes = await generateQuotePdf(data);
+        pdf_base64 = uint8ToBase64(bytes);
+        filename = `${receiptNo}.pdf`;
+      }
+    }
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({
+        type: "delivery",
+        payload: {
+          order_id: orderId,
+          ...(pdf_base64 ? { pdf_base64, filename, receipt_no: receiptNo } : {}),
+        },
+      }),
+    }).catch(() => null);
+    return !!res?.ok;
+  }, [buildPrintData]);
 
   const handleDownloadPdf = useCallback(async () => {
     if (!printData) return;
@@ -283,7 +305,8 @@ export default function AdminQuotesPage() {
 
   const deleteQuote = async (q: QuoteRow) => {
     if (!confirm(`ลบใบเสนอราคาของ "${q.company_name}"?`)) return;
-    await supabase.from("quotes").delete().eq("id", q.id);
+    const { error } = await supabase.from("quotes").delete().eq("id", q.id);
+    if (error) { showToast(`ลบไม่สำเร็จ: ${error.message}`); return; }
     showToast("ลบเรียบร้อย");
     setSelected(null);
     loadQuotes();
@@ -320,7 +343,7 @@ export default function AdminQuotesPage() {
               <div className="text-[12px] text-[#888]">{fmtDate(q.created_at)}</div>
               <div className="text-[13px] text-navy font-medium truncate">{q.contact_name}</div>
               <div className="text-[13px] text-[#555] truncate">{q.company_name}</div>
-              <div className="text-[12px] text-[#888] capitalize">{q.license_type}</div>
+              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type)}</div>
               <div>
                 {q.quote_no
                   ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">{q.quote_no}</span>
@@ -349,7 +372,7 @@ export default function AdminQuotesPage() {
               <Row label="อีเมล" value={selected.email} />
               <Row label="ที่อยู่" value={selected.address} />
               <Row label="เลขภาษี" value={selected.tax_id} />
-              <Row label="รูปแบบสิทธิ์" value={selected.license_type} />
+              <Row label="รูปแบบสิทธิ์" value={licenseLabel(selected.license_type)} />
               {selected.note && <Row label="หมายเหตุ" value={selected.note} />}
             </div>
 
@@ -373,13 +396,13 @@ export default function AdminQuotesPage() {
                 </Button>
               )}
               {!selected.quote_no && (
-                <Button onClick={() => issueDocument(selected, "quotation")} className="w-full">
+                <Button onClick={() => openIssueModal(selected)} className="w-full">
                   ออกใบเสนอราคา
                 </Button>
               )}
-              {selected.quote_no && !selected.receipt_no && (
-                <Button onClick={() => issueDocument(selected, "receipt")} className="w-full">
-                  ออกใบเสร็จรับเงิน
+              {selected.quote_no && !orders[selected.id] && (
+                <Button variant="outline" onClick={() => openIssueModal(selected)} className="w-full">
+                  แก้ไขราคา / ส่วนลด
                 </Button>
               )}
               {selected.quote_no && (
@@ -400,16 +423,37 @@ export default function AdminQuotesPage() {
         )}
       </div>
 
+      {issuing && (
+        <IssueQuoteModal
+          quote={issuing as unknown as IssueQuote}
+          initialItems={issuingItems}
+          onClose={() => setIssuing(null)}
+          onIssued={async (docNo) => {
+            const q = issuing;
+            setIssuing(null);
+            showToast(`✓ ออกใบเสนอราคา ${docNo} เรียบร้อย`);
+            await loadQuotes();
+            if (q) {
+              const { data } = await supabase.from("quotes").select("*").eq("id", q.id).single();
+              if (data) { setSelected(data as QuoteRow); await openPrint(data as QuoteRow, "quotation"); }
+            }
+          }}
+        />
+      )}
+
       {confirming && (
         <ConfirmPaidModal
           quote={confirming as unknown as ConfirmQuote}
           onClose={() => setConfirming(null)}
-          onConfirmed={(orderNo, emailOk) => {
+          onConfirmed={async ({ orderId, orderNo, receiptNo }) => {
+            const q = confirming;
             setConfirming(null);
             setSelected(null);
+            let emailOk = false;
+            try { emailOk = q ? await sendReceiptEmail(q, orderId, receiptNo) : false; } catch { emailOk = false; }
             showToast(
               emailOk
-                ? `✓ ยืนยันรับชำระ ${orderNo} — ส่งอีเมลแจ้งลูกค้าเรียบร้อย`
+                ? `✓ ยืนยันรับชำระ ${orderNo}${receiptNo ? ` + ออกใบเสร็จ ${receiptNo}` : ""} แล้ว — ส่งอีเมล + ใบเสร็จให้ลูกค้าเรียบร้อย`
                 : `✓ ยืนยันรับชำระ ${orderNo} แล้ว แต่ส่งอีเมลไม่สำเร็จ`
             );
             loadQuotes();
