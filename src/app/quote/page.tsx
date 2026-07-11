@@ -347,21 +347,19 @@ function QuoteForm() {
               </h2>
 
               {licenseConfig && !licenseConfig.use_default && licenseConfig.tiers ? (
-                licenseConfig.tiers.map((tier, i) => {
-                  const val = `custom_${i}`;
-                  return (
+                licenseConfig.tiers.map((tier, i) => (
                     <label
                       key={i}
                       className={`flex items-start gap-3 p-3.5 rounded-[9px] border border-[0.5px] cursor-pointer transition-colors ${
-                        form.license_type === val ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
+                        form.license_type === tier.name ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
                       }`}
                     >
                       <input
                         type="radio"
                         name="license_type"
-                        value={val}
-                        checked={form.license_type === val}
-                        onChange={() => set("license_type", val)}
+                        value={tier.name}
+                        checked={form.license_type === tier.name}
+                        onChange={() => set("license_type", tier.name)}
                         className="mt-0.5 accent-[#0a8a84]"
                       />
                       <div className="flex-1 flex items-center justify-between">
@@ -371,8 +369,7 @@ function QuoteForm() {
                         </div>
                       </div>
                     </label>
-                  );
-                })
+                  ))
               ) : (
                 LICENSE_TYPES.map((lt) => (
                   <label

@@ -30,6 +30,18 @@ function fmtDate(s: string) {
 
 const SELLER_FIELDS = "name, business_name, entity_type, tax_id, address, phone, email, bank";
 
+const LICENSE_LABEL: Record<string, string> = {
+  small_medium: "บริษัทขนาดเล็ก / กลาง",
+  large_agency: "บริษัทขนาดใหญ่ / Ad Agency",
+  extended: "สิทธิการใช้งานเพิ่มเติม",
+};
+
+const DEFAULT_PRICES: Record<string, number> = {
+  small_medium: 3500,
+  large_agency: 7000,
+  extended: 20000,
+};
+
 // chunk-safe Uint8Array → base64 (avoids String.fromCharCode(...bigArray) spread overflow)
 function uint8ToBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -72,6 +84,61 @@ export default function AdminQuotesPage() {
   }, []);
 
   useEffect(() => { loadQuotes(); }, [loadQuotes]);
+
+  // ดึงราคาและ label ของ license_type จาก settings หรือ designer_license_config
+  const getLicenseItems = useCallback(async (
+    designerId: string | null,
+    licenseType: string,
+    fontNames: string[],
+  ): Promise<Array<{ name: string; license_type: string; price: number }>> => {
+    const targetId = designerId ?? user?.id;
+
+    // ลอง designer custom tiers ก่อน
+    if (targetId) {
+      const { data: config } = await supabase
+        .from("designer_license_config")
+        .select("use_default, tiers")
+        .eq("designer_id", targetId)
+        .single();
+
+      if (config && !config.use_default && config.tiers) {
+        const tiers = config.tiers as Array<{ name: string; price: number }>;
+        // name-based lookup (รูปแบบใหม่: license_type = tier.name โดยตรง)
+        const byName = tiers.find((t) => t.name === licenseType);
+        if (byName) {
+          return fontNames.map((name) => ({ name, license_type: byName.name, price: byName.price }));
+        }
+        // backward compat: รูปแบบเก่าที่เก็บ custom_N (index)
+        const customMatch = licenseType.match(/^custom_(\d+)$/);
+        if (customMatch) {
+          const tier = tiers[parseInt(customMatch[1])];
+          if (tier) {
+            return fontNames.map((name) => ({ name, license_type: tier.name, price: tier.price }));
+          }
+        }
+        // ถ้าหาไม่เจอเลย (tier ถูกลบไปแล้ว) — ใช้ชื่อเดิมที่บันทึกไว้ ราคา 0
+        return fontNames.map((name) => ({ name, license_type: licenseType, price: 0 }));
+      }
+    }
+
+    // ดึงราคาจาก settings table
+    const { data: settings } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "licensing")
+      .single();
+
+    const sv = settings?.value as { small?: number; large?: number; extra?: number } | null;
+    const prices: Record<string, number> = {
+      small_medium: sv?.small ?? DEFAULT_PRICES.small_medium,
+      large_agency: sv?.large ?? DEFAULT_PRICES.large_agency,
+      extended: sv?.extra ?? DEFAULT_PRICES.extended,
+    };
+
+    const label = LICENSE_LABEL[licenseType] ?? licenseType;
+    const price = prices[licenseType] ?? 0;
+    return fontNames.map((name) => ({ name, license_type: label, price }));
+  }, [user]);
 
   // ดึงข้อมูลผู้ขาย (สำหรับพิมพ์/ออกเอกสาร) ของ designer เจ้าของ quote นั้น ๆ
   // ถ้า designer_id เป็น null หรือดึงแถวของ designer ไม่ได้ (RLS) → fallback เป็นผู้ใช้ที่ login อยู่
@@ -140,7 +207,18 @@ export default function AdminQuotesPage() {
     if (!docNo) return;
     const sellerInfo = await getSeller(q.designer_id ?? null);
     if (!sellerInfo) { showToast("ไม่พบข้อมูลผู้ขาย"); return; }
-    const items = (q.fonts_detail ?? q.fonts.map((name) => ({ name, license_type: q.license_type, price: 0 })));
+
+    // ถ้ามี fonts_detail ให้ map label แทน raw key; ถ้าไม่มีให้ดึงราคาจาก settings
+    let items: Array<{ name: string; license_type: string; price: number }>;
+    if (q.fonts_detail && q.fonts_detail.length > 0) {
+      items = q.fonts_detail.map((d) => ({
+        ...d,
+        license_type: LICENSE_LABEL[d.license_type] ?? d.license_type,
+      }));
+    } else {
+      items = await getLicenseItems(q.designer_id ?? null, q.license_type, q.fonts);
+    }
+
     // ใช้วันที่ออกเอกสารจริงจาก DB — พิมพ์/ส่งซ้ำภายหลังต้องได้วันที่เดิม ไม่ใช่วันนี้
     const issuedAt = type === "quotation" ? q.quote_issued_at : q.receipt_issued_at;
     setPrintData({
