@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
 import Button from "@/components/Button";
+import TypeTester from "./TypeTester";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
@@ -59,9 +60,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [customLicenseTiers, setCustomLicenseTiers] = useState<{ name: string; price: number }[] | null>(null);
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
-  const [selectedWeight, setSelectedWeight] = useState("");
-  const [fontSize, setFontSize] = useState("36");
-  const [testerInput, setTesterInput] = useState("");
   const [specimenOpen, setSpecimenOpen] = useState(false);
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState("");
@@ -96,16 +94,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
         const others = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont).filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
-
-        // Type tester: ฟอนต์ขายใช้ tester files (obfuscated — glyph ครบทุก weight
-        // แต่รหัสอักษรถูกสลับ ไฟล์ที่ดูดไปใช้จริงไม่ได้) ถ้าไม่มีค่อย fallback demo
-        const files = currentFont?.is_free
-          ? currentFont?.free_font_files || []
-          : (currentFont?.obfuscated_font_files?.length
-              ? currentFont.obfuscated_font_files
-              : currentFont?.demo_font_files || []);
-        const weights = getUniqueWeights(files);
-        if (weights.length) setSelectedWeight(weights[0]);
 
         for (const row of (settings ?? []) as { key: string; value: Record<string, unknown> }[]) {
           const v = row.value;
@@ -198,34 +186,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [images.length]);
 
-  // Inject @font-face — ฟอนต์ฟรีใช้ไฟล์ตรง; ฟอนต์ขายใช้ tester files
-  // (obfuscated) เป็นหลัก ไม่มีค่อยใช้ demo (ไฟล์เต็มอยู่ใน private bucket)
-  useEffect(() => {
-    if (!font?.slug) return;
-
-    const isFree = font.is_free === true;
-    const previewFiles = isFree
-      ? (font.free_font_files ?? [])
-      : (font.obfuscated_font_files?.length
-          ? font.obfuscated_font_files
-          : font.demo_font_files ?? []);
-    if (!previewFiles.length) return;
-
-    const family = `preview-${font.slug}`;
-    const faces = previewFiles.map((url) => {
-      const ext = decodeURIComponent(url.split("?")[0]).split(".").pop()?.toLowerCase() || "woff2";
-      const fmt = ext === "otf" ? "opentype" : ext === "ttf" ? "truetype" : ext;
-      const w = weightToCss(parseWeight(url));
-      return `@font-face { font-family: "${family}"; font-weight: ${w}; src: url("${url}") format("${fmt}"); font-display: block; }`;
-    }).join("\n");
-
-    const style = document.createElement("style");
-    style.id = `preview-font-${font.slug}`;
-    style.textContent = faces;
-    document.head.appendChild(style);
-    return () => { document.getElementById(`preview-font-${font.slug}`)?.remove(); };
-  }, [font?.slug, font?.is_free]);
-
   function moveSlide(dir: number) {
     setSlideIdx((i) => (i + dir + images.length) % images.length);
     if (timerRef.current) {
@@ -264,19 +224,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     );
   }
 
-  // ไฟล์สำหรับ render tester + รายชื่อ weight ใน dropdown: tester (obfuscated)
-  // มีครบทุก weight; ส่วน Font Format แสดงจาก demo/free (ตรงกับไฟล์ที่ขายจริง
-  // — tester เป็น woff2 เสมอ ไม่ใช่ format ของสินค้า)
-  const useObfuscated = !font.is_free && !!font.obfuscated_font_files?.length;
-  const renderFiles = font.is_free
-    ? font.free_font_files || []
-    : (useObfuscated ? font.obfuscated_font_files! : font.demo_font_files || []);
+  // Font Format / น้ำหนัก / สไตล์ ในตารางข้อมูล มาจากไฟล์ demo/free เท่านั้น
+  // (ตรงกับไฟล์ที่ขายจริง) — ตัวทดสอบฟอนต์ render จาก server แยกต่างหากแล้ว
   const infoFiles = font.is_free ? font.free_font_files || [] : font.demo_font_files || [];
-  const weights = getUniqueWeights(renderFiles);
   const formats = getFormats(infoFiles);
-  const styleCount = font.weight_count
-    || renderFiles.filter((u) => !u.toLowerCase().endsWith(".zip")).length;
-  const weightTotal = font.weight_count || weights.length;
+  const styleCount = font.weight_count || infoFiles.filter((u) => !u.toLowerCase().endsWith(".zip")).length;
+  const weightTotal = font.weight_count || getUniqueWeights(infoFiles).length;
 
   const mainTitle = font.name_th || font.name || "—";
   const subTitle = font.name_th ? font.name : undefined;
@@ -345,67 +298,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
           </div>
 
           {/* TYPE TESTER */}
-          {/* Font face is injected via <style> tag when font data loads — see useEffect below */}
-          <div className="bg-white border border-[0.5px] border-border rounded-xl p-5 mb-5">
-            <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-              <span className="text-[15px] font-semibold text-navy">ทดสอบฟอนต์</span>
-              <div className="flex gap-2">
-                <select
-                  value={fontSize}
-                  onChange={(e) => setFontSize(e.target.value)}
-                  className="text-[13px] px-3 py-1.5 border border-[0.5px] border-[#ddd] rounded-[8px] bg-white text-navy outline-none cursor-pointer"
-                >
-                  {["18", "24", "36", "48", "64"].map((s) => (
-                    <option key={s} value={s}>{s}px</option>
-                  ))}
-                </select>
-                {weights.length > 0 && (
-                  <select
-                    value={selectedWeight}
-                    onChange={(e) => setSelectedWeight(e.target.value)}
-                    className="text-[13px] px-3 py-1.5 border border-[0.5px] border-[#ddd] rounded-[8px] bg-white text-navy outline-none cursor-pointer"
-                  >
-                    {weights.map((w) => (
-                      <option key={w} value={w}>{w}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            </div>
-            <div className="relative w-full h-[140px]">
-              {/* Display layer: encoded text rendered with obfuscated font */}
-              <div
-                aria-hidden
-                className="absolute inset-0 bg-bg rounded-lg px-4 py-3 border border-[0.5px] border-border pointer-events-none whitespace-pre-wrap break-words overflow-hidden"
-                style={{
-                  fontSize: `${fontSize}px`,
-                  lineHeight: 1.45,
-                  fontFamily: font ? `"preview-${font.slug}", sans-serif` : undefined,
-                  fontWeight: weightToCss(selectedWeight),
-                  color: testerInput ? "var(--color-navy, #2B1B3D)" : "#bbb",
-                }}
-              >
-                {testerInput
-                  ? (useObfuscated && font.obfuscated_map
-                      ? [...testerInput].map((ch) => font.obfuscated_map![ch] ?? ch).join("")
-                      : testerInput)
-                  : "พิมพ์ทดสอบได้ที่นี่"}
-              </div>
-              {/* Input layer: same font applied so cursor aligns with display */}
-              <textarea
-                value={testerInput}
-                onChange={(e) => setTesterInput(e.target.value)}
-                spellCheck={false}
-                className="absolute inset-0 w-full h-full resize-none bg-transparent outline-none rounded-lg px-4 py-3 border border-transparent"
-                style={{
-                  fontSize: `${fontSize}px`,
-                  lineHeight: 1.45,
-                  color: "transparent",
-                  caretColor: "var(--color-navy, #2B1B3D)",
-                }}
-              />
-            </div>
-          </div>
+          <TypeTester font={font} />
 
           {/* 2-COLUMN */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
