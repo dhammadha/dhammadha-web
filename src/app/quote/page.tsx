@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
@@ -89,28 +89,7 @@ function QuoteForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [pdfOpen, setPdfOpen] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const turnstileRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!TURNSTILE_SITE_KEY) return;
-    const el = turnstileRef.current;
-    if (!el) return;
-    const render = () => {
-      if (el.childElementCount > 0) return;
-      window.turnstile?.render(el, {
-        sitekey: TURNSTILE_SITE_KEY,
-        callback: (token: string) => setTurnstileToken(token),
-        "expired-callback": () => setTurnstileToken(""),
-      });
-    };
-    if (window.turnstile) { render(); return; }
-    const script = document.createElement("script");
-    script.src = "https://challenges.cloudflare.com/turnstile/api.js?render=explicit";
-    script.async = true;
-    script.onload = render;
-    document.head.appendChild(script);
-  }, []);
+  const [turnstileToken] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -188,12 +167,6 @@ function QuoteForm() {
       chosenFonts.length === 0
     ) {
       setErrorMsg("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกฟอนต์อย่างน้อย 1 รายการ");
-      return;
-    }
-
-    // ตรวจสอบการยืนยันตัวตน Turnstile (ถ้าโปรเจกต์ตั้งค่า SITE_KEY ไว้)
-    if (TURNSTILE_SITE_KEY && !turnstileToken) {
-      setErrorMsg("กรุณายืนยันตัวตนก่อนส่งฟอร์ม");
       return;
     }
 
@@ -493,10 +466,6 @@ function QuoteForm() {
               </Field>
             </div>
 
-
-            {TURNSTILE_SITE_KEY && (
-              <div ref={turnstileRef} className="flex justify-end" />
-            )}
 
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c] text-right">{errorMsg}</p>
