@@ -57,8 +57,7 @@ const EMPTY_FORM = {
   note: "",
 };
 
-// Cloudflare Turnstile — bot protection on the quote form. Rendered only when
-// NEXT_PUBLIC_TURNSTILE_SITE_KEY is set (dev without the key skips it).
+// Cloudflare Turnstile — bot protection on the quote form.
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 declare global {
@@ -177,6 +176,8 @@ function QuoteForm() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const chosenFonts = selectedFonts.filter(Boolean);
+    
+    // ตรวจสอบฟิลด์บังคับ (ยกเว้น form.note ที่ไม่ต้องเช็กแล้ว)
     if (
       !form.contact_name ||
       !form.company_name ||
@@ -189,6 +190,13 @@ function QuoteForm() {
       setErrorMsg("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกฟอนต์อย่างน้อย 1 รายการ");
       return;
     }
+
+    // ตรวจสอบการยืนยันตัวตน Turnstile (ถ้าโปรเจกต์ตั้งค่า SITE_KEY ไว้)
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErrorMsg("กรุณายืนยันตัวตนก่อนส่งฟอร์ม");
+      return;
+    }
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       setErrorMsg("กรุณากรอกอีเมลให้ถูกต้อง เช่น name@company.com");
       return;
@@ -203,6 +211,7 @@ function QuoteForm() {
       const fontNames = chosenFonts.map(
         (id) => fonts.find((f) => f.id === id)?.name ?? id
       );
+      
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (supabase.from("quotes") as any).insert({
         ...form,
@@ -211,8 +220,7 @@ function QuoteForm() {
       });
 
       const licenseLabel = LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
-      // Designer contact info is looked up server-side from designer_id —
-      // the client never chooses the recipient address.
+      
       const emailPayload = {
         contact_name: form.contact_name,
         company_name: form.company_name,
@@ -224,6 +232,7 @@ function QuoteForm() {
         note: form.note || "—",
         designer_id: designer?.id ?? null,
       };
+
       await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -233,6 +242,7 @@ function QuoteForm() {
       setStatus("success");
       setForm(EMPTY_FORM);
       setSelectedFonts([""]);
+      setTurnstileToken("");
     } catch {
       setStatus("error");
       setErrorMsg("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
@@ -310,7 +320,7 @@ function QuoteForm() {
               <h2 className="text-[14px] font-semibold text-navy">ข้อมูลผู้ติดต่อ</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="ชื่อผู้ติดต่อ">
+                <Field label="ชื่อผู้ติดต่อ" required>
                   <input
                     type="text"
                     value={form.contact_name}
@@ -320,7 +330,7 @@ function QuoteForm() {
                     required
                   />
                 </Field>
-                <Field label="อีเมล">
+                <Field label="อีเมล" required>
                   <input
                     type="email"
                     value={form.email}
@@ -332,7 +342,7 @@ function QuoteForm() {
                 </Field>
               </div>
 
-              <Field label="ชื่อห้างร้าน / องค์กร / บริษัท">
+              <Field label="ชื่อห้างร้าน / องค์กร / บริษัท" required>
                 <input
                   type="text"
                   value={form.company_name}
@@ -343,7 +353,7 @@ function QuoteForm() {
                 />
               </Field>
 
-              <Field label="ที่อยู่">
+              <Field label="ที่อยู่" required>
                 <textarea
                   value={form.address}
                   onChange={(e) => set("address", e.target.value)}
@@ -354,7 +364,7 @@ function QuoteForm() {
                 />
               </Field>
 
-              <Field label="หมายเลขประจำตัวผู้เสียภาษี">
+              <Field label="หมายเลขประจำตัวผู้เสียภาษี" required>
                 <input
                   type="text"
                   value={form.tax_id}
@@ -373,7 +383,6 @@ function QuoteForm() {
                 รูปแบบสิทธิการใช้งานที่ต้องการ <span className="text-[#e74c3c]">*</span>
               </h2>
 
-              {/* custom tiers ของ designer */}
               {licenseConfig && !licenseConfig.use_default && licenseConfig.tiers ? (
                 licenseConfig.tiers.map((tier, i) => {
                   const val = `custom_${i}`;
@@ -425,7 +434,6 @@ function QuoteForm() {
                 ))
               )}
 
-              {/* link สัญญาอนุญาต */}
               <p className="text-[12px] text-[#aaa] mt-1">
                 รายละเอียด{" "}
                 {licenseConfig && !licenseConfig.use_default && licenseConfig.license_pdf_url ? (
@@ -493,9 +501,9 @@ function QuoteForm() {
               </button>
             </div>
 
-            {/* Note */}
+            {/* Note — แก้ไขให้ไม่มีเครื่องหมายดอกจันสีแดง ไม่จำเป็นต้องระบุ */}
             <div className="bg-white border border-[0.5px] border-border rounded-xl p-6">
-              <Field label="หมายเหตุเพิ่มเติม">
+              <Field label="หมายเหตุเพิ่มเติม" required={false}>
                 <textarea
                   value={form.note}
                   onChange={(e) => set("note", e.target.value)}
@@ -508,7 +516,7 @@ function QuoteForm() {
 
 
             {errorMsg && (
-              <p className="text-[13px] text-[#e74c3c]">{errorMsg}</p>
+              <p className="text-[13px] text-[#e74c3c] text-right">{errorMsg}</p>
             )}
 
             <div className="flex items-center justify-end gap-6">
@@ -546,11 +554,12 @@ function QuoteForm() {
 const inputCls =
   "w-full px-3.5 py-2.5 border border-[0.5px] border-[#ddd] rounded-[8px] text-[14px] text-navy outline-none focus:border-mint transition-colors bg-white";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+// ปรับปรุงคอมโพเนนต์ย่อย Field ให้รองรับการเลือกเปิด/ปิดเครื่องหมายดอกจัน (*) บังคับกรอก
+function Field({ label, required = true, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-[12px] font-medium text-[#555]">
-        {label} <span className="text-[#e74c3c]">*</span>
+        {label} {required && <span className="text-[#e74c3c]">*</span>}
       </label>
       {children}
     </div>

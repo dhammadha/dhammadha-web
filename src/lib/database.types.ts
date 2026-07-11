@@ -385,6 +385,62 @@ export interface Database {
         };
         Relationships: [];
       };
+      payouts: {
+        Row: {
+          id: string;
+          designer_id: string;
+          period_year: number;
+          period_month: number;
+          amount: number;
+          note: string | null;
+          paid_at: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          designer_id: string;
+          period_year: number;
+          period_month: number;
+          amount: number;
+          note?: string | null;
+          paid_at?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          designer_id?: string;
+          period_year?: number;
+          period_month?: number;
+          amount?: number;
+          note?: string | null;
+          paid_at?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      font_events: {
+        Row: {
+          id: number;
+          font_id: string;
+          kind: "view" | "free_download";
+          user_id: string | null;
+          session_key: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          font_id: string;
+          kind: "view" | "free_download";
+          user_id?: string | null;
+          session_key?: string | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
