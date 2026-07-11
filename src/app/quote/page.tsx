@@ -210,6 +210,7 @@ function QuoteForm() {
         address: form.address,
         license_type: licenseLabel,
         fonts: fontNames.join(", "),
+        note: form.note || "—",
         designer_id: designer?.id ?? null,
       };
 
