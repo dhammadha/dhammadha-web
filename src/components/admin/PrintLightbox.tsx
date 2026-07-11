@@ -250,7 +250,8 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
 
       <style jsx global>{`
         @media print {
-          body > *:not(#printAreaWrapper) { display: none !important; }
+          body * { visibility: hidden; position: absolute; }
+          #printAreaWrapper, #printAreaWrapper * { visibility: visible; position: static; }
           #printDoc { margin: 0 !important; padding: 15mm 18mm !important; box-shadow: none !important; }
         }
       `}</style>
