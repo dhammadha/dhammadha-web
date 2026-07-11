@@ -197,10 +197,6 @@ function QuoteForm() {
       setErrorMsg("หมายเลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
-    if (TURNSTILE_SITE_KEY && !turnstileToken) {
-      setErrorMsg("กรุณายืนยันตัวตนผ่านกล่องตรวจสอบด้านล่างก่อนส่งคำขอ");
-      return;
-    }
     setErrorMsg("");
     setStatus("loading");
     try {
@@ -510,7 +506,6 @@ function QuoteForm() {
               </Field>
             </div>
 
-            {TURNSTILE_SITE_KEY && <div ref={turnstileRef} />}
 
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c]">{errorMsg}</p>
