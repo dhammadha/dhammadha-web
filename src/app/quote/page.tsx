@@ -205,7 +205,6 @@ function QuoteForm() {
       setErrorMsg("หมายเลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
       return;
     }
-
     setErrorMsg("");
     setStatus("loading");
     try {
@@ -515,12 +514,6 @@ function QuoteForm() {
               </Field>
             </div>
 
-            {/* Cloudflare Turnstile Verification Widget */}
-            {TURNSTILE_SITE_KEY && (
-              <div className="flex justify-end my-1">
-                <div ref={turnstileRef} />
-              </div>
-            )}
 
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c] text-right">{errorMsg}</p>
