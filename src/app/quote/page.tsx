@@ -293,27 +293,6 @@ function QuoteForm() {
             )}
           </div>
 
-          {/* Discount Info */}
-          <div className="bg-white border border-[0.5px] border-border rounded-xl p-6 mb-5">
-            <h2 className="text-[14px] font-semibold text-navy mb-3">เงื่อนไขส่วนลด</h2>
-            <div className="flex flex-col gap-2">
-              {[
-                { threshold: "25,000", discount: "5%" },
-                { threshold: "50,000", discount: "10%" },
-                { threshold: "75,000", discount: "15%" },
-              ].map(({ threshold, discount }) => (
-                <div key={threshold} className="flex items-center gap-3">
-                  <span className="inline-block min-w-[42px] text-center text-[11px] font-semibold text-[#0a8a84] bg-mint-light border border-[0.5px] border-mint-mid rounded-full px-2.5 py-0.5">
-                    {discount}
-                  </span>
-                  <span className="text-[13px] text-[#555]">
-                    เมื่อยอดสั่งซื้อตั้งแต่ <span className="font-medium text-navy">฿{threshold}</span> ขึ้นไป
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <form onSubmit={submit} className="flex flex-col gap-5">
             {/* Contact & Company */}
             <div className="bg-white border border-[0.5px] border-border rounded-xl p-6 flex flex-col gap-4">
@@ -514,6 +493,10 @@ function QuoteForm() {
               </Field>
             </div>
 
+
+            {TURNSTILE_SITE_KEY && (
+              <div ref={turnstileRef} className="flex justify-end" />
+            )}
 
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c] text-right">{errorMsg}</p>
