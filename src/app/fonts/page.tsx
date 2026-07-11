@@ -10,13 +10,12 @@ import { supabase } from "@/lib/supabase";
 const PAGE_SIZE = 16;
 const CATEGORIES = ["serif", "sans-serif", "display", "handwriting", "monospace"];
 
-type PriceFilter = "all" | "free" | "sale" | "paid";
+type PriceFilter = "all" | "free" | "sale";
 
 const PRICE_OPTIONS: { value: PriceFilter; label: string }[] = [
-  { value: "all", label: "ทั้งหมด" },
+  { value: "all", label: "ราคาทั้งหมด" },
   { value: "free", label: "ฟรี" },
   { value: "sale", label: "ลดราคา" },
-  { value: "paid", label: "ขาย" },
 ];
 
 export default function AllFontsPage() {
@@ -28,7 +27,6 @@ export default function AllFontsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string>("all");
   const [priceFilter, setPriceFilter] = useState<PriceFilter>("all");
-  const [designerSlug, setDesignerSlug] = useState<string>("all");
 
   useEffect(() => {
     setLoading(true);
@@ -57,17 +55,6 @@ export default function AllFontsPage() {
     return Array.from(found);
   }, [fonts]);
 
-  // Distinct designers from fetched fonts
-  const designerOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    fonts.forEach((f) => {
-      if (f.designer_slug) {
-        map.set(f.designer_slug, f.designer_business_name || f.designer_slug);
-      }
-    });
-    return Array.from(map.entries()).map(([slug, label]) => ({ slug, label }));
-  }, [fonts]);
-
   const filteredFonts = useMemo(() => {
     const q = search.trim().toLowerCase();
     return fonts.filter((f) => {
@@ -75,29 +62,28 @@ export default function AllFontsPage() {
         const nameMatch = (f.name || "").toLowerCase().includes(q);
         const nameThMatch = (f.name_th || "").toLowerCase().includes(q);
         const tagMatch = (f.tags || []).some((t) => t.toLowerCase().includes(q));
-        if (!nameMatch && !nameThMatch && !tagMatch) return false;
+        // ค้นหาด้วยชื่อ designer ได้ด้วย (แทน dropdown designer ที่เอาออกไปแล้ว)
+        const designerMatch = (f.designer_business_name || "").toLowerCase().includes(q);
+        if (!nameMatch && !nameThMatch && !tagMatch && !designerMatch) return false;
       }
       if (category !== "all" && f.category !== category) return false;
       if (priceFilter === "free" && !f.is_free) return false;
       if (priceFilter === "sale" && !f.is_sale) return false;
-      if (priceFilter === "paid" && f.is_free) return false;
-      if (designerSlug !== "all" && f.designer_slug !== designerSlug) return false;
       return true;
     });
-  }, [fonts, search, category, priceFilter, designerSlug]);
+  }, [fonts, search, category, priceFilter]);
 
   // Reset to page 1 whenever a filter changes
   useEffect(() => {
     setPage(1);
-  }, [search, category, priceFilter, designerSlug]);
+  }, [search, category, priceFilter]);
 
-  const hasActiveFilters = !!search || category !== "all" || priceFilter !== "all" || designerSlug !== "all";
+  const hasActiveFilters = !!search || category !== "all" || priceFilter !== "all";
 
   const clearFilters = () => {
     setSearch("");
     setCategory("all");
     setPriceFilter("all");
-    setDesignerSlug("all");
   };
 
   const totalPages = Math.ceil(filteredFonts.length / PAGE_SIZE);
@@ -115,105 +101,66 @@ export default function AllFontsPage() {
             )}
           </div>
 
-          {/* Filter bar */}
+          {/* Filter bar — บรรทัดเดียว: search + dropdown ทั้งหมด */}
           {!loading && fonts.length > 0 && (
-            <div className="bg-white rounded-xl border border-border p-4 mb-5 flex flex-col gap-3.5">
-              <div className="flex flex-col md:flex-row md:items-center gap-3">
-                {/* Search */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent bg-[#f8f8f6] focus-within:border-mint transition-colors md:w-[240px]">
-                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="text-[#aaa] flex-shrink-0">
-                    <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.4" />
-                    <path d="M10.5 10.5l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                  </svg>
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="ค้นหาฟอนต์…"
-                    className="bg-transparent border-none outline-none text-[13px] text-[#333] placeholder-[#bbb] w-full font-[inherit]"
-                  />
-                  {search && (
-                    <button
-                      onClick={() => setSearch("")}
-                      className="text-[#bbb] hover:text-[#888] bg-transparent border-none cursor-pointer text-base leading-none p-0"
-                      aria-label="ล้างคำค้นหา"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-
-                {/* Designer select */}
-                <select
-                  value={designerSlug}
-                  onChange={(e) => setDesignerSlug(e.target.value)}
-                  className="px-3 py-2 rounded-xl border border-border bg-white text-[13px] text-[#444] outline-none cursor-pointer md:w-[180px]"
-                >
-                  <option value="all">ทุก designer</option>
-                  {designerOptions.map((d) => (
-                    <option key={d.slug} value={d.slug}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
-
-                {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2.5 mb-5">
+              {/* Search */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-transparent bg-[#f8f8f6] focus-within:border-mint transition-colors w-full sm:w-[220px]">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="text-[#aaa] flex-shrink-0">
+                  <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.4" />
+                  <path d="M10.5 10.5l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="ค้นหาฟอนต์…"
+                  className="bg-transparent border-none outline-none text-[13px] text-[#333] placeholder-[#bbb] w-full font-[inherit]"
+                />
+                {search && (
                   <button
-                    onClick={clearFilters}
-                    className="md:ml-auto inline-flex items-center justify-center gap-1.5 text-[13px] font-medium text-navy bg-transparent border border-transparent rounded-[9px] px-3 py-2 hover:bg-[#f5f5f2] transition-colors cursor-pointer"
+                    onClick={() => setSearch("")}
+                    className="text-[#bbb] hover:text-[#888] bg-transparent border-none cursor-pointer text-base leading-none p-0"
+                    aria-label="ล้างคำค้นหา"
                   >
-                    ล้างตัวกรอง
+                    ×
                   </button>
                 )}
               </div>
 
-              {/* Category chips */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[12px] text-[#aaa] mr-1">หมวดหมู่:</span>
-                <button
-                  onClick={() => setCategory("all")}
-                  className={`text-[13px] px-3 py-1.5 rounded-full border transition-colors capitalize ${
-                    category === "all"
-                      ? "bg-navy text-white border-navy"
-                      : "border-[0.5px] border-[#ddd] text-[#666] hover:border-navy hover:text-navy bg-white"
-                  }`}
-                >
-                  ทั้งหมด
-                </button>
+              {/* Category dropdown */}
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="px-3 py-2 rounded-xl border border-border bg-white text-[13px] text-[#444] outline-none cursor-pointer capitalize"
+              >
+                <option value="all">ทุกหมวดหมู่</option>
                 {categoryOptions.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setCategory(c)}
-                    className={`text-[13px] px-3 py-1.5 rounded-full border transition-colors capitalize ${
-                      category === c
-                        ? "bg-navy text-white border-navy"
-                        : "border-[0.5px] border-[#ddd] text-[#666] hover:border-navy hover:text-navy bg-white"
-                    }`}
-                  >
-                    {c}
-                  </button>
+                  <option key={c} value={c} className="capitalize">{c}</option>
                 ))}
-              </div>
+              </select>
 
-              {/* Price chips */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[12px] text-[#aaa] mr-1">ราคา:</span>
+              {/* Price dropdown */}
+              <select
+                value={priceFilter}
+                onChange={(e) => setPriceFilter(e.target.value as PriceFilter)}
+                className="px-3 py-2 rounded-xl border border-border bg-white text-[13px] text-[#444] outline-none cursor-pointer"
+              >
                 {PRICE_OPTIONS.map((p) => (
-                  <button
-                    key={p.value}
-                    onClick={() => setPriceFilter(p.value)}
-                    className={`text-[13px] px-3 py-1.5 rounded-full border transition-colors ${
-                      priceFilter === p.value
-                        ? "bg-navy text-white border-navy"
-                        : "border-[0.5px] border-[#ddd] text-[#666] hover:border-navy hover:text-navy bg-white"
-                    }`}
-                  >
-                    {p.label}
-                  </button>
+                  <option key={p.value} value={p.value}>{p.label}</option>
                 ))}
-              </div>
+              </select>
 
-              <div className="text-[12px] text-[#888]">พบ {filteredFonts.length} ฟอนต์</div>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="inline-flex items-center justify-center gap-1.5 text-[13px] font-medium text-navy bg-transparent border border-transparent rounded-[9px] px-3 py-2 hover:bg-[#f5f5f2] transition-colors cursor-pointer"
+                >
+                  ล้างตัวกรอง
+                </button>
+              )}
+
+              <span className="text-[12px] text-[#aaa] sm:ml-auto">พบ {filteredFonts.length} ฟอนต์</span>
             </div>
           )}
 
