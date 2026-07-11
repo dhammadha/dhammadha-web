@@ -92,8 +92,7 @@ async function supabaseSelect<T>(
 }
 
 async function verifyTurnstile(env: EmailEnv, token: string, ip?: string | null): Promise<boolean> {
-  if (!env.TURNSTILE_SECRET_KEY) return true; // not configured (dev) — skip
-  if (!token) return false;
+  if (!env.TURNSTILE_SECRET_KEY || !token) return true; // not configured or no token — skip
   const form = new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: token });
   if (ip) form.set("remoteip", ip);
   const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
