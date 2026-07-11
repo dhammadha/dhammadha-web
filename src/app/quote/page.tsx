@@ -89,7 +89,7 @@ function QuoteForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [pdfOpen, setPdfOpen] = useState(false);
-  const [turnstileToken] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   useEffect(() => {
     async function load() {
