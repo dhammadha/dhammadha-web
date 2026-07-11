@@ -186,11 +186,15 @@ function QuoteForm() {
       );
       
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from("quotes") as any).insert({
+      const { error: insertError } = await (supabase.from("quotes") as any).insert({
         ...form,
         fonts: fontNames,
         designer_id: designer?.id ?? null,
       });
+      if (insertError) {
+        console.error("quote insert failed:", insertError);
+        throw insertError;
+      }
 
       const customTiers = licenseConfig && !licenseConfig.use_default ? licenseConfig.tiers ?? [] : [];
       const licenseLabel = (() => {
