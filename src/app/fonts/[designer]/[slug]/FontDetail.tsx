@@ -56,6 +56,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(!initialFont);
   const [licensing, setLicensing] = useState({ small: 3500, large: 7000, extra: 20000 });
+  const [customLicenseTiers, setCustomLicenseTiers] = useState<{ name: string; price: number }[] | null>(null);
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedWeight, setSelectedWeight] = useState("");
@@ -112,6 +113,18 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
             setLicensing({ small: (v.small as number) ?? 3500, large: (v.large as number) ?? 7000, extra: (v.extra as number) ?? 20000 });
           } else if (row.key === "promotion") {
             setPromotion({ discount_percent: (v.discount_percent as number) ?? 0, sale_end: (v.sale_end as string) ?? "", active: !!(v.active) });
+          }
+        }
+
+        const ownerId = (currentFont as unknown as { owner_id?: string })?.owner_id;
+        if (ownerId) {
+          const { data: licConfig } = await supabase
+            .from("designer_license_config")
+            .select("use_default, tiers")
+            .eq("designer_id", ownerId)
+            .single();
+          if (licConfig && !licConfig.use_default && Array.isArray(licConfig.tiers) && licConfig.tiers.length > 0) {
+            setCustomLicenseTiers(licConfig.tiers as { name: string; price: number }[]);
           }
         }
       } catch {
@@ -617,28 +630,41 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                   ห้างร้าน องค์กร บริษัท
                 </div>
                 <div className="flex flex-col gap-2 mb-2.5">
-                  {[
-                    { name: "บริษัทขนาดเล็ก / กลาง", desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง", price: licensing.small },
-                    { name: "บริษัทใหญ่ / Ad Agency", desc: "ไม่จำกัดจำนวนเครื่อง", price: licensing.large },
-                  ].map((tier) => (
-                    <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[14px] font-medium text-navy">{tier.name}</span>
-                        <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
+                  {customLicenseTiers ? (
+                    customLicenseTiers.map((tier) => (
+                      <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[14px] font-medium text-navy">{tier.name}</span>
+                          <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
+                        </div>
                       </div>
-                      <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
-                    </div>
-                  ))}
-                  <div className="border border-[0.5px] border-border rounded-[8px] p-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[14px] font-medium text-navy">ใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต</span>
-                      <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{licensing.extra.toLocaleString()}</span>
-                    </div>
-                    <div className="text-[12px] text-[#aaa] mt-0.5">
-                      ดูรายละเอียด{" "}
-                      <Link href="/agreement/" className="text-mint no-underline hover:underline">สัญญาอนุญาต</Link>
-                    </div>
-                  </div>
+                    ))
+                  ) : (
+                    <>
+                      {[
+                        { name: "บริษัทขนาดเล็ก / กลาง", desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง", price: licensing.small },
+                        { name: "บริษัทใหญ่ / Ad Agency", desc: "ไม่จำกัดจำนวนเครื่อง", price: licensing.large },
+                      ].map((tier) => (
+                        <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[14px] font-medium text-navy">{tier.name}</span>
+                            <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
+                          </div>
+                          <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
+                        </div>
+                      ))}
+                      <div className="border border-[0.5px] border-border rounded-[8px] p-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[14px] font-medium text-navy">ใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต</span>
+                          <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{licensing.extra.toLocaleString()}</span>
+                        </div>
+                        <div className="text-[12px] text-[#aaa] mt-0.5">
+                          ดูรายละเอียด{" "}
+                          <Link href="/agreement/" className="text-mint no-underline hover:underline">สัญญาอนุญาต</Link>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <Button
                   as="link"

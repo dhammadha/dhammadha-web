@@ -192,8 +192,15 @@ function QuoteForm() {
         designer_id: designer?.id ?? null,
       });
 
-      const licenseLabel = LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
-      
+      const customTiers = licenseConfig && !licenseConfig.use_default ? licenseConfig.tiers ?? [] : [];
+      const licenseLabel = (() => {
+        if (form.license_type.startsWith("custom_")) {
+          const idx = parseInt(form.license_type.replace("custom_", ""), 10);
+          return customTiers[idx]?.name ?? form.license_type;
+        }
+        return LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
+      })();
+
       const emailPayload = {
         contact_name: form.contact_name,
         company_name: form.company_name,
@@ -202,7 +209,6 @@ function QuoteForm() {
         address: form.address,
         license_type: licenseLabel,
         fonts: fontNames.join(", "),
-        note: form.note || "—",
         designer_id: designer?.id ?? null,
       };
 
