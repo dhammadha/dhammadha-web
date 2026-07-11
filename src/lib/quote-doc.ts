@@ -342,25 +342,6 @@ export async function generateQuotePdf(data: QuoteDocData): Promise<Uint8Array> 
     y = Math.min(leftY, rightY) - px(24); // mb-6
   }
 
-  /* --------------------------------- Note --------------------------------- */
-  if (data.note) {
-    const size = SZ.note;
-    const padding = px(12); // p-3
-    const lines = wrapText(data.note, fontRegular, size, CONTENT_W - padding * 2);
-    const lineH = size * 1.5;
-    const boxH = lines.length * lineH + padding * 2;
-    ensureSpace(boxH + px(16));
-    const boxTop = y;
-    const boxBottom = y - boxH;
-    page.drawRectangle({ x: MARGIN_X, y: boxBottom, width: CONTENT_W, height: boxH, color: COLOR.bgF8 });
-    let ly = boxTop - padding - size * 0.85;
-    for (const ln of lines) {
-      page.drawText(ln, { x: MARGIN_X + padding, y: ly, size, font: fontRegular, color: COLOR.gray555 });
-      ly -= lineH;
-    }
-    y = boxBottom - px(16); // mb-4
-  }
-
   /* ------------------------------ Items table ------------------------------ */
   {
     const idxColW = px(32); // w-8

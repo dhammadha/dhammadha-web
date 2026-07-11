@@ -126,6 +126,7 @@ interface QuoteFields {
   address: string;
   license_type: string;
   fonts: string;
+  note: string;
 }
 
 interface DesignerInfo {
@@ -146,6 +147,7 @@ function quoteNotifyHtml(d: QuoteFields): string {
   <tr><td style="padding:6px 0;color:#888">ที่อยู่</td><td style="padding:6px 0">${escapeHtml(d.address) || "—"}</td></tr>
   <tr><td style="padding:6px 0;color:#888">ประเภทสิทธิ์</td><td style="padding:6px 0">${escapeHtml(d.license_type)}</td></tr>
   <tr><td style="padding:6px 0;color:#888">ฟอนต์ที่ต้องการ</td><td style="padding:6px 0">${escapeHtml(d.fonts)}</td></tr>
+  ${d.note && d.note !== "—" ? `<tr><td style="padding:6px 0;color:#888">หมายเหตุ</td><td style="padding:6px 0">${escapeHtml(d.note)}</td></tr>` : ""}
 </table>
 <br>
 <p><a href="https://dhammadha.com/designer" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">จัดการใบเสนอราคา →</a></p>
@@ -168,7 +170,8 @@ function quoteConfirmHtml(d: QuoteFields, designer: DesignerInfo): string {
 <p><strong>รายละเอียดคำขอ:</strong></p>
 <p>
   - ฟอนต์: ${escapeHtml(d.fonts)}<br>
-  - ประเภทสิทธิ์: ${escapeHtml(d.license_type)}
+  - ประเภทสิทธิ์: ${escapeHtml(d.license_type)}<br>
+  ${d.note && d.note !== "—" ? `- หมายเหตุ: ${escapeHtml(d.note)}` : ""}
 </p>
 <p>หากมีคำถามเพิ่มเติม ติดต่อได้ที่ <a href="mailto:${escapeHtml(designer.email)}">${escapeHtml(designer.email)}</a></p>
 <p>ขอบคุณมากครับ</p>
@@ -276,6 +279,7 @@ async function handleQuote(
     address: str(raw.address, 1000),
     license_type: str(raw.license_type, 200),
     fonts: str(raw.fonts, 1000),
+    note: str(raw.note, 2000),
   };
   if (!d.contact_name || !d.license_type || !d.fonts || !EMAIL_RE.test(d.email)) {
     return { status: 400, body: { ok: false, error: "invalid_payload" } };

@@ -187,8 +187,6 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
             </div>
           </div>
 
-          {data.note && <div className="text-[13px] text-[#555] mb-4 p-3 bg-[#f8f8f6] rounded-lg">{data.note}</div>}
-
           {/* Items table */}
           <table className="w-full border-collapse text-[13px] mb-6">
             <thead>
