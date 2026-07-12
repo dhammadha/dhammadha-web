@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
@@ -11,6 +11,7 @@ import Button from "@/components/Button";
 import TypeTester from "./TypeTester";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useFavourites } from "@/context/FavouritesContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
 
 function parseWeight(url: string): string {
@@ -51,6 +52,8 @@ function getFormats(urls: string[]): string {
 
 export default function FontDetail({ initialFont }: { initialFont?: Font | null }) {
   const { user } = useAuth();
+  const router = useRouter();
+  const { isFavourite, toggle } = useFavourites();
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const [font, setFont] = useState<Font | null>(initialFont ?? null);
@@ -478,6 +481,24 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                     </p>
                   </div>
                 )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!user) {
+                      router.push(`/auth/login?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`);
+                      return;
+                    }
+                    toggle(font.id);
+                  }}
+                  aria-pressed={isFavourite(font.id)}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 border border-[0.5px] border-[#ddd] rounded-[9px] text-[14px] text-navy bg-white hover:border-navy transition-colors"
+                >
+                  <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                  {isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
+                </button>
               </div>
 
               {font.demo_font_files && font.demo_font_files.length > 0 && (

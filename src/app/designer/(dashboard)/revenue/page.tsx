@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { fetchAllRows } from "@/lib/fetch-all";
+import SubscriptionRevenue from "@/components/revenue/SubscriptionRevenue";
 import {
   buildMonthlyStatements,
   monthLabel,
@@ -196,6 +197,8 @@ export default function DesignerRevenuePage() {
           })}
         </div>
       )}
+
+      <SubscriptionRevenue mode="designer" />
     </div>
   );
 }

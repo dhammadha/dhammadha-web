@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import MyDownloads from "@/components/account/MyDownloads";
+import MyFavourites from "@/components/account/MyFavourites";
+import SubscriptionCard from "@/components/account/SubscriptionCard";
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "Admin",
@@ -111,6 +113,8 @@ export default function AccountPage() {
             )}
           </div>
 
+          <SubscriptionCard />
+          <MyFavourites />
           <MyDownloads />
         </div>
       </main>

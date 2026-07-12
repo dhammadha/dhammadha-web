@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import Button from "@/components/Button";
 import { fetchAllRows } from "@/lib/fetch-all";
+import SubscriptionRevenue from "@/components/revenue/SubscriptionRevenue";
 import {
   buildMonthlyStatements,
   groupOrdersByDesigner,
@@ -430,6 +431,8 @@ export default function AdminRevenuePage() {
           </div>
         </>
       )}
+
+      <SubscriptionRevenue mode="admin" />
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 rounded-xl bg-navy text-white text-[13px] font-medium shadow-lg">{toast}</div>

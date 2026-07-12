@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import FontCard, { Font, isNew } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
-import WaitlistForm from "@/components/WaitlistForm";
+import SubscriptionPricingCard from "@/components/SubscriptionPricingCard";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function shuffle<T>(arr: T[]): T[] {
@@ -259,18 +259,7 @@ export default function HomePage() {
                 ดูฟอนต์ทั้งหมด
               </Link>
             </div>
-            <div className="p-5 border border-[0.25px] border-[#ddd] rounded-[10px] bg-white flex flex-col">
-              <span className="self-start text-[10px] bg-mint-light text-[#0a8a84] px-2.5 py-0.5 rounded-full border border-[0.5px] border-mint-mid mb-2.5">
-                เร็ว ๆ นี้
-              </span>
-              <div className="text-[26px] font-semibold text-navy leading-[1.2]">Subscription รายเดือน</div>
-              <div className="text-[26px] font-semibold text-navy leading-[1.2]">กำลังจะเปิดตัว</div>
-              <div className="text-[12px] text-[#aaa] mt-2.5 mb-2.5">เข้าถึงฟอนต์ทุกชุดในคลัง · ยกเลิกได้ทุกเมื่อ</div>
-              <div className="text-[12px] text-[#666] leading-[1.65] flex-1 mb-4">
-                ลงทะเบียนรับข่าว แล้วเราจะแจ้งคุณเป็นคนแรกพร้อมสิทธิพิเศษช่วงเปิดตัว
-              </div>
-              <WaitlistForm />
-            </div>
+            <SubscriptionPricingCard />
           </div>
         </div>
       </section>

@@ -448,7 +448,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">การแสดงผล</h3>
         <div className="flex flex-col gap-3">
           <Toggle label="แสดงบนเว็บ" desc="ปิดเพื่อซ่อนโดยไม่ลบข้อมูล" checked={isActive} onChange={setIsActive} />
-          <Toggle label="อยู่ใน Subscription" desc="รวมอยู่ในแพลนรายเดือน" checked={isSub} onChange={setIsSub} />
+          <Toggle label="อยู่ใน Subscription" desc="รวมในแพลนรายเดือน — รับส่วนแบ่งจาก pool ตามยอดใช้งาน" checked={isSub} onChange={setIsSub} />
         </div>
       </section>
 

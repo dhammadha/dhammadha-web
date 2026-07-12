@@ -445,6 +445,105 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      favourites: {
+        Row: {
+          user_id: string;
+          font_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          font_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          font_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          provider: "trial" | "stripe" | "payso" | "admin";
+          provider_subscription_id: string | null;
+          status: "active" | "cancelled" | "expired";
+          price_amount: number;
+          started_at: string;
+          current_period_end: string;
+          cancelled_at: string | null;
+          note: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          provider: "trial" | "stripe" | "payso" | "admin";
+          provider_subscription_id?: string | null;
+          status?: "active" | "cancelled" | "expired";
+          price_amount?: number;
+          started_at?: string;
+          current_period_end: string;
+          cancelled_at?: string | null;
+          note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          provider?: "trial" | "stripe" | "payso" | "admin";
+          provider_subscription_id?: string | null;
+          status?: "active" | "cancelled" | "expired";
+          price_amount?: number;
+          started_at?: string;
+          current_period_end?: string;
+          cancelled_at?: string | null;
+          note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      stream_days: {
+        Row: {
+          user_id: string;
+          font_id: string;
+          day: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          font_id: string;
+          day: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      sub_download_logs: {
+        Row: {
+          id: number;
+          user_id: string;
+          font_id: string;
+          file_path: string;
+          ip: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          font_id: string;
+          file_path: string;
+          ip?: string | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -482,6 +581,14 @@ export interface Database {
       };
       issue_quotation_priced: {
         Args: { p_quote_id: string; p_items: Json; p_discount?: number };
+        Returns: Json;
+      };
+      start_trial_subscription: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      subscription_month_data: {
+        Args: { p_year: number; p_month: number };
         Returns: Json;
       };
     };
