@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Button from "@/components/Button";
-import { isSubActive, type SubscriptionRow } from "@/lib/subscription";
+import { DEFAULT_SUB_SETTINGS, isSubActive, parseSubSettings, type SubscriptionRow } from "@/lib/subscription";
 import { fetchAllRows } from "@/lib/fetch-all";
 
 type Row = SubscriptionRow & { users: { email: string | null; name: string | null } | null };
@@ -30,6 +30,13 @@ export default function AdminSubscriptionsPage() {
   const [compDays, setCompDays] = useState("60");
   const [compBusy, setCompBusy] = useState(false);
 
+  const [subMonthly, setSubMonthly] = useState(String(DEFAULT_SUB_SETTINGS.monthly_price));
+  const [subYearly, setSubYearly] = useState(String(DEFAULT_SUB_SETTINGS.yearly_price));
+  const [subTrialActive, setSubTrialActive] = useState(DEFAULT_SUB_SETTINGS.trial_active);
+  const [subTrialEnd, setSubTrialEnd] = useState(DEFAULT_SUB_SETTINGS.trial_end_date);
+  const [subDownWin, setSubDownWin] = useState("");
+  const [subDownMac, setSubDownMac] = useState("");
+
   const showToast = (msg: string, error = false) => {
     setToast({ msg, error });
     setTimeout(() => setToast(null), 3500);
@@ -48,6 +55,34 @@ export default function AdminSubscriptionsPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    supabase.from("settings").select("value").eq("key", "subscription").maybeSingle().then(({ data }) => {
+      if (!data) return;
+      const v = parseSubSettings(data.value);
+      setSubMonthly(String(v.monthly_price));
+      setSubYearly(String(v.yearly_price));
+      setSubTrialActive(v.trial_active);
+      setSubTrialEnd(v.trial_end_date);
+      if (v.download_win) setSubDownWin(v.download_win);
+      if (v.download_mac) setSubDownMac(v.download_mac);
+    });
+  }, []);
+
+  const saveSubscription = async () => {
+    const val = {
+      monthly_price: parseInt(subMonthly) || DEFAULT_SUB_SETTINGS.monthly_price,
+      yearly_price: parseInt(subYearly) || DEFAULT_SUB_SETTINGS.yearly_price,
+      trial_active: subTrialActive,
+      trial_end_date: subTrialEnd,
+      download_win: subDownWin.trim(),
+      download_mac: subDownMac.trim(),
+    };
+    if (subTrialActive && !subTrialEnd) { showToast("เปิดช่วงทดสอบต้องกำหนดวันสิ้นสุด", true); return; }
+    const { error } = await supabase.from("settings").upsert({ key: "subscription", value: val });
+    if (error) showToast("เกิดข้อผิดพลาด: " + error.message, true);
+    else showToast("✓ บันทึกการตั้งค่า Subscription เรียบร้อย");
+  };
 
   const activeCount = rows.filter((r) => isSubActive(r)).length;
 
@@ -97,31 +132,82 @@ export default function AdminSubscriptionsPage() {
   };
 
   return (
-    <div className="p-6 max-w-[900px] flex flex-col gap-6">
-      <div className="flex items-baseline justify-between gap-3">
-        <h1 className="text-[20px] font-semibold text-navy">สมาชิก Subscription</h1>
-        <span className="text-[13px] text-[#888]">ใช้งานอยู่ {activeCount} · ทั้งหมด {rows.length}</span>
-      </div>
+    <div className="p-6 max-w-[900px] flex flex-col gap-8">
+      <h1 className="text-[20px] font-semibold text-navy">Subscription</h1>
 
-      {/* Comp form */}
-      <div className="bg-white rounded-2xl border border-border p-5">
-        <h2 className="text-[15px] font-semibold text-navy mb-1">เพิ่มสิทธิ์ (Comp)</h2>
-        <p className="text-[12px] text-[#aaa] mb-3">ให้สิทธิ์ฟรีกับบัญชีทดสอบ — ผู้ใช้ต้องสมัครสมาชิกในเว็บก่อน</p>
-        <div className="flex flex-wrap gap-2 items-end">
-          <div className="flex flex-col gap-1 flex-1 min-w-[200px]">
-            <label className="text-[12px] font-medium text-[#666]">อีเมลผู้ใช้</label>
-            <input type="email" value={compEmail} onChange={(e) => setCompEmail(e.target.value)} placeholder="user@email.com" className={iCls} />
-          </div>
-          <div className="flex flex-col gap-1 w-[120px]">
-            <label className="text-[12px] font-medium text-[#666]">จำนวนวัน</label>
-            <input type="number" value={compDays} onChange={(e) => setCompDays(e.target.value)} className={iCls} />
-          </div>
-          <Button onClick={addComp} disabled={compBusy}>{compBusy ? "กำลังเพิ่ม…" : "เพิ่มสิทธิ์"}</Button>
+      {/* Subscription settings */}
+      <div className="bg-white rounded-2xl border border-border p-6">
+        <div className="mb-4">
+          <h2 className="text-[16px] font-semibold text-navy">ตั้งค่า Subscription</h2>
+          <p className="text-[12px] text-[#aaa] mt-0.5">ราคาแพลนรายเดือน/รายปี และช่วงทดสอบฟรี (฿0)</p>
         </div>
+        {subTrialActive && (
+          <div className="mb-3 px-4 py-3 rounded-xl bg-mint-light border border-mint-mid text-[13px] text-[#0a8a84]">
+            ⚡ ช่วงทดสอบเปิดอยู่{subTrialEnd ? ` ถึง ${subTrialEnd}` : ""} — สมัครได้ในราคา ฿0
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">ราคารายเดือน (฿)</label>
+            <input type="number" value={subMonthly} onChange={(e) => setSubMonthly(e.target.value)} className={iCls} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">ราคารายปี (฿)</label>
+            <input type="number" value={subYearly} onChange={(e) => setSubYearly(e.target.value)} className={iCls} />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">เปิดช่วงทดสอบฟรี</label>
+            <label className="flex items-center gap-2 h-[38px] px-3 rounded-xl border border-border bg-[#fafaf8] cursor-pointer">
+              <input type="checkbox" checked={subTrialActive} onChange={(e) => setSubTrialActive(e.target.checked)} className="accent-mint" />
+              <span className="text-[13px] text-navy">{subTrialActive ? "เปิด" : "ปิด"}</span>
+            </label>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">วันสิ้นสุดช่วงทดสอบ</label>
+            <input type="date" value={subTrialEnd} onChange={(e) => setSubTrialEnd(e.target.value)} className={iCls} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3 mt-3">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">ลิงก์ดาวน์โหลดแอป macOS (.dmg)</label>
+            <input type="url" value={subDownMac} onChange={(e) => setSubDownMac(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[12px] font-medium text-[#666]">ลิงก์ดาวน์โหลดแอป Windows (.msi)</label>
+            <input type="url" value={subDownWin} onChange={(e) => setSubDownWin(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
+          </div>
+        </div>
+        <Button onClick={saveSubscription} className="w-full mt-4">บันทึกการตั้งค่า Subscription</Button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden">
+      {/* สมาชิก */}
+      <div className="flex flex-col gap-6">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-[16px] font-semibold text-navy">สมาชิก</h2>
+          <span className="text-[13px] text-[#888]">ใช้งานอยู่ {activeCount} · ทั้งหมด {rows.length}</span>
+        </div>
+
+        {/* Comp form */}
+        <div className="bg-white rounded-2xl border border-border p-5">
+          <h2 className="text-[15px] font-semibold text-navy mb-1">เพิ่มสิทธิ์ (Comp)</h2>
+          <p className="text-[12px] text-[#aaa] mb-3">ให้สิทธิ์ฟรีกับบัญชีทดสอบ — ผู้ใช้ต้องสมัครสมาชิกในเว็บก่อน</p>
+          <div className="flex flex-wrap gap-2 items-end">
+            <div className="flex flex-col gap-1 flex-1 min-w-[200px]">
+              <label className="text-[12px] font-medium text-[#666]">อีเมลผู้ใช้</label>
+              <input type="email" value={compEmail} onChange={(e) => setCompEmail(e.target.value)} placeholder="user@email.com" className={iCls} />
+            </div>
+            <div className="flex flex-col gap-1 w-[120px]">
+              <label className="text-[12px] font-medium text-[#666]">จำนวนวัน</label>
+              <input type="number" value={compDays} onChange={(e) => setCompDays(e.target.value)} className={iCls} />
+            </div>
+            <Button onClick={addComp} disabled={compBusy}>{compBusy ? "กำลังเพิ่ม…" : "เพิ่มสิทธิ์"}</Button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="bg-white rounded-2xl border border-border overflow-hidden">
         {!loaded ? (
           <p className="text-[14px] text-[#aaa] p-6">กำลังโหลด…</p>
         ) : rows.length === 0 ? (
@@ -169,6 +255,7 @@ export default function AdminSubscriptionsPage() {
             </table>
           </div>
         )}
+        </div>
       </div>
 
       {toast && (

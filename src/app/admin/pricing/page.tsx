@@ -15,13 +15,6 @@ export default function AdminPricingPage() {
   const [promoEnd, setPromoEnd] = useState("");
   const [promoActive, setPromoActive] = useState(false);
 
-  const [subMonthly, setSubMonthly] = useState("290");
-  const [subYearly, setSubYearly] = useState("2900");
-  const [subTrialActive, setSubTrialActive] = useState(false);
-  const [subTrialEnd, setSubTrialEnd] = useState("");
-  const [subDownWin, setSubDownWin] = useState("");
-  const [subDownMac, setSubDownMac] = useState("");
-
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
 
   const showToast = (msg: string, error = false) => {
@@ -44,32 +37,7 @@ export default function AdminPricingPage() {
       if (v.sale_end) setPromoEnd(v.sale_end);
       setPromoActive(!!v.active);
     });
-    supabase.from("settings").select("value").eq("key", "subscription").maybeSingle().then(({ data }) => {
-      if (!data) return;
-      const v = data.value as { monthly_price?: number; yearly_price?: number; trial_active?: boolean; trial_end_date?: string; download_win?: string; download_mac?: string };
-      if (typeof v.monthly_price === "number") setSubMonthly(String(v.monthly_price));
-      if (typeof v.yearly_price === "number") setSubYearly(String(v.yearly_price));
-      setSubTrialActive(!!v.trial_active);
-      if (v.trial_end_date) setSubTrialEnd(v.trial_end_date);
-      if (v.download_win) setSubDownWin(v.download_win);
-      if (v.download_mac) setSubDownMac(v.download_mac);
-    });
   }, []);
-
-  const saveSubscription = async () => {
-    const val = {
-      monthly_price: parseInt(subMonthly) || 290,
-      yearly_price: parseInt(subYearly) || 2900,
-      trial_active: subTrialActive,
-      trial_end_date: subTrialEnd,
-      download_win: subDownWin.trim(),
-      download_mac: subDownMac.trim(),
-    };
-    if (subTrialActive && !subTrialEnd) { showToast("เปิดช่วงทดสอบต้องกำหนดวันสิ้นสุด", true); return; }
-    const { error } = await supabase.from("settings").upsert({ key: "subscription", value: val });
-    if (error) showToast("เกิดข้อผิดพลาด: " + error.message, true);
-    else showToast("✓ บันทึกการตั้งค่า Subscription เรียบร้อย");
-  };
 
   const saveLicensing = async () => {
     const val = { small: parseInt(licSmall) || 3500, large: parseInt(licLarge) || 7000, extra: parseInt(licExtra) || 20000 };
@@ -160,43 +128,6 @@ export default function AdminPricingPage() {
             </button>
           )}
         </div>
-      </Section>
-
-      {/* Subscription */}
-      <Section title="Subscription" desc="ราคาแพลนรายเดือน/รายปี และช่วงทดสอบฟรี (฿0)">
-        {subTrialActive && (
-          <div className="mb-3 px-4 py-3 rounded-xl bg-mint-light border border-mint-mid text-[13px] text-[#0a8a84]">
-            ⚡ ช่วงทดสอบเปิดอยู่{subTrialEnd ? ` ถึง ${subTrialEnd}` : ""} — สมัครได้ในราคา ฿0
-          </div>
-        )}
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="ราคารายเดือน (฿)">
-            <input type="number" value={subMonthly} onChange={(e) => setSubMonthly(e.target.value)} className={iCls} />
-          </Field>
-          <Field label="ราคารายปี (฿)">
-            <input type="number" value={subYearly} onChange={(e) => setSubYearly(e.target.value)} className={iCls} />
-          </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          <Field label="เปิดช่วงทดสอบฟรี">
-            <label className="flex items-center gap-2 h-[38px] px-3 rounded-xl border border-border bg-[#fafaf8] cursor-pointer">
-              <input type="checkbox" checked={subTrialActive} onChange={(e) => setSubTrialActive(e.target.checked)} className="accent-mint" />
-              <span className="text-[13px] text-navy">{subTrialActive ? "เปิด" : "ปิด"}</span>
-            </label>
-          </Field>
-          <Field label="วันสิ้นสุดช่วงทดสอบ">
-            <input type="date" value={subTrialEnd} onChange={(e) => setSubTrialEnd(e.target.value)} className={iCls} />
-          </Field>
-        </div>
-        <div className="grid grid-cols-1 gap-3 mt-3">
-          <Field label="ลิงก์ดาวน์โหลดแอป macOS (.dmg)">
-            <input type="url" value={subDownMac} onChange={(e) => setSubDownMac(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
-          </Field>
-          <Field label="ลิงก์ดาวน์โหลดแอป Windows (.msi)">
-            <input type="url" value={subDownWin} onChange={(e) => setSubDownWin(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
-          </Field>
-        </div>
-        <Button onClick={saveSubscription} className="w-full mt-4">บันทึกการตั้งค่า Subscription</Button>
       </Section>
 
       {toast && (

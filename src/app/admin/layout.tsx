@@ -98,9 +98,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12l3-4 3 2 3-5 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     },
     {
-      href: "/admin/subscriptions",
-      label: "สมาชิก",
-      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M2.5 13.5c0-2.5 2.2-4.5 5.5-4.5s5.5 2 5.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+      href: "/admin/analytics",
+      label: "สถิติ",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/></svg>,
     },
     {
       href: "/admin/settings",
@@ -122,6 +122,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       badge: pendingDesigners,
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 13c0-2.485 2.015-4 4.5-4s4.5 1.515 4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 7.5l1.5 1.5L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     },
+    {
+      href: "/admin/payouts",
+      label: "Payouts",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="4" width="13" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/><path d="M4 8h.01M12 8h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
+    {
+      href: "/admin/subscriptions",
+      label: "Subscription",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M2.5 13.5c0-2.5 2.2-4.5 5.5-4.5s5.5 2 5.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
   ];
 
   return (
@@ -133,10 +143,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span className="text-[10px] text-[#aaa] tracking-[0.06em]">ADMIN PANEL</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
+          <div className="text-[11px] text-navy/40 tracking-wide px-3 pt-1 pb-1">ของฉัน</div>
           {MAIN_NAV.map((item) => (
             <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
           ))}
           <div className="h-[0.5px] bg-border my-2" />
+          <div className="text-[11px] text-navy/40 tracking-wide px-3 pt-1 pb-1">จัดการระบบ</div>
           {REVIEW_NAV.map((item) => (
             <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
           ))}
@@ -178,10 +190,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="text-[13px] font-semibold text-navy tracking-[0.05em]">DHAMMADHA ADMIN</span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
+              <div className="text-[11px] text-navy/40 tracking-wide px-3 pt-1 pb-1">ของฉัน</div>
               {MAIN_NAV.map((item) => (
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
               <div className="h-[0.5px] bg-border my-2" />
+              <div className="text-[11px] text-navy/40 tracking-wide px-3 pt-1 pb-1">จัดการระบบ</div>
               {REVIEW_NAV.map((item) => (
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
