@@ -255,21 +255,6 @@ export default function DesignerQuotesPage() {
     loadQuotes();
   };
 
-  const handleDownloadPdf = useCallback(async () => {
-    if (!printData) return;
-    const { generateQuotePdf } = await import("@/lib/quote-doc");
-    const bytes = await generateQuotePdf(printData);
-    const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${printData.doc_no}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, [printData]);
-
   const handleSendEmail = useCallback(async () => {
     if (!printData || !printQuoteId) return;
     const { generateQuotePdf } = await import("@/lib/quote-doc");
@@ -381,15 +366,17 @@ export default function DesignerQuotesPage() {
             </div>
 
             <div className="flex flex-col gap-2 border-t border-border pt-3">
-              {orders[selected.id] ? (
-                <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2">
-                  ✓ ยืนยันรับชำระแล้ว — {orders[selected.id].order_no}
-                  <p className="text-[11px] text-[#888] mt-1">ลูกค้าดาวน์โหลดไฟล์ได้จากหน้าบัญชีของตัวเอง</p>
-                </div>
-              ) : (
-                <Button onClick={() => setConfirming(selected)} className="w-full">
-                  ยืนยันรับชำระ + ส่งไฟล์
-                </Button>
+              {selected.quote_no && (
+                orders[selected.id] ? (
+                  <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2">
+                    ✓ ยืนยันรับชำระแล้ว — {orders[selected.id].order_no}
+                    <p className="text-[11px] text-[#888] mt-1">ลูกค้าดาวน์โหลดไฟล์ได้จากหน้าบัญชีของตัวเอง</p>
+                  </div>
+                ) : (
+                  <Button onClick={() => setConfirming(selected)} className="w-full">
+                    ยืนยันรับชำระ + ส่งไฟล์
+                  </Button>
+                )
               )}
               {!selected.quote_no && (
                 <Button onClick={() => openIssueModal(selected)} className="w-full">
@@ -464,7 +451,6 @@ export default function DesignerQuotesPage() {
         open={printOpen}
         data={printData}
         onClose={() => setPrintOpen(false)}
-        onDownloadPdf={handleDownloadPdf}
         onSendEmail={handleSendEmail}
       />
 

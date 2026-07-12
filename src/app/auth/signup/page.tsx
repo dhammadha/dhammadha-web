@@ -79,7 +79,12 @@ export default function SignupPage() {
         <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-8">
           <div className="w-full max-w-[400px]">
             <div className="bg-white rounded-2xl shadow-sm border border-border p-8 text-center">
-              <div className="text-4xl mb-4">📧</div>
+              <div className="w-14 h-14 rounded-full bg-mint-light flex items-center justify-center mb-4 mx-auto">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0a8a84" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3 7 9 6 9-6" />
+                </svg>
+              </div>
               <h1 className="text-[20px] font-semibold text-navy mb-3">ตรวจสอบอีเมลของคุณ</h1>
               <p className="text-[14px] text-[#555] leading-[1.7] mb-2">
                 เราได้ส่งลิงก์ยืนยันไปที่

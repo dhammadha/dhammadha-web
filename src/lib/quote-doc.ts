@@ -197,8 +197,9 @@ export async function generateQuotePdf(data: QuoteDocData): Promise<Uint8Array> 
   const subtotal = data.items.reduce((s, i) => s + i.price, 0);
   const discount = data.discount ?? 0;
   const discountedSubtotal = subtotal - discount;
-  const wht = Math.round(discountedSubtotal * 0.03);
+  const wht = discountedSubtotal * 0.03;
   const total = discountedSubtotal - wht;
+  const money = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const ensureSpace = (needed: number) => {
     if (y - needed < MARGIN_BOTTOM) {
@@ -452,11 +453,11 @@ export async function generateQuotePdf(data: QuoteDocData): Promise<Uint8Array> 
       y -= footRowH;
     };
 
-    drawFootRow("รวมจำนวนเงิน", `฿${subtotal.toLocaleString()}`);
+    drawFootRow("รวมจำนวนเงิน", `฿${money(subtotal)}`);
     if (discount > 0) {
-      drawFootRow("ส่วนลด", `-฿${discount.toLocaleString()}`, { valueColor: COLOR.red500 });
+      drawFootRow("ส่วนลด", `-฿${money(discount)}`, { valueColor: COLOR.red500 });
     }
-    drawFootRow("หักภาษี ณ ที่จ่าย 3%", `-฿${wht.toLocaleString()}`, { valueColor: COLOR.red500 });
+    drawFootRow("หักภาษี ณ ที่จ่าย 3%", `-฿${money(wht)}`, { valueColor: COLOR.red500 });
 
     ensureSpace(px(44));
     page.drawLine({
@@ -465,7 +466,7 @@ export async function generateQuotePdf(data: QuoteDocData): Promise<Uint8Array> 
       thickness: 1.5,
       color: COLOR.navy,
     });
-    drawFootRow("ยอดชำระ", `฿${total.toLocaleString()}`, {
+    drawFootRow("ยอดชำระ", `฿${money(total)}`, {
       bold: true,
       big: true,
       extra: bahtText(total),

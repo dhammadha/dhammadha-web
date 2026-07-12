@@ -19,6 +19,19 @@ type Entitlement = {
 
 type FileEntry = { index: number; name: string };
 
+const ERR_TH: Record<string, string> = {
+  no_files: "ยังไม่มีไฟล์ฟอนต์สำหรับดาวน์โหลด — กรุณาติดต่อผู้ขาย",
+  no_entitlement: "ไม่พบสิทธิ์ดาวน์โหลด หรือคำสั่งซื้อยังไม่ชำระเงิน",
+  download_limit_reached: "เกินจำนวนดาวน์โหลดต่อวัน กรุณาลองใหม่พรุ่งนี้",
+  file_not_found: "ไม่พบไฟล์ในระบบ — กรุณาติดต่อผู้ขาย",
+  invalid_file_index: "ไม่พบไฟล์ที่เลือก กรุณาลองใหม่",
+  entitlement_lookup_failed: "ระบบตรวจสอบสิทธิ์ขัดข้อง กรุณาลองใหม่",
+  unauthorized: "กรุณาเข้าสู่ระบบใหม่",
+};
+function errMsg(code?: string, fallback = "เกิดข้อผิดพลาด กรุณาลองใหม่") {
+  return (code && ERR_TH[code]) || fallback;
+}
+
 export default function MyDownloads() {
   const { user } = useAuth();
   const [items, setItems] = useState<Entitlement[]>([]);
@@ -35,6 +48,7 @@ export default function MyDownloads() {
     const { data } = await supabase
       .from("entitlements")
       .select("id, font_id, license_type, created_at, fonts(name, name_th, slug, cover_image_url), orders(order_no)")
+      .eq("user_id", user.id)
       .is("revoked_at", null)
       .order("created_at", { ascending: false });
     setItems((data as unknown as Entitlement[]) ?? []);
@@ -52,7 +66,7 @@ export default function MyDownloads() {
       body: { action: "list", font_id: ent.font_id },
     });
     if (fnError || !data?.files) {
-      setError("โหลดรายการไฟล์ไม่สำเร็จ กรุณาลองใหม่");
+      setError(errMsg(data?.error, "โหลดรายการไฟล์ไม่สำเร็จ กรุณาลองใหม่"));
       return;
     }
     setFiles((prev) => ({ ...prev, [ent.id]: data.files as FileEntry[] }));
@@ -66,7 +80,12 @@ export default function MyDownloads() {
         body: { action: "download", font_id: ent.font_id, file_index: file.index },
       });
       if (fnError || !(data instanceof Blob)) {
-        setError("ดาวน์โหลดไม่สำเร็จ — หากเกินจำนวนครั้งต่อวัน กรุณาลองพรุ่งนี้");
+        setError(
+          errMsg(
+            typeof data === "object" && data && "error" in data ? (data as { error?: string }).error : undefined,
+            "ดาวน์โหลดไม่สำเร็จ — หากเกินจำนวนครั้งต่อวัน กรุณาลองพรุ่งนี้"
+          )
+        );
         return;
       }
       const url = URL.createObjectURL(data);

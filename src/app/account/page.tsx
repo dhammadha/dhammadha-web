@@ -53,24 +53,36 @@ export default function AccountPage() {
 
           <div className="bg-white rounded-2xl border border-border p-6 flex flex-col gap-5">
             {/* Avatar + role */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-mint-light border border-mint-mid flex items-center justify-center text-[20px] font-semibold text-mint select-none">
-                {(user.email?.[0] ?? "?").toUpperCase()}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-mint-light border border-mint-mid flex items-center justify-center text-[20px] font-semibold text-mint select-none">
+                  {(user.email?.[0] ?? "?").toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-[16px] font-semibold text-navy leading-snug">
+                    {profile?.name ?? user.email}
+                  </p>
+                  <span className={`inline-block mt-1 text-[11px] font-medium px-2.5 py-0.5 rounded-full ${
+                    role === "admin"
+                      ? "bg-navy text-white"
+                      : role === "designer"
+                      ? "bg-mint-light text-mint border border-mint-mid"
+                      : "bg-[#f5f5f2] text-[#888]"
+                  }`}>
+                    {ROLE_LABEL[role ?? "customer"]}
+                  </span>
+                </div>
               </div>
-              <div>
-                <p className="text-[16px] font-semibold text-navy leading-snug">
-                  {profile?.name ?? user.email}
-                </p>
-                <span className={`inline-block mt-1 text-[11px] font-medium px-2.5 py-0.5 rounded-full ${
-                  role === "admin"
-                    ? "bg-navy text-white"
-                    : role === "designer"
-                    ? "bg-mint-light text-mint border border-mint-mid"
-                    : "bg-[#f5f5f2] text-[#888]"
-                }`}>
-                  {ROLE_LABEL[role ?? "customer"]}
-                </span>
-              </div>
+              <Link
+                href="/account/settings"
+                className="inline-flex items-center gap-1.5 text-[13px] text-mint no-underline hover:underline font-medium shrink-0"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                ตั้งค่า
+              </Link>
             </div>
 
             <hr className="border-border" />

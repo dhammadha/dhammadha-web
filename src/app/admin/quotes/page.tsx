@@ -67,10 +67,11 @@ export default function AdminQuotesPage() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   const loadQuotes = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     const [{ data }, { data: orderData }] = await Promise.all([
-      supabase.from("quotes").select("*").order("created_at", { ascending: false }),
-      supabase.from("orders").select("id, quote_id, order_no"),
+      supabase.from("quotes").select("*").eq("designer_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("orders").select("id, quote_id, order_no").eq("designer_id", user.id),
     ]);
     setQuotes((data as QuoteRow[]) ?? []);
     const byQuote: Record<string, { id: string; order_no: string }> = {};
@@ -79,7 +80,7 @@ export default function AdminQuotesPage() {
     }
     setOrders(byQuote);
     setLoading(false);
-  }, []);
+  }, [user]);
 
   useEffect(() => { loadQuotes(); }, [loadQuotes]);
 
@@ -260,21 +261,6 @@ export default function AdminQuotesPage() {
     return !!res?.ok;
   }, [buildPrintData]);
 
-  const handleDownloadPdf = useCallback(async () => {
-    if (!printData) return;
-    const { generateQuotePdf } = await import("@/lib/quote-doc");
-    const bytes = await generateQuotePdf(printData);
-    const blob = new Blob([Uint8Array.from(bytes)], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${printData.doc_no}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, [printData]);
-
   const handleSendEmail = useCallback(async () => {
     if (!printData || !printQuoteId) return;
     const { generateQuotePdf } = await import("@/lib/quote-doc");
@@ -386,14 +372,16 @@ export default function AdminQuotesPage() {
             </div>
 
             <div className="flex flex-col gap-2 border-t border-border pt-3">
-              {orders[selected.id] ? (
-                <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2">
-                  ✓ ยืนยันรับชำระแล้ว — {orders[selected.id].order_no}
-                </div>
-              ) : (
-                <Button onClick={() => setConfirming(selected)} className="w-full">
-                  ยืนยันรับชำระ + ส่งไฟล์
-                </Button>
+              {selected.quote_no && (
+                orders[selected.id] ? (
+                  <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2">
+                    ✓ ยืนยันรับชำระแล้ว — {orders[selected.id].order_no}
+                  </div>
+                ) : (
+                  <Button onClick={() => setConfirming(selected)} className="w-full">
+                    ยืนยันรับชำระ + ส่งไฟล์
+                  </Button>
+                )
               )}
               {!selected.quote_no && (
                 <Button onClick={() => openIssueModal(selected)} className="w-full">
@@ -465,7 +453,6 @@ export default function AdminQuotesPage() {
         open={printOpen}
         data={printData}
         onClose={() => setPrintOpen(false)}
-        onDownloadPdf={handleDownloadPdf}
         onSendEmail={handleSendEmail}
       />
 

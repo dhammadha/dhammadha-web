@@ -40,15 +40,11 @@ interface Props {
   open: boolean;
   data: PrintData | null;
   onClose: () => void;
-  /** สร้าง PDF แล้วดาวน์โหลดเป็นไฟล์ — คอมโพเนนต์แม่เป็นคนอิมพอร์ต quote-doc.ts แบบ dynamic */
-  onDownloadPdf?: () => Promise<void>;
   /** สร้าง PDF แล้วส่งอีเมลถึงลูกค้าผ่าน /api/send-email — ต้องกดยืนยันเอง ไม่ auto-send */
   onSendEmail?: () => Promise<void>;
 }
 
-export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSendEmail }: Props) {
-  const [downloading, setDownloading] = useState(false);
-  const [downloadError, setDownloadError] = useState("");
+export default function PrintLightbox({ open, data, onClose, onSendEmail }: Props) {
   const [emailState, setEmailState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [emailError, setEmailError] = useState("");
 
@@ -58,11 +54,9 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  // รีเซ็ตสถานะปุ่ม ดาวน์โหลด/ส่งอีเมล ทุกครั้งที่เปิด lightbox ใหม่
+  // รีเซ็ตสถานะปุ่มส่งอีเมล ทุกครั้งที่เปิด lightbox ใหม่
   useEffect(() => {
     if (open) {
-      setDownloading(false);
-      setDownloadError("");
       setEmailState("idle");
       setEmailError("");
     }
@@ -73,22 +67,10 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
   const subtotal = data.items.reduce((s, i) => s + i.price, 0);
   const discount = data.discount ?? 0;
   const discountedSubtotal = subtotal - discount;
-  const wht = Math.round(discountedSubtotal * 0.03);
+  const wht = discountedSubtotal * 0.03;
   const total = discountedSubtotal - wht;
   const isReceipt = data.type === "receipt";
-
-  const handleDownload = async () => {
-    if (!onDownloadPdf || downloading) return;
-    setDownloading(true);
-    setDownloadError("");
-    try {
-      await onDownloadPdf();
-    } catch (e) {
-      setDownloadError(e instanceof Error ? e.message : "ดาวน์โหลดไม่สำเร็จ");
-    } finally {
-      setDownloading(false);
-    }
-  };
+  const money = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const handleSend = async () => {
     if (!onSendEmail || emailState === "sending" || emailState === "sent") return;
@@ -111,21 +93,15 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
           {isReceipt ? "ตัวอย่างใบเสร็จรับเงิน" : "ตัวอย่างใบเสนอราคา"}
         </span>
         <div className="flex gap-2 items-center flex-wrap">
-          {onDownloadPdf && (
-            <button
-              onClick={handleDownload}
-              disabled={downloading}
-              className="px-4 py-1.5 rounded-lg bg-[#666] text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#888] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {downloading ? "กำลังสร้าง PDF…" : "ดาวน์โหลด PDF"}
-            </button>
-          )}
+          <button onClick={() => window.print()} className="px-4 py-1.5 rounded-lg bg-[#666] text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#888]">
+            พิมพ์ / บันทึก PDF
+          </button>
           {onSendEmail && (
             <button
               onClick={handleSend}
               disabled={!data.email || emailState === "sending" || emailState === "sent"}
               title={!data.email ? "ใบเสนอราคานี้ไม่มีอีเมลลูกค้า" : `ส่งถึง ${data.email}`}
-              className="px-4 py-1.5 rounded-lg bg-[#666] text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#888] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-1.5 rounded-lg bg-mint text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {emailState === "sending"
                 ? "กำลังส่ง…"
@@ -136,18 +112,14 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
                 : "ส่งอีเมลถึงลูกค้า"}
             </button>
           )}
-          <button onClick={() => window.print()} className="px-4 py-1.5 rounded-lg bg-mint text-white text-[13px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9]">
-            พิมพ์ / บันทึก PDF
-          </button>
           <button onClick={onClose} className="px-3 py-1.5 rounded-lg bg-[#666] text-white text-[13px] border-none cursor-pointer hover:bg-[#888]">
             ปิด
           </button>
         </div>
       </div>
 
-      {(downloadError || (emailState === "error" && emailError) || (onSendEmail && !data.email)) && (
+      {((emailState === "error" && emailError) || (onSendEmail && !data.email)) && (
         <div className="px-6 py-2 bg-red-50 text-red-600 text-[12px] flex-shrink-0 flex flex-col gap-0.5">
-          {downloadError && <div>ดาวน์โหลด PDF ไม่สำเร็จ: {downloadError}</div>}
           {emailState === "error" && emailError && <div>ส่งอีเมลไม่สำเร็จ: {emailError} — กดปุ่มเพื่อลองใหม่ได้</div>}
           {onSendEmail && !data.email && <div>ใบเสนอราคานี้ไม่มีอีเมลลูกค้า — ส่งอีเมลไม่ได้</div>}
         </div>
@@ -214,24 +186,24 @@ export default function PrintLightbox({ open, data, onClose, onDownloadPdf, onSe
             <tfoot>
               <tr className="border-t border-[#ddd]">
                 <td colSpan={2} className="text-right py-1.5 text-[#555]">รวมจำนวนเงิน</td>
-                <td className="text-right py-1.5">฿{subtotal.toLocaleString()}</td>
+                <td className="text-right py-1.5">฿{money(subtotal)}</td>
               </tr>
               {discount > 0 && (
                 <tr>
                   <td colSpan={2} className="text-right py-1.5 text-[#555]">ส่วนลด</td>
-                  <td className="text-right py-1.5 text-red-500">-฿{discount.toLocaleString()}</td>
+                  <td className="text-right py-1.5 text-red-500">-฿{money(discount)}</td>
                 </tr>
               )}
               <tr>
                 <td colSpan={2} className="text-right py-1.5 text-[#555]">หักภาษี ณ ที่จ่าย 3%</td>
-                <td className="text-right py-1.5 text-red-500">-฿{wht.toLocaleString()}</td>
+                <td className="text-right py-1.5 text-red-500">-฿{money(wht)}</td>
               </tr>
               <tr className="border-t-2 border-navy">
                 <td colSpan={2} className="text-right py-2 font-semibold text-navy">
                   <span className="text-[11px] font-normal text-[#888] mr-3 italic">{bahtText(total)}</span>
                   ยอดชำระ
                 </td>
-                <td className="text-right py-2 font-semibold text-navy text-[16px]">฿{total.toLocaleString()}</td>
+                <td className="text-right py-2 font-semibold text-navy text-[16px]">฿{money(total)}</td>
               </tr>
             </tfoot>
           </table>
