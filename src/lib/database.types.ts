@@ -330,6 +330,7 @@ export interface Database {
           phone: string | null;
           address: string | null;
           tax_id: string | null;
+          vat_registered: boolean;
           bank: Json | null;
           is_active: boolean;
           revenue_share_percent: number | null;
@@ -353,6 +354,7 @@ export interface Database {
           phone?: string | null;
           address?: string | null;
           tax_id?: string | null;
+          vat_registered?: boolean;
           bank?: Json | null;
           is_active?: boolean;
           revenue_share_percent?: number | null;
@@ -376,6 +378,7 @@ export interface Database {
           phone?: string | null;
           address?: string | null;
           tax_id?: string | null;
+          vat_registered?: boolean;
           bank?: Json | null;
           is_active?: boolean;
           revenue_share_percent?: number | null;

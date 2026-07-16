@@ -101,13 +101,9 @@ export default function OwnRevenue() {
         <h1 className="text-[20px] font-semibold text-navy">รายได้</h1>
         <p className="text-[13px] text-[#aaa] mt-0.5">สรุปยอดขายและรายได้รายเดือน</p>
       </div>
-      <p className="text-[12px] text-[#888] mb-4 leading-relaxed">
-        ยอดขายผ่านเว็บ (B2C) — เว็บเก็บเงินแล้วโอนส่วนแบ่ง 75% ให้ทุกเดือน ·
-        ยอด B2B ผ่านใบเสนอราคา — ลูกค้าโอนเข้าบัญชีของคุณโดยตรง ไม่เกี่ยวข้องกับรอบโอนของเว็บ
-      </p>
 
       {/* Month selector */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mt-4 mb-4">
         <label className="text-[12px] font-medium text-[#666]">เดือน</label>
         <select
           value={monthKey}
@@ -194,10 +190,7 @@ export default function OwnRevenue() {
                 <div className="text-[11px] text-mint mt-0.5">ส่วนแบ่งของคุณ {fmtBaht(stmt.designerAmount)}</div>
               </div>
               <div className="bg-[#f8f8f6] rounded-xl p-3">
-                <div className="text-[11px] text-[#aaa] mb-1 flex items-center gap-1.5">
-                  B2B · {stmt.b2bCount} ออเดอร์
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium">รับตรง 100%</span>
-                </div>
+                <div className="text-[11px] text-[#aaa] mb-1">B2B · {stmt.b2bCount} ออเดอร์</div>
                 <div className="text-[15px] font-semibold text-navy">{fmtBaht(stmt.b2bTotal)}</div>
               </div>
             </div>

@@ -22,6 +22,10 @@ export default function AccountSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
 
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+
   useEffect(() => {
     if (!loading && !user) router.replace("/auth/login");
   }, [loading, user, router]);
@@ -55,6 +59,20 @@ export default function AccountSettingsPage() {
       return;
     }
     showToast("✓ บันทึกข้อมูลเรียบร้อย");
+  };
+
+  // รหัสผ่านอยู่ใน auth ของ Supabase ไม่ใช่ตาราง users — จึงใช้ auth.updateUser
+  // คนละ API กับปุ่มบันทึกด้านบน แยก state/ปุ่มออกจากกัน
+  const handleChangePassword = async () => {
+    if (password !== confirm) { showToast("รหัสผ่านไม่ตรงกัน", true); return; }
+    if (password.length < 8) { showToast("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร", true); return; }
+    setSavingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setSavingPassword(false);
+    if (error) { showToast("เกิดข้อผิดพลาด: " + error.message, true); return; }
+    setPassword("");
+    setConfirm("");
+    showToast("✓ เปลี่ยนรหัสผ่านเรียบร้อย");
   };
 
   if (loading || !user) {
@@ -124,6 +142,45 @@ export default function AccountSettingsPage() {
                 </Button>
               </>
             )}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-border p-6 flex flex-col gap-4 mt-4">
+            <div>
+              <h2 className="text-[15px] font-semibold text-navy">เปลี่ยนรหัสผ่าน</h2>
+              <p className="text-[12px] text-[#aaa] mt-0.5">อย่างน้อย 8 ตัวอักษร</p>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[13px] text-[#555] font-medium">รหัสผ่านใหม่</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                className={iCls}
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[13px] text-[#555] font-medium">ยืนยันรหัสผ่านใหม่</label>
+              <input
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                autoComplete="new-password"
+                className={iCls}
+                placeholder="••••••••"
+              />
+            </div>
+
+            <Button
+              onClick={handleChangePassword}
+              disabled={savingPassword || !password || !confirm}
+              className="w-full mt-2"
+            >
+              {savingPassword ? "กำลังบันทึก…" : "เปลี่ยนรหัสผ่าน"}
+            </Button>
           </div>
         </div>
       </main>

@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
-import { parseLicenseSettings, type LicenseTier } from "@/lib/license";
+import { parseLicenseSettings, parseDesignerTiers, type LicenseTier } from "@/lib/license";
 
 function parseWeight(url: string): string {
   const decoded = decodeURIComponent(url.split("?")[0]);
@@ -61,7 +61,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(!initialFont);
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
-  const [customLicenseTiers, setCustomLicenseTiers] = useState<{ name: string; price: number }[] | null>(null);
+  const [customLicenseTiers, setCustomLicenseTiers] = useState<LicenseTier[] | null>(null);
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
   const [specimenOpen, setSpecimenOpen] = useState(false);
@@ -115,8 +115,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
             .select("use_default, tiers")
             .eq("designer_id", ownerId)
             .single();
-          if (licConfig && !licConfig.use_default && Array.isArray(licConfig.tiers) && licConfig.tiers.length > 0) {
-            setCustomLicenseTiers(licConfig.tiers as { name: string; price: number }[]);
+          if (licConfig && !licConfig.use_default) {
+            const parsed = parseDesignerTiers(licConfig.tiers);
+            if (parsed.length > 0) setCustomLicenseTiers(parsed);
           }
         }
       } catch {
@@ -309,13 +310,36 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
             {/* LEFT: Font Info */}
             <div className="bg-white border border-[0.5px] border-border rounded-xl p-5">
-              <div className="mb-4">
-                <div className="text-[26px] font-semibold text-navy leading-snug">
-                  {mainTitle}
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[26px] font-semibold text-navy leading-snug">
+                    {mainTitle}
+                  </div>
+                  {subTitle && (
+                    <div className="text-[14px] text-[#aaa] mt-1">{subTitle}</div>
+                  )}
                 </div>
-                {subTitle && (
-                  <div className="text-[14px] text-[#aaa] mt-1">{subTitle}</div>
-                )}
+
+                {/* บันทึกไว้ดูภายหลัง — เหลือแค่ไอคอนเพราะพื้นที่ข้างชื่อฟอนต์จำกัด
+                    ข้อความเดิมย้ายไปอยู่ใน aria-label/title แทน */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!user) {
+                      router.push(`/auth/login?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`);
+                      return;
+                    }
+                    toggle(font.id);
+                  }}
+                  aria-pressed={isFavourite(font.id)}
+                  aria-label={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
+                  title={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
+                  className="shrink-0 flex items-center justify-center w-9 h-9 border border-[0.5px] border-[#ddd] rounded-full bg-white text-navy hover:border-navy transition-colors"
+                >
+                  <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </button>
               </div>
 
               <div className="h-[0.5px] bg-border mb-3.5" />
@@ -483,23 +507,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!user) {
-                      router.push(`/auth/login?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`);
-                      return;
-                    }
-                    toggle(font.id);
-                  }}
-                  aria-pressed={isFavourite(font.id)}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 border border-[0.5px] border-[#ddd] rounded-[9px] text-[14px] text-navy bg-white hover:border-navy transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                  {isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
-                </button>
               </div>
 
               {font.demo_font_files && font.demo_font_files.length > 0 && (
@@ -547,11 +554,14 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 <div className="flex flex-col gap-2 mb-2.5">
                   {customLicenseTiers ? (
                     customLicenseTiers.map((tier) => (
-                      <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
+                      <div key={tier.id} className="border border-[0.5px] border-border rounded-[8px] p-3">
                         <div className="flex justify-between items-center">
                           <span className="text-[14px] font-medium text-navy">{tier.name}</span>
                           <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
                         </div>
+                        {tier.desc && (
+                          <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
+                        )}
                       </div>
                     ))
                   ) : (

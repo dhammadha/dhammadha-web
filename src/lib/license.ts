@@ -91,8 +91,63 @@ export function parseLicenseSettings(value: unknown): LicenseTier[] {
 }
 
 /**
+ * อ่าน designer_license_config.tiers (jsonb ที่ไม่มี type) → LicenseTier[]
+ *
+ * tier ของ designer ยุคเก่ายังไม่มี id — จึงต้องเลือกว่าจะทำอย่างไรกับตัวที่ id หาย:
+ *  - readers (หน้าขอใบเสนอราคา/หน้าฟอนต์/หน้า quotes) → `mintMissingIds: false` (ค่าเริ่มต้น)
+ *    ใช้ "ชื่อ" เป็นตัวระบุแทน = พฤติกรรมเดิมเป๊ะ
+ *    ⚠️ ห้าม mint id สุ่มตอนอ่านเด็ดขาด — จะได้ id ใหม่ทุกครั้งที่โหลดหน้า ทำให้ใบเสนอราคา
+ *    ที่เพิ่งเก็บ id ไปหา tier ไม่เจอในการโหลดครั้งถัดไป
+ *  - editor (หน้าราคาของ designer) → `mintMissingIds: true`
+ *    แจก id ถาวรแล้วเขียนลง DB ตอนกดบันทึก จากนั้นใบเสนอราคาใหม่จะอ้าง id แทนชื่อ
+ */
+export function parseDesignerTiers(
+  value: unknown,
+  opts: { mintMissingIds?: boolean } = {}
+): LicenseTier[] {
+  if (!Array.isArray(value)) return [];
+  return value.reduce<LicenseTier[]>((acc, raw) => {
+    if (!raw || typeof raw !== "object") return acc;
+    const t = raw as Record<string, unknown>;
+    const name = typeof t.name === "string" ? t.name.trim() : "";
+    const price = toPrice(t.price);
+    if (!name || price === null) return acc;
+    const rawId = typeof t.id === "string" ? t.id.trim() : "";
+    const id = rawId || (opts.mintMissingIds ? newTierId() : name);
+    const desc = typeof t.desc === "string" && t.desc.trim() ? t.desc.trim() : undefined;
+    acc.push({ id, name, price, ...(desc ? { desc } : {}) });
+    return acc;
+  }, []);
+}
+
+/**
+ * หา tier ที่ตรงกับค่า license_type ที่เก็บไว้ในแถว quotes/orders/entitlements
+ *
+ * license_type ถูกบันทึกมาแล้ว 3 รูปแบบตามยุค — แถวเก่าห้ามพัง จึงลองตามลำดับ:
+ *   1. id           — รูปแบบปัจจุบัน (`small_medium` ของเว็บ / `custom_<hex>` ของ designer)
+ *   2. name         — ยุคที่ tier ของ designer ยังไม่มี id เก็บชื่อลงไปตรง ๆ
+ *   3. `custom_<N>` — ยุคแรกสุด เก็บ "ลำดับ" ของ tier ในอาร์เรย์
+ *
+ * ลำดับสำคัญ: id เป็นการ match ตรงตัวจึงต้องมาก่อนเสมอ ไม่งั้น id ใหม่ที่บังเอิญ
+ * เป็นตัวเลขล้วน (เช่น custom_12345678) จะไปเข้าเงื่อนไข custom_<N> ผิด ๆ
+ */
+export function findTier(
+  value: string | null | undefined,
+  tiers?: LicenseTier[] | null
+): LicenseTier | undefined {
+  if (!value || !tiers?.length) return undefined;
+  const byId = tiers.find((t) => t.id === value);
+  if (byId) return byId;
+  const byName = tiers.find((t) => t.name === value);
+  if (byName) return byName;
+  const m = value.match(/^custom_(\d+)$/);
+  if (m) return tiers[parseInt(m[1], 10)];
+  return undefined;
+}
+
+/**
  * แปลง license_type → ข้อความแสดงผล
- * ลำดับ: tiers ที่ส่งเข้ามา (id → name) → LICENSE_LABEL (legacy) → ค่าดิบ
+ * ลำดับ: tiers ที่ส่งเข้ามา (ดู findTier) → LICENSE_LABEL (legacy) → ค่าดิบ
  * เรียกแบบ argument เดียวได้เหมือนเดิม
  */
 export function licenseLabel(
@@ -100,7 +155,7 @@ export function licenseLabel(
   tiers?: LicenseTier[] | null
 ): string {
   if (!value) return "";
-  const fromTiers = tiers?.find((t) => t.id === value)?.name;
+  const fromTiers = findTier(value, tiers)?.name;
   if (fromTiers) return fromTiers;
   return LICENSE_LABEL[value] ?? value;
 }

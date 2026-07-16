@@ -1,8 +1,9 @@
 // In-browser font pipeline — ใช้ Pyodide (Python บน WebAssembly) รัน fonttools
 // ในเบราว์เซอร์ เพื่อ generate ไฟล์จากฟอนต์เต็มโดยไม่ต้องมี server:
-//   1. Tester (obfuscated) .woff2 ทุก weight + map — type tester แสดงฟอนต์จริง
-//      แต่ไฟล์ที่ถูกดูดไปพิมพ์ออกมาเป็นตัวมั่ว
-//   2. Demo .ttf/.otf — เฉพาะ Regular ตัดเหลือภาษาไทย เปลี่ยนชื่อเป็น DEMO
+//   1. generateTesterAssets — Tester (obfuscated) .woff2 ทุก weight + map
+//      type tester แสดงฟอนต์จริง แต่ไฟล์ที่ถูกดูดไปพิมพ์ออกมาเป็นตัวมั่ว
+//   2. generateDemoFile — Demo .ttf/.otf เฉพาะ Regular ตัดเหลือภาษาไทย ชื่อ DEMO
+// แยกเป็นสอง entry point เพราะ tester บังคับมี ส่วน demo เป็นของไม่บังคับ
 // ตรรกะเดียวกับ scripts/prepare_font_assets.py (ฝั่ง CLI สำหรับงาน batch)
 // โหลด Pyodide จาก CDN ครั้งแรก ~10MB แล้ว browser cache ไว้
 
@@ -181,13 +182,11 @@ function loadPyodideOnce(onProgress: (msg: string) => void): Promise<Pyodide> {
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
-export interface GeneratedFontAssets {
+export interface GeneratedTesterAssets {
   /** ไฟล์ tester (obfuscated) หนึ่งไฟล์ต่อ weight */
   testerFiles: File[];
   /** map { อักขระที่พิมพ์ → อักขระที่ส่งให้ฟอนต์ } เก็บลง fonts.obfuscated_map */
   map: Record<string, string>;
-  /** demo Regular ภาษาไทย (null ถ้าไม่มีไฟล์ต้นทาง) */
-  demoFile: File | null;
 }
 
 function weightFromFilename(name: string): string {
@@ -203,14 +202,14 @@ function randomHex(bytes: number): string {
 }
 
 /**
- * สร้างไฟล์ tester (obfuscated ทุก weight) + demo (Regular ไทย) จากไฟล์เต็ม
+ * สร้างไฟล์ tester (obfuscated ทุก weight) + map จากไฟล์เต็ม
  * ทำงานในเบราว์เซอร์ล้วน — ไฟล์เต็มไม่ออกจากเครื่องผู้ใช้ระหว่างประมวลผล
  */
-export async function generateFontAssets(
+export async function generateTesterAssets(
   fullFonts: File[],
   familyName: string,
   onProgress: (msg: string) => void = () => {}
-): Promise<GeneratedFontAssets> {
+): Promise<GeneratedTesterAssets> {
   if (!fullFonts.length) throw new Error("ไม่มีไฟล์ฟอนต์เต็มให้ประมวลผล");
   const family = familyName.trim() || "Font";
 
@@ -243,6 +242,25 @@ export async function generateFontAssets(
     pyodide.FS.unlink(inPath);
   }
 
+  onProgress("เสร็จแล้ว");
+  return { testerFiles, map };
+}
+
+/**
+ * สร้างไฟล์ demo (Regular ตัดเหลือภาษาไทย) จากไฟล์เต็ม
+ * แยกจาก generateTesterAssets เพราะ demo เป็นของไม่บังคับ — designer ที่ไม่ต้องการ
+ * แจก demo กด generate เฉพาะ tester ได้ (demo ไม่ต้องใช้ map จึงแยกได้อิสระ)
+ */
+export async function generateDemoFile(
+  fullFonts: File[],
+  familyName: string,
+  onProgress: (msg: string) => void = () => {}
+): Promise<File> {
+  if (!fullFonts.length) throw new Error("ไม่มีไฟล์ฟอนต์เต็มให้ประมวลผล");
+  const family = familyName.trim() || "Font";
+
+  const pyodide = await loadPyodideOnce(onProgress);
+
   // demo จากไฟล์ Regular (ไม่มีก็ใช้ไฟล์แรก)
   const regular =
     fullFonts.find((f) => ["regular", "normal"].includes(weightFromFilename(f.name))) ?? fullFonts[0];
@@ -259,8 +277,7 @@ export async function generateFontAssets(
   pyodide.FS.unlink(demoIn);
   const ext = regular.name.toLowerCase().endsWith(".otf") ? "otf" : "ttf";
   const demoName = `${family.toLowerCase().replace(/\s+/g, "-")}-demo-regular.${ext}`;
-  const demoFile = new File([new Uint8Array(demoBytes)], demoName);
 
   onProgress("เสร็จแล้ว");
-  return { testerFiles, map, demoFile };
+  return new File([new Uint8Array(demoBytes)], demoName);
 }

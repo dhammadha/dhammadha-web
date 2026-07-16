@@ -31,6 +31,7 @@ export default function DesignerSettingsPage() {
   const [designerSlug, setDesignerSlug] = useState("");
   const [sellerName, setSellerName] = useState("");
   const [sellerTaxId, setSellerTaxId] = useState("");
+  const [sellerVatRegistered, setSellerVatRegistered] = useState(false);
   const [sellerAddress, setSellerAddress] = useState("");
   const [sellerPhone, setSellerPhone] = useState("");
   const [bankName, setBankName] = useState("");
@@ -43,8 +44,8 @@ export default function DesignerSettingsPage() {
   const showToast = (msg: string, error = false) => { setToast({ msg, error }); setTimeout(() => setToast(null), 3500); };
 
   // ref mirrors current draft values so saveDraft() always has the latest snapshot
-  type Draft = { entityType: string; businessName: string; designerSlug: string; sellerName: string; sellerTaxId: string; sellerAddress: string; sellerPhone: string; bankName: string; bankBranch: string; bankAccount: string; bankAccountNo: string };
-  const draft = useRef<Draft>({ entityType: "individual", businessName: "", designerSlug: "", sellerName: "", sellerTaxId: "", sellerAddress: "", sellerPhone: "", bankName: "", bankBranch: "", bankAccount: "", bankAccountNo: "" });
+  type Draft = { entityType: string; businessName: string; designerSlug: string; sellerName: string; sellerTaxId: string; sellerVatRegistered: boolean; sellerAddress: string; sellerPhone: string; bankName: string; bankBranch: string; bankAccount: string; bankAccountNo: string };
+  const draft = useRef<Draft>({ entityType: "individual", businessName: "", designerSlug: "", sellerName: "", sellerTaxId: "", sellerVatRegistered: false, sellerAddress: "", sellerPhone: "", bankName: "", bankBranch: "", bankAccount: "", bankAccountNo: "" });
   const bankAccountEdited = useRef(false); // true = user manually typed in bankAccount field
 
   const saveDraft = useCallback((patch: Partial<Draft>) => {
@@ -55,7 +56,7 @@ export default function DesignerSettingsPage() {
   // Load DB data on mount, then apply draft if exists
   useEffect(() => {
     if (!user) return;
-    supabase.from("users").select("name, business_name, entity_type, designer_slug, tax_id, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
+    supabase.from("users").select("name, business_name, entity_type, designer_slug, tax_id, vat_registered, address, phone, bank").eq("id", user.id).single().then(({ data }) => {
       const b = (data?.bank as { bank_name?: string; branch?: string; account_name?: string; account_number?: string } | null) ?? {};
       const dbValues: Draft = {
         entityType: (data?.entity_type as "individual" | "juristic") ?? "individual",
@@ -63,6 +64,7 @@ export default function DesignerSettingsPage() {
         designerSlug: data?.designer_slug ?? "",
         sellerName: data?.name ?? "",
         sellerTaxId: data?.tax_id ?? "",
+        sellerVatRegistered: data?.vat_registered ?? false,
         sellerAddress: data?.address ?? "",
         sellerPhone: data?.phone ?? "",
         bankName: b.bank_name ?? "",
@@ -89,6 +91,7 @@ export default function DesignerSettingsPage() {
       setDesignerSlug(values.designerSlug);
       setSellerName(values.sellerName);
       setSellerTaxId(values.sellerTaxId);
+      setSellerVatRegistered(values.sellerVatRegistered);
       setSellerAddress(values.sellerAddress);
       setSellerPhone(values.sellerPhone);
       setBankName(values.bankName);
@@ -117,6 +120,7 @@ export default function DesignerSettingsPage() {
       business_name: businessName || null,
       name: sellerName,
       tax_id: sellerTaxId,
+      vat_registered: sellerVatRegistered,
       address: sellerAddress,
       phone: sellerPhone,
       bank: { bank_name: bankName, branch: bankBranch, account_name: bankAccount, account_number: bankAccountNo },
@@ -188,6 +192,21 @@ export default function DesignerSettingsPage() {
             )}
           </Field>
         </div>
+        {/* เก็บสถานะไว้ล่วงหน้าเผื่ออนาคต — ตอนนี้ยังไม่มีการคำนวณ VAT ที่ใด */}
+        <label className="flex items-start gap-2.5 mt-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={sellerVatRegistered}
+            onChange={(e) => { setSellerVatRegistered(e.target.checked); saveDraft({ sellerVatRegistered: e.target.checked }); }}
+            className="mt-0.5 accent-[#0a8a84] shrink-0"
+          />
+          <div>
+            <span className="text-[13px] text-navy">จดทะเบียนภาษีมูลค่าเพิ่ม (VAT)</span>
+            <p className="text-[11px] text-[#aaa] mt-0.5 leading-[1.6]">
+              ติ๊กหากคุณจดทะเบียน VAT แล้ว — คนละเรื่องกับเลขประจำตัวผู้เสียภาษี ตอนนี้ยังไม่มีผลต่อการคำนวณราคา เก็บไว้ใช้ในอนาคต
+            </p>
+          </div>
+        </label>
         <Field label="ที่อยู่" className="mt-3"><textarea value={sellerAddress} onChange={(e) => { setSellerAddress(e.target.value); saveDraft({ sellerAddress: e.target.value }); }} rows={2} className={iCls} /></Field>
         <Field label="โทรศัพท์" className="mt-3"><input value={sellerPhone} onChange={(e) => { setSellerPhone(e.target.value); saveDraft({ sellerPhone: e.target.value }); }} className={iCls} /></Field>
 

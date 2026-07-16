@@ -68,6 +68,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   const [obfMap, setObfMap] = useState<Record<string, string> | null>(null);
   const [obfMapName, setObfMapName] = useState("");
   const [genProgress, setGenProgress] = useState<string | null>(null);
+  // true ระหว่างรอ query font_files_private ตอนแก้ไขฟอนต์เดิม
+  const [fullFontsLoading, setFullFontsLoading] = useState(false);
 
   const showToast = (msg: string, error = false) => {
     setToast({ msg, error });
@@ -109,7 +111,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setPreviewItems((f.preview_images ?? []).map((url) => ({ type: "ex", url })));
     // ไฟล์ฟอนต์เต็มอยู่ในตาราง font_files_private (เก็บเป็น storage path)
     // อ่านได้เฉพาะเจ้าของ/แอดมินภายใต้ RLS
+    // โหลดแบบ async — ต้องกันบันทึกระหว่างรอ ไม่งั้น validation จะเห็น fullFonts
+    // ว่าง ๆ แล้วบล็อกทั้งที่ฟอนต์มีไฟล์อยู่จริง
     setFullFonts([]);
+    setFullFontsLoading(true);
     supabase
       .from("font_files_private")
       .select("full_font_files")
@@ -118,6 +123,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       .then(({ data }) => {
         const paths = data?.full_font_files ?? [];
         setFullFonts(paths.map((p) => ({ type: "ex", url: p, name: p.split("/").pop() ?? p })));
+        setFullFontsLoading(false);
       });
     setDemoFonts((f.demo_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
     setFreeFonts((f.free_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
@@ -185,33 +191,53 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setter((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // สร้าง tester (obfuscated) + demo อัตโนมัติจากไฟล์เต็ม — ประมวลผลใน
+  // สร้าง tester (obfuscated) / demo อัตโนมัติจากไฟล์เต็ม — ประมวลผลใน
   // เบราว์เซอร์ด้วย fonttools ผ่าน Pyodide (ดู src/lib/font-pipeline.ts)
-  const handleGenerateAssets = async () => {
-    const newFiles = fullFonts.flatMap((f) => (f.type === "new" ? [f.file] : []));
-    if (!newFiles.length) {
+  // แยกสองปุ่ม: tester บังคับมีก่อนบันทึก ส่วน demo ไม่บังคับ
+  // คืน null พร้อม toast ถ้ายังไม่พร้อม generate
+  const genInputs = (): { files: File[]; family: string } | null => {
+    const files = fullFonts.flatMap((f) => (f.type === "new" ? [f.file] : []));
+    if (!files.length) {
       showToast("ต้องมีไฟล์ Full Family ที่เลือกจากเครื่องก่อน (ไฟล์ที่อัปโหลดไว้แล้วใช้ generate ซ้ำไม่ได้)", true);
-      return;
+      return null;
     }
     const family = name.trim() || nameTh.trim();
     if (!family) {
       showToast("กรอกชื่อฟอนต์ก่อน generate (ใช้ตั้งชื่อไฟล์ TESTER/DEMO)", true);
-      return;
+      return null;
     }
+    return { files, family };
+  };
+
+  const handleGenerateTester = async () => {
+    const input = genInputs();
+    if (!input) return;
     setGenProgress("เริ่มประมวลผล…");
     try {
-      const { generateFontAssets } = await import("@/lib/font-pipeline");
-      const result = await generateFontAssets(newFiles, family, setGenProgress);
+      const { generateTesterAssets } = await import("@/lib/font-pipeline");
+      const result = await generateTesterAssets(input.files, input.family, setGenProgress);
       setTesterFonts(result.testerFiles.map((file) => ({ type: "new" as const, file, name: file.name })));
       setObfMap(result.map);
       setObfMapName("map สร้างอัตโนมัติ ✓");
-      if (result.demoFile) {
-        const demoFile = result.demoFile;
-        setDemoFonts([{ type: "new" as const, file: demoFile, name: demoFile.name }]);
-      }
-      showToast(`สร้างเรียบร้อย — tester ${result.testerFiles.length} ไฟล์ + demo 1 ไฟล์`);
+      showToast(`สร้าง tester เรียบร้อย — ${result.testerFiles.length} ไฟล์ + map`);
     } catch (e) {
-      showToast("Generate ไม่สำเร็จ: " + (e instanceof Error ? e.message : String(e)), true);
+      showToast("สร้าง Tester ไม่สำเร็จ: " + (e instanceof Error ? e.message : String(e)), true);
+    } finally {
+      setGenProgress(null);
+    }
+  };
+
+  const handleGenerateDemo = async () => {
+    const input = genInputs();
+    if (!input) return;
+    setGenProgress("เริ่มประมวลผล…");
+    try {
+      const { generateDemoFile } = await import("@/lib/font-pipeline");
+      const demoFile = await generateDemoFile(input.files, input.family, setGenProgress);
+      setDemoFonts([{ type: "new" as const, file: demoFile, name: demoFile.name }]);
+      showToast("สร้าง demo เรียบร้อย — 1 ไฟล์");
+    } catch (e) {
+      showToast("สร้าง Demo ไม่สำเร็จ: " + (e instanceof Error ? e.message : String(e)), true);
     } finally {
       setGenProgress(null);
     }
@@ -256,6 +282,19 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
   const handleSave = async () => {
     if (!name.trim() || !slug.trim()) { showToast("กรุณาใส่ชื่อฟอนต์และ Slug", true); return; }
+    if (fullFontsLoading) { showToast("กำลังโหลดรายการไฟล์เดิม รอสักครู่แล้วลองใหม่", true); return; }
+
+    // ตรวจไฟล์ให้ครบ *ก่อน* เริ่มอัปโหลด — นับรวมไฟล์ที่อัปโหลดไว้แล้ว (type "ex")
+    // ด้วย จึงแก้ไขฟอนต์เดิมที่มีไฟล์อยู่แล้วได้โดยไม่ต้องเลือกไฟล์ใหม่
+    if (isFree) {
+      if (!freeFonts.length) { showToast("ต้องแนบไฟล์ Free Font ก่อนบันทึก", true); return; }
+    } else {
+      if (!fullFonts.length) { showToast("ต้องแนบไฟล์ Full Family ก่อนบันทึก", true); return; }
+      if (!testerFonts.length) { showToast("ต้องสร้าง Tester ก่อนบันทึก — กดปุ่ม ⚡ สร้าง Tester", true); return; }
+      // tester ที่ไม่มี map = ตัวอักษรบนเว็บแสดงมั่ว
+      if (!obfMap) { showToast("Tester ต้องมีไฟล์ map — กด ⚡ สร้าง Tester ใหม่ หรือแนบไฟล์ map (.json)", true); return; }
+    }
+
     setSaving(true);
     try {
       const slugVal = slug.trim().toLowerCase();
@@ -286,9 +325,6 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       try { finalSpec = await uploadFontFiles(specimens, "specimens", slugVal); } catch (e) { throw new Error("[Specimen upload] " + (e instanceof Error ? e.message : String(e))); }
       // tester (obfuscated) เก็บใน bucket fonts-demo (public — ไฟล์ผ่านการสลับรหัสแล้ว)
       try { finalTester = await uploadFontFiles(testerFonts, "fonts-demo", slugVal); } catch (e) { throw new Error("[Tester font upload] " + (e instanceof Error ? e.message : String(e))); }
-      if (!isFree && finalTester.length > 0 && !obfMap) {
-        throw new Error("Tester font ต้องแนบไฟล์ obfuscated_map.json ที่ได้จาก script ด้วย (ไม่งั้นตัวอักษรบนเว็บจะแสดงผลมั่ว)");
-      }
 
       const discountVal = parseInt(discount) || 0;
       const priceVal = parseFloat(price) || null;
@@ -514,34 +550,45 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
           <>
             <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
 
-            {/* Auto-generate tester + demo จากไฟล์เต็ม (ประมวลผลในเบราว์เซอร์) */}
+            {/* Auto-generate tester / demo จากไฟล์เต็ม (ประมวลผลในเบราว์เซอร์) */}
             <div className="mt-2.5 rounded-xl border border-[0.5px] border-mint-mid bg-mint-light/40 p-3">
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
-                  onClick={handleGenerateAssets}
+                  onClick={handleGenerateTester}
                   disabled={!!genProgress}
                   className="px-3.5 py-2 rounded-lg bg-navy text-white text-[12px] font-medium border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  {genProgress ? "กำลังประมวลผล…" : "⚡ สร้าง Tester + Demo อัตโนมัติ"}
+                  ⚡ สร้าง Tester
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGenerateDemo}
+                  disabled={!!genProgress}
+                  className="px-3.5 py-2 rounded-lg border border-[0.5px] border-navy text-navy bg-white text-[12px] font-medium cursor-pointer hover:bg-[#f5f5f2] transition-colors disabled:opacity-50"
+                >
+                  สร้าง Demo
                 </button>
                 {genProgress && (
                   <span className="text-[12px] text-[#0a8a84] animate-pulse">{genProgress}</span>
                 )}
               </div>
               <p className="text-[11px] text-[#888] mt-2 leading-[1.6]">
-                สร้างจากไฟล์ Full Family ที่เลือกไว้ด้านบน — ได้ tester (obfuscated) ครบทุก weight + map และ demo ภาษาไทย (Regular) เติมลงช่องด้านล่างให้อัตโนมัติ ประมวลผลในเบราว์เซอร์ทั้งหมด ครั้งแรกจะโหลดเครื่องมือ ~10MB
+                สร้างจากไฟล์ Full Family ที่เลือกไว้ด้านบน เติมลงช่องด้านล่างให้อัตโนมัติ<br />
+                <b>สร้าง Tester</b> — ได้ tester (obfuscated) ครบทุก weight + map <b>จำเป็นต้องมีก่อนบันทึก</b><br />
+                <b>สร้าง Demo</b> — ได้ demo ภาษาไทย (Regular) 1 ไฟล์ <b>ไม่บังคับ</b> ข้ามได้ถ้าไม่ต้องการแจก demo<br />
+                ประมวลผลในเบราว์เซอร์ทั้งหมด ครั้งแรกจะโหลดเครื่องมือ ~10MB
               </p>
             </div>
 
             {/* Tester (obfuscated) — จากปุ่ม generate ด้านบน หรือ scripts/prepare_font_assets.py */}
             <div className="rounded-xl border border-border p-3 mt-3">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[13px] font-medium text-navy">Tester Font (แสดงบนเว็บ)</span>
+                <span className="text-[13px] font-medium text-navy">Tester Font (แสดงบนเว็บ)*</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-600">🔀 Obfuscated</span>
               </div>
               <p className="text-[11px] text-[#aaa] mb-2 leading-[1.5]">
-                ไฟล์ .woff2 ทุก weight + map.json จาก <code className="text-[10px]">scripts/prepare_font_assets.py</code> — ใช้แสดง type tester ด้วยฟอนต์จริงที่ผ่านการสลับรหัสอักษร (ไฟล์ถูกดูดไปใช้จริงไม่ได้)
+                ไฟล์ .woff2 ทุก weight + map.json จากปุ่ม ⚡ สร้าง Tester ด้านบน (หรือ <code className="text-[10px]">scripts/prepare_font_assets.py</code>) — ใช้แสดง type tester ด้วยฟอนต์จริงที่ผ่านการสลับรหัสอักษร (ไฟล์ถูกดูดไปใช้จริงไม่ได้)
               </p>
               <div className="flex gap-2 flex-wrap">
                 <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[12px] text-[#666]">
@@ -583,7 +630,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
               )}
             </div>
 
-            <FontFileSection label="Demo Font (ให้ลูกค้าดาวน์โหลดทดลอง)" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
+            <FontFileSection label="Demo Font (ให้ลูกค้าดาวน์โหลดทดลอง) — ไม่บังคับ" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
           </>
         )}
         {isFree && (

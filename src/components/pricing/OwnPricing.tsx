@@ -4,18 +4,21 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/Button";
-import { DEFAULT_LICENSE_TIERS, parseLicenseSettings, type LicenseTier } from "@/lib/license";
+import {
+  DEFAULT_LICENSE_TIERS,
+  parseLicenseSettings,
+  parseDesignerTiers,
+  newTierId,
+  type LicenseTier,
+} from "@/lib/license";
 
-type Tier = { name: string; price: number };
 type PromoState = { discount: string; end: string; active: boolean };
-
-const toTierList = (tiers: LicenseTier[]): Tier[] => tiers.map((t) => ({ name: t.name, price: t.price }));
 
 export default function OwnPricing() {
   const { user } = useAuth();
   const [useDefault, setUseDefault] = useState(true);
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(DEFAULT_LICENSE_TIERS);
-  const [tiers, setTiers] = useState<Tier[]>(toTierList(DEFAULT_LICENSE_TIERS));
+  const [tiers, setTiers] = useState<LicenseTier[]>(DEFAULT_LICENSE_TIERS);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,12 +50,14 @@ export default function OwnPricing() {
       setUseDefault(data.use_default);
       setPdfUrl(data.license_pdf_url ?? null);
       if (!data.use_default && data.tiers) {
-        setTiers(data.tiers as Tier[]);
+        // mintMissingIds: หน้านี้เป็น editor — tier เก่าที่ยังไม่มี id จะได้ id ถาวร
+        // แล้วเขียนลง DB ตอนกดบันทึก
+        setTiers(parseDesignerTiers(data.tiers, { mintMissingIds: true }));
       } else {
-        setTiers(toTierList(parsedDefaults));
+        setTiers(parsedDefaults);
       }
     } else {
-      setTiers(toTierList(parsedDefaults));
+      setTiers(parsedDefaults);
     }
     // Load active promo from own fonts
     const { data: promoFont } = await supabase
@@ -111,19 +116,20 @@ export default function OwnPricing() {
   };
 
   const resetToDefault = () => {
-    setTiers(toTierList(defaultTiers));
+    setTiers(defaultTiers);
     setUseDefault(true);
     setPdfFile(null);
     setPdfUrl(null);
   };
 
-  const setTierField = (i: number, field: keyof Tier, val: string) => {
+  // id แก้ไม่ได้ — ต้องนิ่งถาวรเพื่อให้ใบเสนอราคาเก่ายังอ้างถึง tier ได้หลังเปลี่ยนชื่อ
+  const setTierField = (i: number, field: "name" | "desc" | "price", val: string) => {
     setTiers((prev) => prev.map((t, idx) =>
       idx === i ? { ...t, [field]: field === "price" ? Number(val) : val } : t
     ));
   };
 
-  const addTier = () => setTiers((prev) => [...prev, { name: "", price: 0 }]);
+  const addTier = () => setTiers((prev) => [...prev, { id: newTierId(), name: "", desc: "", price: 0 }]);
   const removeTier = (i: number) => setTiers((prev) => prev.filter((_, idx) => idx !== i));
 
   const save = async () => {
@@ -187,7 +193,7 @@ export default function OwnPricing() {
             checked={!useDefault}
             onChange={(e) => {
               setUseDefault(!e.target.checked);
-              if (!e.target.checked) setTiers(toTierList(defaultTiers));
+              if (!e.target.checked) setTiers(defaultTiers);
             }}
             className="mt-0.5 accent-[#0a8a84] shrink-0"
           />
@@ -215,6 +221,13 @@ export default function OwnPricing() {
                       placeholder="ชื่อ tier เช่น บริษัทขนาดเล็ก"
                       className="w-full px-3 py-2 border border-[0.5px] border-[#ddd] rounded-[8px] text-[13px] text-navy outline-none focus:border-mint bg-white"
                     />
+                    <input
+                      type="text"
+                      value={tier.desc ?? ""}
+                      onChange={(e) => setTierField(i, "desc", e.target.value)}
+                      placeholder="รายละเอียด เช่น ผู้ใช้งานไม่เกิน 10 เครื่อง"
+                      className="w-full px-3 py-2 border border-[0.5px] border-[#ddd] rounded-[8px] text-[13px] text-navy outline-none focus:border-mint bg-white"
+                    />
                     <div className="flex items-center gap-2">
                       <span className="text-[13px] text-[#aaa]">฿</span>
                       <input
@@ -226,6 +239,7 @@ export default function OwnPricing() {
                         className="w-full px-3 py-2 border border-[0.5px] border-[#ddd] rounded-[8px] text-[13px] text-navy outline-none focus:border-mint bg-white"
                       />
                     </div>
+                    <span className="text-[11px] text-[#ccc] font-mono">id: {tier.id}</span>
                   </div>
                   {tiers.length > 1 && (
                     <button
@@ -253,6 +267,9 @@ export default function OwnPricing() {
                 เพิ่ม tier
               </button>
             )}
+            <p className="text-[11px] text-[#bbb] mt-3 leading-[1.6]">
+              หมายเหตุ: id ของแต่ละ tier ถูกตรึงไว้ถาวรและแก้ไม่ได้ — เปลี่ยนชื่อหรือรายละเอียดได้ตามต้องการโดยไม่กระทบใบเสนอราคา/ใบเสร็จเก่า แต่การลบ tier จะทำให้ลูกค้าเลือกรายการนั้นใหม่ไม่ได้ (ข้อมูลเก่ายังแสดงชื่อเดิมตามปกติ)
+            </p>
           </div>
 
           <div className="bg-white rounded-2xl border border-border p-5 mb-4">

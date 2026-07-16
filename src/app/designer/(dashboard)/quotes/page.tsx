@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import { licenseLabel, parseLicenseSettings, type LicenseTier } from "@/lib/license";
+import {
+  licenseLabel,
+  parseLicenseSettings,
+  parseDesignerTiers,
+  findTier,
+  type LicenseTier,
+} from "@/lib/license";
 import PrintLightbox, { type PrintData } from "@/components/admin/PrintLightbox";
 import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
 import IssueQuoteModal, { type IssueQuote, type InitialItem } from "@/components/IssueQuoteModal";
@@ -68,6 +74,7 @@ export default function DesignerQuotesPage() {
   const [printOpen, setPrintOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
+  const [customTiers, setCustomTiers] = useState<LicenseTier[]>([]);
   const sellerCache = useRef<SellerInfo | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 5000); };
@@ -77,6 +84,22 @@ export default function DesignerQuotesPage() {
       setDefaultTiers(parseLicenseSettings(data?.value));
     });
   }, []);
+
+  // หน้านี้แสดงเฉพาะ quotes ของตัวเอง — โหลด custom tiers ครั้งเดียวพอ
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("designer_license_config")
+      .select("use_default, tiers")
+      .eq("designer_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCustomTiers(data && !data.use_default ? parseDesignerTiers(data.tiers) : []);
+      });
+  }, [user]);
+
+  // custom ของตัวเองมาก่อน default ของเว็บ — ถ้าชื่อชนกันต้องได้ราคาของตัวเอง
+  const allTiers = useMemo(() => [...customTiers, ...defaultTiers], [customTiers, defaultTiers]);
 
   const loadQuotes = useCallback(async () => {
     if (!user) return;
@@ -107,40 +130,18 @@ export default function DesignerQuotesPage() {
     return null;
   }, [user]);
 
+  // หา tier จาก custom ของตัวเองก่อน แล้วค่อย default ของเว็บ
+  // (findTier รองรับทั้ง id / ชื่อ / custom_<N> ของแถวเก่า)
   const getLicenseItems = useCallback(async (
     licenseType: string,
     fontNames: string[],
   ): Promise<Array<{ name: string; license_type: string; price: number }>> => {
-    if (!user) return fontNames.map((name) => ({ name, license_type: licenseType, price: 0 }));
-
-    // ลอง designer custom tiers ก่อน
-    const { data: config } = await supabase
-      .from("designer_license_config")
-      .select("use_default, tiers")
-      .eq("designer_id", user.id)
-      .single();
-
-    if (config && !config.use_default && config.tiers) {
-      const tiers = config.tiers as Array<{ name: string; price: number }>;
-      // name-based lookup (รูปแบบใหม่)
-      const byName = tiers.find((t) => t.name === licenseType);
-      if (byName) return fontNames.map((name) => ({ name, license_type: byName.name, price: byName.price }));
-      // backward compat: รูปแบบเก่า custom_N
-      const customMatch = licenseType.match(/^custom_(\d+)$/);
-      if (customMatch) {
-        const tier = tiers[parseInt(customMatch[1])];
-        if (tier) return fontNames.map((name) => ({ name, license_type: tier.name, price: tier.price }));
-      }
-      // tier ถูกลบไปแล้ว — ใช้ชื่อเดิม ราคา 0
-      return fontNames.map((name) => ({ name, license_type: licenseType, price: 0 }));
-    }
-
-    // fallback → default tiers (site-wide settings) — key ด้วย tier.id
-    const tier = defaultTiers.find((t) => t.id === licenseType);
-    const label = licenseLabel(licenseType, defaultTiers);
+    const tier = findTier(licenseType, allTiers);
+    // หา tier ไม่เจอ (ถูกลบไปแล้ว) — คงค่าที่บันทึกไว้เดิม ราคา 0 ให้ผู้ใช้แก้เอง
+    const label = tier?.name ?? licenseLabel(licenseType, allTiers);
     const price = tier?.price ?? 0;
     return fontNames.map((name) => ({ name, license_type: label, price }));
-  }, [user, defaultTiers]);
+  }, [allTiers]);
 
   // สร้าง PrintData สำหรับใบเสนอราคา/ใบเสร็จ — ใช้ราคาที่บันทึกไว้ (fonts_detail) ถ้ามี
   const buildPrintData = useCallback(async (
@@ -156,7 +157,7 @@ export default function DesignerQuotesPage() {
     if (q.fonts_detail && q.fonts_detail.length > 0) {
       items = q.fonts_detail.map((d) => ({
         name: d.name,
-        license_type: licenseLabel(d.license_type, defaultTiers),
+        license_type: licenseLabel(d.license_type, allTiers),
         price: d.price,
       }));
     } else {
@@ -178,7 +179,7 @@ export default function DesignerQuotesPage() {
       discount: q.discount ?? 0,
       seller: sellerInfo,
     };
-  }, [getSeller, getLicenseItems, defaultTiers]);
+  }, [getSeller, getLicenseItems, allTiers]);
 
   const openPrint = useCallback(async (q: QuoteRow, type: "quotation" | "receipt") => {
     const data = await buildPrintData(q, type);
@@ -310,7 +311,7 @@ export default function DesignerQuotesPage() {
               <div className="text-[12px] text-[#888]">{fmtDate(q.created_at)}</div>
               <div className="text-[13px] text-navy font-medium truncate">{q.contact_name}</div>
               <div className="text-[13px] text-[#555] truncate">{q.company_name}</div>
-              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type, defaultTiers)}</div>
+              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type, allTiers)}</div>
               <div>
                 {q.quote_no
                   ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">{q.quote_no}</span>
@@ -339,7 +340,7 @@ export default function DesignerQuotesPage() {
                 { label: "อีเมล", value: selected.email },
                 { label: "ที่อยู่", value: selected.address },
                 { label: "เลขภาษี", value: selected.tax_id },
-                { label: "รูปแบบสิทธิ์", value: licenseLabel(selected.license_type, defaultTiers) },
+                { label: "รูปแบบสิทธิ์", value: licenseLabel(selected.license_type, allTiers) },
                 { label: "หมายเหตุ", value: selected.note },
               ].map(({ label, value }) => value ? (
                 <div key={label}>

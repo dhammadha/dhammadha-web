@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import { licenseLabel, parseLicenseSettings, type LicenseTier } from "@/lib/license";
+import {
+  licenseLabel,
+  parseLicenseSettings,
+  parseDesignerTiers,
+  findTier,
+  type LicenseTier,
+} from "@/lib/license";
 import PrintLightbox, { type PrintData } from "@/components/admin/PrintLightbox";
 import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
 import IssueQuoteModal, { type IssueQuote, type InitialItem } from "@/components/IssueQuoteModal";
@@ -56,6 +62,7 @@ export default function AdminQuotesPage() {
   const [issuingItems, setIssuingItems] = useState<InitialItem[]>([]);
   const [toast, setToast] = useState("");
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
+  const [customTiers, setCustomTiers] = useState<LicenseTier[]>([]);
   // ผู้ขายต่างกันตาม designer ของแต่ละ quote — cache กันดึงซ้ำ (key: designer_id ?? "self")
   const sellerCacheRef = useRef<Record<string, SellerInfo>>({});
 
@@ -66,6 +73,23 @@ export default function AdminQuotesPage() {
       setDefaultTiers(parseLicenseSettings(data?.value));
     });
   }, []);
+
+  // quotes ในหน้านี้ถูกกรองด้วย designer_id = user.id อยู่แล้ว จึงมี designer เดียว
+  // โหลด custom tiers ครั้งเดียวพอ ไม่ต้องดึงซ้ำต่อ quote
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("designer_license_config")
+      .select("use_default, tiers")
+      .eq("designer_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setCustomTiers(data && !data.use_default ? parseDesignerTiers(data.tiers) : []);
+      });
+  }, [user]);
+
+  // custom ของ designer มาก่อน default ของเว็บ — ถ้าชื่อชนกันต้องได้ราคาของ designer
+  const allTiers = useMemo(() => [...customTiers, ...defaultTiers], [customTiers, defaultTiers]);
 
   const loadQuotes = useCallback(async () => {
     if (!user) return;
@@ -85,48 +109,19 @@ export default function AdminQuotesPage() {
 
   useEffect(() => { loadQuotes(); }, [loadQuotes]);
 
-  // ดึงราคาและ label ของ license_type จาก settings หรือ designer_license_config
+  // ดึงราคาและ label ของ license_type — หา tier จาก custom ของ designer ก่อน
+  // แล้วค่อย default ของเว็บ (findTier รองรับทั้ง id / ชื่อ / custom_<N> ของแถวเก่า)
   const getLicenseItems = useCallback(async (
-    designerId: string | null,
+    _designerId: string | null,
     licenseType: string,
     fontNames: string[],
   ): Promise<Array<{ name: string; license_type: string; price: number }>> => {
-    const targetId = designerId ?? user?.id;
-
-    // ลอง designer custom tiers ก่อน
-    if (targetId) {
-      const { data: config } = await supabase
-        .from("designer_license_config")
-        .select("use_default, tiers")
-        .eq("designer_id", targetId)
-        .single();
-
-      if (config && !config.use_default && config.tiers) {
-        const tiers = config.tiers as Array<{ name: string; price: number }>;
-        // name-based lookup (รูปแบบใหม่: license_type = tier.name โดยตรง)
-        const byName = tiers.find((t) => t.name === licenseType);
-        if (byName) {
-          return fontNames.map((name) => ({ name, license_type: byName.name, price: byName.price }));
-        }
-        // backward compat: รูปแบบเก่าที่เก็บ custom_N (index)
-        const customMatch = licenseType.match(/^custom_(\d+)$/);
-        if (customMatch) {
-          const tier = tiers[parseInt(customMatch[1])];
-          if (tier) {
-            return fontNames.map((name) => ({ name, license_type: tier.name, price: tier.price }));
-          }
-        }
-        // ถ้าหาไม่เจอเลย (tier ถูกลบไปแล้ว) — ใช้ชื่อเดิมที่บันทึกไว้ ราคา 0
-        return fontNames.map((name) => ({ name, license_type: licenseType, price: 0 }));
-      }
-    }
-
-    // ดึงราคาจาก tiers ของ settings (default site-wide) — key ด้วย tier.id
-    const tier = defaultTiers.find((t) => t.id === licenseType);
-    const label = licenseLabel(licenseType, defaultTiers);
+    const tier = findTier(licenseType, allTiers);
+    // หา tier ไม่เจอ (ถูกลบไปแล้ว) — คงค่าที่บันทึกไว้เดิม ราคา 0 ให้ผู้ใช้แก้เอง
+    const label = tier?.name ?? licenseLabel(licenseType, allTiers);
     const price = tier?.price ?? 0;
     return fontNames.map((name) => ({ name, license_type: label, price }));
-  }, [user, defaultTiers]);
+  }, [allTiers]);
 
   // ดึงข้อมูลผู้ขาย (สำหรับพิมพ์/ออกเอกสาร) ของ designer เจ้าของ quote นั้น ๆ
   // ถ้า designer_id เป็น null หรือดึงแถวของ designer ไม่ได้ (RLS) → fallback เป็นผู้ใช้ที่ login อยู่
@@ -166,7 +161,7 @@ export default function AdminQuotesPage() {
     if (q.fonts_detail && q.fonts_detail.length > 0) {
       items = q.fonts_detail.map((d) => ({
         name: d.name,
-        license_type: licenseLabel(d.license_type, defaultTiers),
+        license_type: licenseLabel(d.license_type, allTiers),
         price: d.price,
       }));
     } else {
@@ -189,7 +184,7 @@ export default function AdminQuotesPage() {
       discount: q.discount ?? 0,
       seller: sellerInfo,
     };
-  }, [getSeller, getLicenseItems, defaultTiers]);
+  }, [getSeller, getLicenseItems, allTiers]);
 
   const openPrint = useCallback(async (q: QuoteRow, type: "quotation" | "receipt") => {
     const data = await buildPrintData(q, type);
@@ -318,7 +313,7 @@ export default function AdminQuotesPage() {
               <div className="text-[12px] text-[#888]">{fmtDate(q.created_at)}</div>
               <div className="text-[13px] text-navy font-medium truncate">{q.contact_name}</div>
               <div className="text-[13px] text-[#555] truncate">{q.company_name}</div>
-              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type, defaultTiers)}</div>
+              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type, allTiers)}</div>
               <div>
                 {q.quote_no
                   ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">{q.quote_no}</span>
@@ -347,7 +342,7 @@ export default function AdminQuotesPage() {
               <Row label="อีเมล" value={selected.email} />
               <Row label="ที่อยู่" value={selected.address} />
               <Row label="เลขภาษี" value={selected.tax_id} />
-              <Row label="รูปแบบสิทธิ์" value={licenseLabel(selected.license_type, defaultTiers)} />
+              <Row label="รูปแบบสิทธิ์" value={licenseLabel(selected.license_type, allTiers)} />
               {selected.note && <Row label="หมายเหตุ" value={selected.note} />}
             </div>
 

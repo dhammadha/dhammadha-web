@@ -8,7 +8,12 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import PdfLightbox from "@/components/PdfLightbox";
 import Button from "@/components/Button";
-import { parseLicenseSettings, licenseLabel as getLicenseLabel, type LicenseTier } from "@/lib/license";
+import {
+  parseLicenseSettings,
+  parseDesignerTiers,
+  licenseLabel as getLicenseLabel,
+  type LicenseTier,
+} from "@/lib/license";
 
 interface FontItem {
   id: string;
@@ -27,7 +32,7 @@ interface DesignerInfo {
 interface LicenseConfig {
   use_default: boolean;
   license_pdf_url: string | null;
-  tiers: { name: string; price: number }[] | null;
+  tiers: LicenseTier[] | null;
 }
 
 const EMPTY_FORM = {
@@ -99,7 +104,15 @@ function QuoteForm() {
           .select("use_default, license_pdf_url, tiers")
           .eq("designer_id", dData!.id)
           .single();
-        setLicenseConfig(licData as LicenseConfig ?? null);
+        setLicenseConfig(
+          licData
+            ? {
+                use_default: licData.use_default,
+                license_pdf_url: licData.license_pdf_url,
+                tiers: parseDesignerTiers(licData.tiers),
+              }
+            : null
+        );
       }
       setDesigner(designerInfo);
 
@@ -187,14 +200,9 @@ function QuoteForm() {
         throw insertError;
       }
 
+      // custom tier ของ designer มาก่อน default ของเว็บ — ถ้าชื่อชนกัน ต้องได้ของ designer
       const customTiers = licenseConfig && !licenseConfig.use_default ? licenseConfig.tiers ?? [] : [];
-      const licenseLabel = (() => {
-        if (form.license_type.startsWith("custom_")) {
-          const idx = parseInt(form.license_type.replace("custom_", ""), 10);
-          return customTiers[idx]?.name ?? form.license_type;
-        }
-        return getLicenseLabel(form.license_type, defaultTiers);
-      })();
+      const licenseLabel = getLicenseLabel(form.license_type, [...customTiers, ...defaultTiers]);
 
       const emailPayload = {
         contact_name: form.contact_name,
@@ -338,23 +346,28 @@ function QuoteForm() {
               </h2>
 
               {licenseConfig && !licenseConfig.use_default && licenseConfig.tiers ? (
-                licenseConfig.tiers.map((tier, i) => (
+                licenseConfig.tiers.map((tier) => (
                     <label
-                      key={i}
+                      key={tier.id}
                       className={`flex items-start gap-3 p-3.5 rounded-[9px] border border-[0.5px] cursor-pointer transition-colors ${
-                        form.license_type === tier.name ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
+                        form.license_type === tier.id ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
                       }`}
                     >
                       <input
                         type="radio"
                         name="license_type"
-                        value={tier.name}
-                        checked={form.license_type === tier.name}
-                        onChange={() => set("license_type", tier.name)}
+                        value={tier.id}
+                        checked={form.license_type === tier.id}
+                        onChange={() => set("license_type", tier.id)}
                         className="mt-0.5 accent-[#0a8a84]"
                       />
-                      <div className="flex-1 flex items-center justify-between">
-                        <div className="text-[13px] font-medium text-navy">{tier.name}</div>
+                      <div className="flex-1 flex items-start justify-between">
+                        <div>
+                          <div className="text-[13px] font-medium text-navy">{tier.name}</div>
+                          {tier.desc && (
+                            <div className="text-[12px] text-[#888] mt-0.5">{tier.desc}</div>
+                          )}
+                        </div>
                         <div className="text-[13px] font-semibold text-navy ml-3 shrink-0">
                           ฿{tier.price.toLocaleString()}
                         </div>
