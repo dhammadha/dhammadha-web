@@ -558,10 +558,6 @@ export interface Database {
         Args: { p_id: string | null; p_data: Record<string, unknown> };
         Returns: Record<string, unknown>;
       };
-      publish_fonts: {
-        Args: Record<string, never>;
-        Returns: void;
-      };
       confirm_quote_paid: {
         Args: { p_quote_id: string; p_items: Json };
         Returns: Json;
