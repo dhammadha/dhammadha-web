@@ -110,11 +110,15 @@ async function supabaseSelectAsService<T>(
   pathAndQuery: string
 ): Promise<T[] | null> {
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  // ส่งเฉพาะ header apikey — ห้ามส่ง Authorization: Bearer
+  //
+  // รองรับ key ได้ทั้ง 2 รูปแบบ:
+  //  - service_role แบบเดิม (JWT `eyJ...`) → gateway อ่าน apikey แล้วผ่านลง PostgREST ปกติ
+  //  - secret key แบบใหม่ (`sb_secret_...`) → ไม่ใช่ JWT ถ้าใส่ใน Authorization
+  //    PostgREST จะปฏิเสธเพราะถอดรหัสไม่ได้ แต่ถ้าไม่ส่ง Authorization มาเลย
+  //    gateway จะ synthesize ให้เองจาก apikey (ดู docs "New API keys" → Authorization synthesis)
   const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
-    headers: {
-      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-    },
+    headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY },
   });
   if (!res.ok) return null;
   return (await res.json()) as T[];
