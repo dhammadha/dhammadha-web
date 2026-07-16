@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
+import { parseLicenseSettings, type LicenseTier } from "@/lib/license";
 
 function parseWeight(url: string): string {
   const decoded = decodeURIComponent(url.split("?")[0]);
@@ -59,7 +60,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [font, setFont] = useState<Font | null>(initialFont ?? null);
   const [related, setRelated] = useState<Font[]>([]);
   const [loading, setLoading] = useState(!initialFont);
-  const [licensing, setLicensing] = useState({ small: 3500, large: 7000, extra: 20000 });
+  const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [customLicenseTiers, setCustomLicenseTiers] = useState<{ name: string; price: number }[] | null>(null);
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
@@ -101,7 +102,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         for (const row of (settings ?? []) as { key: string; value: Record<string, unknown> }[]) {
           const v = row.value;
           if (row.key === "licensing") {
-            setLicensing({ small: (v.small as number) ?? 3500, large: (v.large as number) ?? 7000, extra: (v.extra as number) ?? 20000 });
+            setDefaultTiers(parseLicenseSettings(v));
           } else if (row.key === "promotion") {
             setPromotion({ discount_percent: (v.discount_percent as number) ?? 0, sale_end: (v.sale_end as string) ?? "", active: !!(v.active) });
           }
@@ -554,31 +555,22 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       </div>
                     ))
                   ) : (
-                    <>
-                      {[
-                        { name: "บริษัทขนาดเล็ก / กลาง", desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง", price: licensing.small },
-                        { name: "บริษัทใหญ่ / Ad Agency", desc: "ไม่จำกัดจำนวนเครื่อง", price: licensing.large },
-                      ].map((tier) => (
-                        <div key={tier.name} className="border border-[0.5px] border-border rounded-[8px] p-3">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[14px] font-medium text-navy">{tier.name}</span>
-                            <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
-                          </div>
-                          <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
-                        </div>
-                      ))}
-                      <div className="border border-[0.5px] border-border rounded-[8px] p-3">
+                    defaultTiers.map((tier) => (
+                      <div key={tier.id} className="border border-[0.5px] border-border rounded-[8px] p-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-[14px] font-medium text-navy">ใช้งานเพิ่มเติม ตาม ข้อ (3) ใน สัญญาอนุญาต</span>
-                          <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{licensing.extra.toLocaleString()}</span>
+                          <span className="text-[14px] font-medium text-navy">{tier.name}</span>
+                          <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
                         </div>
-                        <div className="text-[12px] text-[#aaa] mt-0.5">
-                          ดูรายละเอียด{" "}
-                          <Link href="/agreement/" className="text-mint no-underline hover:underline">สัญญาอนุญาต</Link>
-                        </div>
+                        {tier.desc && (
+                          <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
+                        )}
                       </div>
-                    </>
+                    ))
                   )}
+                </div>
+                <div className="text-[12px] text-[#aaa] mb-2.5">
+                  ดูรายละเอียด{" "}
+                  <Link href="/agreement/" className="text-mint no-underline hover:underline">สัญญาอนุญาต</Link>
                 </div>
                 <Button
                   as="link"

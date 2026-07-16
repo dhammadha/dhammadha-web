@@ -117,6 +117,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 13L6 3l4 10M3.5 10h5M10 3h4M12 3v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="13" cy="13" r="2.5" fill="currentColor" className="text-amber-400"/></svg>,
     },
     {
+      href: "/admin/license",
+      label: "License",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M8 5v3l2 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    },
+    {
       href: "/admin/designers",
       label: "Designers",
       badge: pendingDesigners,

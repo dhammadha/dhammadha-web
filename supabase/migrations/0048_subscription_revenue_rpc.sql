@@ -1,9 +1,9 @@
 -- Phase 4.1 — RPC คำนวณข้อมูลแบ่งรายได้ subscription รายเดือน
 --
 -- คืน "aggregate ปลอดภัย" (ไม่มีตัวตน user รายคน) ให้ทั้ง admin และ designer เรียกได้
--- ตรรกะเงิน (แบ่ง 50/15/35, ปัดเศษ) ทำใน src/lib/subscription-revenue.ts ตามแบบ revenue.ts
+-- ตรรกะเงิน (แบ่ง 50/12/38, ปัดเศษ) ทำใน src/lib/subscription-revenue.ts ตามแบบ revenue.ts
 --
--- โมเดล: revenue เดือนนั้น → เว็บ 50% | equal pool 15% | stream pool 35%
+-- โมเดล: revenue เดือนนั้น → เว็บ 50% | equal pool 12% | stream pool 38%
 --   equal pool  ÷ จำนวนฟอนต์ opt-in → เจ้าของฟอนต์
 --   stream pool แบ่งตาม stream_share ซึ่ง normalize แบบ user-centric:
 --     - subscriber แต่ละคนน้ำหนัก = 1 เท่ากัน (กัน activate-all / ปั๊มยอด)

@@ -6,8 +6,8 @@
 ## ภาพรวมโมเดล (ยืนยันกับ user แล้ว)
 
 - **แบ่งรายได้/เดือน:** เว็บ 50% / designer pool 50%
-  - **equal 15%** — แบ่งเท่ากันทุกฟอนต์ที่ opt-in (`is_subscription`) → เจ้าของฟอนต์
-  - **stream 35%** — แบ่งตาม **font-days + user-centric normalization**
+  - **equal 12%** — แบ่งเท่ากันทุกฟอนต์ที่ opt-in (`is_subscription`) → เจ้าของฟอนต์
+  - **stream 38%** — แบ่งตาม **font-days + user-centric normalization**
     (สมาชิกแต่ละคนน้ำหนัก = 1 เท่ากัน หารตาม font-days ของตัวเอง → กัน activate-all ปั๊มยอด)
   - ส่วนแบ่งไม่หมด (ไม่มีฟอนต์/ไม่มีคนสตรีม) → ตกเป็นของแพลตฟอร์ม
 - **ราคา:** ฿290/เดือน · ฿2,900/ปี (ฟรี 2 เดือน) · **ช่วงทดสอบ ฿0**
@@ -39,7 +39,7 @@
 ## ✅ Milestone B — คำนวณส่วนแบ่ง (เสร็จ, commit 39fdfde)
 
 - [x] migration **0048** RPC `subscription_month_data(year, month)` — user-centric normalize ใน SQL
-- [x] `src/lib/subscription-revenue.ts` (pure, SPLIT 50/15/35, reconcile ปัดเศษ)
+- [x] `src/lib/subscription-revenue.ts` (pure, SPLIT 50/12/38, reconcile ปัดเศษ)
 - [x] `SubscriptionRevenue` component → drop เข้า `/admin/revenue` + `/designer/revenue`
 - [x] ทดสอบ RPC ด้วยข้อมูลสังเคราะห์: normalize ถูก, orphan/empty handle, reconcile 145.01+144.99=290
 
@@ -103,4 +103,4 @@
 - `is_subscription` default เปิดทุกฟอนต์ (opt-out) — โอเคตอนนี้ (ฟอนต์ทั้งหมดของสตูดิโอ) ควรระบุใน designer agreement เมื่อรับ designer นอก
 - ไฟล์ถอดรหัสชั่วคราวระหว่าง active ถูก copy ได้ (เหมือน Adobe Fonts) — stamp ระบุตัว subscriber เป็น audit trail
 - subscriber จริง script heartbeat เชียร์ตัวเองได้ แต่ user-centric จำกัดความเสียหาย = น้ำหนัก 1 คน
-- stream 35% + font-days จะเป็น ฿0/ว่าง จนกว่า desktop app (C) ส่ง heartbeat
+- stream 38% + font-days จะเป็น ฿0/ว่าง จนกว่า desktop app (C) ส่ง heartbeat

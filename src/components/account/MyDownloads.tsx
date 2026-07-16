@@ -80,10 +80,11 @@ export default function MyDownloads() {
         body: { action: "download", font_id: ent.font_id, file_index: file.index },
       });
       if (fnError || !(data instanceof Blob)) {
+        console.error("download-font failed", { fnError, data });
         setError(
           errMsg(
             typeof data === "object" && data && "error" in data ? (data as { error?: string }).error : undefined,
-            "ดาวน์โหลดไม่สำเร็จ — หากเกินจำนวนครั้งต่อวัน กรุณาลองพรุ่งนี้"
+            "ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่ — หากยังไม่ได้ กรุณาติดต่อผู้ขาย"
           )
         );
         return;

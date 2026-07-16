@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import PdfLightbox from "@/components/PdfLightbox";
 import Button from "@/components/Button";
+import { parseLicenseSettings, licenseLabel as getLicenseLabel, type LicenseTier } from "@/lib/license";
 
 interface FontItem {
   id: string;
@@ -28,24 +29,6 @@ interface LicenseConfig {
   license_pdf_url: string | null;
   tiers: { name: string; price: number }[] | null;
 }
-
-const LICENSE_TYPES = [
-  {
-    value: "small_medium",
-    label: "บริษัทขนาดเล็ก / กลาง",
-    desc: "ผู้ใช้งานไม่เกิน 10 เครื่อง",
-  },
-  {
-    value: "large_agency",
-    label: "บริษัทขนาดใหญ่ / Ad Agency",
-    desc: "ไม่จำกัดจำนวนเครื่อง",
-  },
-  {
-    value: "extended",
-    label: "สิทธิการใช้งานเพิ่มเติม",
-    desc: "TVC / Digital Video Ad / Film / Identity / Web Font / App Font ฯลฯ",
-  },
-];
 
 const EMPTY_FORM = {
   contact_name: "",
@@ -85,6 +68,7 @@ function QuoteForm() {
   const [fonts, setFonts] = useState<FontItem[]>([]);
   const [designer, setDesigner] = useState<DesignerInfo | null>(null);
   const [licenseConfig, setLicenseConfig] = useState<LicenseConfig | null>(null);
+  const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [selectedFonts, setSelectedFonts] = useState<string[]>([preselectedFont || ""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -94,6 +78,13 @@ function QuoteForm() {
   useEffect(() => {
     async function load() {
       let designerInfo: DesignerInfo | null = null;
+
+      const { data: licSettings } = await supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "licensing")
+        .single();
+      setDefaultTiers(parseLicenseSettings(licSettings?.value));
 
       if (designerSlug) {
         const { data: dData } = await supabase
@@ -202,7 +193,7 @@ function QuoteForm() {
           const idx = parseInt(form.license_type.replace("custom_", ""), 10);
           return customTiers[idx]?.name ?? form.license_type;
         }
-        return LICENSE_TYPES.find(l => l.value === form.license_type)?.label ?? form.license_type;
+        return getLicenseLabel(form.license_type, defaultTiers);
       })();
 
       const emailPayload = {
@@ -371,24 +362,26 @@ function QuoteForm() {
                     </label>
                   ))
               ) : (
-                LICENSE_TYPES.map((lt) => (
+                defaultTiers.map((tier) => (
                   <label
-                    key={lt.value}
+                    key={tier.id}
                     className={`flex items-start gap-3 p-3.5 rounded-[9px] border border-[0.5px] cursor-pointer transition-colors ${
-                      form.license_type === lt.value ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
+                      form.license_type === tier.id ? "border-mint bg-mint-light" : "border-border hover:border-[#bbb]"
                     }`}
                   >
                     <input
                       type="radio"
                       name="license_type"
-                      value={lt.value}
-                      checked={form.license_type === lt.value}
-                      onChange={() => set("license_type", lt.value)}
+                      value={tier.id}
+                      checked={form.license_type === tier.id}
+                      onChange={() => set("license_type", tier.id)}
                       className="mt-0.5 accent-[#0a8a84]"
                     />
                     <div>
-                      <div className="text-[13px] font-medium text-navy">{lt.label}</div>
-                      <div className="text-[12px] text-[#888] mt-0.5">{lt.desc}</div>
+                      <div className="text-[13px] font-medium text-navy">{tier.name}</div>
+                      {tier.desc && (
+                        <div className="text-[12px] text-[#888] mt-0.5">{tier.desc}</div>
+                      )}
                     </div>
                   </label>
                 ))

@@ -1,6 +1,6 @@
 -- Phase 4.1 — Stream days + sub download logs (ข้อมูลระดับเงิน — server เขียนเท่านั้น)
 --
--- stream_days: "font-days" ฐานการแบ่ง stream pool 35% ของ subscription
+-- stream_days: "font-days" ฐานการแบ่ง stream pool 38% ของ subscription
 --   1 แถว = subscriber คนนี้ activate ฟอนต์นี้อยู่ ณ วันนี้ (วันตามเวลาไทย)
 --   เขียนได้จาก Edge Function sub-font (service role, ตรวจ JWT + สิทธิ์ก่อน) เท่านั้น
 --   ต่างจาก font_events (0038) ที่เป็นสถิติ client เขียนตรงได้ — อันนี้กระทบเงิน

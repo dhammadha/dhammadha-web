@@ -146,7 +146,10 @@ Deno.serve(async (req: Request) => {
   return new Response(bytes, {
     headers: {
       ...CORS,
-      "Content-Type": ext === "otf" ? "font/otf" : "font/ttf",
+      // ต้องเป็น octet-stream เท่านั้น — supabase-js functions.invoke คืน Blob
+      // เฉพาะ application/octet-stream กับ application/pdf นอกนั้นถอดเป็น text
+      "Content-Type": "application/octet-stream",
+      "X-Font-Type": ext === "otf" ? "font/otf" : "font/ttf",
       "Content-Disposition": `attachment; filename="${filename.replace(/[^\w.\-]/g, "_")}"`,
       "X-Stamped": stamped ? "1" : "0",
     },

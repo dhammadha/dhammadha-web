@@ -252,7 +252,7 @@ export default function AdminPayoutsPage() {
       {/* Stat tiles — current month, all designers */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <StatTile label={`ยอดขาย B2C (${monthLabel(currentYear, currentMonth)})`} value={fmtBaht(currentStats.b2cTotal)} />
-        <StatTile label="ส่วนแบ่งเว็บ" value={fmtBaht(currentStats.platformAmount)} />
+        <StatTile label="รายได้ของเว็บ" value={fmtBaht(currentStats.platformAmount)} />
         <StatTile label="ค้างโอนให้ designer" value={fmtBaht(currentStats.pendingDesignerAmount)} highlight />
         <StatTile label="ยอด B2B (รับตรง)" value={fmtBaht(currentStats.b2bTotal)} />
       </div>
@@ -361,7 +361,7 @@ export default function AdminPayoutsPage() {
                 {/* Breakdown */}
                 <div className="flex flex-col gap-1.5 text-[13px] border-t border-border pt-3">
                   <Row label="ยอดขาย B2C" value={fmtBaht(selectedRow.statement.b2cTotal)} />
-                  <Row label="ส่วนแบ่งเว็บ" value={fmtBaht(selectedRow.statement.platformAmount)} />
+                  <Row label="รายได้ของเว็บ" value={fmtBaht(selectedRow.statement.platformAmount)} />
                   <Row label="ส่วนแบ่ง designer" value={fmtBaht(selectedRow.statement.designerAmount)} />
                   <Row label="ยอด B2B (รับตรง)" value={fmtBaht(selectedRow.statement.b2bTotal)} />
                 </div>

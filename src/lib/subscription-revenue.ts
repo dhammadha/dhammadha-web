@@ -2,8 +2,8 @@
  * ตรรกะแบ่งรายได้ subscription รายเดือน — pure (ไม่ผูก React/Supabase)
  * รับ output ของ RPC subscription_month_data (0048) มาแปลงเป็นยอดเงินต่อ designer
  *
- * โมเดล (ยืนยันกับ user 2026-07-12):
- *   revenue เดือนนั้น → เว็บ 50% | equal pool 15% | stream pool 35%
+ * โมเดล (ยืนยันกับ user 2026-07-12, ปรับสัดส่วน Phase 4.2b):
+ *   revenue เดือนนั้น → เว็บ 50% | equal pool 12% | stream pool 38%
  *   - equal pool  ÷ จำนวนฟอนต์ opt-in → เจ้าของฟอนต์ (ทุกฟอนต์เท่ากัน)
  *   - stream pool แบ่งตาม stream_share (RPC normalize แบบ user-centric มาแล้ว
  *     — subscriber แต่ละคนน้ำหนัก 1 เท่ากัน sum(stream_share) = 1 เมื่อมีคนสตรีม)
@@ -13,7 +13,7 @@
  *   - เดือนทดสอบ revenue = 0 → ทุกยอด 0 แต่สัดส่วน/font-days ยังแสดงจริง
  */
 
-export const SPLIT = { web: 0.5, equal: 0.15, stream: 0.35 } as const;
+export const SPLIT = { web: 0.5, equal: 0.12, stream: 0.38 } as const;
 
 export type FontEntry = {
   font_id: string;
@@ -60,8 +60,8 @@ export type SubMonthStatement = {
   subscriberCount: number;
   contributingUsers: number;
   webAmount: number; // 50% (nominal)
-  equalPool: number; // 15% (nominal)
-  streamPool: number; // 35% (nominal)
+  equalPool: number; // 12% (nominal)
+  streamPool: number; // 38% (nominal)
   optedCount: number;
   fonts: FontShare[]; // opt-in + orphan รวมกัน
   byDesigner: Map<string, DesignerSlice>;

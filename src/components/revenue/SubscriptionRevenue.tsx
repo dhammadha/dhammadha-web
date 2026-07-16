@@ -2,7 +2,7 @@
 
 // ส่วนรายได้ subscription (แยกจากรายได้ B2C/B2B เดิม) — ใช้ทั้งหน้า admin และ designer
 // เรียก RPC subscription_month_data(year, month) แล้วคำนวณส่วนแบ่งด้วย
-// src/lib/subscription-revenue.ts (pure) — โมเดล เว็บ 50% / equal 15% / stream 35%
+// src/lib/subscription-revenue.ts (pure) — โมเดล เว็บ 50% / equal 12% / stream 38%
 //
 // admin  : เห็น pool รวม + ตารางต่อ designer + ต่อฟอนต์
 // designer: เห็นเฉพาะส่วนแบ่งของตัวเอง
@@ -95,7 +95,7 @@ export default function SubscriptionRevenue({ mode }: Props) {
         </select>
       </div>
       <p className="text-[12px] text-[#888] mb-4 leading-relaxed">
-        แบ่งจากยอดสมาชิกรวม: เว็บ 50% · แบ่งเท่ากันทุกฟอนต์ในแพลน 15% · ตามยอดใช้งาน (font-days) 35%
+        แบ่งจากยอดสมาชิกรวม: เว็บ 50% · แบ่งเท่ากันทุกฟอนต์ในแพลน 12% · ตามยอดใช้งาน (font-days) 38%
       </p>
 
       {loading ? (
@@ -137,9 +137,9 @@ function AdminView({ stmt, names }: { stmt: SubMonthStatement; names: Record<str
     <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         <Pool label="ยอดสมาชิกรวม" pct={`${stmt.subscriberCount} คน`} amount={stmt.revenue} sub={`ใช้งานจริง ${stmt.contributingUsers} คน`} />
-        <Pool label="ส่วนแบ่งเว็บ" pct="50%" amount={stmt.platformAmount} sub="รวมส่วนที่แบ่งไม่หมด" />
-        <Pool label="Pool แบ่งเท่ากัน" pct="15%" amount={stmt.equalPool} sub={`${stmt.optedCount} ฟอนต์`} />
-        <Pool label="Pool ตามการใช้งาน" pct="35%" amount={stmt.streamPool} />
+        <Pool label="รายได้ของเว็บ" pct="50%" amount={stmt.platformAmount} sub="รวมส่วนที่แบ่งไม่หมด" />
+        <Pool label="Pool แบ่งเท่ากัน" pct="12%" amount={stmt.equalPool} sub={`${stmt.optedCount} ฟอนต์`} />
+        <Pool label="Pool ตามการใช้งาน" pct="38%" amount={stmt.streamPool} />
       </div>
 
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
@@ -223,7 +223,7 @@ function DesignerView({ stmt, designerId }: { stmt: SubMonthStatement; designerI
         </div>
       )}
       <p className="text-[11px] text-[#aaa] mt-2.5 leading-relaxed">
-        &quot;ตามการใช้งาน&quot; นับจากจำนวนวันที่สมาชิกเปิดใช้ฟอนต์ผ่านแอป (font-days) โดยเสียงของสมาชิกแต่ละคนถ่วงน้ำหนักเท่ากัน
+        &quot;ตามการใช้งาน&quot; นับจากจำนวนวันที่สมาชิกเปิดใช้ฟอนต์ผ่านแอป (font-days) โดยนำสถิติการใช้งานของสมาชิก Subscription แต่ละคนมาคำนวณ
       </p>
     </>
   );

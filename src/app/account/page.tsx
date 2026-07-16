@@ -113,7 +113,7 @@ export default function AccountPage() {
             )}
           </div>
 
-          <SubscriptionCard />
+          {role !== "admin" && <SubscriptionCard />}
           <MyFavourites />
           <MyDownloads />
         </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import { licenseLabel } from "@/lib/license";
+import { licenseLabel, parseLicenseSettings, type LicenseTier } from "@/lib/license";
 import PrintLightbox, { type PrintData } from "@/components/admin/PrintLightbox";
 import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
 import IssueQuoteModal, { type IssueQuote, type InitialItem } from "@/components/IssueQuoteModal";
@@ -44,12 +44,6 @@ function fmtDate(s: string) {
 
 const SELLER_FIELDS = "name, business_name, entity_type, tax_id, address, phone, email, bank";
 
-const DEFAULT_PRICES: Record<string, number> = {
-  small_medium: 3500,
-  large_agency: 7000,
-  extended: 20000,
-};
-
 // chunk-safe Uint8Array → base64
 function uint8ToBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -73,9 +67,16 @@ export default function DesignerQuotesPage() {
   const [printQuoteId, setPrintQuoteId] = useState<string | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const sellerCache = useRef<SellerInfo | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 5000); };
+
+  useEffect(() => {
+    supabase.from("settings").select("value").eq("key", "licensing").single().then(({ data }) => {
+      setDefaultTiers(parseLicenseSettings(data?.value));
+    });
+  }, []);
 
   const loadQuotes = useCallback(async () => {
     if (!user) return;
@@ -134,20 +135,12 @@ export default function DesignerQuotesPage() {
       return fontNames.map((name) => ({ name, license_type: licenseType, price: 0 }));
     }
 
-    // fallback → global settings
-    const { data: settings } = await supabase
-      .from("settings").select("value").eq("key", "licensing").single();
-    const sv = settings?.value as { small?: number; large?: number; extra?: number } | null;
-    const prices: Record<string, number> = {
-      small_medium: sv?.small ?? DEFAULT_PRICES.small_medium,
-      large_agency: sv?.large ?? DEFAULT_PRICES.large_agency,
-      extended: sv?.extra ?? DEFAULT_PRICES.extended,
-    };
-
-    const label = licenseLabel(licenseType);
-    const price = prices[licenseType] ?? 0;
+    // fallback → default tiers (site-wide settings) — key ด้วย tier.id
+    const tier = defaultTiers.find((t) => t.id === licenseType);
+    const label = licenseLabel(licenseType, defaultTiers);
+    const price = tier?.price ?? 0;
     return fontNames.map((name) => ({ name, license_type: label, price }));
-  }, [user]);
+  }, [user, defaultTiers]);
 
   // สร้าง PrintData สำหรับใบเสนอราคา/ใบเสร็จ — ใช้ราคาที่บันทึกไว้ (fonts_detail) ถ้ามี
   const buildPrintData = useCallback(async (
@@ -163,7 +156,7 @@ export default function DesignerQuotesPage() {
     if (q.fonts_detail && q.fonts_detail.length > 0) {
       items = q.fonts_detail.map((d) => ({
         name: d.name,
-        license_type: licenseLabel(d.license_type),
+        license_type: licenseLabel(d.license_type, defaultTiers),
         price: d.price,
       }));
     } else {
@@ -185,7 +178,7 @@ export default function DesignerQuotesPage() {
       discount: q.discount ?? 0,
       seller: sellerInfo,
     };
-  }, [getSeller, getLicenseItems]);
+  }, [getSeller, getLicenseItems, defaultTiers]);
 
   const openPrint = useCallback(async (q: QuoteRow, type: "quotation" | "receipt") => {
     const data = await buildPrintData(q, type);
@@ -317,7 +310,7 @@ export default function DesignerQuotesPage() {
               <div className="text-[12px] text-[#888]">{fmtDate(q.created_at)}</div>
               <div className="text-[13px] text-navy font-medium truncate">{q.contact_name}</div>
               <div className="text-[13px] text-[#555] truncate">{q.company_name}</div>
-              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type)}</div>
+              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type, defaultTiers)}</div>
               <div>
                 {q.quote_no
                   ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">{q.quote_no}</span>
@@ -346,7 +339,7 @@ export default function DesignerQuotesPage() {
                 { label: "อีเมล", value: selected.email },
                 { label: "ที่อยู่", value: selected.address },
                 { label: "เลขภาษี", value: selected.tax_id },
-                { label: "รูปแบบสิทธิ์", value: licenseLabel(selected.license_type) },
+                { label: "รูปแบบสิทธิ์", value: licenseLabel(selected.license_type, defaultTiers) },
                 { label: "หมายเหตุ", value: selected.note },
               ].map(({ label, value }) => value ? (
                 <div key={label}>
