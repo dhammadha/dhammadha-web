@@ -1,8 +1,12 @@
 "use client";
 
 // หน้า verify สาธารณะ — URL นี้ถูกประทับใน name table (nameID 14) ของไฟล์ฟอนต์
-// ที่ขายออกไป: dhammadha.com/verify?order=OR-XXXX-XXXX
+// ที่ขายออกไป: dhammadha.com/verify?token=<verify_token สุ่ม 32 hex>
 // ใครก็ตรวจได้ว่าไฟล์ที่ถืออยู่มาจากคำสั่งซื้อจริงหรือไม่ (ไม่เปิดเผยข้อมูลลูกค้า)
+//
+// เดิมใช้ order_no (?order=OR-2569-0001) แต่ order_no เดินเลขลำดับ เดา/วนลูปได้ง่าย
+// เปลี่ยนเป็น verify_token สุ่มตั้งแต่ 0055 — โหลดผ่านลิงก์ในไฟล์ฟอนต์เท่านั้น
+// (พิมพ์เองยากกว่าเดิม แต่ตั้งใจ — token ต้อง copy จากไฟล์/ลิงก์ ไม่ใช่เลขที่จำง่าย)
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -20,15 +24,15 @@ type VerifyResult = {
 
 function VerifyContent() {
   const params = useSearchParams();
-  const initial = params.get("order") ?? "";
-  const [orderNo, setOrderNo] = useState(initial);
+  const initial = params.get("token") ?? "";
+  const [token, setToken] = useState(initial);
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [checking, setChecking] = useState(false);
 
-  const check = async (no: string) => {
-    if (!no.trim()) return;
+  const check = async (t: string) => {
+    if (!t.trim()) return;
     setChecking(true);
-    const { data } = await supabase.rpc("verify_order", { p_order_no: no.trim() });
+    const { data } = await supabase.rpc("verify_order", { p_token: t.trim() });
     setResult((data as VerifyResult) ?? { valid: false });
     setChecking(false);
   };
@@ -42,18 +46,18 @@ function VerifyContent() {
       <div className="max-w-[560px] mx-auto">
         <h1 className="text-[24px] font-semibold text-navy mb-2">ตรวจสอบสิทธิการใช้งานฟอนต์</h1>
         <p className="text-[14px] text-[#888] mb-6">
-          กรอกเลขคำสั่งซื้อที่ประทับอยู่ในไฟล์ฟอนต์ (ดูได้จาก License Description ใน Font Book
-          บน macOS, Properties บน Windows หรือ fontdrop.info)
+          กรอกรหัสยืนยันที่ประทับอยู่ในไฟล์ฟอนต์ (ดูได้จาก License URL ใน Font Book
+          บน macOS, Properties บน Windows หรือ fontdrop.info) หรือเปิดลิงก์ตรวจสอบโดยตรงจากไฟล์
         </p>
 
         <form
-          onSubmit={(e) => { e.preventDefault(); check(orderNo); }}
+          onSubmit={(e) => { e.preventDefault(); check(token); }}
           className="flex gap-2 mb-6"
         >
           <input
-            value={orderNo}
-            onChange={(e) => setOrderNo(e.target.value)}
-            placeholder="เช่น OR-2569-0001"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder="รหัสยืนยันจาก License URL"
             className="flex-1 border border-border rounded-xl px-4 py-2.5 text-[14px] text-navy bg-white"
           />
           <button

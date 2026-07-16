@@ -134,8 +134,9 @@ function QuoteForm() {
       setDefaultTiers(parseLicenseSettings(licSettings?.value));
 
       if (designerSlug) {
+        // designer_profiles (view สาธารณะ, 0054) แทน users ตรง ๆ — ฟอร์มนี้เปิดให้ anon ใช้
         const { data: dData } = await supabase
-          .from("users")
+          .from("designer_profiles")
           .select("id, name, business_name")
           .eq("designer_slug", designerSlug)
           .single();
@@ -246,11 +247,18 @@ function QuoteForm() {
         (id) => fonts.find((f) => f.id === id)?.name ?? id
       );
       
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: insertError } = await (supabase.from("quotes") as any).insert({
-        ...form,
-        fonts: fontNames,
-        designer_id: designer?.id ?? null,
+      // ผ่าน RPC submit_public_quote (0056) แทน insert ตรง — RLS ปิด insert ตรงบน quotes
+      // ไปแล้ว ป้องกัน anon ตั้งค่าคอลัมน์บัญชี (quote_no, total_amount, issued_by, ...) เอง
+      const { error: insertError } = await supabase.rpc("submit_public_quote", {
+        p_contact_name: form.contact_name,
+        p_company_name: form.company_name,
+        p_address: form.address,
+        p_tax_id: form.tax_id,
+        p_email: form.email,
+        p_license_type: form.license_type,
+        p_fonts: fontNames,
+        p_note: form.note || null,
+        p_designer_id: designer?.id ?? null,
       });
       if (insertError) {
         console.error("quote insert failed:", insertError);

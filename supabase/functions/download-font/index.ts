@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
   // ── ตรวจสิทธิ์: entitlement ของ user นี้ (หรืออีเมลนี้) กับฟอนต์นี้ + order ต้อง paid ──
   const { data: ents, error: entErr } = await admin
     .from("entitlements")
-    .select("id, license_type, orders!inner(order_no, status, paid_at, customer_name, customer_email)")
+    .select("id, license_type, orders!inner(order_no, verify_token, status, paid_at, customer_name, customer_email)")
     .eq("font_id", fontId)
     .is("revoked_at", null)
     .or(`user_id.eq.${user.id},email.ilike.${safeEmail(email)}`)
@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
     | {
         id: string;
         license_type: string;
-        orders: { order_no: string; status: string; paid_at: string | null; customer_name: string | null; customer_email: string };
+        orders: { order_no: string; verify_token: string; status: string; paid_at: string | null; customer_name: string | null; customer_email: string };
       }
     | undefined;
   if (!ent || ent.orders.status !== "paid") return json({ error: "no_entitlement" }, 403);
@@ -125,7 +125,8 @@ Deno.serve(async (req: Request) => {
       bytes = stampFont(bytes, {
         uniqueId: `${orderNo} — dhammadha.com`,
         license: `Licensed to ${buyer} — Order ${orderNo} — ${date} — via dhammadha.com`,
-        licenseUrl: `https://dhammadha.com/verify?order=${encodeURIComponent(orderNo)}`,
+        // verify_token แทน order_no ตั้งแต่ 0055 — order_no เดินเลขลำดับ เดาได้ง่าย
+        licenseUrl: `https://dhammadha.com/verify?token=${encodeURIComponent(ent.orders.verify_token)}`,
       });
       stamped = true;
     } catch (e) {

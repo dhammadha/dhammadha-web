@@ -48,8 +48,10 @@ export default function DesignerDetail() {
     if (!designerSlug) return;
     (async () => {
       setLoading(true);
+      // designer_profiles (view สาธารณะ) แทนการ select ตรงจาก users — ตั้งแต่ 0054
+      // authenticated ที่ login แล้วอ่านแถว designer อื่นจาก users ตรง ๆ ไม่ได้อีกต่อไป
       const { data: userData } = await supabase
-        .from("users")
+        .from("designer_profiles")
         .select("id, business_name, name")
         .eq("designer_slug", designerSlug)
         .single();

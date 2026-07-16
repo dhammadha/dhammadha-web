@@ -5,7 +5,7 @@
 // สิ่งที่ทำ:
 //   nameID 3  (Unique ID)      → เลข order (ฝังซ้ำอีกชั้น)
 //   nameID 13 (License Desc.)  → "Licensed to <ชื่อ> — Order <เลข> — <วันที่> — via dhammadha.com"
-//   nameID 14 (License URL)    → ลิงก์ตรวจสอบ /verify?order=<เลข>
+//   nameID 14 (License URL)    → ลิงก์ตรวจสอบ /verify?token=<verify_token>
 //   ตาราง DSIG (ลายเซ็นดิจิทัล) ถูกถอดทิ้ง — ไฟล์ที่แก้แล้วลายเซ็นเดิมใช้ไม่ได้อยู่แล้ว
 
 export interface Stamp {

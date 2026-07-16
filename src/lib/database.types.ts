@@ -258,6 +258,7 @@ export interface Database {
           platform_rate: number | null;
           platform_amount: number | null;
           designer_amount: number | null;
+          verify_token: string;
           created_at: string;
         };
         Insert: never;
@@ -542,7 +543,18 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      designer_profiles: {
+        Row: {
+          id: string;
+          name: string | null;
+          business_name: string | null;
+          designer_slug: string | null;
+          portfolio_url: string | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       get_my_role: {
         Args: Record<string, never>;
@@ -561,7 +573,7 @@ export interface Database {
         Returns: number;
       };
       verify_order: {
-        Args: { p_order_no: string };
+        Args: { p_token: string };
         Returns: Json;
       };
       checkout_order_status: {
@@ -583,6 +595,20 @@ export interface Database {
       subscription_month_data: {
         Args: { p_year: number; p_month: number };
         Returns: Json;
+      };
+      submit_public_quote: {
+        Args: {
+          p_contact_name: string;
+          p_company_name: string;
+          p_address: string;
+          p_tax_id: string;
+          p_email: string;
+          p_license_type: string;
+          p_fonts: string[];
+          p_note: string | null;
+          p_designer_id: string | null;
+        };
+        Returns: string;
       };
     };
     Enums: {

@@ -7,10 +7,11 @@ const supabase = createClient(
 );
 
 export async function generateStaticParams() {
+  // designer_profiles (view สาธารณะ, 0054) แทน users ตรง ๆ — build ด้วย anon key
+  // และ anon ไม่มีสิทธิ์ select ตาราง users อีกต่อไปหลัง 0054
   const { data } = await supabase
-    .from("users")
-    .select("designer_slug")
-    .not("designer_slug", "is", null);
+    .from("designer_profiles")
+    .select("designer_slug");
 
   return (data ?? [])
     .filter((u) => u.designer_slug)
