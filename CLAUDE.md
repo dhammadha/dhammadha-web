@@ -7,14 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run dev      # local dev server (http://localhost:3000)
 npm run build    # static export to /out (production uses output: "export")
-npm run lint     # ESLint via next lint
+npm run lint     # ESLint (flat config: eslint.config.mjs)
 ```
 
 No test suite exists. Verify changes by running the dev server and exercising the UI.
 
 ## Architecture
 
-**Stack:** Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS · Supabase (auth + DB + storage) · deployed as static export on Cloudflare Pages.
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS · Supabase (auth + DB + storage) · deployed as static export on Cloudflare Pages.
 
 **Critical constraint:** `next.config.ts` sets `output: "export"` in production. This means **no server-side runtime** — no `getServerSideProps`, no API Routes that need Node.js at runtime (the `/api/send-email` route only runs in dev), no middleware. All data fetching is client-side via Supabase JS SDK.
 
@@ -49,7 +49,7 @@ src/app/
 
 ### Database
 
-Types live in `src/lib/database.types.ts`. Migrations in `supabase/migrations/` (numbered `0001_` … `0031_` currently). Apply via `supabase db push` or Supabase MCP `apply_migration`.
+Types live in `src/lib/database.types.ts`. Migrations in `supabase/migrations/` (numbered `0001_` … `0049_` currently). Apply via `supabase db push` or Supabase MCP `apply_migration`.
 
 Key tables: `fonts`, `users` (extended with `designer_slug`, `bank` jsonb, `entity_type`, `tax_id`, `address`, `phone`, `business_name`), `quotes`, `licenses`.
 

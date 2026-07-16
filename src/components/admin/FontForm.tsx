@@ -588,7 +588,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-600">Obfuscated</span>
               </div>
               <p className="text-[11px] text-[#aaa] mb-2 leading-[1.5]">
-                ไฟล์ .woff2 ทุก weight + map.json จากปุ่ม สร้าง Tester ด้านบน <br>ใช้แสดง type tester ด้วยฟอนต์จริงที่ผ่านการเข้ารหัส (ไฟล์ถูกดาวน์โหลดไปใช้จริงไม่ได้)
+                ไฟล์ .woff2 ทุก weight + map.json จากปุ่ม สร้าง Tester ด้านบน <br />ใช้แสดง type tester ด้วยฟอนต์จริงที่ผ่านการเข้ารหัส (ไฟล์ถูกดาวน์โหลดไปใช้จริงไม่ได้)
               </p>
               <div className="flex gap-2 flex-wrap">
                 <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[12px] text-[#666]">
