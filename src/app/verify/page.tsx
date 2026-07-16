@@ -40,7 +40,7 @@ function VerifyContent() {
   return (
     <main className="min-h-screen bg-bg px-4 py-12">
       <div className="max-w-[560px] mx-auto">
-        <h1 className="text-[24px] font-semibold text-navy mb-2">ตรวจสอบสิทธิ์การใช้งานฟอนต์</h1>
+        <h1 className="text-[24px] font-semibold text-navy mb-2">ตรวจสอบสิทธิการใช้งานฟอนต์</h1>
         <p className="text-[14px] text-[#888] mb-6">
           กรอกเลขคำสั่งซื้อที่ประทับอยู่ในไฟล์ฟอนต์ (ดูได้จาก License Description ใน Font Book
           บน macOS, Properties บน Windows หรือ fontdrop.info)
