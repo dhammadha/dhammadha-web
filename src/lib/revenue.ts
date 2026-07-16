@@ -22,6 +22,10 @@ export type OrderLite = {
   platform_amount: number | null;
   designer_amount: number | null;
   items: { font_id?: string; name: string; license_type?: string; price: number }[] | null;
+  // ข้อมูลผู้ซื้อ — optional เพราะบางหน้า (admin/payouts) select เฉพาะคอลัมน์ที่ใช้คำนวณยอด
+  customer_name?: string | null;
+  customer_email?: string | null;
+  company_name?: string | null;
 };
 
 export type PayoutRow = {

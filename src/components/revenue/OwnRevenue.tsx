@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { fetchAllRows } from "@/lib/fetch-all";
 import SubscriptionRevenue from "@/components/revenue/SubscriptionRevenue";
+import { licenseLabel, parseDesignerTiers, type LicenseTier } from "@/lib/license";
 import {
   buildMonthlyStatements,
   monthLabel,
@@ -18,8 +19,18 @@ import {
   type MonthStatement,
 } from "@/lib/revenue";
 
+// คอลัมน์ตารางออเดอร์ — หัวตารางกับแถวต้องใช้ template เดียวกันเสมอ (ช่องแรก = chevron)
+const ORDER_GRID = "grid grid-cols-[10px_90px_1fr_1fr_100px_90px] gap-3";
+
 function fmtDate(s: string) {
   return new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" });
+}
+
+// B2B เงินเข้า designer ตรงในนามบริษัท → ชื่อบริษัทคือตัวระบุหลัก ส่วน B2C ซื้อในนามบุคคล
+function buyerName(o: OrderLite): string {
+  return (o.source === "checkout"
+    ? o.customer_name ?? o.company_name
+    : o.company_name ?? o.customer_name) ?? "";
 }
 
 function payoutStatus(stmt: MonthStatement): { label: string; cls: string } {
@@ -48,6 +59,7 @@ export default function OwnRevenue() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<OrderLite[]>([]);
   const [payouts, setPayouts] = useState<PayoutRow[]>([]);
+  const [customTiers, setCustomTiers] = useState<LicenseTier[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -58,11 +70,11 @@ export default function OwnRevenue() {
     if (!user) return;
     setLoading(true);
     // fetchAllRows: กันเพดาน 1000 แถว/request ของ PostgREST ตัดยอดเงินขาดเงียบ ๆ
-    const [orderRes, payoutRes] = await Promise.all([
+    const [orderRes, payoutRes, licRes] = await Promise.all([
       fetchAllRows<OrderLite>(async (from, to) => {
         const { data, error } = await supabase
           .from("orders")
-          .select("id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items")
+          .select("id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, customer_name, customer_email, company_name")
           .eq("designer_id", user.id)
           .order("created_at", { ascending: false })
           .range(from, to);
@@ -71,9 +83,11 @@ export default function OwnRevenue() {
       fetchAllRows<PayoutRow>((from, to) =>
         supabase.from("payouts").select("*").eq("designer_id", user.id).order("created_at").range(from, to)
       ),
+      supabase.from("designer_license_config").select("*").eq("designer_id", user.id).maybeSingle(),
     ]);
     setOrders(orderRes.rows);
     setPayouts(payoutRes.rows);
+    setCustomTiers(licRes.data && !licRes.data.use_default ? parseDesignerTiers(licRes.data.tiers) : []);
     setLoading(false);
   }, [user]);
 
@@ -201,24 +215,66 @@ export default function OwnRevenue() {
 
             {isOpen && (
               <div className="border-t border-border">
-                <div className="grid grid-cols-[90px_1fr_1fr_100px_90px] gap-3 px-5 py-2 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em]">
-                  <div>วันที่</div><div>เลขที่ออเดอร์</div><div>ฟอนต์</div><div>ยอด</div><div>ประเภท</div>
+                <div className={`${ORDER_GRID} px-5 py-2 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em]`}>
+                  <div /><div>วันที่</div><div>เลขที่ออเดอร์</div><div>ฟอนต์</div><div>ยอด</div><div>ประเภท</div>
                 </div>
-                {stmt.orders.map((o) => (
-                  <div key={o.id} className="grid grid-cols-[90px_1fr_1fr_100px_90px] gap-3 px-5 py-2.5 border-b border-[#f8f8f8] last:border-0 items-center">
-                    <div className="text-[12px] text-[#888]">{fmtDate(o.paid_at ?? o.created_at)}</div>
-                    <div className="text-[12px] text-navy font-medium truncate">{o.order_no}</div>
-                    <div className="text-[12px] text-[#666] truncate">
-                      {(o.items ?? []).map((it) => it.name).filter(Boolean).join(", ") || "—"}
+                {stmt.orders.map((o) => {
+                  const orderOpen = expanded.has(o.id);
+                  const items = (o.items ?? []).filter((it) => it.name);
+                  return (
+                    <div key={o.id} className="border-b border-[#f8f8f8] last:border-0">
+                      <div
+                        onClick={() => toggle(o.id)}
+                        className={`${ORDER_GRID} px-5 py-2.5 items-center cursor-pointer hover:bg-[#fafaf8] transition-colors`}
+                      >
+                        <svg
+                          width="10" height="10" viewBox="0 0 10 10" fill="none"
+                          className={`text-[#bbb] transition-transform ${orderOpen ? "rotate-90" : ""}`}
+                        >
+                          <path d="M3 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <div className="text-[12px] text-[#888]">{fmtDate(o.paid_at ?? o.created_at)}</div>
+                        <div className="text-[12px] text-navy font-medium truncate">{o.order_no}</div>
+                        <div className="text-[12px] text-[#666] truncate">
+                          {items.map((it) => it.name).join(", ") || "—"}
+                        </div>
+                        <div className="text-[12px] font-medium text-navy">{fmtBaht(o.total_amount)}</div>
+                        <div>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${o.source === "checkout" ? "bg-mint-mid text-navy" : "bg-mint-light text-navy"}`}>
+                            {o.source === "checkout" ? "ขายผ่านเว็บ" : "B2B"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {orderOpen && (
+                        <div className="bg-[#fafaf8] px-5 py-3 pl-[38px] grid gap-2 text-[12px]">
+                          <div className="flex gap-2">
+                            <span className="text-[#aaa] w-[70px] shrink-0">ผู้ซื้อ</span>
+                            <span className="text-navy">{buyerName(o) || "—"}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <span className="text-[#aaa] w-[70px] shrink-0">อีเมล</span>
+                            <span className="text-navy break-all">{o.customer_email || "—"}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <span className="text-[#aaa] w-[70px] shrink-0">License</span>
+                            <span className="text-navy">
+                              {items.length ? (
+                                items.map((it, i) => (
+                                  <div key={i}>
+                                    {it.name} · {licenseLabel(it.license_type, customTiers) || "—"}
+                                  </div>
+                                ))
+                              ) : (
+                                "—"
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-[12px] font-medium text-navy">{fmtBaht(o.total_amount)}</div>
-                    <div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${o.source === "checkout" ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"}`}>
-                        {o.source === "checkout" ? "ขายผ่านเว็บ" : "B2B"}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
