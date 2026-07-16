@@ -19,15 +19,16 @@ export default function NotFound() {
     if (segments.length !== 1) { setChecking(false); return; }
     supabase
       .from("fonts")
-      .select("slug, users!owner_id(designer_slug)")
+      // embed ผ่าน view designer_profiles ไม่ใช่ users (ดู 0054 — anon อ่าน users ไม่ได้แล้ว)
+      .select("slug, designer_profiles!owner_id(designer_slug)")
       .eq("slug", segments[0].toLowerCase())
       .eq("is_active", true)
       .not("published_at", "is", null)
       .limit(1)
       .then(({ data }) => {
-        const row = data?.[0] as { slug: string; users?: { designer_slug?: string } | null } | undefined;
-        if (row?.users?.designer_slug) {
-          router.replace(`/fonts/${row.users.designer_slug}/${row.slug}/`);
+        const row = data?.[0] as { slug: string; designer_profiles?: { designer_slug?: string } | null } | undefined;
+        if (row?.designer_profiles?.designer_slug) {
+          router.replace(`/fonts/${row.designer_profiles.designer_slug}/${row.slug}/`);
         } else {
           setChecking(false);
         }

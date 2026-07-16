@@ -57,15 +57,16 @@ export default function Nav() {
     if (cachedFonts) { setFonts(cachedFonts); return; }
     supabase
       .from("fonts")
-      .select("slug, name, name_th, category, tags, is_free, users!owner_id(designer_slug)")
+      // embed ผ่าน view designer_profiles ไม่ใช่ users (ดู 0054 — anon อ่าน users ไม่ได้แล้ว)
+      .select("slug, name, name_th, category, tags, is_free, designer_profiles!owner_id(designer_slug)")
       .eq("is_active", true)
       .not("published_at", "is", null)
       .then(({ data }) => {
         if (!data) return;
-        const mapped = (data as unknown as { slug: string; name: string | null; name_th: string | null; category: string | null; tags: string[] | null; is_free: boolean; users?: { designer_slug?: string } | null }[]).map((f) => {
+        const mapped = (data as unknown as { slug: string; name: string | null; name_th: string | null; category: string | null; tags: string[] | null; is_free: boolean; designer_profiles?: { designer_slug?: string } | null }[]).map((f) => {
           const tags: string[] = [...(f.tags || [])];
           if (f.is_free && !tags.includes("free")) tags.push("free");
-          return { slug: f.slug, designer_slug: f.users?.designer_slug || "", name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
+          return { slug: f.slug, designer_slug: f.designer_profiles?.designer_slug || "", name: f.name || "", name_th: f.name_th || "", category: f.category || "", tags, is_free: !!f.is_free };
         });
         cachedFonts = mapped;
         setFonts(mapped);

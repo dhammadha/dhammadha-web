@@ -73,18 +73,21 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     if (!slug) return;
     async function load() {
       // Flatten nested users join into font object
-      type RawFont = { users?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
-      const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.users?.designer_slug ?? undefined, designer_business_name: r.users?.business_name ?? undefined });
+      // embed ผ่าน view designer_profiles ไม่ใช่ users — ตั้งแต่ 0054 anon อ่าน users ไม่ได้แล้ว
+      // (bank/tax_id อยู่ในนั้น) ถ้า embed users ทั้ง query จะ 401 ทำให้ related fonts หายและ
+      // client-side nav หาฟอนต์ไม่เจอ
+      type RawFont = { designer_profiles?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
+      const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.designer_profiles?.designer_slug ?? undefined, designer_business_name: r.designer_profiles?.business_name ?? undefined });
 
       try {
         // If initialFont was not provided (client-side nav), fetch the font too
         const fontPromise = initialFont
           ? Promise.resolve({ data: null })
-          : supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).not("published_at", "is", null).limit(1);
+          : supabase.from("fonts").select("*, designer_profiles!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).not("published_at", "is", null).limit(1);
 
         const [fontResult, { data: allRows }, { data: settings }] = await Promise.all([
           fontPromise,
-          supabase.from("fonts").select("*, users!owner_id(designer_slug, business_name)").eq("is_active", true).not("published_at", "is", null),
+          supabase.from("fonts").select("*, designer_profiles!owner_id(designer_slug, business_name)").eq("is_active", true).not("published_at", "is", null),
           supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
         ]);
 

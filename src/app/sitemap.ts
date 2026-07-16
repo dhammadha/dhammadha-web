@@ -23,21 +23,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const { data } = await supabase
     .from("fonts")
-    .select("slug, updated_at, users!owner_id(designer_slug)")
+    // embed ผ่าน view designer_profiles ไม่ใช่ users (ดู 0054 — anon อ่าน users ไม่ได้แล้ว
+    // sitemap gen ตอน build ด้วย anon key ถ้า embed users จะ 401 = sitemap ว่างเปล่า)
+    .select("slug, updated_at, designer_profiles!owner_id(designer_slug)")
     .eq("is_active", true)
     .not("published_at", "is", null);
 
-  type Row = { slug: string; updated_at?: string; users?: { designer_slug?: string } | null };
+  type Row = { slug: string; updated_at?: string; designer_profiles?: { designer_slug?: string } | null };
   const rows = (data ?? []) as unknown as Row[];
 
   const fontPages: MetadataRoute.Sitemap = rows.map((f) => ({
-    url: `${BASE_URL}/fonts/${f.users?.designer_slug ?? "_"}/${f.slug}/`,
+    url: `${BASE_URL}/fonts/${f.designer_profiles?.designer_slug ?? "_"}/${f.slug}/`,
     lastModified: f.updated_at ? new Date(f.updated_at) : undefined,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
 
-  const designerSlugs = [...new Set(rows.map((f) => f.users?.designer_slug).filter(Boolean))] as string[];
+  const designerSlugs = [...new Set(rows.map((f) => f.designer_profiles?.designer_slug).filter(Boolean))] as string[];
   const designerPages: MetadataRoute.Sitemap = designerSlugs.map((slug) => ({
     url: `${BASE_URL}/designer/${slug}/`,
     changeFrequency: "weekly",

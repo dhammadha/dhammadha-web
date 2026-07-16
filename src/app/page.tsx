@@ -50,14 +50,16 @@ export default function HomePage() {
     setLoading(true);
     supabase
       .from("fonts")
-      .select("*, users!owner_id(designer_slug, business_name)")
+      // embed ผ่าน view designer_profiles ไม่ใช่ users — ตั้งแต่ 0054 anon อ่าน users
+      // ไม่ได้แล้ว (bank/tax_id อยู่ในนั้น) ถ้า embed users ทั้ง query จะ 401 = ไม่มีฟอนต์ขึ้นเลย
+      .select("*, designer_profiles!owner_id(designer_slug, business_name)")
       .eq("is_active", true)
       .not("published_at", "is", null)
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (error) { setLoading(false); return; }
-        type RawFont = { users?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
-        const active = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.users?.designer_slug ?? undefined, designer_business_name: r.users?.business_name ?? undefined, users: undefined })) as unknown as Font[];
+        type RawFont = { designer_profiles?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
+        const active = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.designer_profiles?.designer_slug ?? undefined, designer_business_name: r.designer_profiles?.business_name ?? undefined, designer_profiles: undefined })) as unknown as Font[];
         setFonts(active);
         setSliderPool(buildSliderPool(active));
         setLoading(false);
