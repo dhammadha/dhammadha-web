@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadFile, uploadProtectedFile, storagePath, type StorageBucket } from "@/lib/storage";
+import { computeFontMeta } from "@/lib/font-meta";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -295,6 +296,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       const discountVal = parseInt(discount) || 0;
       const priceVal = parseFloat(price) || null;
 
+      // สรุป weight/style/format จากไฟล์จริง — ใช้ Full Family เป็นหลัก
+      // ถ้าไม่มี (ฟอนต์ฟรี) ใช้ไฟล์ฟรีแทน / ตรรกะเดียวกับ SQL backfill ใน 0060
+      const fontMeta = computeFontMeta(finalFull.length ? finalFull : finalFree);
+
       const payload = {
         name: name.trim(),
         name_th: nameTh.trim() || null,
@@ -319,7 +324,12 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         free_font_files: finalFree.length ? finalFree : null,
         specimen_files: finalSpec.length ? finalSpec : null,
         has_demo: finalDemo.length > 0,
-        weight_count: finalFull.length || finalFree.length || null,
+        // สรุปจากไฟล์ Full Family (ฟอนต์ขาย) หรือไฟล์ฟรี — หน้า detail อ่าน
+        // full_font_files เองไม่ได้ (อยู่ใน private table) จึงต้องคำนวณเก็บไว้ตรงนี้
+        // เดิมเก็บ finalFull.length = "จำนวนไฟล์" → อัป 5 weights × 2 format = 10 ผิด
+        weight_count: fontMeta.weightCount || null,
+        style_count: fontMeta.styleCount || null,
+        formats: fontMeta.formats.length ? fontMeta.formats : null,
         owner_id: ownerId ?? null,
       };
 

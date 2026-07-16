@@ -232,12 +232,16 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     );
   }
 
-  // Font Format / น้ำหนัก / สไตล์ ในตารางข้อมูล มาจากไฟล์ demo/free เท่านั้น
-  // (ตรงกับไฟล์ที่ขายจริง) — ตัวทดสอบฟอนต์ render จาก server แยกต่างหากแล้ว
+  // น้ำหนัก / สไตล์ / Font Format มาจากคอลัมน์ที่ FontForm คำนวณจากไฟล์ Full Family
+  // ตอนบันทึก (ดู src/lib/font-meta.ts + migration 0060) — หน้านี้เป็นหน้าสาธารณะ
+  // จึงอ่าน font_files_private เองไม่ได้ และไฟล์ demo ก็ไม่ได้สะท้อนของที่ลูกค้าซื้อ
+  // (demo ที่ระบบ gen ให้มีไฟล์เดียว → เคยทำให้ Font Format โชว์แค่ OTF ทั้งที่ขาย OTF+TTF)
+  //
+  // fallback ไปคำนวณจากไฟล์ demo/free เฉพาะฟอนต์เก่าที่ยังไม่มีคอลัมน์ใหม่
   const infoFiles = font.is_free ? font.free_font_files || [] : font.demo_font_files || [];
-  const formats = getFormats(infoFiles);
-  const styleCount = font.weight_count || infoFiles.filter((u) => !u.toLowerCase().endsWith(".zip")).length;
+  const formats = font.formats?.length ? font.formats.join(", ") : getFormats(infoFiles);
   const weightTotal = font.weight_count || getUniqueWeights(infoFiles).length;
+  const styleCount = font.style_count || weightTotal;
 
   const mainTitle = font.name_th || font.name || "—";
   const subTitle = font.name_th ? font.name : undefined;

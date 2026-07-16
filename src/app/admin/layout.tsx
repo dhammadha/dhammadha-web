@@ -37,15 +37,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingFonts, setPendingFonts] = useState(0);
 
   const loadPending = useCallback(async () => {
+    if (!user) return;
     const [quotesRes, designersRes, fontsRes] = await Promise.all([
-      supabase.from("quotes").select("id").is("quote_no", null),
+      // เมนู "ใบเสนอราคา" อยู่ใต้หัวข้อ "ของฉัน" และหน้า /admin/quotes กรอง
+      // .eq("designer_id", user.id) อยู่แล้ว — badge ต้องกรองให้ตรงกัน ไม่งั้นนับ
+      // ใบของ designer คนอื่นมารวมด้วย แล้วตัวเลขไม่ตรงกับรายการที่เห็นในหน้า
+      supabase.from("quotes").select("id").is("quote_no", null).eq("designer_id", user.id),
       supabase.from("users").select("id").eq("designer_application_status", "pending"),
       supabase.from("fonts").select("id").is("published_at", null),
     ]);
     setPendingQuotes(quotesRes.data?.length ?? 0);
     setPendingDesigners(designersRes.data?.length ?? 0);
     setPendingFonts(fontsRes.data?.length ?? 0);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!loading && (!user || role !== "admin")) {

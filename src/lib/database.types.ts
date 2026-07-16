@@ -35,6 +35,8 @@ export interface Database {
           specimen_files: string[] | null;
           has_demo: boolean;
           weight_count: number | null;
+          style_count: number | null;
+          formats: string[] | null;
           owner_id: string | null;
           created_at: string;
           updated_at: string;
@@ -67,6 +69,8 @@ export interface Database {
           specimen_files?: string[] | null;
           has_demo?: boolean;
           weight_count?: number | null;
+          style_count?: number | null;
+          formats?: string[] | null;
           owner_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -100,6 +104,8 @@ export interface Database {
           specimen_files?: string[] | null;
           has_demo?: boolean;
           weight_count?: number | null;
+          style_count?: number | null;
+          formats?: string[] | null;
           owner_id?: string | null;
           created_at?: string;
           updated_at?: string;

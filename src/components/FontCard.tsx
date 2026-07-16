@@ -35,6 +35,8 @@ export interface Font {
   specimen_files?: string[];
   has_demo?: boolean;
   weight_count?: number;
+  style_count?: number;
+  formats?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -122,10 +124,10 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-[#aaa]">
             {(() => {
-              const n = font.weight_count
-                || font.full_font_files?.length
-                || font.free_font_files?.length
-                || 0;
+              // style_count คำนวณจากไฟล์จริงตอนบันทึก (ดู font-meta.ts)
+              // เดิม fallback ไปนับ "จำนวนไฟล์" ซึ่งผิดเมื่อฟอนต์มีหลาย format
+              // (5 weights × OTF+TTF = 10 ไฟล์ แต่เป็น 5 styles)
+              const n = font.style_count || font.weight_count || 0;
               return n > 0 ? `${n} style${n > 1 ? "s" : ""}` : "";
             })()}
           </span>
