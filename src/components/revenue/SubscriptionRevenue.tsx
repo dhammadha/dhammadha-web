@@ -94,9 +94,6 @@ export default function SubscriptionRevenue({ mode }: Props) {
           ))}
         </select>
       </div>
-      <p className="text-[12px] text-[#888] mb-4 leading-relaxed">
-        แบ่งจากยอดสมาชิกรวม: เว็บ 50% · แบ่งเท่ากันทุกฟอนต์ในแพลน 12% · ตามยอดใช้งาน (font-days) 38%
-      </p>
 
       {loading ? (
         <div className="bg-white rounded-2xl border border-border py-12 text-center text-[#aaa] text-[14px]">กำลังโหลด…</div>

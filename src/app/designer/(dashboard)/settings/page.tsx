@@ -203,7 +203,7 @@ export default function DesignerSettingsPage() {
           <div>
             <span className="text-[13px] text-navy">จดทะเบียนภาษีมูลค่าเพิ่ม (VAT)</span>
             <p className="text-[11px] text-[#aaa] mt-0.5 leading-[1.6]">
-              ติ๊กหากคุณจดทะเบียน VAT แล้ว — คนละเรื่องกับเลขประจำตัวผู้เสียภาษี ตอนนี้ยังไม่มีผลต่อการคำนวณราคา เก็บไว้ใช้ในอนาคต
+              กดเลือกหากคุณจดทะเบียนภาษีมูลค่าเพิ่ม VAT แล้ว (ยังไม่มีผลต่อการคำนวณในปัจจุบัน)
             </p>
           </div>
         </label>

@@ -420,13 +420,13 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       <section>
         <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ข้อมูลพื้นฐาน</h3>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="ชื่อฟอนต์ (EN)*">
+          <FormField label="ชื่อฟอนต์ (EN) *">
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} />
           </FormField>
           <FormField label="ชื่อฟอนต์ (TH)">
             <input value={nameTh} onChange={(e) => setNameTh(e.target.value)} placeholder="เช่น สุรัตนา" className={inputCls} />
           </FormField>
-          <FormField label="Slug (URL)*">
+          <FormField label="Slug (URL) *">
             <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="เช่น suratana" className={inputCls} />
           </FormField>
           <FormField label="นักออกแบบ">
@@ -496,7 +496,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       {/* รูปภาพ */}
       <section>
         <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">รูปภาพ</h3>
-        <FormField label="Cover Image* — 1280×720 (16:9)">
+        <FormField label="Cover Image * — 1280×720 (16:9)">
           {coverUrl ? (
             <div className="relative inline-block">
               <img src={coverUrl} alt="cover" className="w-full rounded-xl object-cover aspect-video" />
@@ -548,7 +548,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
         {!isFree && (
           <>
-            <FontFileSection label="Full Family*" badge="🔒 Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
+            <FontFileSection label="Full Family *" badge="Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
 
             {/* Auto-generate tester / demo จากไฟล์เต็ม (ประมวลผลในเบราว์เซอร์) */}
             <div className="mt-2.5 rounded-xl border border-[0.5px] border-mint-mid bg-mint-light/40 p-3">
@@ -559,7 +559,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                   disabled={!!genProgress}
                   className="px-3.5 py-2 rounded-lg bg-navy text-white text-[12px] font-medium border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  ⚡ สร้าง Tester
+                  สร้าง Tester
                 </button>
                 <button
                   type="button"
@@ -575,8 +575,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
               </div>
               <p className="text-[11px] text-[#888] mt-2 leading-[1.6]">
                 สร้างจากไฟล์ Full Family ที่เลือกไว้ด้านบน เติมลงช่องด้านล่างให้อัตโนมัติ<br />
-                <b>สร้าง Tester</b> — ได้ tester (obfuscated) ครบทุก weight + map <b>จำเป็นต้องมีก่อนบันทึก</b><br />
-                <b>สร้าง Demo</b> — ได้ demo ภาษาไทย (Regular) 1 ไฟล์ <b>ไม่บังคับ</b> ข้ามได้ถ้าไม่ต้องการแจก demo<br />
+                <b>สร้าง Tester</b> — ได้ tester (obfuscated) ครบทุก weight <b>จำเป็นต้องมีก่อนบันทึก</b><br />
+                <b>สร้าง Demo</b> — ได้ demo ภาษาไทย (Regular) 1 ไฟล์ <b>ไม่บังคับ</b> ข้ามได้ ถ้าไม่ต้องการแจก demo<br />
                 ประมวลผลในเบราว์เซอร์ทั้งหมด ครั้งแรกจะโหลดเครื่องมือ ~10MB
               </p>
             </div>
@@ -584,11 +584,11 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             {/* Tester (obfuscated) — จากปุ่ม generate ด้านบน หรือ scripts/prepare_font_assets.py */}
             <div className="rounded-xl border border-border p-3 mt-3">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[13px] font-medium text-navy">Tester Font (แสดงบนเว็บ)*</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-600">🔀 Obfuscated</span>
+                <span className="text-[13px] font-medium text-navy">Tester Font (แสดงบนเว็บ) *</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-600">Obfuscated</span>
               </div>
               <p className="text-[11px] text-[#aaa] mb-2 leading-[1.5]">
-                ไฟล์ .woff2 ทุก weight + map.json จากปุ่ม ⚡ สร้าง Tester ด้านบน (หรือ <code className="text-[10px]">scripts/prepare_font_assets.py</code>) — ใช้แสดง type tester ด้วยฟอนต์จริงที่ผ่านการสลับรหัสอักษร (ไฟล์ถูกดูดไปใช้จริงไม่ได้)
+                ไฟล์ .woff2 ทุก weight + map.json จากปุ่ม สร้าง Tester ด้านบน <br>ใช้แสดง type tester ด้วยฟอนต์จริงที่ผ่านการเข้ารหัส (ไฟล์ถูกดาวน์โหลดไปใช้จริงไม่ได้)
               </p>
               <div className="flex gap-2 flex-wrap">
                 <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[12px] text-[#666]">
@@ -630,13 +630,13 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
               )}
             </div>
 
-            <FontFileSection label="Demo Font (ให้ลูกค้าดาวน์โหลดทดลอง) — ไม่บังคับ" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
+            <FontFileSection label="Demo Font (ให้ลูกค้าดาวน์โหลดทดลอง) — ไม่บังคับ" badge="Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
           </>
         )}
         {isFree && (
-          <FontFileSection label="Free Font*" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
+          <FontFileSection label="Free Font*" badge="Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
         )}
-        <FontFileSection label="Font Specimen PDF" badge="🌐 Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
+        <FontFileSection label="Font Specimen PDF" badge="Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
       </section>
     </div>
   );

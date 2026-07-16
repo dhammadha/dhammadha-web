@@ -128,8 +128,7 @@ export default function OwnAnalytics() {
         <h1 className="text-[20px] font-semibold text-navy">สถิติ</h1>
       </div>
       <p className="text-[12px] text-[#888] mb-6 leading-relaxed">
-        ยอดเข้าชม/ยอดโหลดของฟอนต์คุณเท่านั้น — เริ่มเก็บข้อมูลตั้งแต่ฟีเจอร์นี้เปิดใช้
-        (ยอดก่อนหน้านี้ไม่มีข้อมูลย้อนหลัง)
+        ยอดเข้าชม/ยอดดาวน์โหลดของฟอนต์ที่คุณเป็นเจ้าของเท่านั้น
       </p>
 
       {/* Stat tiles */}
@@ -139,7 +138,7 @@ export default function OwnAnalytics() {
           <div className="text-[12px] text-[#aaa]">ยอดเข้าชม (เดือนนี้)</div>
         </div>
         <div className="bg-white rounded-2xl border border-border p-4">
-          <div className="text-[22px] font-semibold leading-none mb-1 text-mint">{stats.freeDownloadsMonth.toLocaleString("th-TH")}</div>
+          <div className="text-[22px] font-semibold leading-none mb-1 text-navy">{stats.freeDownloadsMonth.toLocaleString("th-TH")}</div>
           <div className="text-[12px] text-[#aaa]">โหลดฟรี (เดือนนี้)</div>
         </div>
         <div className="bg-white rounded-2xl border border-border p-4">
@@ -147,7 +146,7 @@ export default function OwnAnalytics() {
           <div className="text-[12px] text-[#aaa]">โหลดไฟล์ซื้อ (เดือนนี้)</div>
         </div>
         <div className="bg-white rounded-2xl border border-border p-4">
-          <div className="text-[22px] font-semibold leading-none mb-1 text-navy">{stats.viewsAll.toLocaleString("th-TH")}</div>
+          <div className="text-[22px] font-semibold leading-none mb-1 text-mint">{stats.viewsAll.toLocaleString("th-TH")}</div>
           <div className="text-[12px] text-[#aaa]">ยอดเข้าชมรวมทั้งหมด</div>
         </div>
       </div>
