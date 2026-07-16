@@ -195,18 +195,24 @@ export default function AdminAllFontsPage() {
     // ต้อง deploy ทุกครั้งที่ publish — หน้ารายการดึงข้อมูลสดจาก Supabase
     // (ฟอนต์โผล่ทันที) แต่หน้ารายละเอียดเป็น SSG สร้างตอน build เท่านั้น
     // ถ้าไม่ build ใหม่ ลูกค้าคลิกจากหน้ารายการแล้วจะเจอ 404
-    const hookUrl = process.env.NEXT_PUBLIC_CF_DEPLOY_HOOK;
-    if (!hookUrl) {
-      showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว — แต่ NEXT_PUBLIC_CF_DEPLOY_HOOK ไม่ได้ตั้งไว้ ต้อง deploy เอง`);
-    } else {
-      try {
-        // no-cors: deploy hook ไม่ส่ง CORS header กลับ — ยิงแล้วอ่าน response ไม่ได้
-        // แต่ Cloudflare รับ request ไปแล้ว (fetch จะ throw เฉพาะตอนยิงไม่ออกจริง ๆ)
-        await fetch(hookUrl, { method: "POST", mode: "no-cors" });
+    //
+    // ยิงผ่าน /api/deploy แทนการยิง Cloudflare deploy hook ตรงจาก client —
+    // hook URL เก็บเป็น secret ฝั่ง server เท่านั้น (ไม่ใช่ NEXT_PUBLIC_) กัน
+    // ไม่ให้หลุดไปอยู่ใน JS bundle สาธารณะ endpoint จะตรวจสิทธิ์ admin ให้เอง
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/deploy", {
+        method: "POST",
+        headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
+      });
+      const result = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (res.ok && result?.ok) {
         showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว — กำลัง deploy หน้าเว็บจะอัปเดตใน ~2 นาที`);
-      } catch (e) {
-        showToast(`✓ Publish แล้ว แต่สั่ง deploy ไม่สำเร็จ ต้อง deploy เอง: ${e instanceof Error ? e.message : String(e)}`);
+      } else {
+        showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว แต่สั่ง deploy ไม่สำเร็จ ต้อง deploy เอง (${result?.error ?? res.status})`);
       }
+    } catch (e) {
+      showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว แต่สั่ง deploy ไม่สำเร็จ ต้อง deploy เอง: ${e instanceof Error ? e.message : String(e)}`);
     }
     load();
     setPublishing(null);
