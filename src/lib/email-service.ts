@@ -11,6 +11,12 @@ export interface EmailEnv {
   RESEND_API_KEY?: string;
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
+  /**
+   * ใช้เฉพาะการค้นอีเมล designer ตอนส่งแจ้งเตือน quote — ฟอร์ม quote เป็นสาธารณะ
+   * ไม่มี JWT ของใครให้ใช้ และตั้งแต่ 0054 anon อ่านตาราง users ไม่ได้แล้ว
+   * (bank/tax_id/phone อยู่ในนั้น) ค่านี้อยู่ฝั่ง server เท่านั้น ห้ามมี NEXT_PUBLIC_ นำหน้า
+   */
+  SUPABASE_SERVICE_ROLE_KEY?: string;
   ADMIN_EMAIL?: string;
   TURNSTILE_SECRET_KEY?: string;
 }
@@ -87,6 +93,27 @@ async function supabaseSelect<T>(
     headers: {
       apikey: env.SUPABASE_ANON_KEY,
       Authorization: `Bearer ${accessToken ?? env.SUPABASE_ANON_KEY}`,
+    },
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as T[];
+}
+
+/**
+ * อ่านด้วยสิทธิ์ service role — ข้าม RLS ทั้งหมด
+ * ใช้ได้เฉพาะฝั่ง server และเฉพาะกรณีที่ไม่มี JWT ของผู้ใช้ให้ยืมสิทธิ์
+ * (ตอนนี้มีที่เดียวคือค้นอีเมล designer จากฟอร์ม quote สาธารณะ)
+ * คืน null ถ้าไม่ได้ตั้ง key ไว้ — ผู้เรียกต้องจัดการกรณีนี้เอง ห้ามเงียบ
+ */
+async function supabaseSelectAsService<T>(
+  env: EmailEnv,
+  pathAndQuery: string
+): Promise<T[] | null> {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
     },
   });
   if (!res.ok) return null;
@@ -307,20 +334,30 @@ async function handleQuote(
   }
 
   // Recipient is looked up server-side from designer_id — never trusted from the client.
+  //
+  // ต้องใช้ service role: ฟอร์ม quote เป็นสาธารณะ ไม่มี JWT ของใครให้ยืมสิทธิ์ และตั้งแต่
+  // migration 0054 anon อ่านตาราง users ไม่ได้แล้ว (bank/tax_id/phone อยู่ในนั้น)
+  // ถ้ายิงด้วย anon key จะได้ null เงียบ ๆ แล้วตกไปใช้ ADMIN_EMAIL — designer ไม่ได้รับแจ้ง
+  // และไม่มีใครรู้ตัว จึงต้องดังตั้งแต่ตอนไม่ได้ตั้ง key
   const adminEmail = env.ADMIN_EMAIL ?? "";
   let designer: DesignerInfo = { email: adminEmail, name: "DHAMMADHA STUDIO", brand: "DHAMMADHA STUDIO", phone: "" };
   const designerId = str(raw.designer_id, 40);
   if (designerId && UUID_RE.test(designerId)) {
-    const rows = await supabaseSelect<UserRow>(env, `users?id=eq.${designerId}&select=email,name,business_name,phone`);
-    const row = rows?.[0];
-    if (row?.email) {
-      designer = {
-        email: row.email,
-        name: row.name ?? row.business_name ?? "",
-        brand: row.business_name ?? row.name ?? "",
-        phone: row.phone ?? "",
-      };
+    if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+      return { status: 500, body: { ok: false, error: "service_role_not_configured" } };
     }
+    const rows = await supabaseSelectAsService<UserRow>(
+      env,
+      `users?id=eq.${designerId}&select=email,name,business_name,phone`
+    );
+    const row = rows?.[0];
+    if (!row?.email) return { status: 500, body: { ok: false, error: "designer_not_found" } };
+    designer = {
+      email: row.email,
+      name: row.name ?? row.business_name ?? "",
+      brand: row.business_name ?? row.name ?? "",
+      phone: row.phone ?? "",
+    };
   }
   if (!designer.email) return { status: 500, body: { ok: false, error: "no_recipient" } };
   if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };

@@ -4,7 +4,9 @@
 // endpoint. Shared logic lives in src/lib/email-service.ts.
 //
 // Required Pages env vars: RESEND_API_KEY, NEXT_PUBLIC_SUPABASE_URL,
-// NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_ADMIN_EMAIL.
+// NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_ADMIN_EMAIL,
+// SUPABASE_SERVICE_ROLE_KEY (ค้นอีเมล designer ตอนแจ้งเตือน quote — ตั้งแต่ 0054
+// anon อ่านตาราง users ไม่ได้แล้ว ถ้าไม่ตั้ง แจ้งเตือน quote จะ error ชัดเจน).
 // Optional: TURNSTILE_SECRET_KEY (enables bot verification on quote emails).
 
 import { handleEmailRequest } from "../../src/lib/email-service";
@@ -34,6 +36,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       RESEND_API_KEY: env.RESEND_API_KEY,
       SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY,
       ADMIN_EMAIL: env.NEXT_PUBLIC_ADMIN_EMAIL,
       TURNSTILE_SECRET_KEY: env.TURNSTILE_SECRET_KEY,
     }
