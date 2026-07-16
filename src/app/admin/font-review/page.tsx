@@ -191,11 +191,30 @@ export default function AdminAllFontsPage() {
       .from("fonts")
       .update({ published_at: new Date().toISOString(), is_active: true })
       .eq("id", f.id);
-    if (error) showToast("เกิดข้อผิดพลาด: " + error.message);
-    else {
-      showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว — อย่าลืม Deploy เว็บ`);
-      load();
+    if (error) {
+      showToast("เกิดข้อผิดพลาด: " + error.message);
+      setPublishing(null);
+      setReviewing(null);
+      return;
     }
+
+    // ต้อง deploy ทุกครั้งที่ publish — หน้ารายการดึงข้อมูลสดจาก Supabase
+    // (ฟอนต์โผล่ทันที) แต่หน้ารายละเอียดเป็น SSG สร้างตอน build เท่านั้น
+    // ถ้าไม่ build ใหม่ ลูกค้าคลิกจากหน้ารายการแล้วจะเจอ 404
+    const hookUrl = process.env.NEXT_PUBLIC_CF_DEPLOY_HOOK;
+    if (!hookUrl) {
+      showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว — แต่ NEXT_PUBLIC_CF_DEPLOY_HOOK ไม่ได้ตั้งไว้ ต้อง deploy เอง`);
+    } else {
+      try {
+        // no-cors: deploy hook ไม่ส่ง CORS header กลับ — ยิงแล้วอ่าน response ไม่ได้
+        // แต่ Cloudflare รับ request ไปแล้ว (fetch จะ throw เฉพาะตอนยิงไม่ออกจริง ๆ)
+        await fetch(hookUrl, { method: "POST", mode: "no-cors" });
+        showToast(`✓ Publish "${f.name ?? f.slug}" แล้ว — กำลัง deploy หน้าเว็บจะอัปเดตใน ~2 นาที`);
+      } catch (e) {
+        showToast(`✓ Publish แล้ว แต่สั่ง deploy ไม่สำเร็จ ต้อง deploy เอง: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+    load();
     setPublishing(null);
     setReviewing(null);
   };

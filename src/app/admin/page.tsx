@@ -21,7 +21,6 @@ export default function AdminFontsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingFont, setEditingFont] = useState<FontRow | null>(null);
   const [toast, setToast] = useState("");
-  const [publishing, setPublishing] = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -66,26 +65,6 @@ export default function AdminFontsPage() {
 
   const openAdd = () => router.push("/admin/add");
   const openEdit = (f: FontRow) => { setEditingFont(f); setPanelOpen(true); };
-
-  // Fonts that have never been published
-  const pendingFonts = fonts.filter((f) => !f.published_at);
-
-  const handlePublish = async () => {
-    if (!confirm(`Publish ตอนนี้เลยไหม?\n\nจะ deploy เว็บและ mark ฟอนต์ ${pendingFonts.length} ตัวว่า published`)) return;
-    setPublishing(true);
-    try {
-      const hookUrl = process.env.NEXT_PUBLIC_CF_DEPLOY_HOOK;
-      if (!hookUrl) throw new Error("NEXT_PUBLIC_CF_DEPLOY_HOOK not set");
-      await fetch(hookUrl, { method: "POST", mode: "no-cors" });
-      await supabase.rpc("publish_fonts");
-      showToast("กำลัง deploy… หน้าเว็บจะอัปเดตใน ~2 นาที");
-      loadFonts();
-    } catch (e) {
-      showToast("เกิดข้อผิดพลาด: " + (e instanceof Error ? e.message : String(e)));
-    } finally {
-      setPublishing(false);
-    }
-  };
 
   const stats = [
     { label: "ฟอนต์ทั้งหมด", value: fonts.length },
