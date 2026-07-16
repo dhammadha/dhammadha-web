@@ -94,7 +94,14 @@ async function supabaseSelect<T>(
 }
 
 async function verifyTurnstile(env: EmailEnv, token: string, ip?: string | null): Promise<boolean> {
-  if (!env.TURNSTILE_SECRET_KEY || !token) return true; // not configured or no token — skip
+  // Fail-closed: ถ้าตั้ง TURNSTILE_SECRET_KEY ไว้แล้ว (production ต้องตั้งเสมอ)
+  // ไม่มี token หรือ token ว่าง ต้องถือว่า "ไม่ผ่าน" — ป้องกัน client ที่ไม่ส่ง
+  // token มา (หรือแก้โค้ดฝั่ง client เอง) สแปมอีเมลผ่าน quote endpoint ได้
+  if (env.TURNSTILE_SECRET_KEY && !token) return false;
+  // Escape hatch เดียวที่เหลือ: ไม่ตั้ง TURNSTILE_SECRET_KEY เลย (เช่นตอน
+  // `npm run dev` ในเครื่องที่ไม่มี secret) — ข้ามการตรวจเพื่อให้ dev ทำงานได้
+  // *** production ต้องตั้ง TURNSTILE_SECRET_KEY เสมอ ไม่งั้นช่องโหว่นี้จะเปิดอยู่ ***
+  if (!env.TURNSTILE_SECRET_KEY) return true;
   const form = new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY, response: token });
   if (ip) form.set("remoteip", ip);
   const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {

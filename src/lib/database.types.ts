@@ -33,8 +33,6 @@ export interface Database {
           demo_font_files: string[] | null;
           free_font_files: string[] | null;
           specimen_files: string[] | null;
-          obfuscated_font_files: string[] | null;
-          obfuscated_map: Json | null;
           has_demo: boolean;
           weight_count: number | null;
           owner_id: string | null;
@@ -67,8 +65,6 @@ export interface Database {
           demo_font_files?: string[] | null;
           free_font_files?: string[] | null;
           specimen_files?: string[] | null;
-          obfuscated_font_files?: string[] | null;
-          obfuscated_map?: Json | null;
           has_demo?: boolean;
           weight_count?: number | null;
           owner_id?: string | null;
@@ -102,8 +98,6 @@ export interface Database {
           demo_font_files?: string[] | null;
           free_font_files?: string[] | null;
           specimen_files?: string[] | null;
-          obfuscated_font_files?: string[] | null;
-          obfuscated_map?: Json | null;
           has_demo?: boolean;
           weight_count?: number | null;
           owner_id?: string | null;

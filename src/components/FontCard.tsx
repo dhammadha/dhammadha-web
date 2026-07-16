@@ -33,8 +33,6 @@ export interface Font {
   demo_font_files?: string[];
   free_font_files?: string[];
   specimen_files?: string[];
-  obfuscated_font_files?: string[];
-  obfuscated_map?: Record<string, string>;
   has_demo?: boolean;
   weight_count?: number;
   created_at?: string;

@@ -40,12 +40,6 @@ function buildChecks(f: FontRow, privateFiles: string[] | null): Check[] {
           hint: privateFiles === null ? "กำลังตรวจสอบ…" : undefined,
         },
         {
-          label: "Tester (obfuscated) + map",
-          ok: (f.obfuscated_font_files?.length ?? 0) > 0 && !!f.obfuscated_map,
-          required: false,
-          hint: "ไม่มีก็ publish ได้ แต่ type tester จะ fallback ไปใช้ demo",
-        },
-        {
           label: "ไฟล์ Demo ให้ทดลอง",
           ok: (f.demo_font_files?.length ?? 0) > 0,
           required: false,

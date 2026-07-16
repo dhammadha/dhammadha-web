@@ -115,12 +115,21 @@
   (4) ทดสอบ test mode: ซื้อฟอนต์ด้วยบัตรทดสอบ 4242... → เช็คอีเมล →
   /account เห็นไฟล์ → ดาวน์โหลด → /verify ผ่าน → order มี platform_amount 25%
   (5) สลับเป็น live keys + webhook ใหม่ของ live mode
-- [ ] **เปิด Turnstile กลับบนฟอร์ม quote** — ตอนนี้ถูกปิดชั่วคราว (commit
-  `fdee19a` ถอด widget + `69bb091` server ข้ามตรวจเมื่อไม่มี token)
-  ขั้นตอน: สร้าง site ใน Cloudflare Turnstile → ตั้ง
-  `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (Pages build env) + `TURNSTILE_SECRET_KEY`
-  (Pages Function env) → คืน widget ในฟอร์ม quote + เอา bypass ฝั่ง server ออก
-  → ทดสอบส่งฟอร์มบน production
+- [x] **โค้ดเปิด Turnstile กลับบนฟอร์ม quote เสร็จแล้ว** (16 ก.ค. 2026):
+  `src/app/quote/page.tsx` โหลดสคริปต์ Turnstile + render widget จริง
+  (explicit render, เก็บ token จาก callback), ปุ่มส่งถูก disable จนกว่าจะผ่าน
+  widget (เฉพาะตอนตั้ง `NEXT_PUBLIC_TURNSTILE_SITE_KEY` ไว้ — dev เครื่องที่ไม่
+  ตั้ง key ยังส่งฟอร์มได้ปกติ), reset widget อัตโนมัติเมื่อส่งไม่สำเร็จ
+  (token ใช้ได้ครั้งเดียว) / `src/lib/email-service.ts` `verifyTurnstile()`
+  แก้เป็น **fail-closed**: ถ้าตั้ง `TURNSTILE_SECRET_KEY` ไว้ แต่ไม่มี token
+  จาก client ถือว่าไม่ผ่าน (เดิม fail-open — ไม่มี token ก็ผ่านเสมอ ทำให้ยิง
+  `POST /api/send-email` ตรงแบบไม่ auth/ไม่ throttle สแปมอีเมลได้) escape
+  hatch ที่เหลือมีจุดเดียว: ไม่ตั้ง `TURNSTILE_SECRET_KEY` เลยจะข้ามตรวจ
+  (สำหรับ dev เท่านั้น) — **เหลืองานปฏิบัติการฝั่ง user เท่านั้น:**
+  - [ ] สร้าง site ใหม่ใน Cloudflare Turnstile dashboard (โดเมน dhammadha.com)
+  - [ ] ตั้ง `NEXT_PUBLIC_TURNSTILE_SITE_KEY` ใน Cloudflare Pages build env
+  - [ ] ตั้ง `TURNSTILE_SECRET_KEY` เป็น secret ใน Cloudflare Pages Function env
+  - [ ] ทดสอบส่งฟอร์ม quote จริงบน production (ต้องเห็น widget + ส่งผ่านได้)
 
 เอกสารนี้อธิบายแผนงานทั้ง 5 เฟสอย่างละเอียด: แต่ละอย่างคืออะไร ทำไปทำไม
 ทำงานยังไง และเสร็จเมื่อไหร่ถึงเรียกว่า "เสร็จ" — เขียนไว้ให้กลับมาอ่านแล้ว

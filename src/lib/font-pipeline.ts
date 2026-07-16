@@ -1,9 +1,10 @@
 // In-browser font pipeline — ใช้ Pyodide (Python บน WebAssembly) รัน fonttools
 // ในเบราว์เซอร์ เพื่อ generate ไฟล์จากฟอนต์เต็มโดยไม่ต้องมี server:
-//   1. generateTesterAssets — Tester (obfuscated) .woff2 ทุก weight + map
-//      type tester แสดงฟอนต์จริง แต่ไฟล์ที่ถูกดูดไปพิมพ์ออกมาเป็นตัวมั่ว
-//   2. generateDemoFile — Demo .ttf/.otf เฉพาะ Regular ตัดเหลือภาษาไทย ชื่อ DEMO
-// แยกเป็นสอง entry point เพราะ tester บังคับมี ส่วน demo เป็นของไม่บังคับ
+//   generateDemoFile — Demo .ttf/.otf เฉพาะ Regular ตัดเหลือภาษาไทย ชื่อ DEMO
+// (เดิมมี generateTesterAssets สำหรับสร้าง tester แบบ obfuscated cmap ด้วย แต่ลบทิ้งแล้ว
+//  เพราะ tester ไม่ได้ subset glyph จริง — เป็นฟอนต์เต็ม 100% ที่แค่สลับ cmap ซึ่งแกะกลับได้ง่าย
+//  ด้วย fontTools ทำให้ดาวน์โหลดฟรีได้โดยไม่ต้องซื้อ ปัจจุบัน type tester ใช้ render-tester
+//  Edge Function เรนเดอร์เป็น PNG ฝั่ง server แทนแล้ว)
 // ตรรกะเดียวกับ scripts/prepare_font_assets.py (ฝั่ง CLI สำหรับงาน batch)
 // โหลด Pyodide จาก CDN ครั้งแรก ~10MB แล้ว browser cache ไว้
 
@@ -37,45 +38,11 @@ declare global {
 // ── Python source (พอร์ตจาก scripts/prepare_font_assets.py) ─────────────────
 
 const PY_SOURCE = `
-import io, json, random
+import io
 from fontTools.ttLib import TTFont
 from fontTools.subset import Subsetter, Options
 
-# หมวดอักขระที่สลับกันได้ — permute ภายในหมวดเดียวกันเท่านั้น ไม่งั้น
-# การจัด cluster/ตำแหน่ง mark ของ shaping engine ภาษาไทยพัง
-CHAR_GROUPS = [
-    "".join(chr(c) for c in range(0x0E01, 0x0E2F)),  # พยัญชนะ ก-ฮ
-    "\\u0e40\\u0e41\\u0e42\\u0e43\\u0e44",            # สระหน้า เ แ โ ใ ไ
-    "\\u0e30\\u0e32",                                  # สระหลัง ะ า
-    "\\u0e31\\u0e34\\u0e35\\u0e36\\u0e37\\u0e47\\u0e4c\\u0e4d",  # สระบน/ไม้ไต่คู้/การันต์/นิคหิต
-    "\\u0e48\\u0e49\\u0e4a\\u0e4b",                    # วรรณยุกต์
-    "\\u0e3a\\u0e38\\u0e39",                           # สระล่าง/พินทุ
-    "".join(chr(c) for c in range(0x0E50, 0x0E5A)),  # เลขไทย
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "abcdefghijklmnopqrstuvwxyz",
-    "0123456789",
-]
-
 DEMO_UNICODES = list(range(0x0E00, 0x0E80)) + [0x20]
-
-
-def build_mapping(seed):
-    """map { อักขระที่พิมพ์ -> อักขระที่ส่งให้ฟอนต์ } ใช้ร่วมกันทุก weight"""
-    rng = random.Random(seed)
-    mapping = {}
-    for group in CHAR_GROUPS:
-        chars = list(group)
-        if len(chars) == 2:
-            shuffled = chars[::-1]
-        else:
-            shuffled = chars[:]
-            for _ in range(100):
-                rng.shuffle(shuffled)
-                if all(a != b for a, b in zip(chars, shuffled)):
-                    break
-        for orig, enc in zip(chars, shuffled):
-            mapping[orig] = enc
-    return mapping
 
 
 def rename_family(font, new_family):
@@ -89,29 +56,6 @@ def rename_family(font, new_family):
         if record.nameID == 6:  # PostScript name ห้ามมีช่องว่าง
             new_text = new_text.replace(" ", "")
         name.setName(new_text, record.nameID, record.platformID, record.platEncID, record.langID)
-
-
-def make_tester(in_path, family, mapping):
-    """คืน bytes ของ .woff2 ที่ cmap ถูกสลับตาม mapping"""
-    font = TTFont(in_path)
-    for table in font["cmap"].tables:
-        if not table.isUnicode():
-            continue
-        oc = dict(table.cmap)
-        nc = dict(oc)
-        for orig, enc in mapping.items():
-            o, e = ord(orig), ord(enc)
-            if o in oc:
-                nc[e] = oc[o]
-            elif e in nc:
-                del nc[e]
-        table.cmap = nc
-    rename_family(font, family + " TESTER")
-    font.flavor = "woff2"
-    out = io.BytesIO()
-    font.save(out)
-    font.close()
-    return out.getvalue()
 
 
 def make_demo(in_path, family):
@@ -182,74 +126,15 @@ function loadPyodideOnce(onProgress: (msg: string) => void): Promise<Pyodide> {
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
-export interface GeneratedTesterAssets {
-  /** ไฟล์ tester (obfuscated) หนึ่งไฟล์ต่อ weight */
-  testerFiles: File[];
-  /** map { อักขระที่พิมพ์ → อักขระที่ส่งให้ฟอนต์ } เก็บลง fonts.obfuscated_map */
-  map: Record<string, string>;
-}
-
 function weightFromFilename(name: string): string {
   const base = name.replace(/\.[^.]+$/, "");
   const w = base.includes("-") ? base.split("-").pop()! : "regular";
   return w.toLowerCase() || "regular";
 }
 
-function randomHex(bytes: number): string {
-  const arr = new Uint8Array(bytes);
-  crypto.getRandomValues(arr);
-  return [...arr].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/**
- * สร้างไฟล์ tester (obfuscated ทุก weight) + map จากไฟล์เต็ม
- * ทำงานในเบราว์เซอร์ล้วน — ไฟล์เต็มไม่ออกจากเครื่องผู้ใช้ระหว่างประมวลผล
- */
-export async function generateTesterAssets(
-  fullFonts: File[],
-  familyName: string,
-  onProgress: (msg: string) => void = () => {}
-): Promise<GeneratedTesterAssets> {
-  if (!fullFonts.length) throw new Error("ไม่มีไฟล์ฟอนต์เต็มให้ประมวลผล");
-  const family = familyName.trim() || "Font";
-
-  const pyodide = await loadPyodideOnce(onProgress);
-
-  // permutation ใหม่ทุกครั้งที่ generate (ทุก weight ของฟอนต์เดียวกันใช้ map เดียวกัน)
-  const seed = randomHex(16);
-  pyodide.globals.set("js_seed", seed);
-  const mapJson = pyodide.runPython(
-    "mapping = build_mapping(js_seed); json.dumps(mapping, ensure_ascii=False)"
-  );
-  const map = JSON.parse(mapJson) as Record<string, string>;
-
-  const prefix = `tester-${randomHex(4)}`;
-  const testerFiles: File[] = [];
-  for (let i = 0; i < fullFonts.length; i++) {
-    const f = fullFonts[i];
-    const weight = weightFromFilename(f.name);
-    onProgress(`กำลังสร้าง tester ${i + 1}/${fullFonts.length} (${weight})…`);
-    const inPath = `/tmp/in-${i}`;
-    pyodide.FS.writeFile(inPath, new Uint8Array(await f.arrayBuffer()));
-    pyodide.globals.set("js_in_path", inPath);
-    pyodide.globals.set("js_family", family);
-    pyodide.runPython(
-      "tester_bytes = make_tester(js_in_path, js_family, mapping)\n" +
-      "with open('/tmp/tester.out', 'wb') as f: f.write(tester_bytes)"
-    );
-    const bytes = pyodide.FS.readFile("/tmp/tester.out");
-    testerFiles.push(new File([new Uint8Array(bytes)], `${prefix}-${weight}.woff2`, { type: "font/woff2" }));
-    pyodide.FS.unlink(inPath);
-  }
-
-  onProgress("เสร็จแล้ว");
-  return { testerFiles, map };
-}
-
 /**
  * สร้างไฟล์ demo (Regular ตัดเหลือภาษาไทย) จากไฟล์เต็ม
- * แยกจาก generateTesterAssets เพราะ demo เป็นของไม่บังคับ — designer ที่ไม่ต้องการ
- * แจก demo กด generate เฉพาะ tester ได้ (demo ไม่ต้องใช้ map จึงแยกได้อิสระ)
+ * ทำงานในเบราว์เซอร์ล้วน — ไฟล์เต็มไม่ออกจากเครื่องผู้ใช้ระหว่างประมวลผล
  */
 export async function generateDemoFile(
   fullFonts: File[],

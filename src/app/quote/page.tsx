@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
@@ -23,10 +23,8 @@ interface FontItem {
 
 interface DesignerInfo {
   id: string;
-  email: string | null;
   name: string | null;
   business_name: string | null;
-  phone: string | null;
 }
 
 interface LicenseConfig {
@@ -46,13 +44,15 @@ const EMPTY_FORM = {
 };
 
 // Cloudflare Turnstile — bot protection on the quote form.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- รอเปิด Turnstile กลับ (ดู docs/ROADMAP.md)
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
 
 declare global {
   interface Window {
     turnstile?: {
       render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+      reset: (widgetId: string) => void;
+      remove: (widgetId: string) => void;
     };
   }
 }
@@ -80,6 +80,47 @@ function QuoteForm() {
   const [errorMsg, setErrorMsg] = useState("");
   const [pdfOpen, setPdfOpen] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+
+  // โหลดสคริปต์ Turnstile แล้ว render widget แบบ explicit (ไม่ใช้ auto-render)
+  // ทำงานเฉพาะเมื่อตั้ง NEXT_PUBLIC_TURNSTILE_SITE_KEY ไว้ — ถ้าไม่ตั้ง (dev เครื่อง)
+  // จะไม่โหลดสคริปต์เลย และฟอร์มยังส่งได้ตามปกติ (ดูเงื่อนไขใน submit())
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
+
+    function renderWidget() {
+      if (!turnstileContainerRef.current || !window.turnstile || turnstileWidgetIdRef.current) return;
+      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: TURNSTILE_SITE_KEY,
+        callback: (token: string) => setTurnstileToken(token),
+        "expired-callback": () => setTurnstileToken(""),
+        "error-callback": () => setTurnstileToken(""),
+      });
+    }
+
+    if (window.turnstile) {
+      renderWidget();
+      return;
+    }
+
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${TURNSTILE_SCRIPT_SRC}"]`);
+    if (existing) {
+      existing.addEventListener("load", renderWidget);
+      return () => existing.removeEventListener("load", renderWidget);
+    }
+
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.addEventListener("load", renderWidget);
+    document.body.appendChild(script);
+
+    return () => {
+      script.removeEventListener("load", renderWidget);
+    };
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -95,7 +136,7 @@ function QuoteForm() {
       if (designerSlug) {
         const { data: dData } = await supabase
           .from("users")
-          .select("id, email, name, business_name, phone")
+          .select("id, name, business_name")
           .eq("designer_slug", designerSlug)
           .single();
         if (dData) designerInfo = dData as DesignerInfo;
@@ -157,10 +198,19 @@ function QuoteForm() {
     setSelectedFonts((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // รีเซ็ต widget Turnstile — token ใช้ได้ครั้งเดียว ต้องรีเซ็ตทุกครั้งที่ส่งฟอร์ม
+  // ไม่สำเร็จ (ทั้ง error จริงและ turnstile ตรวจไม่ผ่าน) เพื่อให้ผู้ใช้ลองใหม่ได้
+  function resetTurnstile() {
+    if (turnstileWidgetIdRef.current && window.turnstile) {
+      window.turnstile.reset(turnstileWidgetIdRef.current);
+    }
+    setTurnstileToken("");
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const chosenFonts = selectedFonts.filter(Boolean);
-    
+
     // ตรวจสอบฟิลด์บังคับ (ยกเว้น form.note ที่ไม่ต้องเช็กแล้ว)
     if (
       !form.contact_name ||
@@ -181,6 +231,12 @@ function QuoteForm() {
     }
     if (!/^\d{13}$/.test(form.tax_id)) {
       setErrorMsg("หมายเลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+      return;
+    }
+    // บังคับผ่าน Turnstile ก่อนส่ง — เช็คเฉพาะตอนตั้ง site key ไว้ (dev เครื่องที่ไม่มี
+    // key ให้ส่งได้ตามปกติ ฝั่ง server จะข้ามการตรวจเช่นกันเมื่อไม่ได้ตั้ง secret key)
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErrorMsg("กรุณายืนยันว่าคุณไม่ใช่บอทก่อนส่งคำขอ");
       return;
     }
     setErrorMsg("");
@@ -226,10 +282,12 @@ function QuoteForm() {
       setStatus("success");
       setForm(EMPTY_FORM);
       setSelectedFonts([""]);
-      setTurnstileToken("");
+      resetTurnstile();
     } catch {
       setStatus("error");
       setErrorMsg("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      // token ของ Turnstile ใช้ได้ครั้งเดียว — รีเซ็ต widget ให้ผู้ใช้ยืนยันใหม่ก่อน retry
+      resetTurnstile();
     }
   }
 
@@ -482,6 +540,13 @@ function QuoteForm() {
             </div>
 
 
+            {/* Cloudflare Turnstile — แสดงเฉพาะตอนตั้ง site key ไว้เท่านั้น */}
+            {TURNSTILE_SITE_KEY && (
+              <div className="flex justify-end">
+                <div ref={turnstileContainerRef} />
+              </div>
+            )}
+
             {errorMsg && (
               <p className="text-[13px] text-[#e74c3c] text-right">{errorMsg}</p>
             )}
@@ -499,7 +564,10 @@ function QuoteForm() {
               >
                 ยกเลิก
               </Link>
-              <Button type="submit" disabled={status === "loading"}>
+              <Button
+                type="submit"
+                disabled={status === "loading" || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+              >
                 {status === "loading" ? "กำลังส่ง..." : "ส่งคำขอใบเสนอราคา"}
               </Button>
             </div>
