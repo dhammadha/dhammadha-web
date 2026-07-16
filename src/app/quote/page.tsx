@@ -93,6 +93,9 @@ function QuoteForm() {
       if (!turnstileContainerRef.current || !window.turnstile || turnstileWidgetIdRef.current) return;
       turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
         sitekey: TURNSTILE_SITE_KEY,
+        // default เป็น "auto" = ตามธีมเครื่องผู้ใช้ → คนใช้ dark mode จะเห็นกล่องดำ
+        // เว็บนี้เป็นธีมสว่างอย่างเดียว บังคับ light ให้เข้ากันทุกเครื่อง
+        theme: "light",
         callback: (token: string) => setTurnstileToken(token),
         "expired-callback": () => setTurnstileToken(""),
         "error-callback": () => setTurnstileToken(""),
