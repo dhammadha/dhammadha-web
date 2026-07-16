@@ -234,9 +234,9 @@ function deliveryHtml(
   <tr><td style="padding:8px 0;border-top:1px solid #eee;font-weight:bold">รวม</td><td style="padding:8px 0;border-top:1px solid #eee;text-align:right;font-weight:bold">฿${Number(order.total_amount).toLocaleString()}</td></tr>
 </table>
 <p><strong>ดาวน์โหลดไฟล์ฟอนต์:</strong><br>
-เข้าสู่ระบบที่ dhammadha.com ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) แล้วไปที่หน้า "บัญชีของฉัน" — ไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด<br>
-หากยังไม่มีบัญชี สมัครสมาชิกด้วยอีเมลนี้ ระบบจะผูกสิทธิ์ให้อัตโนมัติ</p>
-<p><a href="https://dhammadha.com/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a></p>
+เข้าสู่ระบบที่ dhammadha.com ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) <br>แล้วไปที่หน้า "บัญชีของฉัน" โดยไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด</p>
+<p>หากยังไม่มีบัญชี สมัครสมาชิกด้วยอีเมลนี้ ระบบจะผูกสิทธิ์ให้อัตโนมัติ</p>
+<p><br><a href="https://dhammadha.com/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a><br></p>
 ${receiptNo ? `<p style="color:#555;font-size:13px">แนบใบเสร็จรับเงินเลขที่ <strong>${escapeHtml(receiptNo)}</strong> มาพร้อมอีเมลฉบับนี้แล้ว</p>` : ""}
 ${licensePdfUrl ? `<p>เอกสารข้อตกลงสิทธิ์การใช้งาน (License): <a href="${escapeHtml(licensePdfUrl)}">ดาวน์โหลด PDF</a></p>` : ""}
 <p style="color:#888;font-size:13px">ไฟล์ฟอนต์ของคุณถูกประทับข้อมูลการซื้อ (เลขคำสั่งซื้อ) ไว้ในไฟล์ ตรวจสอบได้ที่ dhammadha.com/verify</p>

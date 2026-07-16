@@ -479,7 +479,7 @@ export async function generateQuotePdf(data: QuoteDocData): Promise<Uint8Array> 
   if (data.seller.bank) {
     const bank = data.seller.bank;
     const rows: { text: string; bold?: boolean }[] = [
-      { text: "ชำระเงินโดยโอนเงินเข้าบัญชี", bold: true },
+      { text: "รายละเอียดการชำระเงิน", bold: true },
     ];
     if (bank.bank_name) rows.push({ text: `ธนาคาร: ${bank.bank_name}` });
     if (bank.account_name) rows.push({ text: `ชื่อบัญชี: ${bank.account_name}` });

@@ -13,7 +13,7 @@ const CATEGORIES = ["serif", "sans-serif", "display", "handwriting", "monospace"
 type PriceFilter = "all" | "free" | "sale";
 
 const PRICE_OPTIONS: { value: PriceFilter; label: string }[] = [
-  { value: "all", label: "ราคาทั้งหมด" },
+  { value: "all", label: "ราคา" },
   { value: "free", label: "ฟรี" },
   { value: "sale", label: "ลดราคา" },
 ];

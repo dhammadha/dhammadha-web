@@ -200,7 +200,7 @@ export default function OwnPricing() {
           <div>
             <span className="text-[14px] font-medium text-navy">ตั้งค่าสิทธิการใช้งานเอง</span>
             <p className="text-[12px] text-[#aaa] mt-0.5 leading-[1.6]">
-              หากไม่ติ๊ก จะใช้ค่า default ของ DHAMMADHA STUDIO (tier และราคามาตรฐาน)
+              หากไม่เลือก จะใช้ค่า default ของ DHAMMADHA STUDIO (tier และราคามาตรฐาน)
             </p>
           </div>
         </label>

@@ -67,7 +67,7 @@ function LoginForm() {
               <div className="flex items-center justify-between gap-2">
                 <label className="text-[13px] text-[#555] font-medium">รหัสผ่าน</label>
                 <Link href="/auth/forgot-password" className="text-[12px] text-mint no-underline hover:underline">
-                  ลืมพาสเวิร์ด?
+                  ลืมพาสเวิร์ด
                 </Link>
               </div>
               <input
