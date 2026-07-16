@@ -96,9 +96,10 @@ export default function OwnAnalytics() {
 
   useEffect(() => { load(); }, [load]);
 
-  const now = new Date();
-
   const fontStats: FontStat[] = useMemo(() => {
+    // คำนวณ now() ในนี้แทนที่จะใส่ deps ข้างนอก เพราะ new Date() ทุก render
+    // จะทำให้ deps เปลี่ยนค่าทุกครั้ง ส่งผลให้ memo คำนวณใหม่ทุก render จนพังการทำ memoization
+    const now = new Date();
     return fonts
       .map((font) => {
         const fontEvents = events.filter((e) => e.font_id === font.id);
@@ -113,6 +114,7 @@ export default function OwnAnalytics() {
   }, [fonts, events, downloadLogs]);
 
   const stats = useMemo(() => {
+    const now = new Date();
     const viewsMonth = events.filter((e) => e.kind === "view" && isThisMonth(e.created_at, now)).length;
     const freeDownloadsMonth = events.filter((e) => e.kind === "free_download" && isThisMonth(e.created_at, now)).length;
     const paidDownloadsMonth = downloadLogs.filter((d) => isThisMonth(d.created_at, now)).length;

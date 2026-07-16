@@ -29,6 +29,16 @@ const eslintConfig = [
       "react-hooks/immutability": "warn",
       // เครื่องหมาย " ในข้อความ JSX — เรื่องความสวยงามล้วน ๆ ไม่กระทบการแสดงผล
       "react/no-unescaped-entities": "warn",
+      // โค้ดในโปรเจกต์ใช้ _ นำหน้าเพื่อบอกว่า "ตั้งใจไม่ใช้ตัวนี้"
+      // varsIgnorePattern ครอบ Button.tsx (_a/_v/_s/_c จาก object destructure ทิ้ง prop)
+      // argsIgnorePattern ครอบ AuthContext.tsx (_uid ที่เป็น parameter)
+      // destructuredArray ใช้กับ array destructure เช่น useState — ไม่เกี่ยวกับ 2 เคสข้างบน
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+        destructuredArrayIgnorePattern: "^_",
+      }],
     },
   },
 ];

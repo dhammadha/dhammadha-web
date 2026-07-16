@@ -46,6 +46,7 @@ const EMPTY_FORM = {
 };
 
 // Cloudflare Turnstile — bot protection on the quote form.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- รอเปิด Turnstile กลับ (ดู docs/ROADMAP.md)
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 declare global {

@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
-import FontCard, { Font, isNew } from "@/components/FontCard";
+import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
 import SubscriptionPricingCard from "@/components/SubscriptionPricingCard";
 

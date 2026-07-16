@@ -35,7 +35,6 @@ function VerifyContent() {
 
   useEffect(() => {
     if (initial) check(initial);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initial]);
 
   return (

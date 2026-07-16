@@ -158,7 +158,6 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       if (typeof d.isFree === "boolean") setIsFree(d.isFree);
       if (typeof d.isSub === "boolean") setIsSub(d.isSub);
     } catch { /* ignore */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingFont]);
 
   useEffect(() => {
@@ -398,15 +397,6 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     } finally {
       setSaving(false);
     }
-  };
-
-  const movePreview = (from: number, to: number) => {
-    setPreviewItems((prev) => {
-      const arr = [...prev];
-      const [moved] = arr.splice(from, 1);
-      arr.splice(to, 0, moved);
-      return arr;
-    });
   };
 
   const handleCancel = () => {

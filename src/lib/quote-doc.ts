@@ -9,7 +9,7 @@
  * imported from an admin page.
  */
 
-import { PDFDocument, PDFFont, PDFPage, rgb } from "pdf-lib";
+import { PDFDocument, PDFFont, rgb } from "pdf-lib";
 import type { RGB } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 
