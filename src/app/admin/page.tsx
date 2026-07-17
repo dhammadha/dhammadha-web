@@ -183,7 +183,6 @@ export default function AdminFontsPage() {
         editingFont={editingFont}
         onSaved={loadFonts}
         ownerId={user?.id}
-        isAdmin
       />
 
       {toast && (

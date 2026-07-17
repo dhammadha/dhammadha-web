@@ -179,7 +179,6 @@ export default function DesignerFontsPage() {
         editingFont={editingFont}
         onSaved={loadFonts}
         ownerId={user?.id}
-        isAdmin={false}
       />
 
       {toast && (

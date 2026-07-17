@@ -14,7 +14,6 @@ interface Props {
   editingFont: FontRow | null;
   onSaved: () => void;
   ownerId?: string;
-  isAdmin?: boolean;
   mode?: "panel" | "page";
 }
 
@@ -75,7 +74,7 @@ async function computeMetaSummary(entries: FontFileEntry[], bucket: "fonts-full"
   return summarizeFontMeta(metas);
 }
 
-export default function FontForm({ open, onClose, editingFont, onSaved, ownerId, isAdmin = true, mode = "panel" }: Props) {
+export default function FontForm({ open, onClose, editingFont, onSaved, ownerId, mode = "panel" }: Props) {
   const [name, setName] = useState("");
   const [nameTh, setNameTh] = useState("");
   const [slug, setSlug] = useState("");
@@ -413,16 +412,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         owner_id: ownerId ?? null,
       };
 
+      // เขียนผ่าน RLS ทางเดียวทั้ง admin และ designer (admin มี policy "admin full access fonts",
+      // designer มี "designer insert/update own fonts") — เลิกใช้ RPC admin_upsert_font แล้ว
       let fontId: string | null = editingFont?.id ?? null;
-      if (isAdmin) {
-        // Use SECURITY DEFINER RPC to bypass RLS for admin operations
-        const { data, error } = await supabase.rpc("admin_upsert_font", {
-          p_id: editingFont?.id ?? null,
-          p_data: payload,
-        });
-        if (error) throw error;
-        fontId = (data as { id?: string } | null)?.id ?? fontId;
-      } else if (editingFont) {
+      if (editingFont) {
         const { error } = await supabase.from("fonts").update(payload as Database["public"]["Tables"]["fonts"]["Update"]).eq("id", editingFont.id);
         if (error) throw error;
       } else {
@@ -488,10 +481,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
         <div className="grid grid-cols-1 gap-3 mt-3">
           <FormField label="คำอธิบาย (TH)">
-            <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} rows={4} className={inputCls} placeholder="คำอธิบายภาษาไทย..." />
+            <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} className={textareaCls} placeholder="คำอธิบายภาษาไทย..." />
           </FormField>
           <FormField label="คำอธิบาย (EN)">
-            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={4} className={inputCls} placeholder="English description..." />
+            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} className={textareaCls} placeholder="English description..." />
           </FormField>
         </div>
       </section>
@@ -724,6 +717,9 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const inputCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+
+// เหมือน inputCls แต่เอา h-[42px] ออก (ไม่งั้นมัน override rows) + สูงขั้นต่ำ 210px (~5 เท่าของ input ปกติ) + ลากขยายได้
+const textareaCls = "w-full px-3 py-2 min-h-[210px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit] resize-y";
 
 function FormField({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (

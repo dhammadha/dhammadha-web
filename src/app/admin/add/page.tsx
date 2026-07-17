@@ -16,7 +16,6 @@ export default function AdminAddFontPage() {
       editingFont={null}
       onSaved={() => router.push("/admin")}
       ownerId={user?.id}
-      isAdmin
     />
   );
 }
