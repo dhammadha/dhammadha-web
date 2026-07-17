@@ -391,7 +391,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
               )}
 
               {font.description_th && (
-                <p className="text-[14px] text-[#555] leading-[1.55]">
+                <p className="text-[14px] text-[#555] leading-[1.55] whitespace-pre-line">
                   {font.description_th}
                 </p>
               )}
