@@ -11,8 +11,9 @@ import { cn } from "@/lib/cn";
  * moodboard (font card.png) ไม่ได้วาดป้ายพวกนี้ไว้ แต่ของจริงมี
  * → เก็บไว้ ทำเป็นเหลี่ยม (ตัดออก = เสียฟังก์ชัน)
  *
- * ขนาด = body-sm (14px) ตามพื้นล่างใน §2.4 ไม่ยกเว้น
- * ของเดิมใช้ 9-11px ซึ่งเป็นส่วนหนึ่งของปัญหา "ดูอึดอัด" ที่งานนี้ตั้งใจแก้
+ * ขนาด = `badge` (Sans Bold 12) — สไตล์ที่เพิ่มนอกเหนือจาก Figma ตามที่เจ้าของอนุมัติ
+ * 12px ต่ำกว่าพื้นล่าง 14px ของ "ข้อความที่ต้องอ่าน" ได้ เพราะป้ายเป็นคำสั้น ๆ
+ * ที่จำรูปทรงมากกว่าอ่านทีละคำ (DESIGN.md §2.4, §2.6)
  */
 
 type Variant = "sale" | "free" | "new" | "tag";
@@ -36,8 +37,8 @@ export default function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center font-heading font-bold text-body-sm leading-none",
-        "px-2 py-1 tracking-wide",
+        "inline-flex items-center font-heading text-badge leading-none",
+        "px-2 py-1",
         VARIANT[variant],
         className
       )}

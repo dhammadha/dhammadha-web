@@ -87,22 +87,31 @@ const config: Config = {
       // ส่วน Figma Auto จะได้ราว 130px → หัวข้อใหญ่จะหลวมกว่า moodboard
       // ถ้าเจอปัญหาตอน Phase 7 ใส่ lineHeight เฉพาะ step hero/font-slug/h1 ได้
       //
+      // letter-spacing = 0% ทุกตัวตาม Figma → ไม่ตั้ง letterSpacing ที่นี่เลย
+      // (เคยใส่ -0.02em ~ -0.03em ไปเอง ซึ่งไม่มีในดีไซน์ — แก้แล้ว)
+      //
       // ใช้ clamp() แทน breakpoint class → responsive อัตโนมัติ ไม่ต้องเขียน md:text-*
-      // ค่าที่ได้ตรงกับตารางใน DESIGN.md §2.5 พอดี:
+      // ค่าที่วัดได้จริง:
       //   hero      375→40  768→64  1280→96
       //   font-slug 375→28  768→37  1280→48
       //   h1        375→24  768→31  1280→40
       //   h2        375→20  768→22  1280→24
       // ─────────────────────────────────────────────────────────────
       fontSize: {
-        hero: ["clamp(2.5rem, 6.19vw + 1.06rem, 6rem)", { letterSpacing: "-0.03em", fontWeight: "800" }],
-        "font-slug": ["clamp(1.75rem, 2.21vw + 1.23rem, 3rem)", { letterSpacing: "-0.02em", fontWeight: "800" }],
-        h1: ["clamp(1.5rem, 1.77vw + 1.08rem, 2.5rem)", { letterSpacing: "-0.02em", fontWeight: "700" }],
-        h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { letterSpacing: "-0.01em", fontWeight: "700" }],
-        body: ["1rem", { fontWeight: "400" }], // 16px — เนื้อความ
-        "body-sm": ["0.875rem", { fontWeight: "400" }], // 14px — พื้นล่าง ห้ามต่ำกว่านี้
-        ui: ["1rem", { fontWeight: "500" }], // 16px — ปุ่ม nav control
-        "fg-heading": ["1rem", { fontWeight: "700" }], // 16px — หัวคอลัมน์ footer
+        // หัวข้อ = ExtraBold 800 ทุกระดับ ลำดับความสำคัญมาจาก "ขนาด" ล้วน
+        hero: ["clamp(2.5rem, 6.19vw + 1.06rem, 6rem)", { fontWeight: "800" }],
+        "font-slug": ["clamp(1.75rem, 2.21vw + 1.23rem, 3rem)", { fontWeight: "800" }],
+        h1: ["clamp(1.5rem, 1.77vw + 1.08rem, 2.5rem)", { fontWeight: "800" }],
+        h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "800" }],
+
+        body: ["1rem", { fontWeight: "400" }], // 16 · Looped Regular — เนื้อความ
+        "body-sm": ["0.875rem", { fontWeight: "300" }], // 14 · Looped Light — ป้ายกำกับ
+        ui: ["1rem", { fontWeight: "700" }], // 16 · Sans Bold — ปุ่ม nav control
+        "fc-heading": ["1rem", { fontWeight: "700" }], // 16 · Sans Bold — ชื่อฟอนต์บนการ์ด
+
+        // นอกเหนือจาก Figma — เพิ่มตามที่เจ้าของสั่ง (DESIGN.md §2.6)
+        badge: ["0.75rem", { fontWeight: "700" }], // 12 · Sans Bold — ป้าย Sale/FREE/NEW/tag
+        footnote: ["0.75rem", { fontWeight: "300" }], // 12 · Looped Light — © ท้าย footer
       },
 
       // DESIGN.md §5.2

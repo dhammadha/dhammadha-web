@@ -73,7 +73,10 @@ const LINK = cn(
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
 );
 
-const HEADING = "font-heading text-fg-heading text-white mb-3";
+// หัวคอลัมน์ใช้ `ui` (Sans Bold 16) — Figma ไม่มีสไตล์ "footer heading" โดยเฉพาะ
+// และ fc-heading สงวนไว้ให้ชื่อฟอนต์บนการ์ด (สองอันเป็น Sans Bold 16 เหมือนกัน
+// แต่ชื่อต้องตรงกับหน้าที่)
+const HEADING = "font-heading text-ui text-white mb-3";
 
 function Col({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -146,9 +149,9 @@ export default function Footer() {
         </Col>
       </Container>
 
-      {/* แถบล่างพื้นอ่อน ตาม moodboard/footer.png */}
+      {/* แถบล่างพื้นอ่อน ตาม moodboard/footer.png — ใช้ `footnote` (Looped Light 12) */}
       <div className="bg-grey-50">
-        <Container className="py-4 text-center font-body text-body-sm text-grey-600">
+        <Container className="py-4 text-center font-body text-footnote text-grey-600">
           © 2012–2026 DHAMMADHA STUDIO
         </Container>
       </div>

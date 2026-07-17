@@ -29,10 +29,11 @@ type ButtonProps = BaseProps &
     | ({ as: "link" } & { href: string; target?: string; rel?: string })
   );
 
-// ขนาดใช้ font-size จาก type scale — ui = 16px, sm ใช้ body-sm = 14px
-// ทั้งคู่อยู่เหนือพื้นล่าง 14px ของอักษรไทย (DESIGN.md §2.4)
+// ทุกขนาดใช้ `ui` (Sans Bold 16) — Figma มี UI Text สไตล์เดียว
+// → size ต่างกันที่ padding ไม่ใช่ที่ขนาดตัวอักษร
+// (เดิม sm ใช้ body-sm ซึ่งตอนนี้เป็น Looped Light 300 = ผิดสำหรับปุ่ม)
 const SIZE = {
-  sm: "px-3.5 py-1.5 text-body-sm",
+  sm: "px-3.5 py-1.5 text-ui",
   md: "px-5 py-2.5 text-ui",
   lg: "px-6 py-3 text-ui",
 };
@@ -46,8 +47,9 @@ const VARIANT = {
 };
 
 // focus-visible: ของเดิมไม่มีเลยสักที่ (DESIGN.md §6.1)
+// ไม่ใส่ font-medium/font-bold — น้ำหนัก 700 มากับ text-ui แล้ว (ใส่ทับจะ override ระบบ)
 const BASE =
-  "inline-flex items-center justify-center gap-2 font-ui font-medium border cursor-pointer no-underline " +
+  "inline-flex items-center justify-center gap-2 font-ui border cursor-pointer no-underline " +
   "transition-colors duration-150 ease-base " +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black " +
   "disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400 disabled:border-grey-200 " +
