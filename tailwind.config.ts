@@ -108,7 +108,10 @@ const config: Config = {
       fontSize: {
         // หัวข้อ = ExtraBold 800 ทุกระดับ ลำดับความสำคัญมาจาก "ขนาด" ล้วน
         // hero = 60 ตาม moodboard/style/text_hero (update).png (เดิม 96)
-        hero: ["clamp(2rem, 3.09vw + 1.28rem, 3.75rem)", { fontWeight: "800" }],
+        // lineHeight 1.15: hero เป็นหัวข้อหลายบรรทัด — 1.5 (สืบทอดจาก preflight) หลวมเกิน
+        //   เจ้าของสั่งให้กระชับตามรูป Figma (2026-07-18) · unitless → scale ตาม clamp เอง
+        //   บรรทัดแรก "ฟอนต์ไทย" ไม่มีสระล่าง/หาง → กระชับ 1.15 ไม่ชนสระบนของบรรทัดถัดไป
+        hero: ["clamp(2rem, 3.09vw + 1.28rem, 3.75rem)", { fontWeight: "800", lineHeight: "1.15" }],
         "font-slug": ["clamp(1.75rem, 2.21vw + 1.23rem, 3rem)", { fontWeight: "800" }],
         h1: ["clamp(1.5rem, 1.77vw + 1.08rem, 2.5rem)", { fontWeight: "800" }],
         h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "800" }],

@@ -16,7 +16,7 @@ import { cn } from "@/lib/cn";
  * ที่จำรูปทรงมากกว่าอ่านทีละคำ (DESIGN.md §2.4, §2.6)
  */
 
-type Variant = "sale" | "free" | "new" | "tag";
+type Variant = "sale" | "free" | "new" | "tag" | "plan";
 
 // สีตามของเดิม แค่เปลี่ยนทรงเป็นเหลี่ยม + ยกคอนทราสต์ตัวหนังสือ
 // (รอบแรกไปกุ new = พื้นดำขึ้นมาเอง ทั้งที่ของเดิมเป็น mint — เจ้าของจับได้)
@@ -27,6 +27,9 @@ const VARIANT: Record<Variant, string> = {
   free: "bg-mint text-black", // เดิม #5ECEC8/white (1.89:1 ตก) → text-black 10.62:1 ✅
   new: "bg-mint text-black", // เดิม mint/navy (8.4:1) → text-black 10.62:1 ✅
   tag: "bg-surface text-grey-600", // 5.74:1 ✅ — ไม่มีเส้นขอบ (§4.1) ใช้พื้น surface แทน
+  // ป้ายชื่อแผนในหมวดราคา (ซื้อครั้งเดียว / เร็ว ๆ นี้) — เจ้าของสั่งให้เป็น mint (2026-07-18)
+  // พื้น mint เด่นบนการ์ด surface (tag ที่เป็น surface กลืนกับการ์ด) · 10.62:1 ✅
+  plan: "bg-mint text-black",
 };
 
 export default function Badge({
