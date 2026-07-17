@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import Container from "@/components/ui/Container";
+import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 import { supabase } from "@/lib/supabase";
 import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
@@ -15,7 +18,8 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 const SLIDER_SIZE = 8;
-const MAX_VISIBLE = 3;
+// สไลด์หน้าแรก = cover เดียว (DESIGN.md §7 "1 cover ตรงกลาง")
+const MAX_VISIBLE = 1;
 
 function buildSliderPool(fonts: Font[]): Font[] {
   const sale = fonts.filter((f) => f.is_sale);
@@ -30,7 +34,8 @@ function buildStrip(pool: Font[], v: number): Font[] {
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-const GRID_SHOW = 7;
+// กริด "ฟอนต์ล่าสุด" = 11 ใบ + ช่อง "ดูฟอนต์ทั้งหมด" = 3 แถว × 4 (DESIGN.md §7)
+const GRID_SHOW = 11;
 
 export default function HomePage() {
   const [fonts, setFonts] = useState<Font[]>([]);
@@ -76,12 +81,24 @@ export default function HomePage() {
     requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
   }, [sliderPool, showCount]);
 
-  // Auto-advance
+  // Auto-advance — ข้ามการเลื่อนตอนแท็บซ่อนอยู่ (DESIGN.md §8)
+  // เดิม: แท็บ hidden ไม่ยิง rAF → animated ค้าง false → transitionend ไม่ยิง → ไม่ snap
+  // แต่ setInterval ยังเดิน → pos ไต่ออกนอกจอถาวร (carousel ตาย) → กันด้วย document.hidden
   useEffect(() => {
     if (poolSize < 2) return;
-    timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
+    timerRef.current = setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      setPos((p) => p + 1);
+    }, 4000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [poolSize]);
+
+  // กลับมามองเห็นแท็บ → กู้ animated (กัน transition ค้าง none ตอนซ่อน)
+  useEffect(() => {
+    const onVis = () => { if (!document.hidden) setAnimated(true); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
 
   // Re-enable animation after instant snap
   useEffect(() => {
@@ -100,7 +117,10 @@ export default function HomePage() {
     setPos((p) => p + dir);
     if (timerRef.current) {
       clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
+      timerRef.current = setInterval(() => {
+        if (typeof document !== "undefined" && document.hidden) return;
+        setPos((p) => p + 1);
+      }, 4000);
     }
   }
 
@@ -110,41 +130,25 @@ export default function HomePage() {
 
       {/* HERO */}
       <section className="bg-white">
-        <div className="max-w-site mx-auto px-8 pt-14 pb-12">
-          <h1 className="text-[46px] font-semibold text-navy leading-[1.1] tracking-[-1px] mb-3.5">
-            ฟอนต์ไทย<br />ที่ <em className="text-mint not-italic">ออกแบบ</em> อย่างพิถีพิถัน
+        <Container className="pt-14 pb-12">
+          <h1 className="font-heading text-hero text-black mb-3.5">
+            ฟอนต์ไทย<br />ที่ <em className="text-mint-text not-italic">ออกแบบ</em> อย่างพิถีพิถัน
           </h1>
-          <p className="text-[15px] text-[#666] leading-[1.65] max-w-[480px] mb-7">
+          <p className="font-body text-body text-grey-600 max-w-[480px]">
             คลังฟอนต์ภาษาไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย
           </p>
-          <div className="flex gap-2.5">
-            <Link
-              href="/fonts/"
-              className="px-[22px] py-2.5 bg-white text-navy border border-[0.25px] border-[#ddd] rounded-[6px] text-[14px] font-medium no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
-            >
-              ดูฟอนต์ทั้งหมด
-            </Link>
-            <Link
-              href="/#pricing"
-              className="px-[18px] py-2.5 bg-white text-navy border border-[0.25px] border-[#ddd] rounded-[6px] text-[14px] font-medium no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
-            >
-              ราคาและแผนบริการ
-            </Link>
-          </div>
-        </div>
+        </Container>
       </section>
 
-      {/* FEATURED SLIDER */}
-      <div className="bg-bg">
-        <div className="max-w-site mx-auto px-8 py-6">
-          <div className="flex justify-between items-center mb-3.5">
-            <span className="text-[32px] font-semibold text-navy">คัดสรรพิเศษ</span>
-          </div>
+      {/* FEATURED SLIDER — cover เดียวบนแถบ surface (DESIGN.md §7) */}
+      <section className="bg-surface">
+        <Container className="py-8">
           <div className="relative">
-            {/* Prev */}
+            {/* Prev — ลูกศรเปล่า ไม่มีวงกลมรองพื้น (§4.0) */}
             {poolSize > 1 && (
               <button onClick={() => moveSlide(-1)}
-                className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
+                className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-grey-400 hover:text-black transition-colors px-2 z-10 leading-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                aria-label="ก่อนหน้า">
                 ‹
               </button>
             )}
@@ -152,11 +156,9 @@ export default function HomePage() {
             {/* Strip */}
             <div className="overflow-hidden mx-8">
               {loading ? (
-                <div className="flex gap-5">
-                  {[0,1,2].map((i) => <div key={i} className="flex-none w-1/3 bg-white rounded-lg aspect-video animate-pulse" />)}
-                </div>
+                <div className="aspect-[2/1] bg-grey-200 animate-pulse" />
               ) : poolSize === 0 ? (
-                <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
+                <div className="text-center font-body text-grey-600 py-10 text-body-sm">ยังไม่มีฟอนต์ในระบบ</div>
               ) : (
                 <div
                   className="flex"
@@ -171,9 +173,19 @@ export default function HomePage() {
                   onTransitionEnd={onTransitionEnd}
                 >
                   {strip.map((f, i) => (
-                    <div key={i} style={{ width: `${100 / strip.length}%`, padding: "0 10px" }}>
-                      <FontCard font={f} />
-                    </div>
+                    <Link
+                      key={i}
+                      href={`/fonts/${f.designer_slug}/${f.slug}`}
+                      style={{ width: `${100 / strip.length}%` }}
+                      className="block no-underline shrink-0"
+                    >
+                      {/* cover ล้วน — ตัดชื่อฟอนต์ในสไลด์ (§7 เลี่ยงโหลด webfont) */}
+                      <div className="aspect-[2/1] w-full bg-grey-200 overflow-hidden">
+                        {f.cover_image_url
+                          ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full bg-grey-200" />}
+                      </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -182,87 +194,79 @@ export default function HomePage() {
             {/* Next */}
             {poolSize > 1 && (
               <button onClick={() => moveSlide(1)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
+                className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-grey-400 hover:text-black transition-colors px-2 z-10 leading-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                aria-label="ถัดไป">
                 ›
               </button>
             )}
           </div>
 
           {poolSize > 1 && (
-            <div className="flex gap-1.5 justify-center mt-3.5">
+            <div className="flex gap-1.5 justify-center mt-4">
               {Array.from({ length: poolSize }, (_, i) => (
                 <button key={i} onClick={() => { setPos(showCount + i); }}
-                  className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-navy" : "w-[5px] h-[3px] bg-[#ddd]"}`}
+                  className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-mint" : "w-[5px] h-[3px] bg-grey-200"}`}
                   aria-label={`ตำแหน่ง ${i + 1}`} />
               ))}
             </div>
           )}
-        </div>
-      </div>
+        </Container>
+      </section>
 
       <AdBanner slot="1401819374" />
 
       {/* FONT GRID */}
-      <div id="fonts" className="bg-white">
-        <div className="max-w-site mx-auto px-8 py-6">
-          <div className="flex justify-between items-center mb-3.5">
-            <span className="text-[32px] font-semibold text-navy">ฟอนต์ล่าสุด</span>
-          </div>
+      <section id="fonts" className="bg-white">
+        <Container className="py-6">
+          <h2 className="font-heading text-h1 text-black mb-3.5">ฟอนต์ล่าสุด</h2>
 
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {Array.from({ length: 8 }, (_, i) => (
-                <div key={i} className="bg-[#f5f5f2] rounded-lg aspect-[4/3] animate-pulse" />
+                <div key={i} className="bg-surface aspect-[4/3] animate-pulse" />
               ))}
             </div>
           ) : fonts.length === 0 ? (
-            <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
+            <div className="text-center font-body text-grey-600 py-10 text-body-sm">ยังไม่มีฟอนต์ในระบบ</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {gridFonts.map((f) => (
                 <FontCard key={f.id} font={f} />
               ))}
               {remaining > 0 && (
-                <Link href="/fonts/" className="flex flex-col items-center justify-center gap-1 bg-[#f0f0ec] border border-dashed border-[#ccc] rounded-lg cursor-pointer hover:border-[#999] transition-colors p-6 no-underline">
-                  <span className="text-[26px] font-semibold text-navy">+{remaining}</span>
-                  <span className="text-[11px] text-[#aaa]">ฟอนต์อื่น ๆ</span>
-                  <span className="text-[11px] text-mint mt-0.5">ดูทั้งหมด →</span>
+                <Link href="/fonts/" className="flex flex-col items-center justify-center gap-1 bg-surface cursor-pointer transition-shadow duration-150 ease-base hover:shadow-md p-6 no-underline">
+                  <span className="font-heading text-h2 text-black">+{remaining}</span>
+                  <span className="font-body text-body-sm text-grey-600">ฟอนต์อื่น ๆ</span>
+                  <span className="font-body text-body-sm text-mint-text mt-0.5">ดูทั้งหมด →</span>
                 </Link>
               )}
             </div>
           )}
-        </div>
-      </div>
+        </Container>
+      </section>
 
       <AdBanner slot="1401819374" />
 
       {/* PRICING */}
-      <section id="pricing" className="bg-bg">
-        <div className="max-w-site mx-auto px-8 py-7">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-[32px] font-semibold text-navy">ราคาและแผนบริการ</span>
-          </div>
+      <section id="pricing" className="bg-white">
+        <Container className="py-7">
+          <h2 className="font-heading text-h1 text-black mb-4">ราคาและแผนบริการ</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            <div className="p-5 border border-[0.25px] border-[#ddd] rounded-[10px] bg-white flex flex-col">
-              <span className="self-start text-[10px] bg-mint-light text-[#0a8a84] px-2.5 py-0.5 rounded-full border border-[0.5px] border-mint-mid mb-2.5">
-                ซื้อครั้งเดียว
-              </span>
-              <div className="text-[26px] font-semibold text-navy leading-[1.2]">ซื้อรายฟอนต์</div>
-              <div className="text-[26px] font-semibold text-navy leading-[1.2]">ราคาแตกต่างกัน</div>
-              <div className="text-[12px] text-[#aaa] mt-2.5 mb-2.5">/ ชุดฟอนต์</div>
-              <div className="text-[12px] text-[#666] leading-[1.65] flex-1">
+            <div className="p-5 bg-surface flex flex-col">
+              <Badge variant="tag" className="self-start mb-2.5">ซื้อครั้งเดียว</Badge>
+              <div className="font-heading text-h2 text-black">ซื้อรายฟอนต์</div>
+              <div className="font-heading text-h2 text-black">ราคาแตกต่างกัน</div>
+              <div className="font-body text-body-sm text-grey-600 mt-2.5 mb-2.5">/ ชุดฟอนต์</div>
+              <div className="font-body text-body-sm text-grey-600 flex-1">
                 ดาวน์โหลดไฟล์ฟอนต์ได้ทันทีหลังชำระเงิน
               </div>
-              <Link
-                href="/fonts/"
-                className="mt-4 block w-full py-2.5 text-center rounded-[6px] text-[14px] font-medium text-navy border border-[0.25px] border-[#ddd] no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
-              >
+              <Button as="link" href="/fonts/" variant="primary" className="mt-4 w-full">
                 ดูฟอนต์ทั้งหมด
-              </Link>
+              </Button>
             </div>
             <SubscriptionPricingCard />
           </div>
-        </div>
+        </Container>
       </section>
 
       <Footer />
