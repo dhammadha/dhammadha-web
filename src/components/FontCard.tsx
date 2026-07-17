@@ -113,8 +113,10 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
       )}
     >
+      {/* cover = 2:1 ตามสัดส่วนที่เจ้าของกำหนด (การ์ด 270×215 · แถบล่าง 80 → cover 270×135)
+          ไม่ใช่ aspect-video (16:9) ที่ผมใช้ผิดไปรอบแรก */}
       <div
-        className={cn(compact ? "h-[110px]" : "aspect-video", "relative flex items-center justify-center overflow-hidden")}
+        className={cn(compact ? "h-[110px]" : "aspect-[2/1]", "relative flex items-center justify-center overflow-hidden")}
         style={{ ...bgStyle, ...(aspectRatio ? { aspectRatio, height: "auto" } : {}) }}
       >
         {badge && (
@@ -147,31 +149,33 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         </button>
       </div>
 
-      <div className="px-3.5 pt-3 pb-3.5 md:px-4 md:pb-4">
-        {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
-        <div className="font-heading text-fc-heading text-black truncate">{font.name || "—"}</div>
+      {/* แถบรายละเอียด — สูงราว 80px ตามที่เจ้าของกำหนด
+          สามบรรทัดเรียงชิดลงมา ไม่มีช่องว่างคั่น · ราคาลอยขวาชิดล่าง (moodboard/font card.png) */}
+      <div className="flex items-end justify-between gap-2 px-3.5 py-2 md:px-4">
+        <div className="min-w-0">
+          {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
+          <div className="font-heading text-fc-heading text-black truncate">{font.name || "—"}</div>
 
-        <div className="font-body text-body-sm text-grey-600 mt-0.5 truncate">
-          โดย{" "}
-          {font.designer_slug ? (
-            <span
-              role="link"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/designer/${font.designer_slug}`;
-              }}
-              className="text-mint-text cursor-pointer hover:underline"
-            >
-              {designerName}
-            </span>
-          ) : (
-            <span className="text-mint-text">{designerName}</span>
-          )}
-        </div>
+          <div className="font-body text-body-sm text-grey-600 truncate">
+            โดย{" "}
+            {font.designer_slug ? (
+              <span
+                role="link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/designer/${font.designer_slug}`;
+                }}
+                className="text-mint-text cursor-pointer hover:underline"
+              >
+                {designerName}
+              </span>
+            ) : (
+              <span className="text-mint-text">{designerName}</span>
+            )}
+          </div>
 
-        <div className="flex items-end justify-between gap-2 mt-2.5">
-          <span className="font-body text-body-sm text-grey-600">
+          <div className="font-body text-body-sm text-grey-600 truncate">
             {(() => {
               // style_count คำนวณจากไฟล์จริงตอนบันทึก (ดู font-meta.ts)
               // เดิม fallback ไปนับ "จำนวนไฟล์" ซึ่งผิดเมื่อฟอนต์มีหลาย format
@@ -179,9 +183,11 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
               const n = font.style_count || font.weight_count || 0;
               return n > 0 ? `${n} style${n > 1 ? "s" : ""}` : "";
             })()}
-          </span>
+          </div>
+        </div>
 
-          {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) */}
+        {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) */}
+        <div className="shrink-0">
           {font.is_free ? (
             <span className="font-heading text-h2 text-success">ฟรี</span>
           ) : font.is_sale && font.sale_price && font.price ? (

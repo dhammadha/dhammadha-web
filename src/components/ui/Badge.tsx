@@ -18,10 +18,14 @@ import { cn } from "@/lib/cn";
 
 type Variant = "sale" | "free" | "new" | "tag";
 
+// สีตามของเดิม แค่เปลี่ยนทรงเป็นเหลี่ยม + ยกคอนทราสต์ตัวหนังสือ
+// (รอบแรกไปกุ new = พื้นดำขึ้นมาเอง ทั้งที่ของเดิมเป็น mint — เจ้าของจับได้)
+// free กับ new ใช้ mint เหมือนกันตามของเดิม และไม่มีทางโผล่พร้อมกัน
+// เพราะ ternary ใน FontCard เลือกอันเดียว: sale → free → new
 const VARIANT: Record<Variant, string> = {
-  sale: "bg-warning text-black", // 11.61:1 ✅
-  free: "bg-mint text-black", // 10.62:1 ✅
-  new: "bg-black text-white", // 20.03:1 ✅
+  sale: "bg-warning text-black", // เดิม #f0c040/#5a3800 · 11.61:1 ✅
+  free: "bg-mint text-black", // เดิม #5ECEC8/white (1.89:1 ตก) → text-black 10.62:1 ✅
+  new: "bg-mint text-black", // เดิม mint/navy (8.4:1) → text-black 10.62:1 ✅
   tag: "bg-grey-50 text-grey-600 border border-grey-200", // 5.74:1 ✅
 };
 
