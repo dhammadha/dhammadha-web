@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import FontCard, { Font } from "@/components/FontCard";
@@ -10,6 +11,24 @@ import { supabase } from "@/lib/supabase";
 const PAGE_SIZE = 16;
 const CATEGORIES = ["serif", "sans-serif", "display", "handwriting", "monospace"];
 
+/**
+ * Nav/Footer อยู่นอก Suspense โดยตั้งใจ — `useSearchParams` บังคับให้ต้องมี
+ * Suspense boundary และ `output: "export"` จะ prerender **fallback** ลง static HTML
+ * ถ้าเอาทั้งหน้าไปไว้ข้างใน HTML ที่ได้จะว่างเปล่าทั้งหน้า
+ * (เนื้อหาฟอนต์ fetch ฝั่ง client อยู่แล้ว ไม่ได้อยู่ใน static HTML ตั้งแต่แรก)
+ */
+export default function AllFontsPage() {
+  return (
+    <>
+      <Nav />
+      <Suspense fallback={<div className="bg-white min-h-screen" />}>
+        <AllFontsContent />
+      </Suspense>
+      <Footer />
+    </>
+  );
+}
+
 type PriceFilter = "all" | "free" | "sale";
 
 const PRICE_OPTIONS: { value: PriceFilter; label: string }[] = [
@@ -18,15 +37,32 @@ const PRICE_OPTIONS: { value: PriceFilter; label: string }[] = [
   { value: "sale", label: "ลดราคา" },
 ];
 
-export default function AllFontsPage() {
+function AllFontsContent() {
+  const searchParams = useSearchParams();
   const [fonts, setFonts] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
   // Filters
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("all");
   const [priceFilter, setPriceFilter] = useState<PriceFilter>("all");
+
+  // รับหมวดหมู่จาก URL — ให้ submenu ใน Nav ลิงก์เข้ามาได้ (/fonts/?category=serif)
+  // ค่าที่ไม่รู้จักตกเป็น "all" กัน ?category=อะไรก็ไม่รู้ ทำให้กริดว่างเปล่า
+  const urlCategory = searchParams.get("category");
+  const categoryFromUrl = urlCategory && CATEGORIES.includes(urlCategory) ? urlCategory : "all";
+
+  // pattern ที่ React แนะนำสำหรับ "ปรับ state เมื่อ input เปลี่ยน" — set ตอน render
+  // ไม่ใช่ใน useEffect (ถ้าใช้ effect จะเพิ่ม react-hooks/set-state-in-effect
+  // ซึ่งโปรเจกต์นี้มีอยู่ 73 จุดแล้ว ไม่ควรเพิ่มอีก)
+  // จำเป็นต้องเป็น state ไม่ใช่ค่า derived ล้วน เพราะ dropdown ในหน้านี้ต้องเปลี่ยนมันได้เอง
+  // โดยไม่ต้องแตะ URL — แต่พอ URL เปลี่ยน (กด submenu) ให้ URL ชนะ
+  const [category, setCategory] = useState<string>(categoryFromUrl);
+  const [prevUrlCategory, setPrevUrlCategory] = useState(categoryFromUrl);
+  if (prevUrlCategory !== categoryFromUrl) {
+    setPrevUrlCategory(categoryFromUrl);
+    setCategory(categoryFromUrl);
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -92,7 +128,6 @@ export default function AllFontsPage() {
 
   return (
     <>
-      <Nav />
       <div className="bg-white min-h-screen">
         <div className="max-w-site mx-auto px-8 py-8">
           <div className="flex items-baseline justify-between mb-5">
@@ -252,7 +287,6 @@ export default function AllFontsPage() {
           )}
         </div>
       </div>
-      <Footer />
     </>
   );
 }

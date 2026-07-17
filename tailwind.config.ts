@@ -100,14 +100,15 @@ const config: Config = {
       //
       // ใช้ clamp() แทน breakpoint class → responsive อัตโนมัติ ไม่ต้องเขียน md:text-*
       // ค่าที่วัดได้จริง:
-      //   hero      375→40  768→64  1280→96
+      //   hero      375→32  768→44  1280→60
       //   font-slug 375→28  768→37  1280→48
       //   h1        375→24  768→31  1280→40
       //   h2        375→20  768→22  1280→24
       // ─────────────────────────────────────────────────────────────
       fontSize: {
         // หัวข้อ = ExtraBold 800 ทุกระดับ ลำดับความสำคัญมาจาก "ขนาด" ล้วน
-        hero: ["clamp(2.5rem, 6.19vw + 1.06rem, 6rem)", { fontWeight: "800" }],
+        // hero = 60 ตาม moodboard/style/text_hero (update).png (เดิม 96)
+        hero: ["clamp(2rem, 3.09vw + 1.28rem, 3.75rem)", { fontWeight: "800" }],
         "font-slug": ["clamp(1.75rem, 2.21vw + 1.23rem, 3rem)", { fontWeight: "800" }],
         h1: ["clamp(1.5rem, 1.77vw + 1.08rem, 2.5rem)", { fontWeight: "800" }],
         h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "800" }],
