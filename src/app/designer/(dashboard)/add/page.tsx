@@ -18,7 +18,6 @@ export default function DesignerAddFontPage() {
         editingFont={null}
         onSaved={() => router.push("/designer")}
         ownerId={user?.id}
-        isAdmin={false}
       />
     </AddFontGate>
   );

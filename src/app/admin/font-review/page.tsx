@@ -370,7 +370,6 @@ export default function AdminAllFontsPage() {
           editingFont={editing}
           onSaved={() => { setEditing(null); load(); }}
           ownerId={editing.owner_id ?? undefined}
-          isAdmin
         />
       )}
 
