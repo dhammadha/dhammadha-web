@@ -150,7 +150,7 @@ export default function Footer() {
       </Container>
 
       {/* แถบล่างพื้นอ่อน ตาม moodboard/footer.png — ใช้ `footnote` (Looped Light 12) */}
-      <div className="bg-grey-50">
+      <div className="bg-surface">
         <Container className="py-4 text-center font-body text-footnote text-grey-600">
           © 2012–2026 DHAMMADHA STUDIO
         </Container>

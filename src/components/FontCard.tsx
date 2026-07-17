@@ -108,8 +108,10 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
     <Link
       href={href}
       className={cn(
-        "group block bg-white border border-grey-200 overflow-hidden no-underline",
-        "transition-shadow duration-150 ease-base hover:shadow-md hover:border-grey-400",
+        // ไม่มีเส้นขอบ (§4.1) — แถบรายละเอียดใช้พื้น surface #F8F8F8
+        // ซึ่งลอยขึ้นมาจาก body ที่เป็น #FFFFFF เอง ไม่ต้องพึ่งกรอบ
+        "group block bg-surface overflow-hidden no-underline",
+        "transition-shadow duration-150 ease-base hover:shadow-md",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
       )}
     >

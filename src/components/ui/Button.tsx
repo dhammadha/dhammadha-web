@@ -38,22 +38,27 @@ const SIZE = {
   lg: "px-6 py-3 text-ui",
 };
 
-// เหลี่ยม — ไม่มี rounded-* (DESIGN.md §4.1)
-// primary = พื้น mint ตัวหนังสือดำ ตาม moodboard (button.png: Nav_Button hover = บล็อก mint)
+// เหลี่ยม + **ไม่มีเส้นขอบ** (DESIGN.md §4.1) — ดีไซน์นี้ไม่ใช้เส้นกรอบเลยทุกส่วน
+// แยกลำดับชั้นด้วย "พื้นสี" แทนเส้น:
+//   primary = พื้น mint (ตาม moodboard button.png: Nav_Button hover = บล็อก mint)
+//   outline = พื้น surface — ปุ่มรอง เห็นเป็นบล็อกอ่อน (เดิมนิยามด้วยเส้นขอบดำ)
+//   ghost   = โปร่ง โผล่พื้นตอน hover
 const VARIANT = {
-  primary: "bg-mint text-black border-mint hover:bg-black hover:text-white hover:border-black active:bg-mint/80",
-  outline: "bg-transparent text-black border-black hover:bg-black hover:text-white",
-  ghost: "bg-transparent text-black border-transparent hover:bg-grey-50",
+  primary: "bg-mint text-black hover:bg-black hover:text-white active:bg-mint/80",
+  outline: "bg-surface text-black hover:bg-black hover:text-white",
+  ghost: "bg-transparent text-black hover:bg-surface",
 };
 
-// focus-visible: ของเดิมไม่มีเลยสักที่ (DESIGN.md §6.1)
+// focus-visible ใช้ `outline` ของเบราว์เซอร์ ไม่ใช่ `border` — เป็นเรื่อง a11y ไม่ใช่การตกแต่ง
+// โผล่เฉพาะตอนกด Tab เท่านั้น ไม่ขัดกับกฎ "ไม่เอาเส้นกรอบ"
+// (ของเดิมไม่มี focus-visible เลยสักที่ — DESIGN.md §6.1)
 // ไม่ใส่ font-medium/font-bold — น้ำหนัก 700 มากับ text-ui แล้ว (ใส่ทับจะ override ระบบ)
 const BASE =
-  "inline-flex items-center justify-center gap-2 font-ui border cursor-pointer no-underline " +
+  "inline-flex items-center justify-center gap-2 font-ui cursor-pointer no-underline " +
   "transition-colors duration-150 ease-base " +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black " +
-  "disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400 disabled:border-grey-200 " +
-  "disabled:hover:bg-grey-200 disabled:hover:text-grey-400 disabled:hover:border-grey-200";
+  "disabled:cursor-not-allowed disabled:bg-grey-200 disabled:text-grey-400 " +
+  "disabled:hover:bg-grey-200 disabled:hover:text-grey-400";
 
 export default function Button(props: ButtonProps) {
   const { variant = "primary", size = "md", className = "", children } = props;

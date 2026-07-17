@@ -18,11 +18,12 @@ export default function Input({
     <input
       {...rest}
       className={cn(
-        "w-full bg-white text-black font-body text-body-sm",
-        "border border-grey-200 py-2",
+        // ไม่มีเส้นขอบ (§4.1) — ช่องกรอกนิยามตัวเองด้วย "พื้นสี" แทนเส้น
+        // ตาม moodboard/nav bar.png: กล่องสว่างบนพื้น nav ดำ ไม่มีกรอบ
+        "w-full bg-surface text-black font-body text-body-sm py-2",
         icon ? "pl-9 pr-3" : "px-3",
         "placeholder:text-grey-400",
-        "focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-black",
+        "focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-mint",
         className
       )}
     />

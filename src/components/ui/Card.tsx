@@ -6,7 +6,8 @@ import { cn } from "@/lib/cn";
  * ฐานของ FontCard และ pricing card
  * ของเดิม hand-roll กันเองทุกที่ด้วย radius คนละค่า (rounded-lg, rounded-[10px], rounded-xl…)
  *
- * moodboard แทบไม่ใช้เงา ใช้เส้นคั่นกับพื้นต่างระดับแทน (§4.3)
+ * **ไม่มีเส้นขอบ** (§4.1) — ดีไซน์นี้ไม่ใช้เส้นกรอบเลยทุกส่วน
+ * แยกตัวจากพื้นหน้าด้วย "พื้นสี" แทน: surface #F8F8F8 ลอยบน body ที่เป็น #FFFFFF
  * → `interactive` ใส่เงาเฉพาะตอน hover ด้วยค่าเดิมของ FontCard (shadow-md)
  */
 export default function Card({
@@ -22,8 +23,8 @@ export default function Card({
   return (
     <div
       className={cn(
-        "bg-white border border-grey-200 overflow-hidden",
-        interactive && "transition-shadow duration-150 ease-base hover:shadow-md hover:border-grey-400",
+        "bg-surface overflow-hidden",
+        interactive && "transition-shadow duration-150 ease-base hover:shadow-md",
         className
       )}
     >
