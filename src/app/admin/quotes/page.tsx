@@ -275,8 +275,14 @@ export default function AdminQuotesPage() {
 
   const deleteQuote = async (q: QuoteRow) => {
     if (!confirm(`ลบใบเสนอราคาของ "${q.company_name}"?`)) return;
-    const { error } = await supabase.from("quotes").delete().eq("id", q.id);
+    // .select() เพื่อให้รู้ว่าลบได้จริงกี่แถว — RLS ที่บล็อก delete ไม่คืน error
+    // แต่คืน 0 แถวเงียบ ๆ (0061 ห้ามลบใบที่ออกใบเสร็จแล้ว) ถ้าไม่เช็คจะขึ้น "ลบเรียบร้อย" ทั้งที่ยังอยู่
+    const { data, error } = await supabase.from("quotes").delete().eq("id", q.id).select("id");
     if (error) { showToast(`ลบไม่สำเร็จ: ${error.message}`); return; }
+    if (!data?.length) {
+      showToast("ลบไม่สำเร็จ: ใบเสนอราคาที่ออกใบเสร็จแล้วลบไม่ได้");
+      return;
+    }
     showToast("ลบเรียบร้อย");
     setSelected(null);
     loadQuotes();
@@ -387,9 +393,15 @@ export default function AdminQuotesPage() {
                   พิมพ์ใบเสร็จ ({selected.receipt_no})
                 </Button>
               )}
-              <button onClick={() => deleteQuote(selected)} className="w-full py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[13px] cursor-pointer hover:bg-red-100 transition-colors">
-                ลบ
-              </button>
+              {selected.receipt_no ? (
+                <p className="text-[12px] text-[#aaa] text-center leading-relaxed px-2">
+                  ออกใบเสร็จ {selected.receipt_no} แล้ว — ลบไม่ได้เพื่อเก็บหลักฐานทางบัญชี
+                </p>
+              ) : (
+                <button onClick={() => deleteQuote(selected)} className="w-full py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[13px] cursor-pointer hover:bg-red-100 transition-colors">
+                  ลบ
+                </button>
+              )}
             </div>
           </div>
         )}

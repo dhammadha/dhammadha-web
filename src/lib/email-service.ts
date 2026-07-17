@@ -500,23 +500,6 @@ async function handleDocument(
   env: EmailEnv
 ): Promise<EmailResult> {
   if (!authToken) return { status: 401, body: { ok: false, error: "unauthorized" } };
-  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
-    return { status: 500, body: { ok: false, error: "not_configured" } };
-  }
-
-  // Caller must be an admin — verified against the DB, not the client.
-  const roleRes = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/get_my_role`, {
-    method: "POST",
-    headers: {
-      apikey: env.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${authToken}`,
-      "Content-Type": "application/json",
-    },
-    body: "{}",
-  });
-  if (!roleRes.ok || (await roleRes.json()) !== "admin") {
-    return { status: 403, body: { ok: false, error: "forbidden" } };
-  }
 
   const quoteId = str(raw.quote_id, 40);
   const docTypeRaw = str(raw.doc_type, 20);
@@ -533,7 +516,9 @@ async function handleDocument(
   if (pdfBase64.length > PDF_BASE64_MAX_LEN) return { status: 400, body: { ok: false, error: "file_too_large" } };
   if (!BASE64_RE.test(pdfBase64)) return { status: 400, body: { ok: false, error: "invalid_payload" } };
 
-  // อ่าน quote ด้วย token ของผู้เรียก — RLS ฝั่ง admin อนุญาตให้เห็นทุกใบ (เหมือน handleDelivery)
+  // อ่าน quote ด้วย token ของผู้เรียก — RLS บังคับให้เห็นเฉพาะ quote ของตัวเอง
+  // (admin ทุกใบ / designer เฉพาะ designer_id = auth.uid()) จึงยิงอีเมลแทน quote คนอื่นไม่ได้
+  // ต้องรับ designer ด้วย เพราะ 0039 ให้ designer เจ้าของออกเอกสารเองได้ (เหมือน handleDelivery)
   const quotes = await supabaseSelect<QuoteRow>(
     env,
     `quotes?id=eq.${quoteId}&select=email,contact_name,company_name,quote_no,receipt_no`,
