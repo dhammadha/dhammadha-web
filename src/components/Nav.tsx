@@ -199,8 +199,10 @@ export default function Nav() {
           )}
         >
           <Image src="/logo_DHAMMADHA_2025_simple.png" alt="Dhammadha Studio" width={36} height={36} className="object-cover" />
-          {/* สองบรรทัดตาม moodboard/main page (update - closeup).png — DHAMMADHA เหนือ STUDIO */}
-          <div className="hidden sm:flex flex-col justify-center gap-0.5">
+          {/* สองบรรทัดตาม moodboard/main page (update - closeup).png — DHAMMADHA เหนือ STUDIO
+              translate-y-[2px] = ชดเชย optical: กล่องกึ่งกลางเป๊ะทางเรขาคณิต (บน/ล่าง 5.5px เท่ากัน)
+              แต่ DHAMMADHA ตัวหนาเด่นดึงสายตาให้ดูลอยสูง → ขยับบล็อกลง 2px ให้ดูกึ่งกลางจริง */}
+          <div className="hidden sm:flex flex-col justify-center gap-0.5 translate-y-[2px]">
             <span className="font-heading text-ui text-white tracking-wide leading-none">DHAMMADHA</span>
             <span className="font-heading text-logo-sub text-grey-400 leading-none">STUDIO</span>
           </div>
