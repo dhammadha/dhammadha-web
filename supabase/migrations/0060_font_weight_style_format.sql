@@ -11,12 +11,18 @@
 -- font_files_private ซึ่ง anon อ่านไม่ได้ (ตั้งใจ) → ต้องคำนวณตอนบันทึกแล้วเก็บ
 -- ลงคอลัมน์สาธารณะแทน
 --
--- กติกา (ยืนยันกับ user):
+-- กติกา:
 --   weight = ชื่อ style ที่ตัดคำว่า italic/oblique ออก  → Light, Regular, Medium, Bold, Black = 5
---   style  = ชื่อ style เต็ม (weight + italic)          → ถ้ามี italic ครบทุก weight = 10
+--   style  = ชื่อ style เต็ม (weight + italic)
 --   format = นามสกุลไฟล์ที่ไม่ซ้ำ (ไม่นับ .zip)          → OTF, TTF
---   ไฟล์ .otf กับ .ttf ของ weight เดียวกัน = style เดียวกัน ต่างแค่ format
---   ตรวจ italic จากชื่อไฟล์ (user เลือก) → ชื่อไฟล์ต้องตั้งให้ถูกหลัก เช่น KRONN-BoldItalic.otf
+--
+-- ⚠️ SQL ที่นี่เดาจาก "ชื่อไฟล์" ซึ่งเป็นวิธีที่เราเลิกใช้ไปแล้ว — เก็บไว้เพราะมันรันไป
+-- แล้วและให้ผลถูกกับข้อมูล ณ ตอนนั้น (test-01/02/03 ตั้งชื่อแบบ KRONN-Black.otf)
+-- **อย่าเอา SQL นี้ไปใช้ backfill ชุดใหม่** — การเดาจากชื่อไฟล์พังกับชื่อจริงหลายแบบ เช่น
+--   bangkok_bold-italic_v1-0.ttf / bangkok-decor_bold_v1-0.ttf  ("-" มี 3 ความหมายในชุดเดียว)
+-- → parser แบบนี้อ่านได้ "0" ทุกไฟล์ = 1 weight / 1 style
+-- ของจริงตอนนี้อ่าน metadata จากในไฟล์ (name table + OS/2) ผ่าน fontkit ตอนบันทึก
+-- ดู src/lib/font-meta.ts — ถ้าต้อง backfill อีกให้เปิดฟอนต์แล้วกดบันทึกใหม่แทน
 
 alter table public.fonts add column if not exists style_count integer;
 alter table public.fonts add column if not exists formats text[];

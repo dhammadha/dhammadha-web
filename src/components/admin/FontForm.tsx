@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { uploadFile, uploadProtectedFile, storagePath, type StorageBucket } from "@/lib/storage";
-import { computeFontMeta } from "@/lib/font-meta";
+import { readFontFileMeta, summarizeFontMeta, type FontFileMeta, type FontMetaSummary } from "@/lib/font-meta";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -30,6 +30,49 @@ function Toast({ msg, error }: { msg: string; error?: boolean }) {
       {msg}
     </div>
   );
+}
+
+// ดาวน์โหลดไฟล์ที่อัปโหลดไว้แล้ว (type "ex") มาเป็น File เพื่ออ่าน metadata ข้างในไฟล์
+// fonts-full เป็น private bucket เก็บเป็น storage path — ดาวน์โหลดได้เฉพาะเจ้าของ/แอดมิน (RLS 0059)
+// free font เก็บเป็น public URL อยู่แล้ว — fetch ตรงได้เลย
+// ไม่ throw — คืน null ถ้าดาวน์โหลดไม่ได้ ให้ผู้เรียกนับเป็นไฟล์ที่อ่านไม่ได้แทน
+async function materializeFontFile(entry: FontFileEntry, bucket: "fonts-full" | "fonts-free"): Promise<File | null> {
+  if (entry.type === "new") return entry.file;
+  try {
+    if (bucket === "fonts-full") {
+      const { data, error } = await supabase.storage.from("fonts-full").download(entry.url);
+      if (error || !data) return null;
+      return new File([data], entry.name);
+    }
+    const res = await fetch(entry.url);
+    if (!res.ok) return null;
+    return new File([await res.blob()], entry.name);
+  } catch {
+    return null;
+  }
+}
+
+// อ่าน metadata ของไฟล์ฟอนต์ทั้งชุด (ทั้งไฟล์ใหม่ที่เพิ่งเลือกและไฟล์ที่อัปโหลดไว้แล้ว) แล้วสรุปผล
+async function computeMetaSummary(entries: FontFileEntry[], bucket: "fonts-full" | "fonts-free"): Promise<FontMetaSummary> {
+  const metas: FontFileMeta[] = await Promise.all(
+    entries.map(async (e) => {
+      const file = await materializeFontFile(e, bucket);
+      if (!file) {
+        const dot = e.name.lastIndexOf(".");
+        return {
+          filename: e.name,
+          family: null,
+          subfamily: null,
+          weightClass: null,
+          italic: false,
+          format: dot === -1 ? "" : e.name.slice(dot + 1).toUpperCase(),
+          ok: false,
+        };
+      }
+      return readFontFileMeta(file);
+    })
+  );
+  return summarizeFontMeta(metas);
 }
 
 export default function FontForm({ open, onClose, editingFont, onSaved, ownerId, isAdmin = true, mode = "panel" }: Props) {
@@ -68,6 +111,13 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   // true ระหว่างรอ query font_files_private ตอนแก้ไขฟอนต์เดิม
   const [fullFontsLoading, setFullFontsLoading] = useState(false);
 
+  // สรุป weight/style/format ที่อ่านได้จากข้างในไฟล์ฟอนต์ (ดู src/lib/font-meta.ts)
+  const [metaSummary, setMetaSummary] = useState<FontMetaSummary | null>(null);
+  const [metaLoading, setMetaLoading] = useState(false);
+  // ตัวเลขที่ designer แก้ไขได้ — เติมค่าอัตโนมัติให้ก่อน แล้วแก้ทับได้เสมอ
+  const [weightOverride, setWeightOverride] = useState("");
+  const [styleOverride, setStyleOverride] = useState("");
+
   const showToast = (msg: string, error = false) => {
     setToast({ msg, error });
     setTimeout(() => setToast(null), 3000);
@@ -80,6 +130,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setIsActive(true); setIsFree(false); setIsSub(true);
     setCoverFile(null); setCoverUrl(""); setPreviewItems([]);
     setFullFonts([]); setDemoFonts([]); setFreeFonts([]); setSpecimens([]);
+    setMetaSummary(null); setMetaLoading(false); setWeightOverride(""); setStyleOverride("");
   }, []);
 
   // Load designer name from user's business_name when adding new font
@@ -103,6 +154,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setDiscount(f.discount_percent?.toString() ?? "");
     setSaleLabel(f.sale_label ?? ""); setSaleEnd(f.sale_end ?? "");
     setIsActive(f.is_active); setIsFree(f.is_free); setIsSub(f.is_subscription);
+    // เติมค่าเดิมจาก DB ไว้ก่อน — พออ่านไฟล์จริงเสร็จ (effect ด้านล่าง) จะเขียนทับด้วยค่าที่ถูกต้อง
+    setWeightOverride(f.weight_count != null ? String(f.weight_count) : "");
+    setStyleOverride(f.style_count != null ? String(f.style_count) : "");
+    setMetaSummary(null);
     setCoverFile(null); setCoverUrl(f.cover_image_url ?? "");
     setPreviewItems((f.preview_images ?? []).map((url) => ({ type: "ex", url })));
     // ไฟล์ฟอนต์เต็มอยู่ในตาราง font_files_private (เก็บเป็น storage path)
@@ -125,6 +180,31 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setFreeFonts((f.free_font_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
     setSpecimens((f.specimen_files ?? []).map((url) => ({ type: "ex", url, name: url.split("/").pop() ?? url })));
   }, [open, editingFont, resetForm]);
+
+  // อ่าน weight/style/format จากไฟล์จริง — ใช้ Full Family (ฟอนต์ขาย) หรือ Free Font
+  // (ฟอนต์ฟรี) แล้วแต่ isFree, คำนวณใหม่ทุกครั้งที่รายการไฟล์เปลี่ยน (ไม่ใช่ทุก keystroke)
+  useEffect(() => {
+    if (!open) return;
+    if (fullFontsLoading) return; // รอไฟล์เดิมโหลดจาก font_files_private ก่อน ไม่งั้นจะเห็นว่างแล้วเคลียร์ summary ผิด ๆ
+    const relevant = isFree ? freeFonts : fullFonts;
+    const bucket: "fonts-full" | "fonts-free" = isFree ? "fonts-free" : "fonts-full";
+    if (!relevant.length) { setMetaSummary(null); setMetaLoading(false); return; }
+    let cancelled = false;
+    setMetaLoading(true);
+    computeMetaSummary(relevant, bucket).then((summary) => {
+      if (cancelled) return;
+      setMetaSummary(summary);
+      setMetaLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [open, isFree, fullFonts, freeFonts, fullFontsLoading]);
+
+  // เติมช่องแก้ไขได้ให้ตรงกับผลอ่านอัตโนมัติล่าสุดเสมอ (designer แก้ทับเองได้หลังจากนี้)
+  useEffect(() => {
+    if (!metaSummary) return;
+    setWeightOverride(String(metaSummary.weightCount));
+    setStyleOverride(String(metaSummary.styleCount));
+  }, [metaSummary]);
 
   // localStorage draft cache (new font only, text fields)
   const DRAFT_KEY = "font_form_draft";
@@ -296,9 +376,11 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       const discountVal = parseInt(discount) || 0;
       const priceVal = parseFloat(price) || null;
 
-      // สรุป weight/style/format จากไฟล์จริง — ใช้ Full Family เป็นหลัก
-      // ถ้าไม่มี (ฟอนต์ฟรี) ใช้ไฟล์ฟรีแทน / ตรรกะเดียวกับ SQL backfill ใน 0060
-      const fontMeta = computeFontMeta(finalFull.length ? finalFull : finalFree);
+      // weight/style: ใช้ตัวเลขที่ designer แก้ไข ถ้ามี ไม่งั้นใช้ค่าที่อ่านอัตโนมัติจากไฟล์จริง
+      // (ดู src/lib/font-meta.ts) — formats ไม่มี override เพราะดึงจากนามสกุลไฟล์ตรง ๆ อยู่แล้ว
+      const weightCountVal = parseInt(weightOverride) || metaSummary?.weightCount || 0;
+      const styleCountVal = parseInt(styleOverride) || metaSummary?.styleCount || 0;
+      const formatsVal = metaSummary?.formats.length ? metaSummary.formats : null;
 
       const payload = {
         name: name.trim(),
@@ -324,12 +406,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         free_font_files: finalFree.length ? finalFree : null,
         specimen_files: finalSpec.length ? finalSpec : null,
         has_demo: finalDemo.length > 0,
-        // สรุปจากไฟล์ Full Family (ฟอนต์ขาย) หรือไฟล์ฟรี — หน้า detail อ่าน
-        // full_font_files เองไม่ได้ (อยู่ใน private table) จึงต้องคำนวณเก็บไว้ตรงนี้
-        // เดิมเก็บ finalFull.length = "จำนวนไฟล์" → อัป 5 weights × 2 format = 10 ผิด
-        weight_count: fontMeta.weightCount || null,
-        style_count: fontMeta.styleCount || null,
-        formats: fontMeta.formats.length ? fontMeta.formats : null,
+        // หน้า detail อ่าน full_font_files เองไม่ได้ (อยู่ใน private table) จึงต้องคำนวณเก็บไว้ตรงนี้
+        weight_count: weightCountVal || null,
+        style_count: styleCountVal || null,
+        formats: formatsVal,
         owner_id: ownerId ?? null,
       };
 
@@ -515,6 +595,15 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
           <>
             <FontFileSection label="Full Family *" badge="Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
 
+            <FontMetaSummaryBlock
+              loading={metaLoading}
+              summary={metaSummary}
+              weightOverride={weightOverride}
+              styleOverride={styleOverride}
+              onWeightChange={setWeightOverride}
+              onStyleChange={setStyleOverride}
+            />
+
             {/* Auto-generate demo จากไฟล์เต็ม (ประมวลผลในเบราว์เซอร์) */}
             <div className="mt-2.5 rounded-xl border border-[0.5px] border-mint-mid bg-mint-light/40 p-3">
               <div className="flex items-center gap-2 flex-wrap">
@@ -541,7 +630,17 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
           </>
         )}
         {isFree && (
-          <FontFileSection label="Free Font*" badge="Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
+          <>
+            <FontFileSection label="Free Font*" badge="Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
+            <FontMetaSummaryBlock
+              loading={metaLoading}
+              summary={metaSummary}
+              weightOverride={weightOverride}
+              styleOverride={styleOverride}
+              onWeightChange={setWeightOverride}
+              onStyleChange={setStyleOverride}
+            />
+          </>
         )}
         <FontFileSection label="Font Specimen PDF" badge="Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
       </section>
@@ -648,6 +747,49 @@ function Toggle({ label, desc, checked, onChange }: { label: string; desc: strin
       >
         <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${checked ? "left-5" : "left-1"}`} />
       </button>
+    </div>
+  );
+}
+
+// สรุปผลอ่าน weight/style/format จากข้างในไฟล์ฟอนต์ + ช่องแก้ไขตัวเลขเอง (ยังบันทึกได้แม้อ่านไม่ครบ)
+function FontMetaSummaryBlock({
+  loading, summary, weightOverride, styleOverride, onWeightChange, onStyleChange,
+}: {
+  loading: boolean;
+  summary: FontMetaSummary | null;
+  weightOverride: string;
+  styleOverride: string;
+  onWeightChange: (v: string) => void;
+  onStyleChange: (v: string) => void;
+}) {
+  if (loading) {
+    return <p className="text-[12px] text-[#888] mt-2.5">กำลังอ่านข้อมูลจากไฟล์ฟอนต์…</p>;
+  }
+  if (!summary) return null;
+  return (
+    <div className="mt-2.5 rounded-xl border border-border p-3 bg-[#fafaf8]">
+      <p className="text-[13px] text-navy font-medium">
+        {summary.weightCount} weights · {summary.styleCount} styles
+        {summary.formats.length > 0 && <> · {summary.formats.join(", ")}</>}
+      </p>
+      {summary.families.length > 1 && (
+        <p className="text-[11px] text-[#888] mt-1">
+          {summary.families.length} ตระกูล: {summary.families.join(", ")}
+        </p>
+      )}
+      <div className="grid grid-cols-2 gap-3 mt-2.5">
+        <FormField label="จำนวน Weight (อ่านอัตโนมัติ แก้ไขได้)">
+          <input type="number" min="0" value={weightOverride} onChange={(e) => onWeightChange(e.target.value)} className={inputCls} />
+        </FormField>
+        <FormField label="จำนวน Style (อ่านอัตโนมัติ แก้ไขได้)">
+          <input type="number" min="0" value={styleOverride} onChange={(e) => onStyleChange(e.target.value)} className={inputCls} />
+        </FormField>
+      </div>
+      {summary.failed.length > 0 && (
+        <p className="text-[12px] text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-2.5">
+          ⚠ อ่านข้อมูลจากไฟล์นี้ไม่ได้: {summary.failed.join(", ")} — กรุณาตรวจสอบ/กรอกจำนวน weight และ style เองด้านบน
+        </p>
+      )}
     </div>
   );
 }
