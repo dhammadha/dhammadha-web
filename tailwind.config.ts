@@ -79,8 +79,13 @@ const config: Config = {
       // ─────────────────────────────────────────────────────────────
       // TYPE SCALE (DESIGN.md §2.3) — ตรงจาก Figma Styles panel
       //
-      // line-height เป็น "Auto" ใน Figma = ใช้ metrics ของฟอนต์เอง
-      // → ตั้งใจไม่กำหนด lineHeight ที่นี่ (ตกลงกันว่าใช้ค่าเดิมไปก่อน)
+      // ตั้งใจไม่กำหนด lineHeight ที่นี่ → สืบทอด 1.5 จาก Tailwind preflight
+      // (html, :host { line-height: 1.5 }) ซึ่งคือสิ่งที่เว็บทำอยู่แล้ววันนี้
+      // ตรงกับที่ตกลงกันว่า "line-height ใช้เท่าเดิมไปก่อน"
+      //
+      // หมายเหตุ: นี่ไม่ใช่ "Auto" แบบ Figma (font metrics) — hero 96px จะได้ lh 144px
+      // ส่วน Figma Auto จะได้ราว 130px → หัวข้อใหญ่จะหลวมกว่า moodboard
+      // ถ้าเจอปัญหาตอน Phase 7 ใส่ lineHeight เฉพาะ step hero/font-slug/h1 ได้
       //
       // ใช้ clamp() แทน breakpoint class → responsive อัตโนมัติ ไม่ต้องเขียน md:text-*
       // ค่าที่ได้ตรงกับตารางใน DESIGN.md §2.5 พอดี:
