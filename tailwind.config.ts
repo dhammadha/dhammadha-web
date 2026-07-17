@@ -121,6 +121,7 @@ const config: Config = {
         // นอกเหนือจาก Figma — เพิ่มตามที่เจ้าของสั่ง (DESIGN.md §2.6)
         badge: ["0.75rem", { fontWeight: "700" }], // 12 · Sans Bold — ป้าย Sale/FREE/NEW/tag
         footnote: ["0.75rem", { fontWeight: "300" }], // 12 · Looped Light — © ท้าย footer
+        "logo-sub": ["0.625rem", { fontWeight: "400" }], // 10 · Sans Regular — "STUDIO" ใต้ DHAMMADHA
       },
 
       // ─────────────────────────────────────────────────────────────

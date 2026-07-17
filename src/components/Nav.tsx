@@ -46,22 +46,23 @@ const CATEGORY_LINKS: { value: string; label: string }[] = [
   { value: "monospace", label: "Monospace" },
 ];
 
+// ไอคอนทุกตัว 18×18 ตามสเปกเจ้าของ ("นับเฉพาะ icon" = ขนาด svg ไม่ใช่กล่องกด)
 const SearchIcon = ({ className = "" }: { className?: string }) => (
-  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className={className}>
-    <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.4" />
-    <path d="M10.5 10.5l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className={className}>
+    <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M12.5 12.5l4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
   </svg>
 );
 
 const PersonIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="8" r="4" />
     <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
   </svg>
 );
 
 const CartIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="9" cy="20" r="1.4" />
     <circle cx="18" cy="20" r="1.4" />
     <path d="M2 3h2.5l2.4 12.4a1.6 1.6 0 0 0 1.6 1.3h9a1.6 1.6 0 0 0 1.6-1.3L22 7H5.6" />
@@ -69,8 +70,9 @@ const CartIcon = () => (
 );
 
 // ลิงก์ nav — hover เป็นบล็อก mint ตาม moodboard/button.png (Nav_Button state hover)
+// px-2 ที่จอ 768–1023 กันล้นขวา (เมนู+ค้นหา+ไอคอนรวมกันกว้างกว่า container ถ้าใช้ px-3 เต็ม) → px-3 คืนที่ lg 1024+
 const NAV_LINK = cn(
-  "font-ui text-white no-underline px-3 py-2 whitespace-nowrap",
+  "font-ui text-ui text-white no-underline px-2 lg:px-3 py-2 whitespace-nowrap",
   "hover:bg-mint hover:text-black transition-colors duration-150 ease-base",
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
 );
@@ -187,7 +189,8 @@ export default function Nav() {
         scrolled && "shadow-md"
       )}
     >
-      <Container className="flex items-center justify-between gap-4 py-3">
+      {/* สูง 70 ตายตัวตามสเปก — เดิมเป็น py-3 แล้วปล่อยความสูงลอยตามของข้างใน */}
+      <Container className="flex items-center h-[70px]">
         <Link
           href="/"
           className={cn(
@@ -199,12 +202,12 @@ export default function Nav() {
           {/* สองบรรทัดตาม moodboard/main page (update - closeup).png — DHAMMADHA เหนือ STUDIO */}
           <div className="hidden sm:flex flex-col justify-center gap-0.5">
             <span className="font-heading text-ui text-white tracking-wide leading-none">DHAMMADHA</span>
-            <span className="font-heading text-badge text-grey-400 tracking-[0.14em] leading-none">STUDIO</span>
+            <span className="font-heading text-logo-sub text-grey-400 leading-none">STUDIO</span>
           </div>
         </Link>
 
-        {/* ลิงก์เดสก์ท็อป */}
-        <div className="hidden md:flex items-center">
+        {/* ลิงก์เดสก์ท็อป — flex-1 justify-center = กึ่งกลางระหว่างโลโก้กับแถบค้นหา */}
+        <div className="hidden md:flex flex-1 items-center justify-center">
           {/* "ฟอนต์" + submenu หมวดหมู่ — เปิดตอน hover ตาม moodboard/nav bar.png */}
           <div
             ref={fontMenuRef}
@@ -219,19 +222,24 @@ export default function Nav() {
             >
               ฟอนต์
             </Link>
-            {/* submenu = **แนวนอน** คั่นด้วย | ตาม moodboard/nav bar.png
-                (รอบแรกผมทำเป็นแนวตั้งเอง ทั้งที่รูปวาดเป็นแถวเดียว) */}
+            {/* submenu = **แนวนอน** คั่นด้วย | ตาม moodboard/nav bar (update).png
+                กึ่งกลางใต้ "ฟอนต์" เป๊ะ (left-1/2 -translate-x-1/2) + ลูกศรชี้ขึ้นตรงกลาง */}
             {fontMenuOpen && (
-              <div className="absolute left-0 top-full pt-1 z-50">
-                <div className="bg-surface shadow-lg flex items-center whitespace-nowrap px-2 py-1">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full pt-1 z-50">
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 top-1 w-0 h-0
+                    border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-surface"
+                  aria-hidden
+                />
+                <div className="bg-surface shadow-lg flex items-center whitespace-nowrap px-2 py-1 mt-2">
                   {CATEGORY_LINKS.map((c, i) => (
                     <div key={c.value} className="flex items-center">
-                      {i > 0 && <span className="font-ui text-grey-400 select-none" aria-hidden>|</span>}
+                      {i > 0 && <span className="font-ui text-ui text-grey-400 select-none" aria-hidden>|</span>}
                       <Link
                         href={categoryHref(c.value)}
                         onClick={() => setFontMenuOpen(false)}
                         className={cn(
-                          "font-ui text-black no-underline px-3 py-1.5",
+                          "font-ui text-ui text-black no-underline px-3 py-1.5",
                           "hover:bg-mint transition-colors duration-150 ease-base",
                           "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
                         )}
@@ -249,15 +257,15 @@ export default function Nav() {
           <Link href="/#pricing" className={NAV_LINK}>ราคาและแผนบริการ</Link>
         </div>
 
-        {/* กลุ่มขวา — ระยะห่างที่ "ตาเห็น" ต้องเท่ากัน ไม่ใช่แค่ค่า gap เท่ากัน
-            ไอคอนกว้าง 20px แต่อยู่ในกล่อง 32px → มีช่องว่างในตัวข้างละ 6px
-            ถ้าใช้ gap เดียวทั้งแถว จะได้ ค้นหา→คน = gap+6 ส่วน คน→ตะกร้า = gap+12 (เบี้ยว)
-            → ชดเชยด้วย gap-3.5 (14px) ที่ช่องค้นหา และ gap-2 (8px) ระหว่างไอคอน
-              ผลลัพธ์: 14+6 = 20px และ 6+8+6 = 20px เท่ากันพอดี */}
-        <div className="flex items-center gap-3.5">
-          {/* ช่องค้นหา — เดสก์ท็อป · กว้างตาม moodboard (ราว 29% ของ container) */}
-          <div ref={searchRef} className="relative hidden md:block w-[280px] lg:w-[400px]">
-            <div className="flex items-center gap-2 px-3 py-2 bg-surface">
+        {/* กลุ่มขวา — ml-auto ดันไปชิดขอบขวา (แทน justify-between เดิมที่ถอดออกตอนล็อกสูง nav)
+            ไอคอน 18px อยู่ในกล่องกด 32px → มีที่ว่างในตัวข้างละ 7px
+            gap ค้นหา→ไอคอนคน ต้องได้ 64 ถึงขอบ svg ที่จอ ≥1280 → xl:ml-[57px] (57+7=64)
+            จอแคบกว่าพื้นที่ไม่พอ (นับได้ล้นขวา 89px ที่ viewport 768 ตอนใช้ 57px เต็ม) → ml-1 (768–1023) / lg:ml-4 (1024–1279)
+            gap ไอคอนคน→ตะกร้า = 20 ถึงขอบ svg → gap-1.5=6 (7+6+7=20) */}
+        <div className="flex items-center ml-auto">
+          {/* ช่องค้นหา — เดสก์ท็อป · 315×38 ที่จอกว้าง ≥1280 · หด 240 ที่ lg (1024–1279) · หด 180 ที่ md (768–1023) กันล้นขวา */}
+          <div ref={searchRef} className="relative hidden md:block w-[180px] lg:w-[240px] xl:w-[315px]">
+            <div className="flex items-center gap-2 px-3 h-[38px] bg-surface">
               <SearchIcon className="text-grey-600 flex-shrink-0" />
               <input
                 ref={inputRef}
@@ -320,19 +328,18 @@ export default function Nav() {
             )}
           </div>
 
-          {/* ไอคอนคน + ตะกร้า อยู่กลุ่มเดียวกัน gap-2 (8px)
-              → ระยะที่ตาเห็นระหว่างไอคอน = 6+8+6 = 20px เท่ากับช่องค้นหา→คน (14+6) */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1.5 ml-1 lg:ml-4 xl:ml-[57px]">
           {/* บัญชี — ระหว่างเช็ค session แสดง placeholder กันปุ่มกระพริบ */}
           {authLoading ? (
             <div className="w-8 h-8 rounded-full bg-grey-800" aria-hidden />
           ) : user ? (
             <div ref={userMenuRef} className="relative">
-              {/* avatar — ยังกลม (§4.1 ของที่กลมจริงยังกลม) */}
+              {/* avatar — ทึบเต็มกล่อง 32px ไม่มี inset 7px เหมือนไอคอนเส้น
+                  → ml-[7px] ดันขอบให้ตรงกับสถานะไม่ล็อกอิน (ขอบห่างช่องค้นหา 64 เท่ากัน) */}
               <button
                 onClick={() => setUserMenuOpen((v) => !v)}
                 className={cn(
-                  "w-8 h-8 rounded-full bg-mint flex items-center justify-center cursor-pointer",
+                  "w-8 h-8 ml-[7px] rounded-full bg-mint flex items-center justify-center cursor-pointer",
                   "font-heading text-badge text-black hover:bg-white transition-colors duration-150 ease-base",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                 )}
