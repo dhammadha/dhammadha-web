@@ -219,22 +219,26 @@ export default function Nav() {
             >
               ฟอนต์
             </Link>
+            {/* submenu = **แนวนอน** คั่นด้วย | ตาม moodboard/nav bar.png
+                (รอบแรกผมทำเป็นแนวตั้งเอง ทั้งที่รูปวาดเป็นแถวเดียว) */}
             {fontMenuOpen && (
               <div className="absolute left-0 top-full pt-1 z-50">
-                <div className="bg-surface shadow-lg flex flex-col min-w-[176px] py-1">
-                  {CATEGORY_LINKS.map((c) => (
-                    <Link
-                      key={c.value}
-                      href={categoryHref(c.value)}
-                      onClick={() => setFontMenuOpen(false)}
-                      className={cn(
-                        "font-ui text-black no-underline px-4 py-2 whitespace-nowrap",
-                        "hover:bg-mint transition-colors duration-150 ease-base",
-                        "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
-                      )}
-                    >
-                      {c.label}
-                    </Link>
+                <div className="bg-surface shadow-lg flex items-center whitespace-nowrap px-2 py-1">
+                  {CATEGORY_LINKS.map((c, i) => (
+                    <div key={c.value} className="flex items-center">
+                      {i > 0 && <span className="font-ui text-grey-400 select-none" aria-hidden>|</span>}
+                      <Link
+                        href={categoryHref(c.value)}
+                        onClick={() => setFontMenuOpen(false)}
+                        className={cn(
+                          "font-ui text-black no-underline px-3 py-1.5",
+                          "hover:bg-mint transition-colors duration-150 ease-base",
+                          "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
+                        )}
+                      >
+                        {c.label}
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -245,9 +249,14 @@ export default function Nav() {
           <Link href="/#pricing" className={NAV_LINK}>ราคาและแผนบริการ</Link>
         </div>
 
-        <div className="flex gap-2 items-center">
+        {/* กลุ่มขวา — ระยะห่างที่ "ตาเห็น" ต้องเท่ากัน ไม่ใช่แค่ค่า gap เท่ากัน
+            ไอคอนกว้าง 20px แต่อยู่ในกล่อง 32px → มีช่องว่างในตัวข้างละ 6px
+            ถ้าใช้ gap เดียวทั้งแถว จะได้ ค้นหา→คน = gap+6 ส่วน คน→ตะกร้า = gap+12 (เบี้ยว)
+            → ชดเชยด้วย gap-3.5 (14px) ที่ช่องค้นหา และ gap-2 (8px) ระหว่างไอคอน
+              ผลลัพธ์: 14+6 = 20px และ 6+8+6 = 20px เท่ากันพอดี */}
+        <div className="flex items-center gap-3.5">
           {/* ช่องค้นหา — เดสก์ท็อป · กว้างตาม moodboard (ราว 29% ของ container) */}
-          <div ref={searchRef} className="relative hidden md:block flex-1 md:max-w-[280px] lg:max-w-[360px]">
+          <div ref={searchRef} className="relative hidden md:block w-[280px] lg:w-[400px]">
             <div className="flex items-center gap-2 px-3 py-2 bg-surface">
               <SearchIcon className="text-grey-600 flex-shrink-0" />
               <input
@@ -311,11 +320,14 @@ export default function Nav() {
             )}
           </div>
 
+          {/* ไอคอนคน + ตะกร้า อยู่กลุ่มเดียวกัน gap-2 (8px)
+              → ระยะที่ตาเห็นระหว่างไอคอน = 6+8+6 = 20px เท่ากับช่องค้นหา→คน (14+6) */}
+          <div className="hidden md:flex items-center gap-2">
           {/* บัญชี — ระหว่างเช็ค session แสดง placeholder กันปุ่มกระพริบ */}
           {authLoading ? (
-            <div className="hidden md:block w-8 h-8 rounded-full bg-grey-800" aria-hidden />
+            <div className="w-8 h-8 rounded-full bg-grey-800" aria-hidden />
           ) : user ? (
-            <div ref={userMenuRef} className="hidden md:block relative">
+            <div ref={userMenuRef} className="relative">
               {/* avatar — ยังกลม (§4.1 ของที่กลมจริงยังกลม) */}
               <button
                 onClick={() => setUserMenuOpen((v) => !v)}
@@ -356,7 +368,7 @@ export default function Nav() {
               aria-label="เข้าสู่ระบบ"
               title="เข้าสู่ระบบ"
               className={cn(
-                "hidden md:flex items-center justify-center w-8 h-8 text-white",
+                "flex items-center justify-center w-8 h-8 text-white",
                 "hover:text-mint transition-colors duration-150 ease-base",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
               )}
@@ -372,13 +384,14 @@ export default function Nav() {
             href="/cart/"
             aria-label="ตะกร้า"
             className={cn(
-              "hidden md:flex items-center justify-center w-8 h-8 text-white",
+              "flex items-center justify-center w-8 h-8 text-white",
               "hover:text-mint transition-colors duration-150 ease-base",
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
             )}
           >
             <CartIcon />
           </Link>
+          </div>
 
           {/* Mobile hamburger */}
           <button
