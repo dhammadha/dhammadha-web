@@ -101,7 +101,7 @@ export default function Footer() {
             )}
           >
             <Image
-              src="/logo_DHAMMADHA_2025_simple.png"
+              src="/logo_DHAMMADHA_192px.png"
               alt="Dhammadha Studio"
               width={28}
               height={28}

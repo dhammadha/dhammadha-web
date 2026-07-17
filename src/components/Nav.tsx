@@ -198,7 +198,7 @@ export default function Nav() {
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
           )}
         >
-          <Image src="/logo_DHAMMADHA_2025_simple.png" alt="Dhammadha Studio" width={36} height={36} className="object-cover" />
+          <Image src="/logo_DHAMMADHA_192px.png" alt="Dhammadha Studio" width={36} height={36} className="object-cover" />
           {/* สองบรรทัดตาม moodboard/main page (update - closeup).png — DHAMMADHA เหนือ STUDIO
               translate-y-[2px] = ชดเชย optical: กล่องกึ่งกลางเป๊ะทางเรขาคณิต (บน/ล่าง 5.5px เท่ากัน)
               แต่ DHAMMADHA ตัวหนาเด่นดึงสายตาให้ดูลอยสูง → ขยับบล็อกลง 2px ให้ดูกึ่งกลางจริง */}

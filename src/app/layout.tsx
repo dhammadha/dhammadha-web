@@ -34,7 +34,7 @@ const notoSansThaiLooped = Noto_Sans_Thai_Looped({
 export const metadata: Metadata = {
   title: "DHAMMADHA STUDIO",
   description: "คลังฟอนต์ภาษาไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย",
-  icons: { icon: "/logo_DHAMMADHA_2025_simple.png" },
+  icons: { icon: "/logo_DHAMMADHA_192px.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
