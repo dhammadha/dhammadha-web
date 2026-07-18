@@ -335,36 +335,49 @@ export default function Nav() {
           {authLoading ? (
             <div className="w-8 h-8 rounded-full bg-grey-800" aria-hidden />
           ) : user ? (
-            <div ref={userMenuRef} className="relative">
+            // เปิดเมนูตอน hover เหมือน submenu "ฟอนต์" (เจ้าของสั่ง 2026-07-18)
+            <div
+              ref={userMenuRef}
+              className="relative"
+              onMouseEnter={() => setUserMenuOpen(true)}
+              onMouseLeave={() => setUserMenuOpen(false)}
+            >
               {/* avatar — ทึบเต็มกล่อง 32px ไม่มี inset 7px เหมือนไอคอนเส้น
-                  → ml-[7px] ดันขอบให้ตรงกับสถานะไม่ล็อกอิน (ขอบห่างช่องค้นหา 64 เท่ากัน) */}
+                  → ml-[7px] ดันขอบให้ตรงกับสถานะไม่ล็อกอิน (ขอบห่างช่องค้นหา 64 เท่ากัน)
+                  คงพื้น mint (เดิม hover เป็นขาว เจ้าของอยากให้เป็น mint) */}
               <button
                 onClick={() => setUserMenuOpen((v) => !v)}
+                onFocus={() => setUserMenuOpen(true)}
                 className={cn(
                   "w-8 h-8 ml-[7px] rounded-full bg-mint flex items-center justify-center cursor-pointer",
-                  "font-heading text-badge text-black hover:bg-white transition-colors duration-150 ease-base",
+                  "font-heading text-badge text-black transition-colors duration-150 ease-base",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                 )}
                 title={user.email ?? ""}
+                aria-expanded={userMenuOpen}
               >
                 {(user.email?.[0] ?? "?").toUpperCase()}
               </button>
+              {/* top-full + pt-2 = สะพานกันเมาส์หลุดช่วงว่างตอนขยับลงเมนู (hover ไม่ขาด) */}
               {userMenuOpen && (
-                <div className="absolute right-0 top-11 w-52 bg-surface shadow-lg py-1 z-50">
-                  <div className="px-4 py-2 font-body text-footnote text-grey-600 truncate">{user.email}</div>
-                  <Link
-                    href="/account"
-                    onClick={() => setUserMenuOpen(false)}
-                    className="block px-4 py-2.5 font-ui text-black no-underline hover:bg-mint transition-colors duration-150 ease-base"
-                  >
-                    เข้าหน้าโปรไฟล์
-                  </Link>
-                  <button
-                    onClick={() => { setUserMenuOpen(false); signOut().then(() => router.push("/")); }}
-                    className="w-full text-left px-4 py-2.5 font-ui text-danger-dark bg-transparent border-none cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base"
-                  >
-                    ออกจากระบบ
-                  </button>
+                <div className="absolute right-0 top-full pt-2 w-52 z-50">
+                  <div className="bg-surface shadow-lg py-1">
+                    <div className="px-4 py-2 font-body text-footnote text-grey-600 truncate">{user.email}</div>
+                    {/* เส้นคั่นบาง ๆ ระหว่างเมนู (เจ้าของสั่ง — ยกเว้นกฎ §4.0 เฉพาะ submenu บัญชีนี้) */}
+                    <Link
+                      href="/account"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block px-4 py-2.5 font-ui text-black no-underline border-t border-grey-200 hover:bg-mint transition-colors duration-150 ease-base"
+                    >
+                      เข้าหน้าโปรไฟล์
+                    </Link>
+                    <button
+                      onClick={() => { setUserMenuOpen(false); signOut().then(() => router.push("/")); }}
+                      className="w-full text-left px-4 py-2.5 font-ui text-danger-dark bg-transparent border-t border-grey-200 cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base"
+                    >
+                      ออกจากระบบ
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

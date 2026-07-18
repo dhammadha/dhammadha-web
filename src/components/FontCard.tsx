@@ -122,14 +122,15 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         style={{ ...bgStyle, ...(aspectRatio ? { aspectRatio, height: "auto" } : {}) }}
       >
         {badge && (
-          <Badge variant={badge.variant} className="absolute top-2 left-2">
+          <Badge variant={badge.variant} size="sm" className="absolute top-2 left-2">
             {badge.text}
           </Badge>
         )}
-        {/* ปุ่มหัวใจ — ยังกลม (DESIGN.md §4.1 ของที่กลมจริงยังกลม) */}
+        {/* ปุ่มหัวใจ — ยังกลม (DESIGN.md §4.1 ของที่กลมจริงยังกลม)
+            24×24 ตามที่เจ้าของออกแบบ (2026-07-18) — เดิม 32×32 · icon ย่อตามสัดส่วน 16→12 */}
         <button
           className={cn(
-            "absolute top-2 right-2 w-8 h-8 rounded-full bg-white/25 hover:bg-white/40",
+            "absolute top-2 right-2 w-6 h-6 rounded-full bg-white/25 hover:bg-white/40",
             "flex items-center justify-center transition-colors duration-150 ease-base",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           )}
@@ -144,7 +145,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-4 h-4"
+            className="w-3 h-3"
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>

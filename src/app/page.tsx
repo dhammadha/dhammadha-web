@@ -6,7 +6,6 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
 import { supabase } from "@/lib/supabase";
 import FontCard, { Font } from "@/components/FontCard";
 import AdBanner from "@/components/AdBanner";
@@ -147,9 +146,9 @@ export default function HomePage() {
     <>
       <Nav />
 
-      {/* HERO */}
+      {/* HERO — gap น้อยลงตามที่เจ้าของสั่ง ~30-40px (เดิม pt-14 pb-12 หลวมเกิน) */}
       <section className="bg-white">
-        <Container className="pt-14 pb-12">
+        <Container className="pt-10 pb-5">
           <h1 className="font-heading text-hero text-black mb-3.5">
             ฟอนต์ไทย<br />ที่ <em className="text-mint-text not-italic">ออกแบบ</em> อย่างพิถีพิถัน
           </h1>
@@ -167,84 +166,78 @@ export default function HomePage() {
           <div ref={measureRef} className="h-0" />
         </div>
 
-        <div className="py-8">
+        <div className="pt-5 pb-5">
           {loading || !slideW ? (
             <Container>
-              <div className="aspect-[2/1] bg-grey-200 animate-pulse" />
+              <div className="aspect-video bg-grey-200 animate-pulse" />
             </Container>
           ) : poolSize === 0 ? (
             <Container>
               <div className="text-center font-body text-grey-600 py-10 text-body-sm">ยังไม่มีฟอนต์ในระบบ</div>
             </Container>
           ) : (
-            <>
-              {/* แถว cover — relative เพื่อวางลูกศรที่ขอบ cover กลาง */}
-              <div className="relative">
-                <div
-                  className="flex"
-                  style={{
-                    // cover แต่ละใบกว้าง slideW (= เนื้อหา Container) เรียงต่อกัน translateX จัด cover ที่ pos ให้กึ่งกลาง
-                    transform: `translateX(${slideOffset - pos * slideW}px)`,
-                    transition: animated ? "transform 0.45s cubic-bezier(0.25,0.1,0.25,1)" : "none",
-                  }}
-                  onTransitionEnd={onTransitionEnd}
-                >
-                  {strip.map((f, i) => (
-                    <Link
-                      key={i}
-                      href={`/fonts/${f.designer_slug}/${f.slug}`}
-                      style={{ width: slideW }}
-                      className="block no-underline flex-none"
-                    >
-                      {/* cover ล้วน — ตัดชื่อฟอนต์ในสไลด์ (§7 เลี่ยงโหลด webfont) */}
-                      <div className="aspect-[2/1] w-full bg-grey-200 overflow-hidden">
-                        {f.cover_image_url
-                          ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-full h-full object-cover" />
-                          : <div className="w-full h-full bg-grey-200" />}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-
-                {/* ลูกศรเปล่าที่ขอบ cover กลาง — ไม่มีวงกลมรองพื้น (§4.0) ขาว+เงาให้อ่านออกบนรูป */}
-                {poolSize > 1 && (
-                  <>
-                    <button onClick={() => moveSlide(-1)}
-                      style={{ left: slideOffset + 8, textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
-                      className="absolute top-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[32px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
-                      aria-label="ก่อนหน้า">
-                      ‹
-                    </button>
-                    <button onClick={() => moveSlide(1)}
-                      style={{ right: slideOffset + 8, textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
-                      className="absolute top-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[32px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
-                      aria-label="ถัดไป">
-                      ›
-                    </button>
-                  </>
-                )}
+            /* แถว cover — relative เพื่อวางลูกศร + จุด ทับบน cover กลาง */
+            <div className="relative">
+              <div
+                className="flex"
+                style={{
+                  // cover แต่ละใบกว้าง slideW (= เนื้อหา Container) เรียงต่อกัน translateX จัด cover ที่ pos ให้กึ่งกลาง
+                  transform: `translateX(${slideOffset - pos * slideW}px)`,
+                  transition: animated ? "transform 0.45s cubic-bezier(0.25,0.1,0.25,1)" : "none",
+                }}
+                onTransitionEnd={onTransitionEnd}
+              >
+                {strip.map((f, i) => (
+                  <Link
+                    key={i}
+                    href={`/fonts/${f.designer_slug}/${f.slug}`}
+                    style={{ width: slideW }}
+                    className="block no-underline flex-none"
+                  >
+                    {/* cover ล้วน 16:9 (สัดส่วนรูป cover จริง) — ตัดชื่อฟอนต์ในสไลด์ (§7 เลี่ยงโหลด webfont) */}
+                    <div className="aspect-video w-full bg-grey-200 overflow-hidden">
+                      {f.cover_image_url
+                        ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-grey-200" />}
+                    </div>
+                  </Link>
+                ))}
               </div>
 
-              {/* จุดบอกตำแหน่ง — active = mint (inactive grey-400 ให้เห็นบนพื้นขาว) */}
+              {/* ลูกศรเปล่าที่ขอบ cover กลาง — ไม่มีวงกลมรองพื้น (§4.0) ขาว+เงาให้อ่านออกบนรูป */}
               {poolSize > 1 && (
-                <div className="flex gap-1.5 justify-center mt-4">
-                  {Array.from({ length: poolSize }, (_, i) => (
-                    <button key={i} onClick={() => { setPos(pad + i); }}
-                      className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-mint" : "w-[5px] h-[3px] bg-grey-400"}`}
-                      aria-label={`ตำแหน่ง ${i + 1}`} />
-                  ))}
-                </div>
+                <>
+                  <button onClick={() => moveSlide(-1)}
+                    style={{ left: slideOffset + 8, textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
+                    className="absolute top-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[32px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                    aria-label="ก่อนหน้า">
+                    ‹
+                  </button>
+                  <button onClick={() => moveSlide(1)}
+                    style={{ right: slideOffset + 8, textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
+                    className="absolute top-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[32px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                    aria-label="ถัดไป">
+                    ›
+                  </button>
+
+                  {/* จุดบอกตำแหน่ง — วางทับ cover กลาง (bottom-center) · active mint (เจ้าของ 2026-07-18) */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                    {Array.from({ length: poolSize }, (_, i) => (
+                      <button key={i} onClick={() => { setPos(pad + i); }}
+                        className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-mint" : "w-[5px] h-[3px] bg-white/70"}`}
+                        aria-label={`ตำแหน่ง ${i + 1}`} />
+                    ))}
+                  </div>
+                </>
               )}
-            </>
+            </div>
           )}
         </div>
       </section>
 
-      <AdBanner slot="1401819374" />
-
-      {/* FONT GRID */}
+      {/* FONT GRID (ตัด ad ระหว่างสไลด์กับกริดออกตามที่เจ้าของสั่ง 2026-07-18) */}
       <section id="fonts" className="bg-white">
-        <Container className="py-6">
+        <Container className="pt-5 pb-6">
           <h2 className="font-heading text-h1 text-black mb-3.5">ฟอนต์ล่าสุด</h2>
 
           {loading ? (
@@ -280,7 +273,6 @@ export default function HomePage() {
           <h2 className="font-heading text-h1 text-black mb-4">ราคาและแผนบริการ</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div className="p-5 bg-surface flex flex-col">
-              <Badge variant="plan" className="self-start mb-2.5">ซื้อครั้งเดียว</Badge>
               <div className="font-heading text-h2 text-black">ซื้อรายฟอนต์</div>
               <div className="font-heading text-h2 text-black">ราคาแตกต่างกัน</div>
               <div className="font-body text-body-sm text-grey-600 mt-2.5 mb-2.5">/ ชุดฟอนต์</div>

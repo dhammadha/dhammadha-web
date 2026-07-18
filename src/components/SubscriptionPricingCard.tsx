@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
-import Badge from "@/components/ui/Badge";
 import { supabase } from "@/lib/supabase";
 import WaitlistForm from "@/components/WaitlistForm";
 import { isTrialOpen, parseSubSettings, type SubscriptionSettings } from "@/lib/subscription";
@@ -30,9 +29,6 @@ export default function SubscriptionPricingCard() {
 
   return (
     <div className="p-5 bg-surface flex flex-col">
-      <Badge variant="plan" className="self-start mb-2.5">
-        {trialOpen ? "เปิดให้ทดสอบฟรี" : "เร็ว ๆ นี้"}
-      </Badge>
       <div className="font-heading text-h2 text-black">Subscription รายเดือน</div>
       <div className="font-heading text-h2 text-black">
         {trialOpen ? (

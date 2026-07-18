@@ -16,7 +16,8 @@ import { cn } from "@/lib/cn";
  * ที่จำรูปทรงมากกว่าอ่านทีละคำ (DESIGN.md §2.4, §2.6)
  */
 
-type Variant = "sale" | "free" | "new" | "tag" | "plan";
+type Variant = "sale" | "free" | "new" | "tag";
+type Size = "md" | "sm";
 
 // สีตามของเดิม แค่เปลี่ยนทรงเป็นเหลี่ยม + ยกคอนทราสต์ตัวหนังสือ
 // (รอบแรกไปกุ new = พื้นดำขึ้นมาเอง ทั้งที่ของเดิมเป็น mint — เจ้าของจับได้)
@@ -27,25 +28,31 @@ const VARIANT: Record<Variant, string> = {
   free: "bg-mint text-black", // เดิม #5ECEC8/white (1.89:1 ตก) → text-black 10.62:1 ✅
   new: "bg-mint text-black", // เดิม mint/navy (8.4:1) → text-black 10.62:1 ✅
   tag: "bg-surface text-grey-600", // 5.74:1 ✅ — ไม่มีเส้นขอบ (§4.1) ใช้พื้น surface แทน
-  // ป้ายชื่อแผนในหมวดราคา (ซื้อครั้งเดียว / เร็ว ๆ นี้) — เจ้าของสั่งให้เป็น mint (2026-07-18)
-  // พื้น mint เด่นบนการ์ด surface (tag ที่เป็น surface กลืนกับการ์ด) · 10.62:1 ✅
-  plan: "bg-mint text-black",
+};
+
+// md = ค่าเดิม (badge 12px) · sm = เล็กลงสำหรับป้ายบน FontCard ที่เจ้าของสั่งให้ย่อ (2026-07-18)
+// 10px ยังอยู่ในช่วงที่เจ้าของอนุมัติสำหรับป้ายคำสั้น (SALE/FREE/NEW เป็นตัวพิมพ์ใหญ่ อ่านออก · §2.4)
+const SIZE: Record<Size, string> = {
+  md: "text-badge px-2 py-1",
+  sm: "text-[10px] px-1.5 py-0.5",
 };
 
 export default function Badge({
   variant = "tag",
+  size = "md",
   className = "",
   children,
 }: {
   variant?: Variant;
+  size?: Size;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center font-heading text-badge leading-none",
-        "px-2 py-1",
+        "inline-flex items-center font-heading leading-none",
+        SIZE[size],
         VARIANT[variant],
         className
       )}
