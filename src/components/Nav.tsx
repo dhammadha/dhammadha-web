@@ -348,8 +348,9 @@ export default function Nav() {
                 onClick={() => setUserMenuOpen((v) => !v)}
                 onFocus={() => setUserMenuOpen(true)}
                 className={cn(
-                  "w-8 h-8 bg-mint flex items-center justify-center cursor-pointer",
-                  "font-heading text-badge text-black transition-colors duration-150 ease-base",
+                  // ตัวอักษรใช้ text-ui (Bold 700, 16px) ให้หนาเท่าเมนูใน submenu (เจ้าของ 2026-07-18)
+                  "w-8 h-8 bg-mint flex items-center justify-center cursor-pointer leading-none",
+                  "font-heading text-ui text-black transition-colors duration-150 ease-base",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                 )}
                 title={user.email ?? ""}
