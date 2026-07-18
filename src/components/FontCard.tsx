@@ -130,7 +130,8 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
             24×24 ตามที่เจ้าของออกแบบ (2026-07-18) — เดิม 32×32 · icon ย่อตามสัดส่วน 16→12 */}
         <button
           className={cn(
-            "absolute top-2 right-2 w-6 h-6 rounded-full bg-white/25 hover:bg-white/40",
+            // พื้นวงกลมเข้มขึ้น — /25 จางเกินไปบนรูป cover จริง (เจ้าของ 2026-07-18)
+            "absolute top-2 right-2 w-6 h-6 rounded-full bg-white/55 hover:bg-white/75",
             "flex items-center justify-center transition-colors duration-150 ease-base",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           )}
@@ -152,14 +153,16 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         </button>
       </div>
 
-      {/* แถบรายละเอียด — สูงราว 65px (270×150 cover + แถบ 65 = การ์ด 270×215)
-          2 บรรทัด: ชื่อฟอนต์ · แล้ว "โดย Designer" กับราคาอยู่แถวเดียวกัน baseline ตรงกัน (เจ้าของ 2026-07-18) */}
+      {/* แถบรายละเอียด — 3 ชิ้นวางแยกกันแบบ Figma (font-card-redesign.png)
+          ⚠️ leading-none ทั้ง 3 ชิ้น: line-height 1.5 ที่สืบทอดมาทำให้ line-box ของราคา (24px)
+          สูง 36px แล้วดันบรรทัด "โดย" ให้ห่างจากชื่อฟอนต์ ~17px (เจ้าของจับได้ 2026-07-18)
+          ตัด leading ทิ้ง = กล่องเท่าขนาดตัวอักษร ระยะกระชับตามต้นแบบ */}
       <div className="px-3.5 py-2 md:px-4">
         {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
-        <div className="font-heading text-fc-heading text-black truncate">{font.name || "—"}</div>
+        <div className="font-heading text-fc-heading text-black truncate leading-none">{font.name || "—"}</div>
 
         <div className="flex items-baseline justify-between gap-2">
-          <div className="font-body text-body-sm text-grey-600 truncate min-w-0">
+          <div className="font-body text-body-sm text-grey-600 truncate min-w-0 leading-none">
             โดย{" "}
             {font.designer_slug ? (
               <span
@@ -179,14 +182,15 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
           </div>
 
           {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) · baseline ตรงกับบรรทัด "โดย" */}
-          <div className="shrink-0">
+          <div className="shrink-0 leading-none">
             {font.is_free ? (
               <span className="font-heading text-h2 text-success">ฟรี</span>
             ) : font.is_sale && font.sale_price && font.price ? (
-              /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ */
+              /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ
+                 ราคาลดใช้สีเดียวกับ "ฟรี" (success) ตามที่เจ้าของสั่ง 2026-07-18 */
               <span className="flex items-baseline gap-1.5">
                 <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
-                <span className="font-heading text-h2 text-black">฿{font.sale_price.toLocaleString()}</span>
+                <span className="font-heading text-h2 text-success">฿{font.sale_price.toLocaleString()}</span>
               </span>
             ) : font.price ? (
               <span className="font-heading text-h2 text-black">฿{font.price.toLocaleString()}</span>
