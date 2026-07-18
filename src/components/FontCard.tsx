@@ -153,13 +153,13 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
       </div>
 
       {/* แถบรายละเอียด — สูงราว 65px (270×150 cover + แถบ 65 = การ์ด 270×215)
-          2 บรรทัด (ชื่อฟอนต์ + โดย Designer) ไม่มี "x styles" แล้ว · ราคาลอยขวาชิดล่าง (font-card-redesign.png) */}
-      <div className="flex items-end justify-between gap-2 px-3.5 py-2 md:px-4">
-        <div className="min-w-0">
-          {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
-          <div className="font-heading text-fc-heading text-black truncate">{font.name || "—"}</div>
+          2 บรรทัด: ชื่อฟอนต์ · แล้ว "โดย Designer" กับราคาอยู่แถวเดียวกัน baseline ตรงกัน (เจ้าของ 2026-07-18) */}
+      <div className="px-3.5 py-2 md:px-4">
+        {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
+        <div className="font-heading text-fc-heading text-black truncate">{font.name || "—"}</div>
 
-          <div className="font-body text-body-sm text-grey-600 truncate">
+        <div className="flex items-baseline justify-between gap-2">
+          <div className="font-body text-body-sm text-grey-600 truncate min-w-0">
             โดย{" "}
             {font.designer_slug ? (
               <span
@@ -178,23 +178,22 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
             )}
           </div>
 
-        </div>
-
-        {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) */}
-        <div className="shrink-0">
-          {font.is_free ? (
-            <span className="font-heading text-h2 text-success">ฟรี</span>
-          ) : font.is_sale && font.sale_price && font.price ? (
-            /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ (เจ้าของ 2026-07-18) */
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
-              <span className="font-heading text-h2 text-black">฿{font.sale_price.toLocaleString()}</span>
-            </div>
-          ) : font.price ? (
-            <span className="font-heading text-h2 text-black">฿{font.price.toLocaleString()}</span>
-          ) : (
-            <span className="font-heading text-h2 text-black">—</span>
-          )}
+          {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) · baseline ตรงกับบรรทัด "โดย" */}
+          <div className="shrink-0">
+            {font.is_free ? (
+              <span className="font-heading text-h2 text-success">ฟรี</span>
+            ) : font.is_sale && font.sale_price && font.price ? (
+              /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ */
+              <span className="flex items-baseline gap-1.5">
+                <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
+                <span className="font-heading text-h2 text-black">฿{font.sale_price.toLocaleString()}</span>
+              </span>
+            ) : font.price ? (
+              <span className="font-heading text-h2 text-black">฿{font.price.toLocaleString()}</span>
+            ) : (
+              <span className="font-heading text-h2 text-black">—</span>
+            )}
+          </div>
         </div>
       </div>
     </Link>

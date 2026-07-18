@@ -17,6 +17,10 @@
 
 html {
   scroll-behavior: smooth;
+  /* Nav เป็น sticky สูง 70px — เว้นที่ด้านบนให้ทุกการเลื่อนแบบ scrollIntoView/anchor
+     (รวมการ scroll-to-top ตอน client-nav ของ Next.js + ลิงก์ #pricing/#fonts)
+     ไม่งั้นขอบบนเนื้อหาไปชิด y=0 แล้วโดน nav บังราว ๆ 70px (เจ้าของเจอทุกหน้า 2026-07-18) */
+  scroll-padding-top: 78px;
 }
 
 body {

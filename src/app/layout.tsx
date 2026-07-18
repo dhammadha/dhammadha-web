@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_Thai, Noto_Sans_Thai_Looped } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import { FavouritesProvider } from "@/context/FavouritesContext";
+import ScrollReset from "@/components/ScrollReset";
 import "./globals.css";
 
 // ระบบดีไซน์: docs/design/DESIGN.md §2.1
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${notoSansThai.variable} ${notoSansThaiLooped.variable}`}>
+        <ScrollReset />
         <AuthProvider>
           <FavouritesProvider>{children}</FavouritesProvider>
         </AuthProvider>
