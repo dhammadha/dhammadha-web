@@ -333,7 +333,7 @@ export default function Nav() {
           <div className="hidden md:flex items-center gap-1.5 ml-1 lg:ml-4 xl:ml-[57px]">
           {/* บัญชี — ระหว่างเช็ค session แสดง placeholder กันปุ่มกระพริบ */}
           {authLoading ? (
-            <div className="w-8 h-8 rounded-full bg-grey-800" aria-hidden />
+            <div className="w-8 h-8 bg-grey-800" aria-hidden />
           ) : user ? (
             // เปิดเมนูตอน hover เหมือน submenu "ฟอนต์" (เจ้าของสั่ง 2026-07-18)
             <div
@@ -342,14 +342,13 @@ export default function Nav() {
               onMouseEnter={() => setUserMenuOpen(true)}
               onMouseLeave={() => setUserMenuOpen(false)}
             >
-              {/* avatar — ทึบเต็มกล่อง 32px ไม่มี inset 7px เหมือนไอคอนเส้น
-                  → ml-[7px] ดันขอบให้ตรงกับสถานะไม่ล็อกอิน (ขอบห่างช่องค้นหา 64 เท่ากัน)
-                  คงพื้น mint (เดิม hover เป็นขาว เจ้าของอยากให้เป็น mint) */}
+              {/* avatar — สี่เหลี่ยม mint (เจ้าของสั่งให้เข้าโทนเว็บ 2026-07-18)
+                  กล่อง w-8 h-8 เท่าไอคอนตอน logout เป๊ะ ไม่มี ml → nav ไม่ขยับตอนสลับสถานะ */}
               <button
                 onClick={() => setUserMenuOpen((v) => !v)}
                 onFocus={() => setUserMenuOpen(true)}
                 className={cn(
-                  "w-8 h-8 ml-[7px] rounded-full bg-mint flex items-center justify-center cursor-pointer",
+                  "w-8 h-8 bg-mint flex items-center justify-center cursor-pointer",
                   "font-heading text-badge text-black transition-colors duration-150 ease-base",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                 )}
@@ -367,13 +366,13 @@ export default function Nav() {
                     <Link
                       href="/account"
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2.5 font-ui text-black no-underline border-t border-grey-200 hover:bg-mint transition-colors duration-150 ease-base"
+                      className="block px-4 py-2.5 font-ui text-ui text-black no-underline border-t border-grey-200 hover:bg-mint transition-colors duration-150 ease-base"
                     >
                       เข้าหน้าโปรไฟล์
                     </Link>
                     <button
                       onClick={() => { setUserMenuOpen(false); signOut().then(() => router.push("/")); }}
-                      className="w-full text-left px-4 py-2.5 font-ui text-danger-dark bg-transparent border-t border-grey-200 cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base"
+                      className="w-full text-left px-4 py-2.5 font-ui text-ui text-danger-dark bg-transparent border-t border-grey-200 cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base"
                     >
                       ออกจากระบบ
                     </button>
