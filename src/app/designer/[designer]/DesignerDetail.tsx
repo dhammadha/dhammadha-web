@@ -1,16 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import FontCard, { Font } from "@/components/FontCard";
+import { Font } from "@/components/FontCard";
+import FontGrid from "@/components/FontGrid";
+import CoverCarousel from "@/components/CoverCarousel";
+import Container from "@/components/ui/Container";
 import { supabase } from "@/lib/supabase";
 import PdfLightbox from "@/components/PdfLightbox";
 
-const SLIDER_SIZE = 3;
-const MAX_VISIBLE = 1;
+// pool สไลด์ = 4 ฟอนต์ (เจ้าของกำหนด 2026-07-18 · เดิม 3)
+// logic สไลด์ทั้งหมดอยู่ใน CoverCarousel — หน้านี้แค่คัด pool ส่งเข้าไป (เหมือนหน้าแรก)
+const SLIDER_SIZE = 4;
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -18,11 +22,6 @@ function shuffle<T>(arr: T[]): T[] {
 
 function buildSliderPool(fonts: Font[]): Font[] {
   return shuffle(fonts).slice(0, SLIDER_SIZE);
-}
-
-function buildStrip(pool: Font[], v: number): Font[] {
-  if (!pool.length) return [];
-  return [...pool.slice(-v), ...pool, ...pool.slice(0, v)];
 }
 
 export default function DesignerDetail() {
@@ -35,14 +34,6 @@ export default function DesignerDetail() {
   const [loading, setLoading] = useState(true);
   const [licenseConfig, setLicenseConfig] = useState<{ use_default: boolean; license_pdf_url: string | null } | null>(null);
   const [pdfOpen, setPdfOpen] = useState(false);
-
-  const poolSize = sliderPool.length;
-  const showCount = Math.min(poolSize, MAX_VISIBLE);
-  const strip = buildStrip(sliderPool, showCount);
-  const [pos, setPos] = useState(showCount);
-  const [animated, setAnimated] = useState(true);
-  const dotIdx = poolSize > 0 ? (pos - showCount + poolSize * 10) % poolSize : 0;
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!designerSlug) return;
@@ -86,44 +77,12 @@ export default function DesignerDetail() {
     })();
   }, [designerSlug]);
 
-  useEffect(() => {
-    if (poolSize <= 1) return;
-    timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [poolSize]);
-
-  useEffect(() => {
-    if (!animated) {
-      const id = requestAnimationFrame(() => {
-        setAnimated(true);
-        setPos((p) => {
-          if (p >= poolSize + showCount) return showCount;
-          if (p < showCount) return poolSize + p;
-          return p;
-        });
-      });
-      return () => cancelAnimationFrame(id);
-    }
-  }, [animated, poolSize, showCount]);
-
-  function move(dir: number) {
-    setPos((p) => p + dir);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
-    }
-  }
-
-  const handleTransitionEnd = () => {
-    if (pos >= poolSize + showCount || pos < showCount) setAnimated(false);
-  };
-
   if (loading) {
     return (
       <>
         <Nav />
         <div className="min-h-screen flex items-center justify-center">
-          <span className="text-[14px] text-[#aaa]">กำลังโหลด...</span>
+          <span className="font-body text-body text-grey-600">กำลังโหลด...</span>
         </div>
         <Footer />
       </>
@@ -135,8 +94,8 @@ export default function DesignerDetail() {
       <>
         <Nav />
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-          <div className="text-[18px] font-semibold text-navy">ไม่พบ designer นี้</div>
-          <Link href="/fonts/" className="text-[14px] text-mint no-underline">← ดูฟอนต์ทั้งหมด</Link>
+          <div className="font-heading text-h2 text-black">ไม่พบ designer นี้</div>
+          <Link href="/fonts/" className="font-body text-body text-mint-text no-underline hover:underline">← ดูฟอนต์ทั้งหมด</Link>
         </div>
         <Footer />
       </>
@@ -146,82 +105,37 @@ export default function DesignerDetail() {
   return (
     <>
       <Nav />
-      <div className="bg-bg min-h-screen">
-        <div className="max-w-site mx-auto px-8 py-10">
-          <div className="mb-8">
-            <p className="text-[12px] text-[#aaa] mb-1">
-              <Link href="/fonts/" className="text-[#aaa] no-underline hover:text-mint transition-colors">ฟอนต์ทั้งหมด</Link>
-              {" / "}นักออกแบบ
-            </p>
-            <h1 className="text-[32px] font-semibold text-navy">{designerName}</h1>
-            <div className="flex items-center gap-4 mt-1">
-              <p className="text-[13px] text-[#aaa]">{fonts.length} ฟอนต์</p>
-              {licenseConfig && !licenseConfig.use_default && licenseConfig.license_pdf_url ? (
-                <button
-                  onClick={() => setPdfOpen(true)}
-                  className="text-[13px] text-mint bg-transparent border-none cursor-pointer p-0 hover:underline"
-                >
-                  สัญญาอนุญาต →
-                </button>
-              ) : (
-                <Link href="/agreement/" className="text-[13px] text-mint no-underline hover:underline">
-                  สัญญาอนุญาต →
-                </Link>
-              )}
-            </div>
+      <div className="bg-white min-h-screen">
+        <Container className="pt-10 pb-5">
+          <p className="font-body text-body-sm text-grey-600 mb-1">
+            <Link href="/fonts/" className="text-grey-600 no-underline hover:text-mint-text transition-colors">ฟอนต์ทั้งหมด</Link>
+            {" / "}นักออกแบบ
+          </p>
+          <h1 className="font-heading text-h1 text-black">{designerName}</h1>
+          <div className="flex items-center gap-4 mt-1">
+            <p className="font-body text-body-sm text-grey-600">{fonts.length} ฟอนต์</p>
+            {licenseConfig && !licenseConfig.use_default && licenseConfig.license_pdf_url ? (
+              <button
+                onClick={() => setPdfOpen(true)}
+                className="font-body text-body-sm text-mint-text bg-transparent border-none cursor-pointer p-0 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              >
+                สัญญาอนุญาต →
+              </button>
+            ) : (
+              <Link href="/agreement/" className="font-body text-body-sm text-mint-text no-underline hover:underline">
+                สัญญาอนุญาต →
+              </Link>
+            )}
           </div>
+        </Container>
 
-          {sliderPool.length > 0 && (
-            <section className="mb-10">
-              <div className="relative overflow-hidden rounded-2xl">
-                <div
-                  className="flex"
-                  style={{
-                    transform: `translateX(calc(-${pos} * (100% / ${showCount})))`,
-                    transition: animated ? "transform 0.45s cubic-bezier(.4,0,.2,1)" : "none",
-                    width: `calc(${strip.length} * (100% / ${showCount}))`,
-                  }}
-                  onTransitionEnd={handleTransitionEnd}
-                >
-                  {strip.map((f, i) => (
-                    <Link
-                      key={i}
-                      href={`/fonts/${f.designer_slug ?? designerSlug}/${f.slug}`}
-                      style={{ width: `calc(100% / ${strip.length})` }}
-                      className="block no-underline shrink-0"
-                    >
-                      <div className="aspect-video w-full bg-[#eee] overflow-hidden">
-                        {f.cover_image_url
-                          ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-full h-full object-cover" />
-                          : <div className="w-full h-full bg-[#ddd]" />}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-                {poolSize > 1 && (
-                  <>
-                    <button onClick={() => move(-1)} className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center border-none cursor-pointer transition-colors text-white text-[18px] leading-none">‹</button>
-                    <button onClick={() => move(1)} className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center border-none cursor-pointer transition-colors text-white text-[18px] leading-none">›</button>
-                  </>
-                )}
-                {poolSize > 1 && (
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {sliderPool.map((_, i) => (
-                      <button key={i} onClick={() => setPos(i + showCount)} className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-navy" : "w-[5px] h-[3px] bg-white/50"}`} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
+        {/* สไลด์ full-bleed ตัวเดียวกับหน้าแรก — วางนอก Container ให้ทะลุขอบจอ */}
+        <CoverCarousel fonts={sliderPool} loading={loading} />
 
-          <section>
-            <h2 className="text-[13px] font-semibold text-[#aaa] tracking-[0.06em] uppercase mb-4">ฟอนต์ทั้งหมด</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {fonts.map((f) => <FontCard key={f.id} font={f} />)}
-            </div>
-          </section>
-        </div>
+        <Container className="pt-5 pb-8">
+          <h2 className="font-heading text-h1 text-black mb-3.5">ฟอนต์ทั้งหมด</h2>
+          <FontGrid fonts={fonts} />
+        </Container>
       </div>
       <Footer />
       {licenseConfig?.license_pdf_url && (
