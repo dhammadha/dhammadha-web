@@ -137,8 +137,8 @@ export default function Footer() {
         </Col>
 
         <Col title="นโยบาย">
-          <Link href="/privacy/" className={LINK}>นโยบายความเป็นส่วนตัว</Link>
           <Link href="/terms/" className={LINK}>ข้อกำหนดการใช้งาน</Link>
+          <Link href="/privacy/" className={LINK}>นโยบายความเป็นส่วนตัว</Link>
           <Link href="/refund-policy/" className={LINK}>นโยบายการคืนเงิน</Link>
           <Link href="/designer-agreement/" className={LINK}>ข้อตกลงสำหรับนักออกแบบ</Link>
         </Col>
