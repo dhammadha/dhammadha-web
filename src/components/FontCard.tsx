@@ -115,10 +115,10 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
       )}
     >
-      {/* cover = 2:1 ตามสัดส่วนที่เจ้าของกำหนด (การ์ด 270×215 · แถบล่าง 80 → cover 270×135)
-          ไม่ใช่ aspect-video (16:9) ที่ผมใช้ผิดไปรอบแรก */}
+      {/* cover = 270×150 = 9:5 (เจ้าของปรับ 2026-07-18 · docs/design/moodboard/font-card-redesign.png)
+          เดิม 270×135 (2:1) — cover สูงขึ้น 15px แถบล่างลด 15px รายละเอียดเหลือ 2 บรรทัด รวมการ์ดเท่าเดิม */}
       <div
-        className={cn(compact ? "h-[110px]" : "aspect-[2/1]", "relative flex items-center justify-center overflow-hidden")}
+        className={cn(compact ? "h-[110px]" : "aspect-[9/5]", "relative flex items-center justify-center overflow-hidden")}
         style={{ ...bgStyle, ...(aspectRatio ? { aspectRatio, height: "auto" } : {}) }}
       >
         {badge && (
@@ -152,8 +152,8 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         </button>
       </div>
 
-      {/* แถบรายละเอียด — สูงราว 80px ตามที่เจ้าของกำหนด
-          สามบรรทัดเรียงชิดลงมา ไม่มีช่องว่างคั่น · ราคาลอยขวาชิดล่าง (moodboard/font card.png) */}
+      {/* แถบรายละเอียด — สูงราว 65px (270×150 cover + แถบ 65 = การ์ด 270×215)
+          2 บรรทัด (ชื่อฟอนต์ + โดย Designer) ไม่มี "x styles" แล้ว · ราคาลอยขวาชิดล่าง (font-card-redesign.png) */}
       <div className="flex items-end justify-between gap-2 px-3.5 py-2 md:px-4">
         <div className="min-w-0">
           {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
@@ -178,15 +178,6 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
             )}
           </div>
 
-          <div className="font-body text-body-sm text-grey-600 truncate">
-            {(() => {
-              // style_count คำนวณจากไฟล์จริงตอนบันทึก (ดู font-meta.ts)
-              // เดิม fallback ไปนับ "จำนวนไฟล์" ซึ่งผิดเมื่อฟอนต์มีหลาย format
-              // (5 weights × OTF+TTF = 10 ไฟล์ แต่เป็น 5 styles)
-              const n = font.style_count || font.weight_count || 0;
-              return n > 0 ? `${n} style${n > 1 ? "s" : ""}` : "";
-            })()}
-          </div>
         </div>
 
         {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) */}
@@ -194,9 +185,10 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
           {font.is_free ? (
             <span className="font-heading text-h2 text-success">ฟรี</span>
           ) : font.is_sale && font.sale_price && font.price ? (
+            /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ (เจ้าของ 2026-07-18) */
             <div className="flex items-baseline gap-1.5">
-              <span className="font-heading text-h2 text-black">฿{font.sale_price.toLocaleString()}</span>
               <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
+              <span className="font-heading text-h2 text-black">฿{font.sale_price.toLocaleString()}</span>
             </div>
           ) : font.price ? (
             <span className="font-heading text-h2 text-black">฿{font.price.toLocaleString()}</span>
