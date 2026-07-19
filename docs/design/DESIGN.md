@@ -886,3 +886,28 @@ ternary ราคา 5 กิ่ง · `activePromo` · `handleBuy` · `flattenF
 **หมายเหตุ:** label ยังเป็น `"Lightitalic"`/`"Bolditalic"` (ไม่มีวรรค) เพราะมาจาก Edge Function ตรง ๆ — เจ้าของขอแค่ "ลำดับ" ไม่ได้ขอแก้ชื่อ จึงไม่แตะ (ถ้าจะให้เป็น "Light Italic" ต้อง prettify ฝั่ง client หรือแก้ `weightLabel` ใน Edge Function)
 
 **Body text ใช้ Body Regular จริง** — description ใน `panel-detail` = `font-body text-body` = Looped 16/400 = token **Body Regular** (ยืนยันตอบเจ้าของ)
+
+### 15.9 รอบแก้ที่ห้า (20 ก.ค. 2026)
+
+| เรื่อง | ผล |
+|---|---|
+| ฮีโร่บนสุด | **ยกเลิก "by {designer}"** กลับเป็นชื่ออังกฤษอย่างเดียว (§15.7/15.8 revert เฉพาะส่วนนี้) |
+| ชื่อไทยใต้สไลด์ | `{ชื่อไทย}` → **`ฟอนต์ "{ชื่อไทย}"`** (ขนาดเดิม text-h1) — ใช้ `&ldquo;`/`&rdquo;` |
+| ระยะสไลด์ → ชื่อไทย | `pt-20` → **`pt-4`** — ลดลงให้ **visual gap เท่ากับ (ออกแบบโดย → แท็บ)** |
+
+**🔴 บทเรียนสำคัญ — วัดพื้นที่จริง ไม่ใช่ค่า CSS:**
+เจ้าของสั่ง "ระยะสไลด์→ชื่อไทย = ระยะออกแบบโดย→แท็บ · คำนวณคณิตศาสตร์อย่างเดียวไม่ได้ ต้องเช็กพื้นที่จริง"
+
+ก่อนหน้านี้ (§15.6-15.8) ปรับ `pt` เป็นตัวเลขเรื่อย ๆ แต่ **visual gap ไม่เท่ากัน** เพราะ:
+- **ชื่อ (leading-none)** → กล่องหุ้มตัวอักษรพอดี · top ของกล่อง ≈ top ของหมึกจริง
+- **บรรทัด "ออกแบบโดย" (line-height ปกติ ~1.5)** → กล่องสูงกว่าตัวอักษร มี half-leading ~4px ทั้งบน-ล่าง · bottom ของกล่อง**อยู่ต่ำกว่า**หมึกจริง
+
+→ วัดด้วยกล่อง (`getBoundingClientRect`) เฉย ๆ จะเพี้ยน ต้องหัก half-leading ออก:
+```
+gapA_visual = nameRect.top - imgBottom              // ชื่อ leading-none
+gapB_visual = tabTop - (designerRect.bottom - halfLeading)   // หัก half-leading
+```
+วัดจริง (ก่อนแก้): **gapA=100 · gapB=36** → เจ้าของอ้าง gapB เป็นตัวตั้ง จึง**ลด** gapA ให้เท่า
+carousel มี `pb-5` (20px) อยู่แล้ว → `pt-4` (16px) รวม = 36px = gapB **ยืนยันวัดจริง 1280 + 375: gapA==gapB==36**
+
+**เรียงน้ำหนัก tester รองรับฟอนต์ใหม่อัตโนมัติ** — `weightRank` ถอด weight จาก id ของไฟล์ (`parseWeightId` ฝั่ง Edge Function ตัด segment สุดท้ายหลัง `-`) เทียบตาราง `WEIGHT_CSS` มาตรฐาน → ฟอนต์ไหนตั้งชื่อไฟล์ตาม convention `Name-Weight[Italic].ext` ก็เรียงถูกเอง ไม่ต้องแก้โค้ดเพิ่ม

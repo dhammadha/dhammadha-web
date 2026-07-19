@@ -294,14 +294,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
       <Nav />
       <div className="bg-white min-h-screen">
 
-        {/* ฮีโร่ — "{ชื่ออังกฤษ} by {ดีไซเนอร์}" + ป้ายหมวดหมู่/แท็ก (moodboard: font detail alt.png)
-            "by" เป็นน้ำหนักบางตามที่เจ้าของสั่ง — ชื่อ 800 · by 300 · ชื่อดีไซเนอร์ 400 */}
+        {/* ฮีโร่ — ชื่ออังกฤษอย่างเดียว + ป้ายหมวดหมู่/แท็ก (moodboard: font detail alt.png) */}
         <Container className="pt-10 pb-5">
-          <h2 className="text-h2 leading-none">
-            <span className="font-heading text-black">{font.name || mainTitle}</span>
-            <span className="font-body font-light text-grey-600"> by </span>
-            <span className="font-body font-normal text-grey-600">{designerName}</span>
-          </h2>
+          <h2 className="font-heading text-h2 text-black leading-none">{font.name || mainTitle}</h2>
           {heroChips.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {heroChips.map((c) => (
@@ -327,10 +322,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
           {/* ชื่อฟอนต์ + หัวใจ — เหนือแถบเมนู จึงเห็นตลอดทุกแท็บโดยไม่ต้องเขียนซ้ำ 3 ที่
               sticky ใต้ nav (70px) ตอน scroll อ่านรายละเอียดยาว ๆ ยังรู้ว่าอยู่ฟอนต์ไหน
               ต้องมี bg-white — ไม่งั้นเนื้อหาที่เลื่อนผ่านจะทะลุขึ้นมาซ้อน
-              pt-20 = ระยะจากสไลด์ (เจ้าของขอเพิ่มอีกรอบ) · -mx/px ให้พื้นขาวเต็มความกว้าง Container */}
-          <div className="sticky top-[70px] z-30 bg-white pt-20 pb-4 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 flex items-start justify-between gap-4 mb-4">
+              pt-4 = ระยะจากสไลด์ — วัดพื้นที่จริงให้ visual gap (slide→ชื่อ) เท่า (ออกแบบโดย→แท็บ)
+              carousel มี pb-5 (20px) อยู่แล้ว + pt-4 (16px) = 36px ≈ pb-4+mb-4 ข้างล่าง (เจ้าของสั่งวัดจริง)
+              -mx/px ให้พื้นขาวเต็มความกว้าง Container */}
+          <div className="sticky top-[70px] z-30 bg-white pt-4 pb-4 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 flex items-start justify-between gap-4 mb-4">
             <div className="min-w-0">
-              <h2 className="font-heading text-h1 text-black leading-none">{mainTitle}</h2>
+              <h2 className="font-heading text-h1 text-black leading-none">ฟอนต์ &ldquo;{mainTitle}&rdquo;</h2>
               <div className="mt-2">{designerLine}</div>
             </div>
 
