@@ -56,13 +56,16 @@ function getFormats(urls: string[]): string {
   return [...exts].join(", ") || "—";
 }
 
-// แถบเมนู 3 หัวข้อ (moodboard: font detail.png) — สลับเนื้อหาในที่เดิม ไม่เปลี่ยน route
+// แถบเมนู 3 หัวข้อ (moodboard: font detail alt.png) — สลับเนื้อหาในที่เดิม ไม่เปลี่ยน route
+// แท็บ "สั่งซื้อ" เปลี่ยนคำตามฟอนต์: ฟอนต์ฟรีไม่มีอะไรให้ "สั่งซื้อ" (ปุ่มในแท็บคือดาวน์โหลด)
 type Tab = "detail" | "tester" | "buy";
-const TABS: { id: Tab; label: string }[] = [
-  { id: "detail", label: "รายละเอียด" },
-  { id: "tester", label: "พิมพ์ทดสอบ" },
-  { id: "buy", label: "สั่งซื้อฟอนต์ / ขอใบเสนอราคา" },
-];
+function tabsFor(isFree?: boolean): { id: Tab; label: string }[] {
+  return [
+    { id: "detail", label: "รายละเอียด" },
+    { id: "tester", label: "พิมพ์ทดสอบ" },
+    { id: "buy", label: isFree ? "ดาวน์โหลดฟอนต์ / ขอใบเสนอราคา" : "สั่งซื้อฟอนต์ / ขอใบเสนอราคา" },
+  ];
+}
 
 export default function FontDetail({ initialFont }: { initialFont?: Font | null }) {
   const { user } = useAuth();
@@ -251,20 +254,22 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     </p>
   );
 
-  // หัวเรื่องในแท็บ — เจ้าของสั่งให้โชว์ทุกแท็บ (ตาม moodboard)
-  const tabHeading = (
-    <div className="mb-6">
-      <h2 className="font-heading text-h1 text-black leading-none">{mainTitle}</h2>
-      {subTitle && <div className="font-heading text-h2 text-black leading-none mt-1.5">{subTitle}</div>}
-      <div className="mt-2">{designerLine}</div>
-    </div>
-  );
+  // ฮีโร่บนสุดโชว์ "หมวดหมู่, แท็ก" ต่อกันเป็นบรรทัดเดียว (moodboard: category,tags)
+  // → tags ไม่โผล่ซ้ำในแท็บรายละเอียดอีกแล้ว (เจ้าของสั่งให้ตัดออก 2026-07-20)
+  // dedupe เพราะ category มักถูกใส่ซ้ำใน tags ด้วย (เช่น bangkok = category "display" + tag "display")
+  // เทียบแบบไม่สนตัวพิมพ์ แต่แสดงคำแรกที่เจอตามที่พิมพ์มาจริง
+  const heroMeta = [...new Map(
+    [font.category, ...(font.tags ?? [])]
+      .filter((s): s is string => !!s?.trim())
+      .map((s) => [s.trim().toLowerCase(), s.trim()] as const)
+  ).values()].join(", ");
 
-  const specRows: [string, string][] = [
-    ["น้ำหนัก", weightTotal ? `${weightTotal} weights` : "—"],
-    ["สไตล์", styleCount ? `${styleCount} styles` : "—"],
-    ["Font Format", formats],
-  ];
+  // สเปกยุบเป็นบรรทัดเดียว: "2 น้ำหนัก, 12 สไตล์, Font Format : OTF, TTF"
+  const specLine = [
+    weightTotal ? `${weightTotal} น้ำหนัก` : null,
+    styleCount ? `${styleCount} สไตล์` : null,
+    `Font Format : ${formats}`,
+  ].filter(Boolean).join(", ");
 
   // การ์ดราคา tier องค์กร — markup เดียวกันทั้ง custom/default (§8 ปล่อยซ้ำต่อ ไม่ยกเป็น component)
   const orgTiers = customLicenseTiers ?? defaultTiers;
@@ -274,10 +279,23 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
       <Nav />
       <div className="bg-white min-h-screen">
 
-        {/* หัวเรื่องหน้า — ชื่อฟอนต์ + หัวใจ (เห็นตลอด ไม่ขึ้นกับแท็บ) */}
+        {/* ฮีโร่ — ชื่ออังกฤษ + หมวดหมู่/แท็ก (moodboard: font detail alt.png) */}
         <Container className="pt-10 pb-5">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="font-heading text-font-slug text-black leading-none min-w-0">{mainTitle}</h1>
+          <h1 className="font-heading text-font-slug text-black leading-none">{font.name || mainTitle}</h1>
+          {heroMeta && <p className="font-body text-body-sm text-grey-600 mt-2">{heroMeta}</p>}
+        </Container>
+
+        {/* สไลด์ full-bleed — วางนอก Container เพื่อให้ peek ทะลุขอบจอ (§13.2) */}
+        <CoverCarousel slides={slides} />
+
+        <Container className="pt-8 pb-10">
+
+          {/* ชื่อฟอนต์ + หัวใจ — อยู่เหนือแถบเมนู จึงเห็นตลอดทุกแท็บโดยไม่ต้องเขียนซ้ำ 3 ที่ */}
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="min-w-0">
+              <h2 className="font-heading text-h1 text-black leading-none">{mainTitle}</h2>
+              <div className="mt-2">{designerLine}</div>
+            </div>
 
             {/* บันทึกไว้ดูภายหลัง — เหลือแค่ไอคอนเพราะพื้นที่ข้างชื่อฟอนต์จำกัด
                 ข้อความเดิมย้ายไปอยู่ใน aria-label/title แทน */}
@@ -300,17 +318,10 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
               </svg>
             </button>
           </div>
-          <div className="mt-2">{designerLine}</div>
-        </Container>
-
-        {/* สไลด์ full-bleed — วางนอก Container เพื่อให้ peek ทะลุขอบจอ (§13.2) */}
-        <CoverCarousel slides={slides} />
-
-        <Container className="pt-5 pb-10">
 
           {/* แถบเมนู 3 หัวข้อ */}
           <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-3 gap-px bg-white mb-8">
-            {TABS.map((t) => (
+            {tabsFor(font.is_free).map((t) => (
               <button
                 key={t.id}
                 role="tab"
@@ -331,36 +342,18 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
               ถ้าปล่อยไว้จะยิงทุกครั้งที่เปิดหน้า ทั้งที่ผู้ใช้ยังไม่ได้กดดู */}
           {tab === "detail" && (
             <div role="tabpanel" id="panel-detail" aria-labelledby="tab-detail">
-              {tabHeading}
-
-              <div className="flex flex-col gap-px mb-6 max-w-lg">
-                {specRows.map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between gap-4 bg-surface px-4 py-2.5">
-                    <span className="font-body text-body-sm text-grey-600">{label}</span>
-                    <span className="font-ui text-ui text-black text-right">{value}</span>
-                  </div>
-                ))}
-              </div>
+              <p className="font-ui text-ui text-black mb-4">{specLine}</p>
 
               {font.description_th && (
-                <p className="font-body text-body text-black whitespace-pre-line mb-6">
+                <p className="font-body text-body text-black whitespace-pre-line">
                   {font.description_th}
                 </p>
-              )}
-
-              {font.tags && font.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {font.tags.map((tag) => (
-                    <Badge key={tag} variant="tag">{tag}</Badge>
-                  ))}
-                </div>
               )}
             </div>
           )}
 
           {tab === "tester" && (
             <div role="tabpanel" id="panel-tester" aria-labelledby="tab-tester">
-              {tabHeading}
               <TypeTester font={font} />
               {font.specimen_files && font.specimen_files.length > 0 && (
                 <Button variant="outline" size="lg" className="mt-5" onClick={() => setSpecimenOpen(true)}>
@@ -376,9 +369,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
           {tab === "buy" && (
             <div role="tabpanel" id="panel-buy" aria-labelledby="tab-buy">
-              {tabHeading}
-
-              <div className="flex flex-col gap-8 max-w-2xl">
+              {/* 2 คอลัมน์: ซ้าย = บุคคลทั่วไป · ขวา = ห้างร้าน องค์กร บริษัท
+                  มือถือซ้อนกันคอลัมน์เดียว (items-start กันคอลัมน์สั้นถูกยืดตามคอลัมน์ยาว) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
                 {/* Personal tier */}
                 <div>
@@ -469,19 +462,21 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       ดาวน์โหลด Demo ฟรี
                     </Button>
                   )}
-                </div>
 
-                {font.is_subscription && (
-                  <div className="bg-surface px-4 py-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <div className="font-ui text-ui text-black mb-1">รวมอยู่ใน Subscription</div>
-                      <div className="font-body text-body-sm text-grey-600">
-                        เข้าถึงฟอนต์ทุกตัวด้วยแพลนรายเดือน
+                  {/* Subscription อยู่ในคอลัมน์ซ้าย — เป็นทางเลือกแทนการซื้อรายตัวของ "บุคคลทั่วไป"
+                      ไม่เกี่ยวกับสิทธิ์องค์กร ถ้าปล่อยเป็นพี่น้องของ grid จะตกไปคอลัมน์ขวา */}
+                  {font.is_subscription && (
+                    <div className="bg-surface px-4 py-4 flex flex-wrap items-center justify-between gap-3 mt-3">
+                      <div>
+                        <div className="font-ui text-ui text-black mb-1">รวมอยู่ใน Subscription</div>
+                        <div className="font-body text-body-sm text-grey-600">
+                          เข้าถึงฟอนต์ทุกตัวด้วยแพลนรายเดือน
+                        </div>
                       </div>
+                      <Button as="link" href="/subscribe/" size="sm">ดูแผนบริการ</Button>
                     </div>
-                    <Button as="link" href="/subscribe/" size="sm">ดูแผนบริการ</Button>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* Org tiers */}
                 <div>
