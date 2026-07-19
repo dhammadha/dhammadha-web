@@ -25,6 +25,33 @@ async function sha256Hex40(s: string): Promise<string> {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
+// เรียงน้ำหนักจากบางไปหนา (100→900) น้ำหนักเท่ากัน → upright ก่อน italic
+// เช่น ชวนชิม: Light / Light Italic / Regular / Italic / Bold / Bold Italic
+//
+// ⚠️ ไม่พึ่ง `css` จาก Edge Function — มันคำนวณจาก id ทั้งก้อน ("lightitalic"/"bolditalic"
+// ไม่มีในตาราง จึงตกเป็น 400 หมด ทำให้ italic ทุกตัวกองรวมที่ 400) เราถอด id เอง:
+// ตัด italic/oblique ออก เหลือ base weight → เทียบกับตาราง
+const WEIGHT_CSS: Record<string, number> = {
+  thin: 100, extralight: 200, ultralight: 200, light: 300,
+  regular: 400, normal: 400, medium: 500, semibold: 600,
+  demibold: 600, bold: 700, extrabold: 800, ultrabold: 800,
+  black: 900, heavy: 900,
+};
+
+function weightRank(w: Weight): { css: number; italic: number } {
+  const id = w.id.toLowerCase();
+  const italic = /italic|oblique/.test(id) ? 1 : 0;
+  const base = id.replace(/italic|oblique/g, "") || "regular";
+  return { css: WEIGHT_CSS[base] ?? w.css ?? 400, italic };
+}
+
+function sortWeights(weights: Weight[]): Weight[] {
+  return weights.slice().sort((a, b) => {
+    const ra = weightRank(a), rb = weightRank(b);
+    return ra.css - rb.css || ra.italic - rb.italic;
+  });
+}
+
 function probeImage(url: string): Promise<boolean> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -71,7 +98,7 @@ export default function TypeTester({ font }: { font: Font }) {
           return;
         }
         const info = data as { name?: string; weights?: Weight[] };
-        const w = info.weights ?? [];
+        const w = sortWeights(info.weights ?? []);
         setWeights(w);
         setFontName(info.name || font.name || "");
         setWeightId(w[0]?.id ?? "");
@@ -216,7 +243,7 @@ export default function TypeTester({ font }: { font: Font }) {
         placeholder={DEFAULT_TESTER_TEXT}
         maxLength={80}
         aria-label="ข้อความทดสอบ"
-        className="w-full px-4 py-3 mb-px bg-surface font-body text-body text-black border-none outline-none placeholder:text-grey-400 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
+        className="w-full px-4 py-3 mb-px bg-surface font-body text-body-sm text-black border-none outline-none placeholder:text-grey-400 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
       />
 
       <div className="min-h-[140px] bg-surface px-4 py-3 overflow-x-auto flex items-center">

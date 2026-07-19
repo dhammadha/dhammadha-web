@@ -867,3 +867,22 @@ ternary ราคา 5 กิ่ง · `activePromo` · `handleBuy` · `flattenF
 - sticky ปล่อยตัวเองตอนถึงท้าย `Container` (พฤติกรรมปกติของ `position: sticky`) — ช่วง ad + ฟอนต์แนะนำจึงไม่มีแถบติด **ถูกต้องแล้ว**
 
 **ตรวจแล้ว:** ชื่ออังกฤษ 24px/800 · ป้ายลิงก์ถูกทั้ง 3 (`?category=display`, `?q=bold`, `?q=retro`) และกรองได้จริง (display → 4 ใบ · retro → 5 ใบ + ช่องค้นหาขึ้นคำว่า retro) · sticky pin ที่ 70px พอดีขอบล่าง nav ทั้ง 1280 และ 375 · ไม่มี horizontal scroll ที่ 375px · build ผ่าน
+
+### 15.8 รอบแก้ที่สี่ (20 ก.ค. 2026)
+
+| เรื่อง | ผล |
+|---|---|
+| ระยะสไลด์ → ชื่อไทย | `pt-12` → **`pt-20`** (48→80px · รวม pb-5 ของ carousel = ~100px visual) — เจ้าของว่ายังชิด |
+| ชื่ออังกฤษบนสุด | `{name}` → **`{name} by {designer}`** · ชื่อ 800 (heading) · "by" **300 (Looped Light)** · ชื่อดีไซเนอร์ 400 |
+| placeholder tester | ช่องกรอกจาก `text-body` (16) → **`text-body-sm`** (14/300) เท่า "ค้นหาฟอนต์..." ใน Nav |
+| เรียงน้ำหนักใน tester | เรียง **css 100→900 · น้ำหนักเท่ากัน upright ก่อน italic** |
+
+**🔴 กับดัก 2 อัน:**
+1. **`text-h2` set `font-weight: 800`** — span ชื่อดีไซเนอร์ที่ใส่แค่ `font-body text-grey-600` **สืบทอด 800 มา** ต้องใส่ `font-normal` ทับ (เจอตอนวัด computed = 800)
+2. **`css` จาก Edge Function เชื่อไม่ได้สำหรับ id ผสม** — `render-tester/weights.ts` `weightCss()` เปิดตาราง `WEIGHT_CSS` ด้วย id ทั้งก้อน `"lightitalic"`/`"bolditalic"`/`"italic"` ไม่มีในตาราง จึงตกเป็น **400 หมด** → italic ทุกตัวกองรวมที่ 400 เรียงมั่ว
+   **แก้ฝั่ง client** (`sortWeights`/`weightRank` ใน `TypeTester.tsx`) — ถอด `italic`/`oblique` ออกจาก id เหลือ base weight แล้วเปิดตารางเอง · **ไม่แตะ Edge Function** (นอกขอบเขต + ต้อง redeploy + จะกระทบ label ด้วย)
+   ผลตรวจ ชวนชิม: `Light / Light Italic / Regular / Italic / Bold / Bold Italic` · samsen: `Regular / Italic` · default = ตัวบางสุด
+
+**หมายเหตุ:** label ยังเป็น `"Lightitalic"`/`"Bolditalic"` (ไม่มีวรรค) เพราะมาจาก Edge Function ตรง ๆ — เจ้าของขอแค่ "ลำดับ" ไม่ได้ขอแก้ชื่อ จึงไม่แตะ (ถ้าจะให้เป็น "Light Italic" ต้อง prettify ฝั่ง client หรือแก้ `weightLabel` ใน Edge Function)
+
+**Body text ใช้ Body Regular จริง** — description ใน `panel-detail` = `font-body text-body` = Looped 16/400 = token **Body Regular** (ยืนยันตอบเจ้าของ)
