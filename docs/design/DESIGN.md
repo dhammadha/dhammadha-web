@@ -911,3 +911,23 @@ gapB_visual = tabTop - (designerRect.bottom - halfLeading)   // หัก half-l
 carousel มี `pb-5` (20px) อยู่แล้ว → `pt-4` (16px) รวม = 36px = gapB **ยืนยันวัดจริง 1280 + 375: gapA==gapB==36**
 
 **เรียงน้ำหนัก tester รองรับฟอนต์ใหม่อัตโนมัติ** — `weightRank` ถอด weight จาก id ของไฟล์ (`parseWeightId` ฝั่ง Edge Function ตัด segment สุดท้ายหลัง `-`) เทียบตาราง `WEIGHT_CSS` มาตรฐาน → ฟอนต์ไหนตั้งชื่อไฟล์ตาม convention `Name-Weight[Italic].ext` ก็เรียงถูกเอง ไม่ต้องแก้โค้ดเพิ่ม
+
+### 15.10 รอบแก้ที่หก — สไตล์สไลเดอร์ + dropdown (20 ก.ค. 2026)
+
+| เรื่อง | ผล |
+|---|---|
+| สไลเดอร์ขนาด | เดิม `accent-mint` (native ปุ่มกลม) → **ราง + ปุ่มเหลี่ยม** ตามตัวอย่าง · ราง 4px พื้น gradient (mint ซ้ายจุดปุ่ม / grey ขวา) · ปุ่มกล่องขาว 12×20 `border-radius:0` |
+| dropdown น้ำหนัก | เดิม `<select>` (dropdown ของ OS สไตล์ไม่ได้ — เจ้าของเห็นเมนู macOS สีเข้ม) → **custom dropdown สไตล์เดียวกับเมนูบัญชีใน Nav** (`bg-surface shadow-lg py-1` · แถวคั่น `border-t border-grey-200` · hover `bg-mint` · ติ๊กถูกตัวที่เลือก) |
+
+**สไลเดอร์ — ทำไมต้องเขียน CSS จริงใน `globals.css`:**
+Tailwind style `::-webkit-slider-thumb` / `::-moz-range-thumb` (pseudo-element ของ native control) ไม่ได้ ต้องเขียน `.tester-range` ใน `globals.css`
+- ราง: `-webkit-slider-runnable-track` + `-moz-range-track` โปร่งใส → พื้นหลัง element (gradient inline ตามค่า value) โผล่แทน → ได้ mint/grey เหลี่ยมทั้ง 2 engine
+- ปุ่ม: `margin-top: -8px` จัดกึ่งกลางบนราง 4px (2 − 20/2)
+- **globals.css เคยไม่แตะมาตลอด redesign (§9.1) — รอบนี้แตะเพราะ style native control เลี่ยงไม่ได้** เป็น scoped class ไม่กระทบที่อื่น
+
+**dropdown — custom แทน `<select>`:**
+- แพทเทิร์นปิดเมนูเหมือน Nav account: `mousedown` นอกกล่อง (`weightRef.contains`) + `Escape` → ปิด
+- **มือถือ anchor ซ้าย (`left-0`) · เดสก์ท็อป anchor ขวา (`sm:right-0`)** — ปุ่มบนมือถือ wrap ลงบรรทัดใหม่ชิดซ้าย ถ้า `right-0` เมนู `w-max` จะกางเลยขอบซ้ายจอ (วัดจริงเจอ `left:-42`) · เดสก์ท็อปปุ่มอยู่ขวาสุด `right-0` กางซ้ายมีที่ว่าง
+- ยืนยันวัดจริง: มือถือ 375 เมนู `left:16 right:265` อยู่ในจอ · เดสก์ท็อป 1280 ชิดขวาปุ่มพอดี (`dropRight==btnRight==1208`) · เลือกน้ำหนักแล้วปิด+อัปเดตปุ่ม · console ว่าง
+
+**เรียงน้ำหนักยังทำงานถูก** (มณี-เมขลา: Regular / Italic / Bold / Bold Italic) หลังเปลี่ยนเป็น custom dropdown

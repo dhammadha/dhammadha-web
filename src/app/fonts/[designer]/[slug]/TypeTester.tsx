@@ -72,10 +72,24 @@ export default function TypeTester({ font }: { font: Font }) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState("");
   const [infoError, setInfoError] = useState(false);
+  const [weightOpen, setWeightOpen] = useState(false);
 
   const seqRef = useRef(0);
   const objectUrlRef = useRef<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const weightRef = useRef<HTMLDivElement>(null);
+
+  // ปิด dropdown น้ำหนักเมื่อคลิกนอกกล่อง / กด Escape (แพทเทิร์นเดียวกับเมนูบัญชีใน Nav)
+  useEffect(() => {
+    if (!weightOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (weightRef.current && !weightRef.current.contains(e.target as Node)) setWeightOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setWeightOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [weightOpen]);
 
   // โหลดข้อมูลฟอนต์ (ชื่อ + น้ำหนักที่ render ได้) จาก Edge Function
   // ครั้งเดียวตอน mount / เมื่อเปลี่ยนฟอนต์
@@ -202,7 +216,8 @@ export default function TypeTester({ font }: { font: Font }) {
       <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
         <h3 className="font-heading text-h2 text-black">ทดสอบฟอนต์</h3>
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A */}
+          {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A · ราง+ปุ่มเหลี่ยม (.tester-range ใน globals.css)
+              พื้นหลัง gradient ตั้งตามค่า value: mint ซ้ายจุดปุ่ม · grey ขวา */}
           <div className="flex items-center gap-2">
             <span className="font-heading text-body-sm text-grey-600 leading-none">A</span>
             <input
@@ -213,25 +228,52 @@ export default function TypeTester({ font }: { font: Font }) {
               value={size}
               onChange={(e) => setSize(Number(e.target.value))}
               aria-label="ขนาดตัวอักษร"
-              className="accent-mint w-24 sm:w-32 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              className="tester-range w-24 sm:w-32"
+              style={{
+                background: `linear-gradient(to right, #5ECEC8 0%, #5ECEC8 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 100%)`,
+              }}
             />
             <span className="font-heading text-h2 text-grey-600 leading-none">A</span>
             <span className="font-body text-body-sm text-grey-600 w-12 text-right shrink-0">{size}px</span>
           </div>
 
+          {/* Dropdown น้ำหนัก — สไตล์เดียวกับเมนูบัญชีใน Nav (bg-surface · shadow · แถวคั่นบาง ๆ · hover mint)
+              เลิกใช้ <select> เพราะ dropdown ของ OS สไตล์ไม่ได้ (เจ้าของเห็นเมนู macOS สีเข้ม) */}
           {weights.length > 0 && (
-            <select
-              value={weightId}
-              onChange={(e) => setWeightId(e.target.value)}
-              aria-label="น้ำหนักฟอนต์"
-              className="font-body text-body-sm px-3 py-2 bg-surface text-black border-none outline-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-            >
-              {weights.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {fontName} {w.label}
-                </option>
-              ))}
-            </select>
+            <div ref={weightRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setWeightOpen((o) => !o)}
+                aria-haspopup="listbox"
+                aria-expanded={weightOpen}
+                className="flex items-center gap-2 font-body text-body-sm text-black bg-surface px-3 py-2 border-none cursor-pointer hover:bg-grey-200/60 transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              >
+                <span className="whitespace-nowrap">{fontName} {weights.find((w) => w.id === weightId)?.label ?? ""}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 shrink-0 transition-transform duration-150 ${weightOpen ? "rotate-180" : ""}`}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {/* มือถือปุ่มขึ้นบรรทัดใหม่ชิดซ้าย → anchor ซ้าย (เมนูกางไปขวา ไม่ล้นจอ)
+                  เดสก์ท็อปปุ่มอยู่ขวาสุด → anchor ขวา (เมนูกางไปซ้าย มีที่ว่าง) */}
+              {weightOpen && (
+                <div role="listbox" className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1 w-max min-w-full z-30 bg-surface shadow-lg py-1">
+                  {weights.map((w, i) => (
+                    <button
+                      key={w.id}
+                      role="option"
+                      aria-selected={w.id === weightId}
+                      onClick={() => { setWeightId(w.id); setWeightOpen(false); }}
+                      className={`flex items-center gap-2 w-full text-left whitespace-nowrap px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none cursor-pointer hover:bg-mint transition-colors duration-150 ease-base ${i > 0 ? "border-t border-grey-200" : ""}`}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 shrink-0 ${w.id === weightId ? "opacity-100" : "opacity-0"}`}>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      {fontName} {w.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
