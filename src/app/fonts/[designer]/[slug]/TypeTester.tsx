@@ -161,11 +161,9 @@ export default function TypeTester({ font }: { font: Font }) {
 
   if (infoError) {
     return (
-      <div className="bg-white border border-[0.5px] border-border rounded-xl p-5 mb-5">
-        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-          <span className="text-[15px] font-semibold text-navy">ทดสอบฟอนต์</span>
-        </div>
-        <div className="text-[13px] text-[#aaa] text-center py-8">
+      <div>
+        <h3 className="font-heading text-h2 text-black mb-3">ทดสอบฟอนต์</h3>
+        <div className="bg-surface font-body text-body text-grey-600 text-center py-10">
           ระบบทดสอบฟอนต์ขัดข้องชั่วคราว
         </div>
       </div>
@@ -173,13 +171,13 @@ export default function TypeTester({ font }: { font: Font }) {
   }
 
   return (
-    <div className="bg-white border border-[0.5px] border-border rounded-xl p-5 mb-5">
+    <div>
       <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-        <span className="text-[15px] font-semibold text-navy">ทดสอบฟอนต์</span>
+        <h3 className="font-heading text-h2 text-black">ทดสอบฟอนต์</h3>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A */}
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-[#aaa]">A</span>
+            <span className="font-heading text-body-sm text-grey-600 leading-none">A</span>
             <input
               type="range"
               min={16}
@@ -187,17 +185,19 @@ export default function TypeTester({ font }: { font: Font }) {
               step={1}
               value={size}
               onChange={(e) => setSize(Number(e.target.value))}
-              className="accent-navy w-24 sm:w-32"
+              aria-label="ขนาดตัวอักษร"
+              className="accent-mint w-24 sm:w-32 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
             />
-            <span className="text-[18px] text-[#aaa] leading-none">A</span>
-            <span className="text-[12px] text-[#aaa] w-[38px] text-right shrink-0">{size}px</span>
+            <span className="font-heading text-h2 text-grey-600 leading-none">A</span>
+            <span className="font-body text-body-sm text-grey-600 w-12 text-right shrink-0">{size}px</span>
           </div>
 
           {weights.length > 0 && (
             <select
               value={weightId}
               onChange={(e) => setWeightId(e.target.value)}
-              className="text-[13px] px-3 py-1.5 border border-[0.5px] border-[#ddd] rounded-[8px] bg-white text-navy outline-none cursor-pointer"
+              aria-label="น้ำหนักฟอนต์"
+              className="font-body text-body-sm px-3 py-2 bg-surface text-black border-none outline-none cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
             >
               {weights.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -215,10 +215,11 @@ export default function TypeTester({ font }: { font: Font }) {
         onChange={(e) => setText(e.target.value)}
         placeholder={DEFAULT_TESTER_TEXT}
         maxLength={80}
-        className="w-full px-4 py-3 mb-3 border border-border rounded-xl bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]"
+        aria-label="ข้อความทดสอบ"
+        className="w-full px-4 py-3 mb-px bg-surface font-body text-body text-black border-none outline-none placeholder:text-grey-400 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
       />
 
-      <div className="min-h-[140px] bg-bg rounded-lg border border-[0.5px] border-border px-4 py-3 overflow-x-auto flex items-center">
+      <div className="min-h-[140px] bg-surface px-4 py-3 overflow-x-auto flex items-center">
         {imgSrc ? (
           <img
             src={imgSrc}
@@ -229,10 +230,10 @@ export default function TypeTester({ font }: { font: Font }) {
             style={{ width: imgWidth || undefined }}
           />
         ) : (
-          <span className="text-[13px] text-[#bbb]">กำลังเตรียมตัวอย่าง...</span>
+          <span className="font-body text-body text-grey-400">กำลังเตรียมตัวอย่าง...</span>
         )}
       </div>
-      {error && <p className="text-[12px] text-[#c0392b] mt-1.5">{error}</p>}
+      {error && <p className="font-body text-body-sm text-danger mt-2">{error}</p>}
     </div>
   );
 }

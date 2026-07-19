@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import FontCard, { Font } from "@/components/FontCard";
+import { Font } from "@/components/FontCard";
+import FontGrid from "@/components/FontGrid";
+import CoverCarousel, { type Slide } from "@/components/CoverCarousel";
 import AdBanner from "@/components/AdBanner";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
+import Container from "@/components/ui/Container";
+import Modal from "@/components/ui/Modal";
 import TypeTester from "./TypeTester";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -51,6 +56,14 @@ function getFormats(urls: string[]): string {
   return [...exts].join(", ") || "—";
 }
 
+// แถบเมนู 3 หัวข้อ (moodboard: font detail.png) — สลับเนื้อหาในที่เดิม ไม่เปลี่ยน route
+type Tab = "detail" | "tester" | "buy";
+const TABS: { id: Tab; label: string }[] = [
+  { id: "detail", label: "รายละเอียด" },
+  { id: "tester", label: "พิมพ์ทดสอบ" },
+  { id: "buy", label: "สั่งซื้อฟอนต์ / ขอใบเสนอราคา" },
+];
+
 export default function FontDetail({ initialFont }: { initialFont?: Font | null }) {
   const { user } = useAuth();
   const router = useRouter();
@@ -63,11 +76,10 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [customLicenseTiers, setCustomLicenseTiers] = useState<LicenseTier[] | null>(null);
   const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
-  const [slideIdx, setSlideIdx] = useState(0);
+  const [tab, setTab] = useState<Tab>("detail");
   const [specimenOpen, setSpecimenOpen] = useState(false);
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState("");
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -179,38 +191,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     setBuying(false);
   }
 
-  const images: string[] = font
-    ? [font.cover_image_url, ...(font.preview_images || [])].filter(
-        (u): u is string => !!u
-      )
-    : [];
-
-  useEffect(() => {
-    if (images.length <= 1) return;
-    timerRef.current = setInterval(
-      () => setSlideIdx((i) => (i + 1) % images.length),
-      5000
-    );
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [images.length]);
-
-  function moveSlide(dir: number) {
-    setSlideIdx((i) => (i + dir + images.length) % images.length);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = setInterval(
-        () => setSlideIdx((i) => (i + 1) % images.length),
-        5000
-      );
-    }
-  }
-
   if (loading) {
     return (
       <>
         <Nav />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-[14px] text-[#aaa]">กำลังโหลด...</div>
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <div className="font-body text-body text-grey-600">กำลังโหลด...</div>
         </div>
         <Footer />
       </>
@@ -221,9 +207,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     return (
       <>
         <Nav />
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-          <div className="text-[18px] font-semibold text-navy">ไม่พบฟอนต์นี้</div>
-          <Link href="/" className="text-[14px] text-mint no-underline">
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
+          <div className="font-heading text-h2 text-black">ไม่พบฟอนต์นี้</div>
+          <Link href="/" className="font-body text-body text-mint-text no-underline hover:underline">
             ← กลับหน้าแรก
           </Link>
         </div>
@@ -245,443 +231,328 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
   const mainTitle = font.name_th || font.name || "—";
   const subTitle = font.name_th ? font.name : undefined;
+  const designerName = font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ";
+
+  // สไลด์ full-bleed — cover + preview ของฟอนต์ตัวนี้ ไม่ลิงก์ไปไหน (อยู่หน้าฟอนต์นี้อยู่แล้ว)
+  const slides: Slide[] = [font.cover_image_url, ...(font.preview_images || [])]
+    .filter((u): u is string => !!u)
+    .map((src, i) => ({ key: `${font.id}-${i}`, src, alt: `${font.name ?? ""} ${i + 1}` }));
+
+  const designerLine = (
+    <p className="font-body text-body-sm text-grey-600">
+      ออกแบบโดย{" "}
+      {font.designer_slug ? (
+        <Link href={`/designer/${font.designer_slug}`} className="font-ui text-ui text-mint-text no-underline hover:underline">
+          {designerName}
+        </Link>
+      ) : (
+        <span className="font-ui text-ui text-black">{designerName}</span>
+      )}
+    </p>
+  );
+
+  // หัวเรื่องในแท็บ — เจ้าของสั่งให้โชว์ทุกแท็บ (ตาม moodboard)
+  const tabHeading = (
+    <div className="mb-6">
+      <h2 className="font-heading text-h1 text-black leading-none">{mainTitle}</h2>
+      {subTitle && <div className="font-heading text-h2 text-black leading-none mt-1.5">{subTitle}</div>}
+      <div className="mt-2">{designerLine}</div>
+    </div>
+  );
+
+  const specRows: [string, string][] = [
+    ["น้ำหนัก", weightTotal ? `${weightTotal} weights` : "—"],
+    ["สไตล์", styleCount ? `${styleCount} styles` : "—"],
+    ["Font Format", formats],
+  ];
+
+  // การ์ดราคา tier องค์กร — markup เดียวกันทั้ง custom/default (§8 ปล่อยซ้ำต่อ ไม่ยกเป็น component)
+  const orgTiers = customLicenseTiers ?? defaultTiers;
 
   return (
     <>
       <Nav />
-      <div className="bg-bg min-h-screen">
-        <div className="max-w-site mx-auto px-8 py-8">
+      <div className="bg-white min-h-screen">
 
-          {/* IMAGE SLIDER */}
-          <div
-            className="relative bg-navy rounded-xl overflow-hidden mb-6"
-            style={{ aspectRatio: "16/9" }}
-          >
-            {images.length > 0 ? (
-              <img
-                src={images[slideIdx]}
-                alt={font.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-[28px] font-semibold text-white/20">
-                  {font.name}
-                </span>
-              </div>
-            )}
+        {/* หัวเรื่องหน้า — ชื่อฟอนต์ + หัวใจ (เห็นตลอด ไม่ขึ้นกับแท็บ) */}
+        <Container className="pt-10 pb-5">
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="font-heading text-font-slug text-black leading-none min-w-0">{mainTitle}</h1>
 
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={() => moveSlide(-1)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center border-none cursor-pointer transition-colors"
-                  aria-label="ก่อนหน้า"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => moveSlide(1)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center border-none cursor-pointer transition-colors"
-                  aria-label="ถัดไป"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {images.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSlideIdx(i)}
-                      className={`border-none cursor-pointer rounded-full transition-all ${
-                        i === slideIdx
-                          ? "w-5 h-[3px] bg-navy"
-                          : "w-[5px] h-[3px] bg-[#ddd]"
-                      }`}
-                      aria-label={`รูป ${i + 1}`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+            {/* บันทึกไว้ดูภายหลัง — เหลือแค่ไอคอนเพราะพื้นที่ข้างชื่อฟอนต์จำกัด
+                ข้อความเดิมย้ายไปอยู่ใน aria-label/title แทน */}
+            <button
+              type="button"
+              onClick={() => {
+                if (!user) {
+                  router.push(`/auth/login?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`);
+                  return;
+                }
+                toggle(font.id);
+              }}
+              aria-pressed={isFavourite(font.id)}
+              aria-label={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
+              title={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
+              className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-mint-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            >
+              <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </button>
+          </div>
+          <div className="mt-2">{designerLine}</div>
+        </Container>
+
+        {/* สไลด์ full-bleed — วางนอก Container เพื่อให้ peek ทะลุขอบจอ (§13.2) */}
+        <CoverCarousel slides={slides} />
+
+        <Container className="pt-5 pb-10">
+
+          {/* แถบเมนู 3 หัวข้อ */}
+          <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-3 gap-px bg-white mb-8">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                role="tab"
+                id={`tab-${t.id}`}
+                aria-selected={tab === t.id}
+                aria-controls={`panel-${t.id}`}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center justify-center text-center font-ui text-ui px-2 py-3 border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
+                  tab === t.id ? "bg-mint text-black" : "bg-surface text-black hover:bg-mint"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
 
-          {/* TYPE TESTER */}
-          <TypeTester font={font} />
+          {/* แท็บที่ไม่ active ไม่ render — TypeTester ยิง Edge Function ตอน mount
+              ถ้าปล่อยไว้จะยิงทุกครั้งที่เปิดหน้า ทั้งที่ผู้ใช้ยังไม่ได้กดดู */}
+          {tab === "detail" && (
+            <div role="tabpanel" id="panel-detail" aria-labelledby="tab-detail">
+              {tabHeading}
 
-          {/* 2-COLUMN */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
-
-            {/* LEFT: Font Info */}
-            <div className="bg-white border border-[0.5px] border-border rounded-xl p-5">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-[26px] font-semibold text-navy leading-snug">
-                    {mainTitle}
+              <div className="flex flex-col gap-px mb-6 max-w-lg">
+                {specRows.map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between gap-4 bg-surface px-4 py-2.5">
+                    <span className="font-body text-body-sm text-grey-600">{label}</span>
+                    <span className="font-ui text-ui text-black text-right">{value}</span>
                   </div>
-                  {subTitle && (
-                    <div className="text-[14px] text-[#aaa] mt-1">{subTitle}</div>
-                  )}
-                </div>
-
-                {/* บันทึกไว้ดูภายหลัง — เหลือแค่ไอคอนเพราะพื้นที่ข้างชื่อฟอนต์จำกัด
-                    ข้อความเดิมย้ายไปอยู่ใน aria-label/title แทน */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!user) {
-                      router.push(`/auth/login?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`);
-                      return;
-                    }
-                    toggle(font.id);
-                  }}
-                  aria-pressed={isFavourite(font.id)}
-                  aria-label={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
-                  title={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
-                  className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-white text-navy hover:text-mint transition-colors"
-                >
-                  <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                </button>
+                ))}
               </div>
 
-              <div className="h-[0.5px] bg-border mb-3.5" />
-
-              <table className="w-full text-[14px] border-collapse">
-                <tbody>
-                  <tr>
-                    <td className="py-1 text-[#888] w-[45%]">น้ำหนัก</td>
-                    <td className="py-1 font-medium text-navy text-right">
-                      {weightTotal || "—"}{weightTotal ? " weights" : ""}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 text-[#888]">สไตล์</td>
-                    <td className="py-1 font-medium text-navy text-right">
-                      {styleCount || "—"}{styleCount ? " styles" : ""}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 text-[#888]">Font Format</td>
-                    <td className="py-1 font-medium text-navy text-right">
-                      {formats}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 text-[#888]">ออกแบบโดย</td>
-                    <td className="py-1 font-medium text-right">
-                      {font.designer_slug ? (
-                        <Link href={`/designer/${font.designer_slug}`} className="text-mint no-underline hover:underline">
-                          {font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}
-                        </Link>
-                      ) : (
-                        <span className="text-navy">{font.designer_name || "ธรรมดาสตูดิโอ"}</span>
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-
-              {(font.description_th || font.tags?.length) && (
-                <div className="h-[0.5px] bg-border my-3.5" />
-              )}
-
               {font.description_th && (
-                <p className="text-[14px] text-[#555] leading-[1.55] whitespace-pre-line">
+                <p className="font-body text-body text-black whitespace-pre-line mb-6">
                   {font.description_th}
                 </p>
               )}
 
               {font.tags && font.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-3">
+                <div className="flex flex-wrap gap-1.5">
                   {font.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[12px] px-2 py-0.5 rounded-full bg-bg border border-[0.5px] border-border text-[#888]"
-                    >
-                      {tag}
-                    </span>
+                    <Badge key={tag} variant="tag">{tag}</Badge>
                   ))}
                 </div>
               )}
+            </div>
+          )}
 
+          {tab === "tester" && (
+            <div role="tabpanel" id="panel-tester" aria-labelledby="tab-tester">
+              {tabHeading}
+              <TypeTester font={font} />
               {font.specimen_files && font.specimen_files.length > 0 && (
-                <>
-                  <div className="h-[0.5px] bg-border mt-4 mb-3" />
-                  <button
-                    onClick={() => setSpecimenOpen(true)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 text-[13px] text-navy border border-[0.5px] border-border rounded-[8px] bg-transparent hover:border-navy cursor-pointer transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                    </svg>
-                    ดูตัวอย่างฟอนต์เพิ่มเติม
-                  </button>
-                </>
+                <Button variant="outline" size="lg" className="mt-5" onClick={() => setSpecimenOpen(true)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  ดูตัวอย่างฟอนต์เพิ่มเติม
+                </Button>
               )}
             </div>
+          )}
 
-            {/* RIGHT: Purchase */}
-            <div className="bg-white border border-[0.5px] border-border rounded-xl p-5 flex flex-col gap-3.5">
+          {tab === "buy" && (
+            <div role="tabpanel" id="panel-buy" aria-labelledby="tab-buy">
+              {tabHeading}
 
-              {/* Personal tier */}
-              <div>
-                <div className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
-                  บุคคลทั่วไป
-                </div>
-                <div className="border border-[0.5px] border-border rounded-[8px] p-3 mb-2.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[14px] font-medium text-navy">
-                      ผู้ใช้งานทั่วไป นิสิต นักศึกษา นักออกแบบอิสระ
-                    </span>
-                    <span className="flex items-center gap-1.5 ml-3 shrink-0">
-                      {font.is_free ? (
-                        <span className="text-[15px] font-semibold text-[#0a8a84]">ฟรี</span>
-                      ) : font.is_sale ? (
-                        <>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#f0c040] text-[#5a3800] font-semibold">
-                            -{font.discount_percent ?? 0}%
-                          </span>
-                          <span className="text-[15px] font-semibold text-navy">
-                            ฿{(font.sale_price ?? 0).toLocaleString()}
-                          </span>
-                          <span className="text-[12px] text-[#bbb] line-through">
-                            ฿{(font.price ?? 0).toLocaleString()}
-                          </span>
-                        </>
-                      ) : font.price && activePromo ? (
-                        <>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#f0c040] text-[#5a3800] font-semibold">
-                            -{activePromo.discount_percent}%
-                          </span>
-                          <span className="text-[15px] font-semibold text-navy">
-                            ฿{Math.round(font.price * (1 - activePromo.discount_percent / 100)).toLocaleString()}
-                          </span>
-                          <span className="text-[12px] text-[#bbb] line-through">
+              <div className="flex flex-col gap-8 max-w-2xl">
+
+                {/* Personal tier */}
+                <div>
+                  <h3 className="font-heading text-h2 text-black mb-3">บุคคลทั่วไป</h3>
+                  <div className="bg-surface px-4 py-3 mb-3">
+                    <div className="flex justify-between items-center gap-3">
+                      <span className="font-body text-body text-black">
+                        ผู้ใช้งานทั่วไป นิสิต นักศึกษา นักออกแบบอิสระ
+                      </span>
+                      <span className="flex items-center gap-2 shrink-0">
+                        {font.is_free ? (
+                          <span className="font-ui text-ui text-success">ฟรี</span>
+                        ) : font.is_sale ? (
+                          <>
+                            <Badge variant="sale">-{font.discount_percent ?? 0}%</Badge>
+                            <span className="font-body text-body-sm text-grey-400 line-through">
+                              ฿{(font.price ?? 0).toLocaleString()}
+                            </span>
+                            <span className="font-ui text-ui text-success">
+                              ฿{(font.sale_price ?? 0).toLocaleString()}
+                            </span>
+                          </>
+                        ) : font.price && activePromo ? (
+                          <>
+                            <Badge variant="sale">-{activePromo.discount_percent}%</Badge>
+                            <span className="font-body text-body-sm text-grey-400 line-through">
+                              ฿{font.price.toLocaleString()}
+                            </span>
+                            <span className="font-ui text-ui text-success">
+                              ฿{Math.round(font.price * (1 - activePromo.discount_percent / 100)).toLocaleString()}
+                            </span>
+                          </>
+                        ) : font.price ? (
+                          <span className="font-ui text-ui text-black">
                             ฿{font.price.toLocaleString()}
                           </span>
-                        </>
-                      ) : font.price ? (
-                        <span className="text-[15px] font-semibold text-navy">
-                          ฿{font.price.toLocaleString()}
-                        </span>
-                      ) : null}
-                    </span>
+                        ) : null}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {font.is_free ? (
-                  user ? (
-                    <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full" onClick={() => trackFreeDownload(font.id)}>
-                      ดาวน์โหลดฟรี
-                    </Button>
+                  {font.is_free ? (
+                    user ? (
+                      <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full" onClick={() => trackFreeDownload(font.id)}>
+                        ดาวน์โหลดฟรี
+                      </Button>
+                    ) : (
+                      <div>
+                        <Button
+                          as="link"
+                          href={`/auth/login/?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`}
+                          size="lg"
+                          className="w-full"
+                        >
+                          เข้าสู่ระบบเพื่อดาวน์โหลดฟรี
+                        </Button>
+                        <p className="font-body text-body-sm text-grey-600 text-center mt-2">
+                          สมัครสมาชิกฟรี ใช้เวลาไม่ถึงนาที
+                        </p>
+                      </div>
+                    )
                   ) : (
                     <div>
                       <Button
-                        as="link"
-                        href={`/auth/login/?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`}
                         size="lg"
                         className="w-full"
+                        disabled={!font.price || buying}
+                        onClick={handleBuy}
                       >
-                        เข้าสู่ระบบเพื่อดาวน์โหลดฟรี
+                        {buying ? "กำลังไปหน้าชำระเงิน..." : "ซื้อฟอนต์นี้"}
                       </Button>
-                      <p className="text-[11px] text-[#aaa] text-center mt-1.5">
-                        สมัครสมาชิกฟรี ใช้เวลาไม่ถึงนาที
+                      {buyError && (
+                        <p className="font-body text-body-sm text-danger text-center mt-2">{buyError}</p>
+                      )}
+                      <p className="font-body text-body-sm text-grey-600 text-center mt-2">
+                        ชำระผ่าน PromptPay หรือบัตรเครดิต — ดาวน์โหลดได้ทันที
                       </p>
                     </div>
-                  )
-                ) : (
-                  <div>
-                    <Button
-                      size="lg"
-                      className="w-full"
-                      disabled={!font.price || buying}
-                      onClick={handleBuy}
-                    >
-                      {buying ? "กำลังไปหน้าชำระเงิน..." : "ซื้อฟอนต์นี้"}
+                  )}
+
+                  {font.demo_font_files && font.demo_font_files.length > 0 && (
+                    <Button as="a" href={font.demo_font_files[0]} external variant="outline" size="lg" className="w-full mt-3">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      ดาวน์โหลด Demo ฟรี
                     </Button>
-                    {buyError && (
-                      <p className="text-[12px] text-[#c0392b] text-center mt-1.5">{buyError}</p>
-                    )}
-                    <p className="text-[11px] text-[#aaa] text-center mt-1.5">
-                      ชำระผ่าน PromptPay หรือบัตรเครดิต — ดาวน์โหลดได้ทันที
-                    </p>
-                  </div>
-                )}
-
-              </div>
-
-              {font.demo_font_files && font.demo_font_files.length > 0 && (
-                  <a
-                    href={font.demo_font_files[0]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-2.5 border border-[0.5px] border-[#ddd] rounded-[9px] text-[14px] text-navy no-underline hover:border-navy transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="7 10 12 15 17 10" />
-                      <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    ดาวน์โหลด Demo ฟรี
-                  </a>
-                )}
-
-              {font.is_subscription && (
-                <div className="bg-mint-light border border-[0.5px] border-mint-mid rounded-[8px] px-3.5 py-3 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[12px] font-semibold text-[#0a8a84] mb-1">
-                      รวมอยู่ใน Subscription
-                    </div>
-                    <div className="text-[12px] text-[#0a8a84]">
-                      เข้าถึงฟอนต์ทุกตัวด้วยแพลนรายเดือน
-                    </div>
-                  </div>
-                  <Link
-                    href="/subscribe/"
-                    className="flex-shrink-0 text-[12px] font-medium text-[#0a8a84] no-underline bg-white border border-[0.5px] border-mint rounded-[7px] px-3 py-1.5 hover:bg-mint hover:text-navy transition-colors"
-                  >
-                    ดูแผนบริการ
-                  </Link>
-                </div>
-              )}
-
-              <div className="h-[0.5px] bg-border" />
-
-              {/* Org tiers */}
-              <div>
-                <div className="text-[13px] font-semibold tracking-[0.06em] uppercase text-[#aaa] mb-2">
-                  ห้างร้าน องค์กร บริษัท
-                </div>
-                <div className="flex flex-col gap-2 mb-2.5">
-                  {customLicenseTiers ? (
-                    customLicenseTiers.map((tier) => (
-                      <div key={tier.id} className="border border-[0.5px] border-border rounded-[8px] p-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[14px] font-medium text-navy">{tier.name}</span>
-                          <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
-                        </div>
-                        {tier.desc && (
-                          <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    defaultTiers.map((tier) => (
-                      <div key={tier.id} className="border border-[0.5px] border-border rounded-[8px] p-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[14px] font-medium text-navy">{tier.name}</span>
-                          <span className="text-[14px] font-semibold text-navy ml-3 shrink-0">฿{tier.price.toLocaleString()}</span>
-                        </div>
-                        {tier.desc && (
-                          <div className="text-[12px] text-[#aaa] mt-0.5">{tier.desc}</div>
-                        )}
-                      </div>
-                    ))
                   )}
                 </div>
-                <div className="text-[12px] text-[#aaa] mb-2.5">
-                  ดูรายละเอียด{" "}
-                  <Link href="/agreement/" className="text-mint no-underline hover:underline">สัญญาอนุญาต</Link>
+
+                {font.is_subscription && (
+                  <div className="bg-surface px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="font-ui text-ui text-black mb-1">รวมอยู่ใน Subscription</div>
+                      <div className="font-body text-body-sm text-grey-600">
+                        เข้าถึงฟอนต์ทุกตัวด้วยแพลนรายเดือน
+                      </div>
+                    </div>
+                    <Button as="link" href="/subscribe/" size="sm">ดูแผนบริการ</Button>
+                  </div>
+                )}
+
+                {/* Org tiers */}
+                <div>
+                  <h3 className="font-heading text-h2 text-black mb-3">ห้างร้าน องค์กร บริษัท</h3>
+                  <div className="flex flex-col gap-px mb-3">
+                    {orgTiers.map((tier) => (
+                      <div key={tier.id} className="bg-surface px-4 py-3">
+                        <div className="flex justify-between items-center gap-3">
+                          <span className="font-body text-body text-black">{tier.name}</span>
+                          <span className="font-ui text-ui text-black shrink-0">฿{tier.price.toLocaleString()}</span>
+                        </div>
+                        {tier.desc && (
+                          <div className="font-body text-body-sm text-grey-600 mt-1">{tier.desc}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="font-body text-body-sm text-grey-600 mb-3">
+                    ดูรายละเอียด{" "}
+                    <Link href="/agreement/" className="text-mint-text no-underline hover:underline">สัญญาอนุญาต</Link>
+                  </p>
+                  <Button
+                    as="link"
+                    href={`/quote/?font=${font.slug}&designer_slug=${font.designer_slug ?? ""}`}
+                    size="lg"
+                    className="w-full"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                      <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                    ขอใบเสนอราคา
+                  </Button>
                 </div>
-                <Button
-                  as="link"
-                  href={`/quote/?font=${font.slug}&designer_slug=${font.designer_slug ?? ""}`}
-                  size="lg"
-                  className="w-full"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 shrink-0">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                    <polyline points="22,6 12,13 2,6" />
-                  </svg>
-                  ขอใบเสนอราคา
-                </Button>
-              </div>
 
-            </div>
-          </div>
-
-          {/* RELATED FONTS */}
-          {related.length > 0 && (
-            <div>
-              <AdBanner slot="1401819374" className="-mx-5 mb-6" />
-              <div className="text-[15px] font-semibold text-navy mb-4">
-                ฟอนต์ที่คุณน่าจะสนใจ
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {related.map((f) => (
-                  <FontCard key={f.id} font={f} />
-                ))}
               </div>
             </div>
           )}
 
-        </div>
+          {/* ท้ายหน้า — อยู่นอกระบบแท็บ เห็นตลอด */}
+          {related.length > 0 && (
+            <div className="mt-12">
+              <AdBanner slot="1401819374" className="-mx-4 md:-mx-6 lg:-mx-8 mb-8" />
+              <h2 className="font-heading text-h2 text-black mb-4">ฟอนต์ที่คุณน่าจะสนใจ</h2>
+              <FontGrid fonts={related} />
+            </div>
+          )}
+
+        </Container>
       </div>
 
       {/* SPECIMEN LIGHTBOX */}
-      {specimenOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-[100]"
-            style={{ background: "rgba(0,0,0,0.6)" }}
-            onClick={() => setSpecimenOpen(false)}
-          />
-
-          {/* Modal — 80vw, 90vh, centered */}
-          <div
-            className="fixed z-[101] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden"
-            style={{
-              width: "80vw",
-              maxWidth: 1100,
-              height: "90vh",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Fixed header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[0.5px] border-border flex-shrink-0 gap-4">
-              <div className="min-w-0">
-                <div className="text-[15px] font-semibold text-navy">ตัวอย่างฟอนต์เพิ่มเติม</div>
-                <div className="text-[12px] text-[#aaa] mt-0.5">{font.name}{font.name_th ? ` — ${font.name_th}` : ""}</div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button
-                  onClick={() => setSpecimenOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-bg border-none cursor-pointer text-[#aaa] hover:text-navy bg-transparent transition-colors"
-                  aria-label="ปิด"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
-              {font.specimen_files?.map((url, i) => (
-                <iframe
-                  key={i}
-                  src={url}
-                  title={`Specimen ${i + 1}`}
-                  className="w-full rounded-lg border border-[0.5px] border-border"
-                  style={{ height: "75vh" }}
-                />
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+      <Modal
+        open={specimenOpen}
+        onClose={() => setSpecimenOpen(false)}
+        title="ตัวอย่างฟอนต์เพิ่มเติม"
+        className="w-[80vw] max-w-[1100px] h-[90vh]"
+      >
+        {/* Modal เป็น flex-col + overflow-hidden — ตัวเนื้อหาต้องขอ scroll เอง */}
+        <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+          {font.specimen_files?.map((url, i) => (
+            <iframe
+              key={i}
+              src={url}
+              title={`Specimen ${i + 1}`}
+              className="w-full"
+              style={{ height: "75vh" }}
+            />
+          ))}
+        </div>
+      </Modal>
 
       <Footer />
     </>
