@@ -254,15 +254,30 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     </p>
   );
 
-  // ฮีโร่บนสุดโชว์ "หมวดหมู่, แท็ก" ต่อกันเป็นบรรทัดเดียว (moodboard: category,tags)
+  // ฮีโร่บนสุดโชว์หมวดหมู่ + แท็กเป็นป้ายพื้นเทา ป้ายละคำ ลิงก์เข้า /fonts ที่กรองด้วยคำนั้น
   // → tags ไม่โผล่ซ้ำในแท็บรายละเอียดอีกแล้ว (เจ้าของสั่งให้ตัดออก 2026-07-20)
+  //
+  // หมวดหมู่ใช้ ?category= (มีตัวกรองตรง ๆ อยู่แล้ว) · แท็กใช้ ?q= ซึ่งเป็นช่องค้นหา
+  // ที่ match ทั้งชื่อฟอนต์และแท็ก — แท็กไม่มีตัวกรองของตัวเองใน /fonts
+  //
   // dedupe เพราะ category มักถูกใส่ซ้ำใน tags ด้วย (เช่น bangkok = category "display" + tag "display")
   // เทียบแบบไม่สนตัวพิมพ์ แต่แสดงคำแรกที่เจอตามที่พิมพ์มาจริง
-  const heroMeta = [...new Map(
-    [font.category, ...(font.tags ?? [])]
-      .filter((s): s is string => !!s?.trim())
-      .map((s) => [s.trim().toLowerCase(), s.trim()] as const)
-  ).values()].join(", ");
+  //
+  // 🔴 dedupe ต้องเก็บ "ตัวแรก" ไม่ใช่ตัวหลัง — `new Map(entries)` เก็บตัวหลัง ซึ่งทำให้
+  // หมวดหมู่ที่ซ้ำกับแท็กกลายเป็นลิงก์ ?q= แทน ?category= (เจอจริงกับ bangkok)
+  const heroChips = (() => {
+    const seen = new Map<string, { label: string; isCategory: boolean }>();
+    for (const c of [
+      ...(font.category ? [{ label: font.category, isCategory: true }] : []),
+      ...(font.tags ?? []).map((t) => ({ label: t, isCategory: false })),
+    ]) {
+      const label = c.label?.trim();
+      if (!label) continue;
+      const key = label.toLowerCase();
+      if (!seen.has(key)) seen.set(key, { label, isCategory: c.isCategory });
+    }
+    return [...seen.values()];
+  })();
 
   // สเปกยุบเป็นบรรทัดเดียว: "2 น้ำหนัก, 12 สไตล์, Font Format : OTF, TTF"
   const specLine = [
@@ -279,19 +294,36 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
       <Nav />
       <div className="bg-white min-h-screen">
 
-        {/* ฮีโร่ — ชื่ออังกฤษ + หมวดหมู่/แท็ก (moodboard: font detail alt.png) */}
+        {/* ฮีโร่ — ชื่ออังกฤษ + ป้ายหมวดหมู่/แท็ก (moodboard: font detail alt.png) */}
         <Container className="pt-10 pb-5">
-          <h1 className="font-heading text-font-slug text-black leading-none">{font.name || mainTitle}</h1>
-          {heroMeta && <p className="font-body text-body-sm text-grey-600 mt-2">{heroMeta}</p>}
+          <h2 className="font-heading text-h2 text-black leading-none">{font.name || mainTitle}</h2>
+          {heroChips.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {heroChips.map((c) => (
+                <Link
+                  key={c.label}
+                  href={c.isCategory
+                    ? `/fonts/?category=${encodeURIComponent(c.label)}`
+                    : `/fonts/?q=${encodeURIComponent(c.label)}`}
+                  className="inline-flex items-center bg-surface text-grey-600 hover:bg-black hover:text-white font-body text-body-sm px-2.5 py-1 no-underline transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                >
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          )}
         </Container>
 
         {/* สไลด์ full-bleed — วางนอก Container เพื่อให้ peek ทะลุขอบจอ (§13.2) */}
         <CoverCarousel slides={slides} />
 
-        <Container className="pt-8 pb-10">
+        <Container className="pb-10">
 
-          {/* ชื่อฟอนต์ + หัวใจ — อยู่เหนือแถบเมนู จึงเห็นตลอดทุกแท็บโดยไม่ต้องเขียนซ้ำ 3 ที่ */}
-          <div className="flex items-start justify-between gap-4 mb-6">
+          {/* ชื่อฟอนต์ + หัวใจ — เหนือแถบเมนู จึงเห็นตลอดทุกแท็บโดยไม่ต้องเขียนซ้ำ 3 ที่
+              sticky ใต้ nav (70px) ตอน scroll อ่านรายละเอียดยาว ๆ ยังรู้ว่าอยู่ฟอนต์ไหน
+              ต้องมี bg-white — ไม่งั้นเนื้อหาที่เลื่อนผ่านจะทะลุขึ้นมาซ้อน
+              pt-12 = ระยะจากสไลด์ (เดิม pt-8 เจ้าของว่าชิดไป +50%) · -mx/px ให้พื้นขาวเต็มความกว้าง Container */}
+          <div className="sticky top-[70px] z-30 bg-white pt-12 pb-4 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 flex items-start justify-between gap-4 mb-4">
             <div className="min-w-0">
               <h2 className="font-heading text-h1 text-black leading-none">{mainTitle}</h2>
               <div className="mt-2">{designerLine}</div>

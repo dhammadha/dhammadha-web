@@ -56,13 +56,17 @@ function AllFontsContent() {
   const [page, setPage] = useState(1);
 
   // Filters
-  const [search, setSearch] = useState("");
   const [priceFilter, setPriceFilter] = useState<PriceFilter>("all");
 
   // รับหมวดหมู่จาก URL — ให้ submenu ใน Nav ลิงก์เข้ามาได้ (/fonts/?category=serif)
   // ค่าที่ไม่รู้จักตกเป็น "all" กัน ?category=อะไรก็ไม่รู้ ทำให้กริดว่างเปล่า
   const urlCategory = searchParams.get("category");
   const categoryFromUrl = urlCategory && CATEGORIES.includes(urlCategory) ? urlCategory : "all";
+
+  // รับคำค้นจาก URL — ป้ายแท็กในหน้า font detail ลิงก์เข้ามา (/fonts/?q=retro)
+  // แท็กไม่มีรายการตายตัวให้ตรวจเหมือน category จึงรับค่าอะไรก็ได้
+  // (ตัวกรองเป็น substring match ค่าที่ไม่มีจริงก็แค่ได้ผลลัพธ์ว่าง ไม่พัง)
+  const searchFromUrl = searchParams.get("q") ?? "";
 
   // pattern ที่ React แนะนำสำหรับ "ปรับ state เมื่อ input เปลี่ยน" — set ตอน render
   // ไม่ใช่ใน useEffect (ถ้าใช้ effect จะเพิ่ม react-hooks/set-state-in-effect
@@ -74,6 +78,14 @@ function AllFontsContent() {
   if (prevUrlCategory !== categoryFromUrl) {
     setPrevUrlCategory(categoryFromUrl);
     setCategory(categoryFromUrl);
+  }
+
+  // ช่องค้นหาใช้ pattern เดียวกับ category — พิมพ์เองได้ แต่พอ URL เปลี่ยนให้ URL ชนะ
+  const [search, setSearch] = useState(searchFromUrl);
+  const [prevUrlSearch, setPrevUrlSearch] = useState(searchFromUrl);
+  if (prevUrlSearch !== searchFromUrl) {
+    setPrevUrlSearch(searchFromUrl);
+    setSearch(searchFromUrl);
   }
 
   useEffect(() => {
