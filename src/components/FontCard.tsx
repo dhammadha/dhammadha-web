@@ -159,12 +159,13 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
           ⚠️ leading-none ทั้ง 3 ชิ้น: line-height 1.5 ที่สืบทอดมาทำให้ line-box ของราคา (24px)
           สูง 36px แล้วดันบรรทัด "โดย" ให้ห่างจากชื่อฟอนต์ ~17px (เจ้าของจับได้ 2026-07-18)
           ตัด leading ทิ้ง = กล่องเท่าขนาดตัวอักษร ระยะกระชับตามต้นแบบ */}
-      <div className="px-3.5 py-2 md:px-4">
+      {/* pt-3 (เดิม py-2): บรรทัด "โดย" เล็กลงเหลือ 10px แล้วดันชื่อฟอนต์ลงมาให้บาลานซ์ (เจ้าของ 2026-07-20) */}
+      <div className="px-3.5 pt-3 pb-2 md:px-4">
         {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
         <div className="font-heading text-fc-heading text-black truncate leading-none">{font.name || "—"}</div>
 
         <div className="flex items-baseline justify-between gap-2">
-          <div className="font-body text-body-sm text-grey-600 truncate min-w-0 leading-none">
+          <div className="font-body text-fc-byline text-grey-600 truncate min-w-0 leading-none">
             โดย{" "}
             {font.designer_slug ? (
               <span
