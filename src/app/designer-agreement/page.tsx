@@ -39,7 +39,7 @@ export default function DesignerAgreementPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="4. ระบบใบเสนอราคา (B2B)">
+      <LegalSection title="4. ระบบใบเสนอราคา">
         <p>
           แพลตฟอร์มมีระบบรับคำขอใบเสนอราคาจากลูกค้าองค์กรส่งตรงถึงนักออกแบบ
           การเจรจา การชำระเงิน และการออกเอกสารเป็นธุรกรรมโดยตรงระหว่างนักออกแบบกับลูกค้า

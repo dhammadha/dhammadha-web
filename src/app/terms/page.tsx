@@ -16,7 +16,7 @@ export default function TermsPage() {
     >
       <LegalSection title="1. ทั่วไป">
         <p>
-          เว็บไซต์ dhammadha.com ดำเนินการโดย <strong>ธรรมดาสตูดิโอ</strong> การใช้งานเว็บไซต์ถือว่าคุณยอมรับข้อกำหนดฉบับนี้ หากไม่เห็นด้วยกรุณายุติการใช้งาน ติดต่อ :{" "}
+          เว็บไซต์ dhammadha.com ดำเนินการโดย <strong>ธรรมดาสตูดิโอ</strong> การใช้งานเว็บไซต์ถือว่าคุณยอมรับข้อกำหนดฉบับนี้ หากไม่เห็นด้วย กรุณายุติการใช้งาน ติดต่อ :{" "}
           <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
         </p>
       </LegalSection>
