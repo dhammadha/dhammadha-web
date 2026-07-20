@@ -12,7 +12,8 @@ import Input from "@/components/ui/Input";
 import { supabase } from "@/lib/supabase";
 import { isSaleActive } from "@/lib/sale";
 
-const PAGE_SIZE = 16;
+// 9 แถว × 4 คอลัมน์ (เดสก์ท็อป) ต่อหน้า — FontGrid แทรก ad คั่นทุก 3 แถวให้เอง (เจ้าของ 2026-07-20)
+const PAGE_SIZE = 36;
 const CATEGORIES = ["serif", "sans-serif", "display", "handwriting", "monospace"];
 
 /**
