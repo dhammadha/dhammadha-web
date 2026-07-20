@@ -49,7 +49,7 @@ export default function CoverCarousel({
   fonts,
   slides,
   loading = false,
-  intervalMs = 3000,
+  intervalMs = 3500,
 }: {
   /** pool ฟอนต์ที่คัด/สุ่มมาแล้ว (component ไม่ query เอง) — ละได้ถ้าส่ง `slides` */
   fonts?: Font[];
