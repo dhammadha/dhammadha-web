@@ -182,18 +182,20 @@ export default function CoverCarousel({
 
             {poolSize > 1 && (
               <>
-                {/* ลูกศรวางกึ่งกลาง "พื้นที่ peek" (สไลด์ข้าง ๆ) ไม่ทับ cover กลาง เพื่อให้ตัวกลางเด่น
-                    slideOffset = ความกว้าง peek · กึ่งกลาง = slideOffset/2 · clamp ขั้นต่ำกันหลุดจอบนมือถือ (peek แคบ)
+                {/* ลูกศรอยู่บนพื้นที่ peek (สไลด์ข้าง ๆ) ไม่ทับ cover กลาง เพื่อให้ตัวกลางเด่น
+                    วางห่างจากขอบ cover กลาง ~70px (ตายตัว ไม่อิงความกว้าง peek ที่แปรตามจอ)
+                    slideOffset = ขอบซ้ายของ cover กลาง = ความกว้าง peek · ตำแหน่ง = slideOffset - 70
+                    clamp ขั้นต่ำ 24px กันหลุดจอบนจอแคบ/มือถือที่ peek < 70
                     ไม่มีวงกลมรองพื้น (§4.0) ขาว+เงาให้อ่านออกบนรูป */}
                 <button onClick={() => moveSlide(-1)}
-                  style={{ left: Math.max(20, slideOffset / 2), textShadow: "0 1px 5px rgba(0,0,0,0.5)" }}
-                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[56px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  style={{ left: Math.max(24, slideOffset - 70), textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}
+                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[80px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                   aria-label="ก่อนหน้า">
                   ‹
                 </button>
                 <button onClick={() => moveSlide(1)}
-                  style={{ right: Math.max(20, slideOffset / 2), textShadow: "0 1px 5px rgba(0,0,0,0.5)" }}
-                  className="absolute top-1/2 translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[56px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  style={{ right: Math.max(24, slideOffset - 70), textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}
+                  className="absolute top-1/2 translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[80px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                   aria-label="ถัดไป">
                   ›
                 </button>
