@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
 import Badge from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
+import { isSaleActive } from "@/lib/sale";
 
 /**
  * FontCard — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/font card.png)
@@ -94,7 +95,8 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
     : { background: "#2B1B3D" };
 
   const newFlag = isNew(font);
-  const badge = font.is_sale
+  const saleActive = isSaleActive(font);
+  const badge = saleActive
     ? { text: font.sale_label || "Sale", variant: "sale" as const }
     : font.is_free
     ? { text: "FREE", variant: "free" as const }
@@ -185,7 +187,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
           <div className="shrink-0 leading-none">
             {font.is_free ? (
               <span className="font-heading text-h2 text-success">ฟรี</span>
-            ) : font.is_sale && font.sale_price && font.price ? (
+            ) : saleActive && font.sale_price && font.price ? (
               /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ
                  ราคาลดใช้สีเดียวกับ "ฟรี" (success) ตามที่เจ้าของสั่ง 2026-07-18 */
               <span className="flex items-baseline gap-1.5">

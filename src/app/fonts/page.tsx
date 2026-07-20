@@ -10,6 +10,7 @@ import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { supabase } from "@/lib/supabase";
+import { isSaleActive } from "@/lib/sale";
 
 const PAGE_SIZE = 16;
 const CATEGORIES = ["serif", "sans-serif", "display", "handwriting", "monospace"];
@@ -129,7 +130,7 @@ function AllFontsContent() {
       }
       if (category !== "all" && f.category !== category) return false;
       if (priceFilter === "free" && !f.is_free) return false;
-      if (priceFilter === "sale" && !f.is_sale) return false;
+      if (priceFilter === "sale" && !isSaleActive(f)) return false;
       return true;
     });
   }, [fonts, search, category, priceFilter]);

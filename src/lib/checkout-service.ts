@@ -10,6 +10,7 @@
 //                               (service_role, idempotent) → อีเมล delivery
 
 import { handleEmailRequest } from "./email-service";
+import { isSaleActive } from "./sale";
 
 export interface CheckoutEnv {
   STRIPE_SECRET_KEY?: string;
@@ -41,33 +42,17 @@ export interface PurchasableFont {
   name_th: string | null;
   price: number | null;
   sale_price: number | null;
+  sale_end: string | null;
   is_sale: boolean;
   is_free: boolean;
 }
 
-export interface PromoSetting {
-  active?: boolean;
-  discount_percent?: number;
-  sale_end?: string; // "dd/mm/yyyy"
-}
-
 export function computePersonalPrice(
   font: PurchasableFont,
-  promo: PromoSetting | null,
   now: number = Date.now()
 ): number | null {
   if (font.is_free || !font.price || font.price <= 0) return null;
-  if (font.is_sale && font.sale_price && font.sale_price > 0) return font.sale_price;
-
-  if (promo?.active && promo.discount_percent) {
-    let promoLive = true;
-    if (promo.sale_end) {
-      const [d, m, y] = promo.sale_end.split("/").map(Number);
-      const end = new Date(y, (m ?? 1) - 1, d ?? 1, 23, 59, 59);
-      if (now > end.getTime()) promoLive = false;
-    }
-    if (promoLive) return Math.round(font.price * (1 - promo.discount_percent / 100));
-  }
+  if (isSaleActive(font, now) && font.sale_price) return font.sale_price;
   return font.price;
 }
 
@@ -132,18 +117,15 @@ export async function handleCheckoutRequest(
       : "/fonts/";
 
   // ราคาคำนวณจาก DB ฝั่ง server เสมอ — ไม่รับราคาจาก client
-  const [fonts, settings] = await Promise.all([
-    supabaseGet<PurchasableFont>(
-      env,
-      `fonts?id=eq.${fontId}&is_active=eq.true&published_at=not.is.null` +
-        `&select=id,slug,name,name_th,price,sale_price,is_sale,is_free`
-    ),
-    supabaseGet<{ value: PromoSetting }>(env, "settings?key=eq.promotion&select=value"),
-  ]);
+  const fonts = await supabaseGet<PurchasableFont>(
+    env,
+    `fonts?id=eq.${fontId}&is_active=eq.true&published_at=not.is.null` +
+      `&select=id,slug,name,name_th,price,sale_price,sale_end,is_sale,is_free`
+  );
   const font = fonts?.[0];
   if (!font) return { status: 404, body: { ok: false, error: "font_not_found" } };
 
-  const price = computePersonalPrice(font, settings?.[0]?.value ?? null);
+  const price = computePersonalPrice(font);
   if (!price) return { status: 400, body: { ok: false, error: "not_purchasable" } };
 
   const user = ctx.authToken ? await getAuthUser(env, ctx.authToken) : null;

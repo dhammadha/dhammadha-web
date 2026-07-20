@@ -6,6 +6,7 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { Font } from "@/components/FontCard";
+import { isSaleActive } from "@/lib/sale";
 import FontGrid from "@/components/FontGrid";
 import CoverCarousel, { type Slide } from "@/components/CoverCarousel";
 import AdBanner from "@/components/AdBanner";
@@ -78,7 +79,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [loading, setLoading] = useState(!initialFont);
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [customLicenseTiers, setCustomLicenseTiers] = useState<LicenseTier[] | null>(null);
-  const [promotion, setPromotion] = useState<{ discount_percent: number; sale_end: string; active: boolean } | null>(null);
   const [tab, setTab] = useState<Tab>("detail");
   const [specimenOpen, setSpecimenOpen] = useState(false);
   const [buying, setBuying] = useState(false);
@@ -97,7 +97,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
       try {
         const [{ data: allRows }, { data: settings }] = await Promise.all([
           supabase.from("fonts").select("*, designer_profiles!owner_id(designer_slug, business_name)").eq("is_active", true).not("published_at", "is", null),
-          supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
+          supabase.from("settings").select("key, value").eq("key", "licensing"),
         ]);
 
         // refresh จากแถวสดเสมอ — initialFont คือข้อมูลตอน build (static export) ราคา/ส่วนลด/
@@ -113,12 +113,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
         for (const row of (settings ?? []) as { key: string; value: Record<string, unknown> }[]) {
-          const v = row.value;
-          if (row.key === "licensing") {
-            setDefaultTiers(parseLicenseSettings(v));
-          } else if (row.key === "promotion") {
-            setPromotion({ discount_percent: (v.discount_percent as number) ?? 0, sale_end: (v.sale_end as string) ?? "", active: !!(v.active) });
-          }
+          if (row.key === "licensing") setDefaultTiers(parseLicenseSettings(row.value));
         }
 
         const ownerId = (currentFont as unknown as { owner_id?: string })?.owner_id;
@@ -147,16 +142,8 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     trackFontView(font.id);
   }, [font?.id]);
 
-  // Global promotion — applies when font has no individual sale
-  const activePromo = (() => {
-    if (!promotion?.active || !promotion.discount_percent) return null;
-    if (promotion.sale_end) {
-      const [d, m, y] = promotion.sale_end.split("/").map(Number);
-      const end = new Date(y, m - 1, d, 23, 59, 59);
-      if (Date.now() > end.getTime()) return null;
-    }
-    return promotion;
-  })();
+  // ส่วนลดรายฟอนต์ — เช็ควันหมดอายุด้วย helper เดียวกับ checkout ให้ราคาที่โชว์ตรงกับที่เก็บเงิน
+  const saleActive = font ? isSaleActive(font) : false;
 
   // ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — สร้าง Stripe Checkout Session ฝั่ง server
   // แล้วพาไปหน้าจ่ายเงิน ราคาคำนวณจาก DB ที่ server ไม่ได้ส่งจาก client
@@ -415,7 +402,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       <span className="flex items-center gap-2 shrink-0">
                         {font.is_free ? (
                           <span className="font-ui text-ui text-success">ฟรี</span>
-                        ) : font.is_sale ? (
+                        ) : saleActive ? (
                           <>
                             <Badge variant="sale">-{font.discount_percent ?? 0}%</Badge>
                             <span className="font-body text-body-sm text-grey-400 line-through">
@@ -423,16 +410,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                             </span>
                             <span className="font-ui text-ui text-success">
                               ฿{(font.sale_price ?? 0).toLocaleString()}
-                            </span>
-                          </>
-                        ) : font.price && activePromo ? (
-                          <>
-                            <Badge variant="sale">-{activePromo.discount_percent}%</Badge>
-                            <span className="font-body text-body-sm text-grey-400 line-through">
-                              ฿{font.price.toLocaleString()}
-                            </span>
-                            <span className="font-ui text-ui text-success">
-                              ฿{Math.round(font.price * (1 - activePromo.discount_percent / 100)).toLocaleString()}
                             </span>
                           </>
                         ) : font.price ? (

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+import { todayISO } from "@/lib/sale";
 import { uploadFile, uploadProtectedFile, storagePath, type StorageBucket } from "@/lib/storage";
 import { readFontFileMeta, summarizeFontMeta, type FontFileMeta, type FontMetaSummary } from "@/lib/font-meta";
 import type { Database } from "@/lib/database.types";
@@ -79,6 +81,8 @@ async function computeMetaSummary(entries: FontFileEntry[], bucket: "fonts-full"
 export default function FontForm({ open, onClose, editingFont, onSaved, ownerId, mode = "panel", lockIdentity = false }: Props) {
   // ล็อกเฉพาะตอนแก้ไข — ตอนเพิ่มฟอนต์ใหม่ยังต้องกรอกชื่อ/slug ได้
   const identityLocked = lockIdentity && !!editingFont;
+  // role ใช้แค่แสดงหัว panel ให้ตรงกับคนเปิด (admin/designer ใช้ฟอร์มเดียวกัน)
+  const { role } = useAuth();
   const [name, setName] = useState("");
   const [nameTh, setNameTh] = useState("");
   const [slug, setSlug] = useState("");
@@ -337,6 +341,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
   const handleSave = async () => {
     if (!name.trim() || !slug.trim()) { showToast("กรุณาใส่ชื่อฟอนต์และ Slug", true); return; }
+    // ส่วนลดต้องมีวันหมดอายุเสมอ — ไม่งั้นโปรฯ ไม่มีวันสิ้นสุดจริง (ดู isSaleActive ใน lib/sale)
+    if (!isFree && (parseInt(discount) || 0) > 0 && !saleEnd) {
+      showToast("กรุณาใส่วันสิ้นสุดโปรโมชั่น (ส่วนลดต้องมีวันหมดอายุ)", true); return;
+    }
     if (fullFontsLoading) { showToast("กำลังโหลดรายการไฟล์เดิม รอสักครู่แล้วลองใหม่", true); return; }
 
     // ตรวจไฟล์ให้ครบ *ก่อน* เริ่มอัปโหลด — นับรวมไฟล์ที่อัปโหลดไว้แล้ว (type "ex")
@@ -525,8 +533,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                 <FormField label="ข้อความโปรโมชั่น (badge)">
                   <input value={saleLabel} onChange={(e) => setSaleLabel(e.target.value)} placeholder="เช่น ลด 30%" className={inputCls} />
                 </FormField>
-                <FormField label="วันสิ้นสุดโปรโมชั่น">
-                  <input type="date" value={saleEnd} onChange={(e) => setSaleEnd(e.target.value)} className={inputCls} />
+                <FormField label="วันสิ้นสุดโปรโมชั่น *">
+                  <input type="date" value={saleEnd} min={todayISO()} onChange={(e) => setSaleEnd(e.target.value)} className={inputCls} />
                 </FormField>
               </div>
             )}
@@ -701,7 +709,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
           <div>
-            <span className="text-[11px] text-[#aaa] tracking-wide">Admin → </span>
+            <span className="text-[11px] text-[#aaa] tracking-wide">{role === "admin" ? "Admin" : "Designer"} → </span>
             <span className="text-[14px] font-semibold text-navy">{editingFont ? `แก้ไข — ${editingFont.name}` : "เพิ่มฟอนต์ใหม่"}</span>
           </div>
           <button onClick={handleCancel} className="text-[#aaa] hover:text-navy text-xl bg-transparent border-none cursor-pointer leading-none">✕</button>

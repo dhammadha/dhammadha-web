@@ -11,6 +11,7 @@ import {
   newTierId,
   type LicenseTier,
 } from "@/lib/license";
+import { todayISO, formatSaleEnd } from "@/lib/sale";
 
 type PromoState = { discount: string; end: string; active: boolean };
 
@@ -79,7 +80,10 @@ export default function OwnPricing() {
     if (!user) return;
     const disc = parseInt(promo.discount) || 0;
     if (!disc) { showToast("กรุณาใส่ส่วนลด %"); return; }
-    if (!confirm(`ยืนยันเปิดโปรโมชั่น ลด ${disc}%${promo.end ? ` ถึง ${promo.end}` : ""}?\nจะอัปเดตฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีทันที`)) return;
+    // ส่วนลดต้องมีวันหมดอายุเสมอ — ไม่งั้นโปรฯ ไม่มีวันสิ้นสุดจริง (ดู isSaleActive ใน lib/sale)
+    if (!promo.end) { showToast("กรุณาใส่วันสิ้นสุดโปรโมชั่น"); return; }
+    if (promo.end < todayISO()) { showToast("วันสิ้นสุดต้องไม่เป็นวันที่ผ่านมาแล้ว"); return; }
+    if (!confirm(`ยืนยันเปิดโปรโมชั่น ลด ${disc}% ถึง ${formatSaleEnd(promo.end)}?\nจะอัปเดตฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีทันที`)) return;
     setPromoSaving(true);
     try {
       const { data: fonts } = await supabase.from("fonts").select("id, price").eq("owner_id", user.id).eq("is_free", false);
@@ -346,7 +350,10 @@ export default function OwnPricing() {
         <p className="text-[12px] text-[#aaa] mb-4">เปิด/ปิดส่วนลดสำหรับฟอนต์ทุกตัวของคุณที่ไม่ใช่ฟรีพร้อมกัน</p>
         {promo.active && (
           <div className="mb-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-[13px] text-amber-700">
-            ⚡ โปรโมชั่นเปิดอยู่: ลด {promo.discount}%{promo.end ? ` ถึง ${promo.end}` : ""}
+            ⚡ โปรโมชั่นเปิดอยู่: ลด {promo.discount}%{promo.end ? ` ถึง ${formatSaleEnd(promo.end)}` : ""}
+            {promo.end && promo.end < todayISO() && (
+              <span className="block mt-1 text-red-500">หมดอายุแล้ว — ลูกค้าไม่เห็นส่วนลดนี้ กดปิดโปรโมชั่นหรือตั้งวันใหม่ได้</span>
+            )}
           </div>
         )}
         <div className="grid grid-cols-2 gap-3 mb-4">
@@ -355,8 +362,8 @@ export default function OwnPricing() {
             <input type="number" value={promo.discount} onChange={(e) => setPromo((p) => ({ ...p, discount: e.target.value }))} placeholder="เช่น 20" min="1" max="100" className={iCls} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">วันสิ้นสุด (ไม่บังคับ)</label>
-            <input type="date" value={promo.end} onChange={(e) => setPromo((p) => ({ ...p, end: e.target.value }))} className={iCls} />
+            <label className="text-[12px] font-medium text-[#666]">วันสิ้นสุด *</label>
+            <input type="date" value={promo.end} min={todayISO()} onChange={(e) => setPromo((p) => ({ ...p, end: e.target.value }))} className={iCls} />
           </div>
         </div>
         <div className="flex gap-2">

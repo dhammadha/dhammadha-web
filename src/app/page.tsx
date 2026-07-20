@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
+import { isSaleActive } from "@/lib/sale";
 import FontCard, { Font } from "@/components/FontCard";
 import CoverCarousel from "@/components/CoverCarousel";
 import AdBanner from "@/components/AdBanner";
@@ -22,8 +23,8 @@ const SLIDER_SIZE = 8;
 // pool สไลด์คัดสรร: ฟอนต์ลดราคาก่อน แล้วสุ่มที่เหลือ ตัดเหลือ SLIDER_SIZE
 // (logic สไลด์ทั้งหมดอยู่ใน CoverCarousel — หน้านี้แค่คัด pool ส่งเข้าไป)
 function buildSliderPool(fonts: Font[]): Font[] {
-  const sale = fonts.filter((f) => f.is_sale);
-  const others = shuffle(fonts.filter((f) => !f.is_sale));
+  const sale = fonts.filter((f) => isSaleActive(f));
+  const others = shuffle(fonts.filter((f) => !isSaleActive(f)));
   return [...sale, ...others].slice(0, SLIDER_SIZE);
 }
 
