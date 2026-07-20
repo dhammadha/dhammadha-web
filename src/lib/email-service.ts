@@ -382,6 +382,59 @@ async function handleQuote(
   return { status: 200, body: { ok: true } };
 }
 
+// ── ติดต่อสอบถาม (ฟอร์มสาธารณะใน /contact) ─────────────────────────────────
+// สาธารณะเหมือน quote → ต้องผ่าน Turnstile ก่อนเสมอ ไม่งั้นกลายเป็นช่องส่งสแปมฟรี
+//
+// ส่งเข้า ADMIN_EMAIL อย่างเดียว ไม่ส่งสำเนากลับหาผู้กรอก — ผู้กรอกยังไม่ได้ยืนยันตัวตน
+// ว่าเป็นเจ้าของอีเมลนั้นจริง ถ้าส่งกลับด้วยจะถูกใช้ยิงเมลใส่คนอื่นผ่านโดเมนเรา
+type ContactFields = { name: string; email: string; subject: string; message: string };
+
+function contactHtml(d: ContactFields): string {
+  return `
+<p><strong>ข้อความติดต่อใหม่จากเว็บไซต์</strong></p>
+<p>
+  <strong>ชื่อผู้ติดต่อ:</strong> ${escapeHtml(d.name)}<br />
+  <strong>อีเมล:</strong> ${escapeHtml(d.email)}<br />
+  <strong>เรื่อง:</strong> ${escapeHtml(d.subject || "—")}
+</p>
+<p><strong>ข้อความ</strong><br />${escapeHtml(d.message).replace(/\n/g, "<br />")}</p>
+${STUDIO_FOOTER}
+`;
+}
+
+async function handleContact(
+  raw: Record<string, unknown>,
+  turnstileToken: string,
+  ip: string | null | undefined,
+  env: EmailEnv
+): Promise<EmailResult> {
+  if (!(await verifyTurnstile(env, turnstileToken, ip))) {
+    return { status: 403, body: { ok: false, error: "turnstile_failed" } };
+  }
+
+  const d: ContactFields = {
+    name: str(raw.name, 200),
+    email: str(raw.email, 254),
+    subject: str(raw.subject, 200),
+    message: str(raw.message, 5000),
+  };
+  if (!d.name || !d.message || !EMAIL_RE.test(d.email)) {
+    return { status: 400, body: { ok: false, error: "invalid_payload" } };
+  }
+
+  const adminEmail = env.ADMIN_EMAIL ?? "";
+  if (!adminEmail) return { status: 500, body: { ok: false, error: "no_recipient" } };
+  if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
+
+  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+    to: adminEmail,
+    subject: `ติดต่อสอบถาม — ${d.subject || d.name}`,
+    html: contactHtml(d),
+  });
+  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  return { status: 200, body: { ok: true } };
+}
+
 async function handlePromote(
   raw: Record<string, unknown>,
   authToken: string | null | undefined,
@@ -564,6 +617,9 @@ export async function handleEmailRequest(ctx: EmailRequestContext, env: EmailEnv
   try {
     if (body.type === "quote") {
       return await handleQuote(payload, str(body.turnstile_token, 3000), ctx.ip, env);
+    }
+    if (body.type === "contact") {
+      return await handleContact(payload, str(body.turnstile_token, 3000), ctx.ip, env);
     }
     if (body.type === "promote") {
       return await handlePromote(payload, ctx.authToken, env);

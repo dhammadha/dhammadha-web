@@ -68,14 +68,14 @@ export default function DesignerAgreementPage() {
         <p>
           นักออกแบบเป็นผู้รับผิดชอบภาระภาษีจากรายได้ของตนเอง
           ข้อมูลส่วนบุคคลของนักออกแบบได้รับความคุ้มครองตาม{" "}
-          <Link href="/privacy/" className="text-mint">นโยบายความเป็นส่วนตัว</Link>
+          <Link href="/privacy/" className="text-mint-text">นโยบายความเป็นส่วนตัว</Link>
         </p>
       </LegalSection>
 
       <LegalSection title="8. ติดต่อ">
         <p>
           คำถามเกี่ยวกับข้อตกลงฉบับนี้ ติดต่อ{" "}
-          <a href="mailto:info@dhammadha.com" className="text-mint">info@dhammadha.com</a>
+          <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
         </p>
       </LegalSection>
     </LegalPage>

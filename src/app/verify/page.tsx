@@ -12,6 +12,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import Container from "@/components/ui/Container";
+import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
 
 type VerifyResult = {
@@ -21,6 +23,15 @@ type VerifyResult = {
   licensed_to?: string;
   fonts?: string[];
 };
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <>
+      <span className="font-body text-body-sm text-grey-600">{label}</span>
+      <span className="font-body text-body text-black">{value}</span>
+    </>
+  );
+}
 
 function VerifyContent() {
   const params = useSearchParams();
@@ -42,65 +53,65 @@ function VerifyContent() {
   }, [initial]);
 
   return (
-    <main className="min-h-screen bg-bg px-4 py-12">
-      <div className="max-w-[560px] mx-auto">
-        <h1 className="text-[24px] font-semibold text-navy mb-2">ตรวจสอบสิทธิการใช้งานฟอนต์</h1>
-        <p className="text-[14px] text-[#888] mb-6">
-          กรอกรหัสยืนยันที่ประทับอยู่ในไฟล์ฟอนต์ (ดูได้จาก License URL ใน Font Book
-          บน macOS, Properties บน Windows หรือ fontdrop.info) หรือเปิดลิงก์ตรวจสอบโดยตรงจากไฟล์
-        </p>
+    <section className="bg-white">
+      <Container className="pt-10 pb-16">
+        <div className="max-w-[640px] mx-auto">
+          <h1 className="font-heading text-h1 text-black mb-3">ตรวจสอบสิทธิการใช้งานฟอนต์</h1>
+          <p className="font-body text-body text-grey-600 leading-[1.8] mb-8">
+            กรอกรหัสยืนยันที่ประทับอยู่ในไฟล์ฟอนต์ (ดูได้จาก License URL ใน Font Book
+            บน macOS, Properties บน Windows หรือ fontdrop.info) หรือเปิดลิงก์ตรวจสอบโดยตรงจากไฟล์
+          </p>
 
-        <form
-          onSubmit={(e) => { e.preventDefault(); check(token); }}
-          className="flex gap-2 mb-6"
-        >
-          <input
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            placeholder="รหัสยืนยันจาก License URL"
-            className="flex-1 border border-border rounded-xl px-4 py-2.5 text-[14px] text-navy bg-white"
-          />
-          <button
-            type="submit"
-            disabled={checking}
-            className="px-5 py-2.5 rounded-xl bg-mint text-white text-[14px] font-semibold border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-50"
+          <form
+            onSubmit={(e) => { e.preventDefault(); check(token); }}
+            className="flex flex-col sm:flex-row gap-2 mb-10"
           >
-            {checking ? "กำลังตรวจ…" : "ตรวจสอบ"}
-          </button>
-        </form>
+            <input
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              placeholder="รหัสยืนยันจาก License URL"
+              aria-label="รหัสยืนยัน"
+              // text-body-sm = มาตรฐานเดียวกับช่องค้นหาใน Nav / ui/Input.tsx
+              className="flex-1 bg-surface px-4 py-3 font-body text-body-sm text-black placeholder:text-grey-400 border-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            />
+            <Button type="submit" size="lg" disabled={checking} className="shrink-0">
+              {checking ? "กำลังตรวจ…" : "ตรวจสอบ"}
+            </Button>
+          </form>
 
-        {result && (
-          result.valid ? (
-            <div className="bg-white rounded-2xl border border-mint-mid p-6">
-              <div className="text-[15px] font-semibold text-green-600 mb-3">✓ คำสั่งซื้อนี้ถูกต้อง</div>
-              <div className="grid grid-cols-[130px_1fr] gap-y-2 text-[14px]">
-                <span className="text-[#aaa]">เลขคำสั่งซื้อ</span>
-                <span className="text-navy font-medium">{result.order_no}</span>
-                <span className="text-[#aaa]">ผู้ได้รับสิทธิ์</span>
-                <span className="text-navy">{result.licensed_to}</span>
-                <span className="text-[#aaa]">วันที่ชำระ</span>
-                <span className="text-navy">
-                  {result.paid_at ? new Date(result.paid_at).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }) : "-"}
-                </span>
-                <span className="text-[#aaa]">ฟอนต์</span>
-                <span className="text-navy">{result.fonts?.join(", ")}</span>
+          {result && (
+            result.valid ? (
+              <div className="bg-surface p-6">
+                <div className="font-heading text-h2 text-success mb-4">✓ คำสั่งซื้อนี้ถูกต้อง</div>
+                <div className="grid grid-cols-[130px_1fr] gap-y-2.5 items-baseline">
+                  <Row label="เลขคำสั่งซื้อ" value={result.order_no} />
+                  <Row label="ผู้ได้รับสิทธิ์" value={result.licensed_to} />
+                  <Row
+                    label="วันที่ชำระ"
+                    value={result.paid_at
+                      ? new Date(result.paid_at).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })
+                      : "-"}
+                  />
+                  <Row label="ฟอนต์" value={result.fonts?.join(", ")} />
+                </div>
+                <p className="font-body text-footnote text-grey-600 mt-5">
+                  สิทธิ์การใช้งานเป็นของผู้ซื้อตามเงื่อนไข license ที่ระบุในคำสั่งซื้อเท่านั้น
+                </p>
               </div>
-              <p className="text-[12px] text-[#aaa] mt-4">
-                สิทธิ์การใช้งานเป็นของผู้ซื้อตามเงื่อนไข license ที่ระบุในคำสั่งซื้อเท่านั้น
-              </p>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-red-200 p-6">
-              <div className="text-[15px] font-semibold text-red-500 mb-1">✕ ไม่พบคำสั่งซื้อนี้</div>
-              <p className="text-[13px] text-[#888]">
-                เลขคำสั่งซื้อไม่ถูกต้อง หรือไฟล์ฟอนต์นี้อาจไม่ได้มาจากการซื้อผ่าน dhammadha.com
-                — หากคุณเชื่อว่าไฟล์ถูกละเมิดลิขสิทธิ์ แจ้งได้ที่ info@dhammadha.com
-              </p>
-            </div>
-          )
-        )}
-      </div>
-    </main>
+            ) : (
+              <div className="bg-surface p-6">
+                <div className="font-heading text-h2 text-danger-dark mb-2.5">✕ ไม่พบคำสั่งซื้อนี้</div>
+                <p className="font-body text-body text-grey-800 leading-[1.8]">
+                  รหัสยืนยันไม่ถูกต้อง หรือไฟล์ฟอนต์นี้อาจไม่ได้มาจากการซื้อผ่าน dhammadha.com
+                  — หากคุณเชื่อว่าไฟล์ถูกละเมิดลิขสิทธิ์ แจ้งได้ที่{" "}
+                  <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
+                </p>
+              </div>
+            )
+          )}
+        </div>
+      </Container>
+    </section>
   );
 }
 
@@ -108,7 +119,7 @@ export default function VerifyPage() {
   return (
     <>
       <Nav />
-      <Suspense fallback={<main className="min-h-screen bg-bg" />}>
+      <Suspense fallback={<section className="bg-white min-h-[60vh]" />}>
         <VerifyContent />
       </Suspense>
       <Footer />

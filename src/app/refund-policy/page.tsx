@@ -32,7 +32,7 @@ export default function RefundPolicyPage() {
 
       <LegalSection title="3. วิธีแจ้งขอคืนเงิน">
         <p>
-          ส่งอีเมลมาที่ <a href="mailto:info@dhammadha.com" className="text-mint">info@dhammadha.com</a>{" "}
+          ส่งอีเมลมาที่ <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>{" "}
           พร้อมหลักฐานการชำระเงินและรายละเอียดปัญหา ภายใน 7 วัน นับจากวันชำระเงิน
           เราจะตอบกลับภายใน 3 วันทำการ และหากอนุมัติ จะคืนเงินผ่านช่องทางเดิมภายใน 14 วัน
         </p>
@@ -42,7 +42,7 @@ export default function RefundPolicyPage() {
         <p>
           กรณีซื้อผ่านใบเสนอราคาที่ชำระเงินตรงกับนักออกแบบ การคืนเงินเป็นข้อตกลงระหว่างคุณกับนักออกแบบรายนั้น
           โดยเรายินดีช่วยประสานงานให้ ดูเพิ่มเติม :{" "}
-          <Link href="/terms/" className="text-mint">ข้อกำหนดการใช้งาน</Link>
+          <Link href="/terms/" className="text-mint-text">ข้อกำหนดการใช้งาน</Link>
         </p>
       </LegalSection>
     </LegalPage>

@@ -88,8 +88,10 @@ function Col({ title, children }: { title: string; children: React.ReactNode }) 
 }
 
 export default function Footer() {
+  // mt-auto — ดันตัวเองไปชิดขอบล่างเมื่อเนื้อหาสั้นกว่าจอ (body เป็น flex-col min-h-screen
+  // ใน app/layout.tsx) หน้าเนื้อยาวไม่มีผล เพราะไม่เหลือที่ว่างให้ดัน
   return (
-    <footer className="bg-black">
+    <footer className="bg-black mt-auto">
       <Container className="grid grid-cols-1 md:grid-cols-[1.8fr_1fr_1fr_1fr] gap-8 md:gap-6 pt-10 pb-8">
         {/* Brand */}
         <div className="flex flex-col gap-4">
@@ -144,7 +146,8 @@ export default function Footer() {
         </Col>
 
         <Col title="ช่วยเหลือ">
-          <a href="mailto:info@dhammadha.com" className={LINK}>ติดต่อสอบถาม</a>
+          <Link href="/contact/" className={LINK}>ติดต่อสอบถาม</Link>
+          <Link href="/verify/" className={LINK}>ตรวจสอบสิทธิการใช้งานฟอนต์</Link>
           <Link href="/become-a-designer/" className={LINK}>สมัครเป็นนักออกแบบ</Link>
         </Col>
       </Container>

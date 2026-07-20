@@ -353,8 +353,10 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
             </button>
           </div>
 
-          {/* แถบเมนู 3 หัวข้อ */}
-          <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-3 gap-px bg-white mb-8">
+          {/* แถบเมนู 3 หัวข้อ — มือถือเรียงแนวตั้ง (§15.5 เจ้าของเคาะ 2026-07-20)
+              หัวข้อที่ 3 ("สั่งซื้อฟอนต์ / ขอใบเสนอราคา") ยาวเกินช่อง 114px ที่จอ 375
+              ตอน 3 คอลัมน์ → ตัด 3 บรรทัด สูง 96px ทั้งแถว · เรียงตั้งได้บรรทัดเดียวต่อหัวข้อ */}
+          <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white mb-8">
             {tabsFor(font.is_free).map((t) => (
               <button
                 key={t.id}

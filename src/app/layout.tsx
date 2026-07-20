@@ -48,7 +48,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
         />
       </head>
-      <body className={`${notoSansThai.variable} ${notoSansThaiLooped.variable}`}>
+      {/* sticky footer — หน้าที่เนื้อหาสั้น (เช่น /verify) footer ต้องอยู่ติดขอบล่างจอ
+          ไม่ใช่ลอยขึ้นมากลางจอ · คู่กับ `mt-auto` ที่ <footer> ใน Footer.tsx
+          min-h-screen ทำให้ body สูงอย่างน้อยเต็มจอ แต่ยังยืดตามเนื้อหาได้เมื่อเนื้อยาว
+          → ไม่มีการบีบ flex item เพราะ container ไม่เคยถูกจำกัดความสูง */}
+      <body className={`${notoSansThai.variable} ${notoSansThaiLooped.variable} min-h-screen flex flex-col`}>
         <ScrollReset />
         <AuthProvider>
           <FavouritesProvider>{children}</FavouritesProvider>

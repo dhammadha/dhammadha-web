@@ -2,18 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
-import Button from "@/components/Button";
+import Container from "@/components/ui/Container";
+import Button from "@/components/ui/Button";
+import RevenueShareChart from "@/components/become/RevenueShareChart";
 
 export const metadata: Metadata = {
   title: "ร่วมเป็นนักออกแบบ — ขายฟอนต์กับ DHAMMADHA STUDIO",
   description:
-    "วางจำหน่ายฟอนต์ของคุณบนแพลตฟอร์มตลาดฟอนต์ไทย รับส่วนแบ่ง 75% พร้อมระบบใบเสนอราคา B2B และหน้าร้านของตัวเองฟรี",
+    "วางจำหน่ายฟอนต์ของคุณบนแพลตฟอร์มตลาดฟอนต์ไทย รับส่วนแบ่ง 75% พร้อมระบบใบเสนอราคาฟรี และหน้าร้านของตัวเอง",
 };
 
 const BENEFITS = [
   {
     title: "ส่วนแบ่ง 75%",
-    desc: "ทุกยอดขายผ่านเว็บ คุณได้ 75% เต็ม ๆ — สูงกว่ามาร์เก็ตเพลสทั่วไปที่หัก 30–50% และเราเป็นฝ่ายรับภาระค่าธรรมเนียมการชำระเงินเอง",
+    desc: "ทุกยอดขายผ่านเว็บ คุณได้รับ 75% — สูงกว่ามาร์เก็ตเพลสทั่วไปที่หัก 30–50% และเราเป็นฝ่ายรับภาระค่าธรรมเนียมการชำระเงินเอง",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
         <line x1="12" y1="1" x2="12" y2="23" />
@@ -22,7 +24,7 @@ const BENEFITS = [
     ),
   },
   {
-    title: "ระบบใบเสนอราคา B2B ฟรี",
+    title: "ระบบใบเสนอราคาฟรี",
     desc: "ลูกค้าองค์กรขอใบเสนอราคาจากหน้าฟอนต์ของคุณได้โดยตรง เงินเข้าบัญชีคุณเต็มจำนวน เราไม่หักส่วนแบ่ง — เหมือนมีระบบหลังบ้านมืออาชีพโดยไม่ต้องสร้างเอง",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
@@ -69,67 +71,77 @@ export default function BecomeADesignerPage() {
 
       {/* HERO */}
       <section className="bg-white">
-        <div className="max-w-site mx-auto px-8 pt-14 pb-12">
-          <p className="text-[13px] font-semibold tracking-[0.08em] uppercase text-mint mb-3">สำหรับนักออกแบบฟอนต์</p>
-          <h1 className="text-[42px] font-semibold text-navy leading-[1.15] tracking-[-1px] mb-4">
-            ขายฟอนต์ของคุณ<br />ได้ส่วนแบ่ง <em className="text-mint not-italic">75%</em> สูงกว่าทุกที่
+        <Container className="pt-10 pb-6">
+          <p className="font-body text-body-sm text-mint-text mb-3">สำหรับนักออกแบบฟอนต์</p>
+          <h1 className="font-heading text-hero text-black mb-3.5">
+            ขายฟอนต์ของคุณ<br />ได้ส่วนแบ่ง <em className="text-mint-text not-italic">75%*</em> สูงกว่าทุกที่
           </h1>
-          <p className="text-[15px] text-[#666] leading-[1.7] max-w-[520px] mb-7">
+          <p className="font-body text-body text-grey-600 max-w-[560px] mb-6">
             เราคือแพลตฟอร์มตลาดฟอนต์ไทยที่สร้างโดยนักออกแบบฟอนต์
-เราจัดการเรื่องเว็บ ระบบป้องกันไฟล์ เอกสาร และลูกค้าองค์กรให้ — คุณโฟกัสแค่การออกแบบ
+            เราจัดการเรื่องเว็บ ระบบป้องกันไฟล์ เอกสาร และลูกค้าองค์กรให้ — คุณโฟกัสแค่การออกแบบ
           </p>
-          <div className="flex gap-2.5 items-center">
+          <div className="flex flex-wrap gap-3 items-center">
             <Button as="link" href="/auth/signup" size="lg">สมัครเป็น Designer</Button>
             <Link
               href="/designer-agreement/"
-              className="text-[13px] text-[#888] no-underline hover:text-navy transition-colors"
+              className="font-body text-body-sm text-grey-600 no-underline hover:text-black transition-colors duration-150 ease-base"
             >
               อ่านข้อตกลงสำหรับนักออกแบบ →
             </Link>
           </div>
-        </div>
+        </Container>
+      </section>
+
+      {/* ส่วนแบ่งรายได้ — พระเอกของหน้า */}
+      <section className="bg-white">
+        <Container className="pt-6 pb-10">
+          <h2 className="font-heading text-h1 text-black mb-3">ส่วนแบ่งรายได้</h2>
+          <p className="font-body text-body text-grey-600 max-w-[560px] mb-7">
+            เราเปิดตัวเลขทุกส่วนให้ดูก่อนตัดสินใจ เลือกโมเดลรายได้ที่สนใจ แล้วกดหรือชี้ที่แต่ละส่วนเพื่อดูวิธีคำนวณ
+          </p>
+          <RevenueShareChart />
+        </Container>
       </section>
 
       {/* BENEFITS */}
-      <section className="bg-bg">
-        <div className="max-w-site mx-auto px-8 py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="bg-white">
+        <Container className="py-10">
+          <h2 className="font-heading text-h1 text-black mb-6">ทำไมต้องขายกับเรา</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {BENEFITS.map((b) => (
-              <div key={b.title} className="bg-white border border-[0.5px] border-border rounded-xl p-6">
-                <div className="w-11 h-11 rounded-xl bg-mint-light text-[#0a8a84] flex items-center justify-center mb-4">
-                  {b.icon}
-                </div>
-                <h3 className="text-[17px] font-semibold text-navy mb-2">{b.title}</h3>
-                <p className="text-[13px] text-[#666] leading-[1.7]">{b.desc}</p>
+              <div key={b.title} className="bg-surface p-5 flex flex-col">
+                <div className="text-mint-text mb-4">{b.icon}</div>
+                <h3 className="font-heading text-h2 text-black mb-2">{b.title}</h3>
+                <p className="font-body text-body-sm text-grey-600 leading-[1.8]">{b.desc}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* HOW IT WORKS */}
       <section className="bg-white">
-        <div className="max-w-site mx-auto px-8 py-12">
-          <h2 className="text-[28px] font-semibold text-navy mb-8">เริ่มต้นอย่างไร</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <Container className="py-10">
+          <h2 className="font-heading text-h1 text-black mb-6">เริ่มต้นอย่างไร</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {STEPS.map((s) => (
-              <div key={s.n} className="relative">
-                <div className="text-[40px] font-semibold text-mint-mid leading-none mb-3">{s.n}</div>
-                <h3 className="text-[15px] font-semibold text-navy mb-1.5">{s.title}</h3>
-                <p className="text-[13px] text-[#888] leading-[1.7]">{s.desc}</p>
+              <div key={s.n}>
+                <div className="font-heading text-h1 text-mint-text leading-none mb-3">{s.n}</div>
+                <h3 className="font-heading text-h2 text-black mb-1.5">{s.title}</h3>
+                <p className="font-body text-body-sm text-grey-600 leading-[1.8]">{s.desc}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
-      {/* FAQ-ish + CTA */}
-      <section className="bg-bg">
-        <div className="max-w-site mx-auto px-8 py-12">
-          <div className="bg-navy rounded-2xl px-8 py-10 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      {/* CTA */}
+      <section className="bg-white">
+        <Container className="pb-12">
+          <div className="bg-black px-6 py-14 md:px-12 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <h2 className="text-[24px] font-semibold text-white mb-2">พร้อมวางขายฟอนต์แรกของคุณหรือยัง?</h2>
-              <p className="text-[14px] text-white/60 leading-[1.7] max-w-[460px]">
+              <h2 className="font-heading text-h1 text-white mb-2.5">พร้อมวางขายฟอนต์แรกของคุณหรือยัง?</h2>
+              <p className="font-body text-body-sm text-grey-400 leading-[1.8] max-w-[480px]">
                 ไม่มีค่าแรกเข้า ไม่มีค่ารายเดือน — มีผลงานฟอนต์ไทยของตัวเอง ก็เริ่มได้เลยวันนี้
                 ทำฟอนต์ฟรีเป็นงานอดิเรกก็ร่วมเผยแพร่ผลงานกับเราได้เช่นกัน
               </p>
@@ -138,7 +150,7 @@ export default function BecomeADesignerPage() {
               สมัครเป็น Designer
             </Button>
           </div>
-        </div>
+        </Container>
       </section>
 
       <Footer />
