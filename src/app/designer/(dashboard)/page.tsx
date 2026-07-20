@@ -11,7 +11,7 @@ type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
 type Tab = "all" | "active" | "hidden" | "sale";
 
 export default function DesignerFontsPage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [fonts, setFonts] = useState<FontRow[]>([]);
   const [tab, setTab] = useState<Tab>("all");
   const [loading, setLoading] = useState(true);
@@ -179,6 +179,7 @@ export default function DesignerFontsPage() {
         editingFont={editingFont}
         onSaved={loadFonts}
         ownerId={user?.id}
+        lockIdentity={role !== "admin"}
       />
 
       {toast && (

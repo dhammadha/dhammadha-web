@@ -95,26 +95,21 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
       const flattenFont = (r: RawFont): Font => ({ ...(r as unknown as Font), designer_slug: r.designer_profiles?.designer_slug ?? undefined, designer_business_name: r.designer_profiles?.business_name ?? undefined });
 
       try {
-        // If initialFont was not provided (client-side nav), fetch the font too
-        const fontPromise = initialFont
-          ? Promise.resolve({ data: null })
-          : supabase.from("fonts").select("*, designer_profiles!owner_id(designer_slug, business_name)").eq("slug", slug).eq("is_active", true).not("published_at", "is", null).limit(1);
-
-        const [fontResult, { data: allRows }, { data: settings }] = await Promise.all([
-          fontPromise,
+        const [{ data: allRows }, { data: settings }] = await Promise.all([
           supabase.from("fonts").select("*, designer_profiles!owner_id(designer_slug, business_name)").eq("is_active", true).not("published_at", "is", null),
           supabase.from("settings").select("key, value").in("key", ["licensing", "promotion"]),
         ]);
 
-        let currentFont = initialFont ?? null;
-        if (!initialFont) {
-          const fontRows = (fontResult as { data: unknown[] | null }).data;
-          if (!fontRows?.length) { setLoading(false); return; }
-          currentFont = flattenFont(fontRows[0] as unknown as RawFont);
-          setFont(currentFont);
-        }
+        // refresh จากแถวสดเสมอ — initialFont คือข้อมูลตอน build (static export) ราคา/ส่วนลด/
+        // รายละเอียดอาจค้างจนกว่าจะ deploy ใหม่ ถ้าแถวสดหาไม่เจอ (เช่นถูกซ่อนหลัง build)
+        // ค่อย fallback เป็น initialFont
+        const flat = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont);
+        const liveCurrent = flat.find((f) => f.slug === slug) ?? null;
+        const currentFont = liveCurrent ?? initialFont ?? null;
+        if (!currentFont) { setLoading(false); return; }
+        if (liveCurrent) setFont(liveCurrent);
 
-        const others = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont).filter((f) => f.slug !== slug);
+        const others = flat.filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
         for (const row of (settings ?? []) as { key: string; value: Record<string, unknown> }[]) {

@@ -15,6 +15,8 @@ interface Props {
   onSaved: () => void;
   ownerId?: string;
   mode?: "panel" | "page";
+  /** ล็อกฟิลด์ระบุตัวตนฟอนต์ (ชื่อ EN/TH, slug, นักออกแบบ) ตอนแก้ไข — ใช้กับ designer กันแก้พลาด */
+  lockIdentity?: boolean;
 }
 
 type PreviewItem = { type: "ex"; url: string } | { type: "new"; file: File; objectUrl: string };
@@ -74,7 +76,9 @@ async function computeMetaSummary(entries: FontFileEntry[], bucket: "fonts-full"
   return summarizeFontMeta(metas);
 }
 
-export default function FontForm({ open, onClose, editingFont, onSaved, ownerId, mode = "panel" }: Props) {
+export default function FontForm({ open, onClose, editingFont, onSaved, ownerId, mode = "panel", lockIdentity = false }: Props) {
+  // ล็อกเฉพาะตอนแก้ไข — ตอนเพิ่มฟอนต์ใหม่ยังต้องกรอกชื่อ/slug ได้
+  const identityLocked = lockIdentity && !!editingFont;
   const [name, setName] = useState("");
   const [nameTh, setNameTh] = useState("");
   const [slug, setSlug] = useState("");
@@ -416,7 +420,15 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       // designer มี "designer insert/update own fonts") — เลิกใช้ RPC admin_upsert_font แล้ว
       let fontId: string | null = editingFont?.id ?? null;
       if (editingFont) {
-        const { error } = await supabase.from("fonts").update(payload as Database["public"]["Tables"]["fonts"]["Update"]).eq("id", editingFont.id);
+        const updatePayload = { ...payload } as Database["public"]["Tables"]["fonts"]["Update"];
+        if (identityLocked) {
+          // ฟิลด์ identity ถูกล็อกใน UI — ตัดออกจาก payload ด้วย กันหลุดทุกทาง
+          delete updatePayload.name;
+          delete updatePayload.name_th;
+          delete updatePayload.slug;
+          delete updatePayload.designer_name;
+        }
+        const { error } = await supabase.from("fonts").update(updatePayload).eq("id", editingFont.id);
         if (error) throw error;
       } else {
         const { data, error } = await supabase.from("fonts").insert(payload as Database["public"]["Tables"]["fonts"]["Insert"]).select("id").single();
@@ -459,16 +471,16 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ข้อมูลพื้นฐาน</h3>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="ชื่อฟอนต์ (EN) *">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} />
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} disabled={identityLocked} />
           </FormField>
           <FormField label="ชื่อฟอนต์ (TH)">
-            <input value={nameTh} onChange={(e) => setNameTh(e.target.value)} placeholder="เช่น สุรัตนา" className={inputCls} />
+            <input value={nameTh} onChange={(e) => setNameTh(e.target.value)} placeholder="เช่น สุรัตนา" className={inputCls} disabled={identityLocked} />
           </FormField>
           <FormField label="Slug (URL) *">
-            <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="เช่น suratana" className={inputCls} />
+            <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="เช่น suratana" className={inputCls} disabled={identityLocked} />
           </FormField>
           <FormField label="นักออกแบบ">
-            <input value={designerName} onChange={(e) => setDesignerName(e.target.value)} className={inputCls} />
+            <input value={designerName} onChange={(e) => setDesignerName(e.target.value)} className={inputCls} disabled={identityLocked} />
           </FormField>
           <FormField label="หมวดหมู่">
             <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
@@ -479,6 +491,11 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="thai, display, bold" className={inputCls} />
           </FormField>
         </div>
+        {identityLocked && (
+          <p className="text-[11px] text-[#aaa] mt-2">
+            ชื่อฟอนต์ · Slug · นักออกแบบ แก้ไขไม่ได้ — หากต้องการเปลี่ยน กรุณาติดต่อแอดมิน
+          </p>
+        )}
         <div className="grid grid-cols-1 gap-3 mt-3">
           <FormField label="คำอธิบาย (TH)">
             <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} className={textareaCls} placeholder="คำอธิบายภาษาไทย..." />
@@ -716,7 +733,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+const inputCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit] disabled:bg-[#f1f1ee] disabled:text-[#aaa] disabled:cursor-not-allowed";
 
 // เหมือน inputCls แต่เอา h-[42px] ออก (ไม่งั้นมัน override rows) + สูงขั้นต่ำ 210px (~5 เท่าของ input ปกติ) + ลากขยายได้
 const textareaCls = "w-full px-3 py-2 min-h-[210px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit] resize-y";
