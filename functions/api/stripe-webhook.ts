@@ -5,7 +5,7 @@
 //
 // Required Pages env vars: STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY,
 // RESEND_API_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
-// NEXT_PUBLIC_ADMIN_EMAIL.
+// ADMIN_EMAIL (หรือ NEXT_PUBLIC_ADMIN_EMAIL — รับสองชื่อ ดูเหตุผลใน api/send-email.ts).
 
 import { handleStripeWebhookRequest } from "../../src/lib/checkout-service";
 
@@ -31,7 +31,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       RESEND_API_KEY: env.RESEND_API_KEY,
       SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      ADMIN_EMAIL: env.NEXT_PUBLIC_ADMIN_EMAIL,
+      ADMIN_EMAIL: env.ADMIN_EMAIL ?? env.NEXT_PUBLIC_ADMIN_EMAIL,
     }
   );
 
