@@ -238,9 +238,15 @@ export default function TypeTester({ font }: { font: Font }) {
           </div>
 
           {/* Dropdown น้ำหนัก — สไตล์เดียวกับเมนูบัญชีใน Nav (bg-surface · shadow · แถวคั่นบาง ๆ · hover mint)
-              เลิกใช้ <select> เพราะ dropdown ของ OS สไตล์ไม่ได้ (เจ้าของเห็นเมนู macOS สีเข้ม) */}
+              เลิกใช้ <select> เพราะ dropdown ของ OS สไตล์ไม่ได้ (เจ้าของเห็นเมนู macOS สีเข้ม)
+              เปิดตอน hover เหมือน submenu "ฟอนต์"/บัญชีใน Nav · คลิกยังใช้ได้ (มือถือ/แตะ) */}
           {weights.length > 0 && (
-            <div ref={weightRef} className="relative">
+            <div
+              ref={weightRef}
+              className="relative"
+              onMouseEnter={() => setWeightOpen(true)}
+              onMouseLeave={() => setWeightOpen(false)}
+            >
               <button
                 type="button"
                 onClick={() => setWeightOpen((o) => !o)}
@@ -254,9 +260,11 @@ export default function TypeTester({ font }: { font: Font }) {
                 </svg>
               </button>
               {/* มือถือปุ่มขึ้นบรรทัดใหม่ชิดซ้าย → anchor ซ้าย (เมนูกางไปขวา ไม่ล้นจอ)
-                  เดสก์ท็อปปุ่มอยู่ขวาสุด → anchor ขวา (เมนูกางไปซ้าย มีที่ว่าง) */}
+                  เดสก์ท็อปปุ่มอยู่ขวาสุด → anchor ขวา (เมนูกางไปซ้าย มีที่ว่าง)
+                  pt-1 = สะพานกันเมาส์หลุดช่วงว่างระหว่างปุ่มกับเมนู (hover ไม่ขาด · เหมือน Nav) */}
               {weightOpen && (
-                <div role="listbox" className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1 w-max min-w-full z-30 bg-surface shadow-lg py-1">
+                <div className="absolute left-0 sm:left-auto sm:right-0 top-full pt-1 w-max min-w-full z-30">
+                <div role="listbox" className="bg-surface shadow-lg py-1">
                   {weights.map((w, i) => (
                     <button
                       key={w.id}
@@ -271,6 +279,7 @@ export default function TypeTester({ font }: { font: Font }) {
                       {fontName} {w.label}
                     </button>
                   ))}
+                </div>
                 </div>
               )}
             </div>

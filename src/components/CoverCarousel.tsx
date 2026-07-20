@@ -182,16 +182,18 @@ export default function CoverCarousel({
 
             {poolSize > 1 && (
               <>
-                {/* ลูกศรเปล่าที่ขอบ cover กลาง — ไม่มีวงกลมรองพื้น (§4.0) ขาว+เงาให้อ่านออกบนรูป */}
+                {/* ลูกศรวางกึ่งกลาง "พื้นที่ peek" (สไลด์ข้าง ๆ) ไม่ทับ cover กลาง เพื่อให้ตัวกลางเด่น
+                    slideOffset = ความกว้าง peek · กึ่งกลาง = slideOffset/2 · clamp ขั้นต่ำกันหลุดจอบนมือถือ (peek แคบ)
+                    ไม่มีวงกลมรองพื้น (§4.0) ขาว+เงาให้อ่านออกบนรูป */}
                 <button onClick={() => moveSlide(-1)}
-                  style={{ left: slideOffset + 8, textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
-                  className="absolute top-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[32px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  style={{ left: Math.max(20, slideOffset / 2), textShadow: "0 1px 5px rgba(0,0,0,0.5)" }}
+                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[56px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                   aria-label="ก่อนหน้า">
                   ‹
                 </button>
                 <button onClick={() => moveSlide(1)}
-                  style={{ right: slideOffset + 8, textShadow: "0 1px 4px rgba(0,0,0,0.45)" }}
-                  className="absolute top-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[32px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  style={{ right: Math.max(20, slideOffset / 2), textShadow: "0 1px 5px rgba(0,0,0,0.5)" }}
+                  className="absolute top-1/2 translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[56px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
                   aria-label="ถัดไป">
                   ›
                 </button>
