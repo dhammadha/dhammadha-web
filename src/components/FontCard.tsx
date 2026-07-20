@@ -4,6 +4,25 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
+import Badge from "@/components/ui/Badge";
+import { cn } from "@/lib/cn";
+
+/**
+ * FontCard — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/font card.png)
+ *
+ * หน่วยซ้ำบน 5 พื้นผิว: / · /fonts · /designer/[designer] · favourites · related fonts
+ * → ROI สูงสุดของงานนี้ และเดิม **ไม่มี breakpoint สักตัว**
+ *
+ * ⚠️ ตั้งใจไม่แตะ logic (DESIGN.md §8):
+ * - ternary คิดราคาข้างล่าง restyle ในที่ ไม่ extract — โหมดพังคือลูกค้าเห็นราคาผิด
+ * - ปุ่มหัวใจ + ลิงก์นักออกแบบต้องคง preventDefault/stopPropagation ไว้เป๊ะ
+ *   (nested interactive รับน้ำหนักอยู่ — การ์ดทั้งใบเป็น <Link> จะซ้อน <a> ใน <a>
+ *   ไม่ได้ ชื่อนักออกแบบเลยต้องเป็น span + onClick ซึ่งเป็น workaround ที่ตั้งใจ)
+ *
+ * หมายเหตุ: props `compact` / `aspectRatio` **ไม่มีใครเรียกใช้เลย** (ตรวจทั้ง 7 จุด
+ * ที่ใช้ <FontCard> — ส่งแค่ font={f}) คงไว้เพื่อไม่ให้ API เปลี่ยน แต่เป็นโค้ดตาย
+ * ถ้าจะตัดควรทำเป็นงาน cleanup แยก ไม่ใช่ในรอบดีไซน์
+ */
 
 export interface Font {
   id: string;
@@ -76,73 +95,109 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
 
   const newFlag = isNew(font);
   const badge = font.is_sale
-    ? { text: font.sale_label || "Sale", cls: "bg-[#f0c040] text-[#5a3800]" }
+    ? { text: font.sale_label || "Sale", variant: "sale" as const }
     : font.is_free
-    ? { text: "FREE", cls: "bg-[#5ECEC8] text-white" }
+    ? { text: "FREE", variant: "free" as const }
     : newFlag
-    ? { text: "NEW", cls: "bg-mint text-navy" }
+    ? { text: "NEW", variant: "new" as const }
     : null;
+
+  const designerName = font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ";
 
   return (
     <Link
       href={href}
-      className="block bg-white rounded-lg overflow-hidden border border-[0.5px] border-border hover:shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:border-transparent transition-all no-underline"
+      className={cn(
+        // ไม่มีเส้นขอบ (§4.1) — แถบรายละเอียดใช้พื้น surface #F8F8F8
+        // ซึ่งลอยขึ้นมาจาก body ที่เป็น #FFFFFF เอง ไม่ต้องพึ่งกรอบ
+        "group block bg-surface overflow-hidden no-underline",
+        "transition-shadow duration-150 ease-base hover:shadow-md",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+      )}
     >
-      <div className={`${compact ? "h-[110px]" : "aspect-video"} relative flex items-center justify-center overflow-hidden rounded-t-lg`} style={{ ...bgStyle, ...(aspectRatio ? { aspectRatio, height: "auto" } : {}) }}>
+      {/* cover = 270×150 = 9:5 (เจ้าของปรับ 2026-07-18 · docs/design/moodboard/font-card-redesign.png)
+          เดิม 270×135 (2:1) — cover สูงขึ้น 15px แถบล่างลด 15px รายละเอียดเหลือ 2 บรรทัด รวมการ์ดเท่าเดิม */}
+      <div
+        className={cn(compact ? "h-[110px]" : "aspect-[9/5]", "relative flex items-center justify-center overflow-hidden")}
+        style={{ ...bgStyle, ...(aspectRatio ? { aspectRatio, height: "auto" } : {}) }}
+      >
         {badge && (
-          <span className={`absolute top-2 left-2 text-[9px] px-[7px] py-0.5 rounded-full font-semibold tracking-[0.03em] ${badge.cls}`}>
+          <Badge variant={badge.variant} size="sm" className="absolute top-2 left-2">
             {badge.text}
-          </span>
+          </Badge>
         )}
+        {/* ปุ่มหัวใจ — ยังกลม (DESIGN.md §4.1 ของที่กลมจริงยังกลม)
+            24×24 ตามที่เจ้าของออกแบบ (2026-07-18) — เดิม 32×32 · icon ย่อตามสัดส่วน 16→12 */}
         <button
-          className="absolute top-1.5 right-1.5 w-[26px] h-[26px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/35 transition-colors"
+          className={cn(
+            // พื้นวงกลมเข้มขึ้น — /25 จางเกินไปบนรูป cover จริง (เจ้าของ 2026-07-18)
+            "absolute top-2 right-2 w-6 h-6 rounded-full bg-white/55 hover:bg-white/75",
+            "flex items-center justify-center transition-colors duration-150 ease-base",
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          )}
           onClick={handleFav}
           aria-label={faved ? "เลิกบันทึก" : "บันทึก"}
           aria-pressed={faved}
         >
-          <svg viewBox="0 0 24 24" fill={faved ? "#5ECEC8" : "none"} stroke={faved ? "#5ECEC8" : "#fff"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+          <svg
+            viewBox="0 0 24 24"
+            fill={faved ? "#5ECEC8" : "none"}
+            stroke={faved ? "#5ECEC8" : "#fff"}
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-3 h-3"
+          >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
       </div>
-      <div className="px-3 pt-2.5 pb-3">
-        <div className="text-[13px] font-semibold text-navy truncate">{font.name || "—"}</div>
-        <div className="text-[11px] text-[#aaa] mt-0.5 mb-1.5 truncate">
-          โดย{" "}
-          {font.designer_slug ? (
-            <span
-              role="link"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/designer/${font.designer_slug}`; }}
-              className="text-mint cursor-pointer hover:underline"
-            >
-              {font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}
-            </span>
-          ) : (
-            <span className="text-mint">{font.designer_business_name || font.designer_name || "ธรรมดาสตูดิโอ"}</span>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] text-[#aaa]">
-            {(() => {
-              // style_count คำนวณจากไฟล์จริงตอนบันทึก (ดู font-meta.ts)
-              // เดิม fallback ไปนับ "จำนวนไฟล์" ซึ่งผิดเมื่อฟอนต์มีหลาย format
-              // (5 weights × OTF+TTF = 10 ไฟล์ แต่เป็น 5 styles)
-              const n = font.style_count || font.weight_count || 0;
-              return n > 0 ? `${n} style${n > 1 ? "s" : ""}` : "";
-            })()}
-          </span>
-          {font.is_free ? (
-            <span className="text-[12px] font-semibold text-[#0a8a84]">ฟรี</span>
-          ) : font.is_sale && font.sale_price && font.price ? (
-            <div className="flex items-baseline gap-1">
-              <span className="text-[12px] font-semibold text-navy">฿{font.sale_price.toLocaleString()}</span>
-              <span className="text-[10px] text-[#bbb] line-through">฿{font.price.toLocaleString()}</span>
-            </div>
-          ) : font.price ? (
-            <span className="text-[12px] font-semibold text-navy">฿{font.price.toLocaleString()}</span>
-          ) : (
-            <span className="text-[12px] font-semibold text-navy">—</span>
-          )}
+
+      {/* แถบรายละเอียด — 3 ชิ้นวางแยกกันแบบ Figma (font-card-redesign.png)
+          ⚠️ leading-none ทั้ง 3 ชิ้น: line-height 1.5 ที่สืบทอดมาทำให้ line-box ของราคา (24px)
+          สูง 36px แล้วดันบรรทัด "โดย" ให้ห่างจากชื่อฟอนต์ ~17px (เจ้าของจับได้ 2026-07-18)
+          ตัด leading ทิ้ง = กล่องเท่าขนาดตัวอักษร ระยะกระชับตามต้นแบบ */}
+      <div className="px-3.5 py-2 md:px-4">
+        {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
+        <div className="font-heading text-fc-heading text-black truncate leading-none">{font.name || "—"}</div>
+
+        <div className="flex items-baseline justify-between gap-2">
+          <div className="font-body text-body-sm text-grey-600 truncate min-w-0 leading-none">
+            โดย{" "}
+            {font.designer_slug ? (
+              <span
+                role="link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/designer/${font.designer_slug}`;
+                }}
+                className="text-mint-text cursor-pointer hover:underline"
+              >
+                {designerName}
+              </span>
+            ) : (
+              <span className="text-mint-text">{designerName}</span>
+            )}
+          </div>
+
+          {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) · baseline ตรงกับบรรทัด "โดย" */}
+          <div className="shrink-0 leading-none">
+            {font.is_free ? (
+              <span className="font-heading text-h2 text-success">ฟรี</span>
+            ) : font.is_sale && font.sale_price && font.price ? (
+              /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ
+                 ราคาลดใช้สีเดียวกับ "ฟรี" (success) ตามที่เจ้าของสั่ง 2026-07-18 */
+              <span className="flex items-baseline gap-1.5">
+                <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
+                <span className="font-heading text-h2 text-success">฿{font.sale_price.toLocaleString()}</span>
+              </span>
+            ) : font.price ? (
+              <span className="font-heading text-h2 text-black">฿{font.price.toLocaleString()}</span>
+            ) : (
+              <span className="font-heading text-h2 text-black">—</span>
+            )}
+          </div>
         </div>
       </div>
     </Link>

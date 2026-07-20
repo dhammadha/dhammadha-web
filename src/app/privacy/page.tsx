@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <p>
           เว็บไซต์ dhammadha.com ("เว็บไซต์") ดำเนินการโดย <strong>ธรรมดาสตูดิโอ</strong> ("เรา")
           ติดต่อเรื่องข้อมูลส่วนบุคคลได้ที่อีเมล{" "}
-          <a href="mailto:info@dhammadha.com" className="text-mint">info@dhammadha.com</a>
+          <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
         </p>
       </LegalSection>
 
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
       <LegalSection title="6. สิทธิของเจ้าของข้อมูล">
         <p>
           คุณมีสิทธิขอเข้าถึง ขอสำเนา ขอแก้ไข ขอลบข้อมูล ขอให้ระงับการใช้ และถอนความยินยอม
-          โดยแจ้งมาที่ <a href="mailto:info@dhammadha.com" className="text-mint">info@dhammadha.com</a>{" "}
+          โดยแจ้งมาที่ <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>{" "}
           เราจะดำเนินการภายใน 30 วัน ทั้งนี้การลบข้อมูลบางส่วนอาจกระทบสิทธิ์การใช้งานฟอนต์ที่ซื้อไว้
         </p>
       </LegalSection>
@@ -75,8 +75,8 @@ export default function PrivacyPage() {
       <LegalSection title="8. การเปลี่ยนแปลงนโยบาย">
         <p>
           หากมีการแก้ไขนโยบายอย่างมีนัยสำคัญ เราจะประกาศบนเว็บไซต์
-          ดูเอกสารที่เกี่ยวข้องเพิ่มเติม : <Link href="/terms/" className="text-mint">ข้อกำหนดการใช้งาน</Link>{" "}
-          และ <Link href="/refund-policy/" className="text-mint">นโยบายการคืนเงิน</Link>
+          ดูเอกสารที่เกี่ยวข้องเพิ่มเติม : <Link href="/terms/" className="text-mint-text">ข้อกำหนดการใช้งาน</Link>{" "}
+          และ <Link href="/refund-policy/" className="text-mint-text">นโยบายการคืนเงิน</Link>
         </p>
       </LegalSection>
     </LegalPage>

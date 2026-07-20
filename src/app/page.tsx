@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import Container from "@/components/ui/Container";
+import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
 import FontCard, { Font } from "@/components/FontCard";
+import CoverCarousel from "@/components/CoverCarousel";
 import AdBanner from "@/components/AdBanner";
 import SubscriptionPricingCard from "@/components/SubscriptionPricingCard";
 
@@ -15,36 +18,23 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 const SLIDER_SIZE = 8;
-const MAX_VISIBLE = 3;
 
+// pool สไลด์คัดสรร: ฟอนต์ลดราคาก่อน แล้วสุ่มที่เหลือ ตัดเหลือ SLIDER_SIZE
+// (logic สไลด์ทั้งหมดอยู่ใน CoverCarousel — หน้านี้แค่คัด pool ส่งเข้าไป)
 function buildSliderPool(fonts: Font[]): Font[] {
   const sale = fonts.filter((f) => f.is_sale);
   const others = shuffle(fonts.filter((f) => !f.is_sale));
   return [...sale, ...others].slice(0, SLIDER_SIZE);
 }
 
-// Build infinite strip: [last V items] + pool + [first V items]
-function buildStrip(pool: Font[], v: number): Font[] {
-  if (!pool.length) return [];
-  return [...pool.slice(-v), ...pool, ...pool.slice(0, v)];
-}
-
 // ── Page ─────────────────────────────────────────────────────────────────────
-const GRID_SHOW = 7;
+// กริด "ฟอนต์ล่าสุด" = 11 ใบ + ช่อง "ดูฟอนต์ทั้งหมด" = 3 แถว × 4 (DESIGN.md §7)
+const GRID_SHOW = 11;
 
 export default function HomePage() {
   const [fonts, setFonts] = useState<Font[]>([]);
   const [sliderPool, setSliderPool] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Carousel
-  const poolSize = sliderPool.length;
-  const showCount = Math.min(poolSize, MAX_VISIBLE);
-  const strip = buildStrip(sliderPool, showCount);
-  const [pos, setPos] = useState(showCount); // start after prepended clones
-  const [animated, setAnimated] = useState(true);
-  const dotIdx = poolSize > 0 ? (pos - showCount + poolSize * 10) % poolSize : 0;
 
   useEffect(() => {
     setLoading(true);
@@ -69,200 +59,77 @@ export default function HomePage() {
   const gridFonts = fonts.slice(0, GRID_SHOW);
   const remaining = fonts.length - GRID_SHOW;
 
-  // Reset strip position when pool changes
-  useEffect(() => {
-    setPos(showCount || 0);
-    setAnimated(false);
-    requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
-  }, [sliderPool, showCount]);
-
-  // Auto-advance
-  useEffect(() => {
-    if (poolSize < 2) return;
-    timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [poolSize]);
-
-  // Re-enable animation after instant snap
-  useEffect(() => {
-    if (!animated) {
-      requestAnimationFrame(() => requestAnimationFrame(() => setAnimated(true)));
-    }
-  }, [animated]);
-
-  function onTransitionEnd() {
-    if (pos >= poolSize + showCount) { setAnimated(false); setPos(showCount); }
-    else if (pos <= 0 && showCount > 0) { setAnimated(false); setPos(poolSize); }
-  }
-
-  function moveSlide(dir: number) {
-    if (poolSize < 2) return;
-    setPos((p) => p + dir);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => setPos((p) => p + 1), 4000);
-    }
-  }
-
   return (
     <>
       <Nav />
 
-      {/* HERO */}
+      {/* HERO — gap น้อยลงตามที่เจ้าของสั่ง ~30-40px (เดิม pt-14 pb-12 หลวมเกิน) */}
       <section className="bg-white">
-        <div className="max-w-site mx-auto px-8 pt-14 pb-12">
-          <h1 className="text-[46px] font-semibold text-navy leading-[1.1] tracking-[-1px] mb-3.5">
-            ฟอนต์ไทย<br />ที่ <em className="text-mint not-italic">ออกแบบ</em> อย่างพิถีพิถัน
+        <Container className="pt-10 pb-5">
+          <h1 className="font-heading text-hero text-black mb-3.5">
+            ฟอนต์ไทย<br />ที่ <em className="text-mint-text not-italic">ออกแบบ</em> อย่างพิถีพิถัน
           </h1>
-          <p className="text-[15px] text-[#666] leading-[1.65] max-w-[480px] mb-7">
+          {/* บรรทัดเดียวบนเดสก์ท็อป (ไม่ใส่ max-w) — มือถือ wrap ตาม responsive เอง (เจ้าของ 2026-07-18) */}
+          <p className="font-body text-body text-grey-600">
             คลังฟอนต์ภาษาไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย
           </p>
-          <div className="flex gap-2.5">
-            <Link
-              href="/fonts/"
-              className="px-[22px] py-2.5 bg-white text-navy border border-[0.25px] border-[#ddd] rounded-[6px] text-[14px] font-medium no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
-            >
-              ดูฟอนต์ทั้งหมด
-            </Link>
-            <Link
-              href="/#pricing"
-              className="px-[18px] py-2.5 bg-white text-navy border border-[0.25px] border-[#ddd] rounded-[6px] text-[14px] font-medium no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
-            >
-              ราคาและแผนบริการ
-            </Link>
-          </div>
-        </div>
+        </Container>
       </section>
 
-      {/* FEATURED SLIDER */}
-      <div className="bg-bg">
-        <div className="max-w-site mx-auto px-8 py-6">
-          <div className="flex justify-between items-center mb-3.5">
-            <span className="text-[32px] font-semibold text-navy">คัดสรรพิเศษ</span>
-          </div>
-          <div className="relative">
-            {/* Prev */}
-            {poolSize > 1 && (
-              <button onClick={() => moveSlide(-1)}
-                className="absolute left-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
-                ‹
-              </button>
-            )}
+      {/* FEATURED SLIDER — full-bleed cover slider (component reuse ได้กับหน้า designer) */}
+      <CoverCarousel fonts={sliderPool} loading={loading} />
 
-            {/* Strip */}
-            <div className="overflow-hidden mx-8">
-              {loading ? (
-                <div className="flex gap-5">
-                  {[0,1,2].map((i) => <div key={i} className="flex-none w-1/3 bg-white rounded-lg aspect-video animate-pulse" />)}
-                </div>
-              ) : poolSize === 0 ? (
-                <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
-              ) : (
-                <div
-                  className="flex"
-                  style={{
-                    // translateX(%) is relative to the element itself
-                    // moving pos items = -(pos/strip.length)*100% of strip
-                    transform: `translateX(${-(pos / strip.length) * 100}%)`,
-                    transition: animated ? "transform 0.45s cubic-bezier(0.25,0.1,0.25,1)" : "none",
-                    // strip total width relative to the overflow container
-                    width: `${(strip.length / showCount) * 100}%`,
-                  }}
-                  onTransitionEnd={onTransitionEnd}
-                >
-                  {strip.map((f, i) => (
-                    <div key={i} style={{ width: `${100 / strip.length}%`, padding: "0 10px" }}>
-                      <FontCard font={f} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Next */}
-            {poolSize > 1 && (
-              <button onClick={() => moveSlide(1)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[28px] text-[#ccc] hover:text-navy transition-colors px-2 z-10 leading-none">
-                ›
-              </button>
-            )}
-          </div>
-
-          {poolSize > 1 && (
-            <div className="flex gap-1.5 justify-center mt-3.5">
-              {Array.from({ length: poolSize }, (_, i) => (
-                <button key={i} onClick={() => { setPos(showCount + i); }}
-                  className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-navy" : "w-[5px] h-[3px] bg-[#ddd]"}`}
-                  aria-label={`ตำแหน่ง ${i + 1}`} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <AdBanner slot="1401819374" />
-
-      {/* FONT GRID */}
-      <div id="fonts" className="bg-white">
-        <div className="max-w-site mx-auto px-8 py-6">
-          <div className="flex justify-between items-center mb-3.5">
-            <span className="text-[32px] font-semibold text-navy">ฟอนต์ล่าสุด</span>
-          </div>
+      {/* FONT GRID (ตัด ad ระหว่างสไลด์กับกริดออกตามที่เจ้าของสั่ง 2026-07-18) */}
+      <section id="fonts" className="bg-white">
+        <Container className="pt-5 pb-6">
+          <h2 className="font-heading text-h1 text-black mb-3.5">ฟอนต์ล่าสุด</h2>
 
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {Array.from({ length: 8 }, (_, i) => (
-                <div key={i} className="bg-[#f5f5f2] rounded-lg aspect-[4/3] animate-pulse" />
+                <div key={i} className="bg-surface aspect-[4/3] animate-pulse" />
               ))}
             </div>
           ) : fonts.length === 0 ? (
-            <div className="text-center text-[#aaa] py-10 text-[13px]">ยังไม่มีฟอนต์ในระบบ</div>
+            <div className="text-center font-body text-grey-600 py-10 text-body-sm">ยังไม่มีฟอนต์ในระบบ</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {gridFonts.map((f) => (
                 <FontCard key={f.id} font={f} />
               ))}
               {remaining > 0 && (
-                <Link href="/fonts/" className="flex flex-col items-center justify-center gap-1 bg-[#f0f0ec] border border-dashed border-[#ccc] rounded-lg cursor-pointer hover:border-[#999] transition-colors p-6 no-underline">
-                  <span className="text-[26px] font-semibold text-navy">+{remaining}</span>
-                  <span className="text-[11px] text-[#aaa]">ฟอนต์อื่น ๆ</span>
-                  <span className="text-[11px] text-mint mt-0.5">ดูทั้งหมด →</span>
+                <Link href="/fonts/" className="flex flex-col items-center justify-center gap-1 bg-surface cursor-pointer transition-shadow duration-150 ease-base hover:shadow-md p-6 no-underline">
+                  <span className="font-heading text-h2 text-black">+{remaining}</span>
+                  <span className="font-body text-body-sm text-grey-600">ฟอนต์อื่น ๆ</span>
+                  <span className="font-body text-body-sm text-mint-text mt-0.5">ดูทั้งหมด →</span>
                 </Link>
               )}
             </div>
           )}
-        </div>
-      </div>
+        </Container>
+      </section>
 
       <AdBanner slot="1401819374" />
 
       {/* PRICING */}
-      <section id="pricing" className="bg-bg">
-        <div className="max-w-site mx-auto px-8 py-7">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-[32px] font-semibold text-navy">ราคาและแผนบริการ</span>
-          </div>
+      <section id="pricing" className="bg-white">
+        <Container className="py-7">
+          <h2 className="font-heading text-h1 text-black mb-4">ราคาและแผนบริการ</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            <div className="p-5 border border-[0.25px] border-[#ddd] rounded-[10px] bg-white flex flex-col">
-              <span className="self-start text-[10px] bg-mint-light text-[#0a8a84] px-2.5 py-0.5 rounded-full border border-[0.5px] border-mint-mid mb-2.5">
-                ซื้อครั้งเดียว
-              </span>
-              <div className="text-[26px] font-semibold text-navy leading-[1.2]">ซื้อรายฟอนต์</div>
-              <div className="text-[26px] font-semibold text-navy leading-[1.2]">ราคาแตกต่างกัน</div>
-              <div className="text-[12px] text-[#aaa] mt-2.5 mb-2.5">/ ชุดฟอนต์</div>
-              <div className="text-[12px] text-[#666] leading-[1.65] flex-1">
+            <div className="p-5 bg-surface flex flex-col">
+              <div className="font-heading text-h2 text-black">ซื้อรายฟอนต์</div>
+              <div className="font-heading text-h2 text-black">ราคาแตกต่างกัน</div>
+              <div className="font-body text-body-sm text-grey-600 mt-2.5 mb-2.5">/ ชุดฟอนต์</div>
+              <div className="font-body text-body-sm text-grey-600 flex-1">
                 ดาวน์โหลดไฟล์ฟอนต์ได้ทันทีหลังชำระเงิน
               </div>
-              <Link
-                href="/fonts/"
-                className="mt-4 block w-full py-2.5 text-center rounded-[6px] text-[14px] font-medium text-navy border border-[0.25px] border-[#ddd] no-underline hover:bg-navy hover:text-white hover:border-navy transition-all"
-              >
+              <Button as="link" href="/fonts/" variant="primary" className="mt-4 w-full">
                 ดูฟอนต์ทั้งหมด
-              </Link>
+              </Button>
             </div>
             <SubscriptionPricingCard />
           </div>
-        </div>
+        </Container>
       </section>
 
       <Footer />

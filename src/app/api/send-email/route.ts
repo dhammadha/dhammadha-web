@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-      ADMIN_EMAIL: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
+      ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL,
       TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
     }
   );

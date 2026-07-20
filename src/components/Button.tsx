@@ -1,5 +1,22 @@
 import Link from "next/link";
 
+/**
+ * ⚠️ LEGACY — แช่แข็ง ห้ามแก้ ห้าม restyle
+ *
+ * ปุ่มของ "ดีไซน์เก่า" ใช้โดย admin / designer dashboard / auth / quote / subscribe
+ * รวม 26 ไฟล์ ซึ่งยังอยู่บนดีไซน์เก่าทั้งหมดและต้องอยู่ต่อจนกว่าจะมีรอบของมันเอง
+ *
+ * แก้ไฟล์นี้ = ดีไซน์ dashboard เปลี่ยนตามโดยไม่ตั้งใจ
+ *
+ * `hover:bg-[#f5f5f2]` ข้างล่างเป็น hex ดิบทั้งที่มี token `bg` อยู่ — **ถูกแล้ว**
+ * หน้าที่ใช้ปุ่มนี้ยังอยู่บนดีไซน์เก่าและควรกลมกลืนกับมัน
+ *
+ * ปุ่มของดีไซน์ใหม่: components/ui/Button.tsx (API เหมือนกันเป๊ะ เปลี่ยนแค่ import path)
+ * การลบไฟล์นี้คือท่าปิดของการรื้อทั้งโปรเจกต์ (รวม admin) ไม่ใช่รอบนี้
+ *
+ * ดู docs/design/DESIGN.md §1, §8
+ */
+
 type BaseProps = {
   variant?: "primary" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";

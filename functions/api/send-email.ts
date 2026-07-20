@@ -4,10 +4,16 @@
 // endpoint. Shared logic lives in src/lib/email-service.ts.
 //
 // Required Pages env vars: RESEND_API_KEY, NEXT_PUBLIC_SUPABASE_URL,
-// NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_ADMIN_EMAIL,
+// NEXT_PUBLIC_SUPABASE_ANON_KEY, ADMIN_EMAIL (หรือ NEXT_PUBLIC_ADMIN_EMAIL),
 // SUPABASE_SERVICE_ROLE_KEY (ค้นอีเมล designer ตอนแจ้งเตือน quote — ตั้งแต่ 0054
 // anon อ่านตาราง users ไม่ได้แล้ว ถ้าไม่ตั้ง แจ้งเตือน quote จะ error ชัดเจน).
 // Optional: TURNSTILE_SECRET_KEY (enables bot verification on quote emails).
+//
+// ⚠️ ADMIN_EMAIL รับสองชื่อโดยตั้งใจ — Cloudflare Pages ตั้งไว้เป็น `ADMIN_EMAIL`
+// แต่ .env.local ของ dev ใช้ `NEXT_PUBLIC_ADMIN_EMAIL` ถ้าอ่านชื่อเดียวจะได้ undefined
+// บน production เงียบ ๆ แล้วอีเมลตีกลับเป็น no_recipient (เจอตอนต่อฟอร์ม /contact 2026-07-20)
+// `ADMIN_EMAIL` มาก่อนเพราะเป็นชื่อที่ถูกต้องกว่า — ค่านี้ใช้ฝั่ง server เท่านั้น
+// ไม่ควรมี prefix NEXT_PUBLIC_ ซึ่งแปลว่ายอมให้หลุดไปอยู่ใน bundle ฝั่ง client
 
 import { handleEmailRequest } from "../../src/lib/email-service";
 
@@ -37,7 +43,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
       SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY,
-      ADMIN_EMAIL: env.NEXT_PUBLIC_ADMIN_EMAIL,
+      ADMIN_EMAIL: env.ADMIN_EMAIL ?? env.NEXT_PUBLIC_ADMIN_EMAIL,
       TURNSTILE_SECRET_KEY: env.TURNSTILE_SECRET_KEY,
     }
   );

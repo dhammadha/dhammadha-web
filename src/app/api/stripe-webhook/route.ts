@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       RESEND_API_KEY: process.env.RESEND_API_KEY,
       SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      ADMIN_EMAIL: process.env.NEXT_PUBLIC_ADMIN_EMAIL,
+      ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? process.env.NEXT_PUBLIC_ADMIN_EMAIL,
     }
   );
 

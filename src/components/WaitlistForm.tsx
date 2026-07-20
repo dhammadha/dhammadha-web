@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Button from "@/components/ui/Button";
+import { cn } from "@/lib/cn";
 import { supabase } from "@/lib/supabase";
 
 // ฟอร์มลงทะเบียนรอเปิดตัว Subscription — เก็บอีเมลลง subscription_waitlist
@@ -23,29 +25,31 @@ export default function WaitlistForm() {
 
   if (status === "done") {
     return (
-      <p className="text-[13px] text-[#0a8a84] bg-mint-light border border-[0.5px] border-mint-mid rounded-[8px] px-3.5 py-2.5">
+      <p className="font-body text-body-sm text-success bg-surface px-3.5 py-2.5">
         ✓ ลงทะเบียนแล้ว — เราจะแจ้งคุณทางอีเมลทันทีที่เปิดบริการ
       </p>
     );
   }
 
+  // ช่องกรอก = เหมือนช่องค้นหาบน nav (เหลี่ยม พื้น surface) · ปุ่ม = Button primitive (เหลี่ยม สูงเท่าปุ่ม "ดูฟอนต์ทั้งหมด")
+  // items-stretch → ช่องกรอกยืดสูงเท่าปุ่มอัตโนมัติ (เจ้าของ 2026-07-18)
   return (
-    <form onSubmit={submit} className="flex gap-2">
+    <form onSubmit={submit} className="flex items-stretch gap-2">
       <input
         type="email"
         value={email}
         onChange={(e) => { setEmail(e.target.value); if (status === "error") setStatus("idle"); }}
         placeholder="your@email.com"
         required
-        className={`flex-1 min-w-0 px-3.5 py-2.5 border border-[0.5px] rounded-[8px] text-[13px] text-navy outline-none focus:border-mint transition-colors bg-white ${status === "error" ? "border-[#e74c3c]" : "border-[#ddd]"}`}
+        className={cn(
+          "flex-1 min-w-0 px-3.5 bg-surface font-body text-body-sm text-black placeholder:text-grey-400 outline-none",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-mint",
+          status === "error" && "outline outline-2 -outline-offset-2 outline-danger"
+        )}
       />
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="shrink-0 px-4 py-2.5 rounded-[8px] bg-navy text-white text-[13px] font-medium border-none cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" disabled={status === "loading"} className="shrink-0">
         {status === "loading" ? "กำลังส่ง…" : "แจ้งเมื่อเปิดตัว"}
-      </button>
+      </Button>
     </form>
   );
 }

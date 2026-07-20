@@ -17,9 +17,48 @@
 
 html {
   scroll-behavior: smooth;
+  /* Nav เป็น sticky สูง 70px — เว้นที่ด้านบนให้ทุกการเลื่อนแบบ scrollIntoView/anchor
+     (รวมการ scroll-to-top ตอน client-nav ของ Next.js + ลิงก์ #pricing/#fonts)
+     ไม่งั้นขอบบนเนื้อหาไปชิด y=0 แล้วโดน nav บังราว ๆ 70px (เจ้าของเจอทุกหน้า 2026-07-18) */
+  scroll-padding-top: 78px;
 }
 
 body {
   background: #fff;
   font-family: var(--font-noto-thai), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Type tester — สไลเดอร์ขนาดตัวอักษร: ราง + ปุ่มเหลี่ยม (docs/design/DESIGN.md §15.10)
+   Tailwind styl ::-webkit-slider-thumb ไม่ได้ จึงต้องเขียน CSS จริงที่นี่
+   ราง = พื้นหลัง gradient (mint ซ้าย · grey ขวา) ตั้งจาก inline style ตามค่า value
+   pseudo-track โปร่งใสให้พื้นหลัง element โผล่ · ปุ่มเป็นกล่องขาวเหลี่ยม border-radius:0 */
+.tester-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  cursor: pointer;
+}
+.tester-range::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+.tester-range::-moz-range-track { height: 4px; background: transparent; }
+.tester-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 20px;
+  margin-top: -8px; /* จัดกึ่งกลางบนราง 4px (2 - 20/2) */
+  background: #fff;
+  border: 1px solid #E0E0E0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.tester-range::-moz-range-thumb {
+  width: 12px;
+  height: 20px;
+  border-radius: 0;
+  background: #fff;
+  border: 1px solid #E0E0E0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.tester-range:focus-visible {
+  outline: 2px solid #080808;
+  outline-offset: 4px;
 }

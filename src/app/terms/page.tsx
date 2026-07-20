@@ -17,7 +17,7 @@ export default function TermsPage() {
       <LegalSection title="1. ทั่วไป">
         <p>
           เว็บไซต์ dhammadha.com ดำเนินการโดย <strong>ธรรมดาสตูดิโอ</strong> การใช้งานเว็บไซต์ถือว่าคุณยอมรับข้อกำหนดฉบับนี้ หากไม่เห็นด้วยกรุณายุติการใช้งาน ติดต่อ :{" "}
-          <a href="mailto:info@dhammadha.com" className="text-mint">info@dhammadha.com</a>
+          <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
         </p>
       </LegalSection>
 
@@ -32,7 +32,7 @@ export default function TermsPage() {
         <p>
           ฟอนต์ทุกชุดบนเว็บไซต์เป็นลิขสิทธิ์ของนักออกแบบเจ้าของผลงานหรือของธรรมดาสตูดิโอ
           การซื้อฟอนต์เป็นการได้รับ <strong>สิทธิ์การใช้งาน (license)</strong> ตามขอบเขตที่ระบุใน{" "}
-          <Link href="/agreement/" className="text-mint">สัญญาอนุญาตใช้งานฟอนต์</Link> ไม่ใช่การซื้อขาดลิขสิทธิ์
+          <Link href="/agreement/" className="text-mint-text">สัญญาอนุญาตใช้งานฟอนต์</Link> ไม่ใช่การซื้อขาดลิขสิทธิ์
         </p>
         <p>
           ห้ามแจกจ่าย แชร์ ขายต่อ หรือดัดแปลงไฟล์ฟอนต์เพื่อเผยแพร่ต่อโดยไม่ได้รับอนุญาต
@@ -58,8 +58,8 @@ export default function TermsPage() {
       <LegalSection title="6. กฎหมายที่ใช้บังคับ">
         <p>
           ข้อกำหนดฉบับนี้อยู่ภายใต้กฎหมายแห่งราชอาณาจักรไทย
-          ดูเพิ่มเติม : <Link href="/privacy/" className="text-mint">นโยบายความเป็นส่วนตัว</Link>{" "}
-          และ <Link href="/refund-policy/" className="text-mint">นโยบายการคืนเงิน</Link>
+          ดูเพิ่มเติม : <Link href="/privacy/" className="text-mint-text">นโยบายความเป็นส่วนตัว</Link>{" "}
+          และ <Link href="/refund-policy/" className="text-mint-text">นโยบายการคืนเงิน</Link>
         </p>
       </LegalSection>
     </LegalPage>

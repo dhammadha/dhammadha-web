@@ -25,6 +25,33 @@ async function sha256Hex40(s: string): Promise<string> {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
 }
 
+// เรียงน้ำหนักจากบางไปหนา (100→900) น้ำหนักเท่ากัน → upright ก่อน italic
+// เช่น ชวนชิม: Light / Light Italic / Regular / Italic / Bold / Bold Italic
+//
+// ⚠️ ไม่พึ่ง `css` จาก Edge Function — มันคำนวณจาก id ทั้งก้อน ("lightitalic"/"bolditalic"
+// ไม่มีในตาราง จึงตกเป็น 400 หมด ทำให้ italic ทุกตัวกองรวมที่ 400) เราถอด id เอง:
+// ตัด italic/oblique ออก เหลือ base weight → เทียบกับตาราง
+const WEIGHT_CSS: Record<string, number> = {
+  thin: 100, extralight: 200, ultralight: 200, light: 300,
+  regular: 400, normal: 400, medium: 500, semibold: 600,
+  demibold: 600, bold: 700, extrabold: 800, ultrabold: 800,
+  black: 900, heavy: 900,
+};
+
+function weightRank(w: Weight): { css: number; italic: number } {
+  const id = w.id.toLowerCase();
+  const italic = /italic|oblique/.test(id) ? 1 : 0;
+  const base = id.replace(/italic|oblique/g, "") || "regular";
+  return { css: WEIGHT_CSS[base] ?? w.css ?? 400, italic };
+}
+
+function sortWeights(weights: Weight[]): Weight[] {
+  return weights.slice().sort((a, b) => {
+    const ra = weightRank(a), rb = weightRank(b);
+    return ra.css - rb.css || ra.italic - rb.italic;
+  });
+}
+
 function probeImage(url: string): Promise<boolean> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -45,10 +72,24 @@ export default function TypeTester({ font }: { font: Font }) {
   const [rendering, setRendering] = useState(false);
   const [error, setError] = useState("");
   const [infoError, setInfoError] = useState(false);
+  const [weightOpen, setWeightOpen] = useState(false);
 
   const seqRef = useRef(0);
   const objectUrlRef = useRef<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const weightRef = useRef<HTMLDivElement>(null);
+
+  // ปิด dropdown น้ำหนักเมื่อคลิกนอกกล่อง / กด Escape (แพทเทิร์นเดียวกับเมนูบัญชีใน Nav)
+  useEffect(() => {
+    if (!weightOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (weightRef.current && !weightRef.current.contains(e.target as Node)) setWeightOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setWeightOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [weightOpen]);
 
   // โหลดข้อมูลฟอนต์ (ชื่อ + น้ำหนักที่ render ได้) จาก Edge Function
   // ครั้งเดียวตอน mount / เมื่อเปลี่ยนฟอนต์
@@ -71,7 +112,7 @@ export default function TypeTester({ font }: { font: Font }) {
           return;
         }
         const info = data as { name?: string; weights?: Weight[] };
-        const w = info.weights ?? [];
+        const w = sortWeights(info.weights ?? []);
         setWeights(w);
         setFontName(info.name || font.name || "");
         setWeightId(w[0]?.id ?? "");
@@ -161,11 +202,9 @@ export default function TypeTester({ font }: { font: Font }) {
 
   if (infoError) {
     return (
-      <div className="bg-white border border-[0.5px] border-border rounded-xl p-5 mb-5">
-        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-          <span className="text-[15px] font-semibold text-navy">ทดสอบฟอนต์</span>
-        </div>
-        <div className="text-[13px] text-[#aaa] text-center py-8">
+      <div>
+        <h3 className="font-heading text-h2 text-black mb-3">ทดสอบฟอนต์</h3>
+        <div className="bg-surface font-body text-body text-grey-600 text-center py-10">
           ระบบทดสอบฟอนต์ขัดข้องชั่วคราว
         </div>
       </div>
@@ -173,13 +212,14 @@ export default function TypeTester({ font }: { font: Font }) {
   }
 
   return (
-    <div className="bg-white border border-[0.5px] border-border rounded-xl p-5 mb-5">
+    <div>
       <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-        <span className="text-[15px] font-semibold text-navy">ทดสอบฟอนต์</span>
+        <h3 className="font-heading text-h2 text-black">ทดสอบฟอนต์</h3>
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A */}
+          {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A · ราง+ปุ่มเหลี่ยม (.tester-range ใน globals.css)
+              พื้นหลัง gradient ตั้งตามค่า value: mint ซ้ายจุดปุ่ม · grey ขวา */}
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-[#aaa]">A</span>
+            <span className="font-heading text-body-sm text-grey-600 leading-none">A</span>
             <input
               type="range"
               min={16}
@@ -187,24 +227,62 @@ export default function TypeTester({ font }: { font: Font }) {
               step={1}
               value={size}
               onChange={(e) => setSize(Number(e.target.value))}
-              className="accent-navy w-24 sm:w-32"
+              aria-label="ขนาดตัวอักษร"
+              className="tester-range w-24 sm:w-32"
+              style={{
+                background: `linear-gradient(to right, #5ECEC8 0%, #5ECEC8 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 100%)`,
+              }}
             />
-            <span className="text-[18px] text-[#aaa] leading-none">A</span>
-            <span className="text-[12px] text-[#aaa] w-[38px] text-right shrink-0">{size}px</span>
+            <span className="font-heading text-h2 text-grey-600 leading-none">A</span>
+            <span className="font-body text-body-sm text-grey-600 w-12 text-right shrink-0">{size}px</span>
           </div>
 
+          {/* Dropdown น้ำหนัก — สไตล์เดียวกับเมนูบัญชีใน Nav (bg-surface · shadow · แถวคั่นบาง ๆ · hover mint)
+              เลิกใช้ <select> เพราะ dropdown ของ OS สไตล์ไม่ได้ (เจ้าของเห็นเมนู macOS สีเข้ม)
+              เปิดตอน hover เหมือน submenu "ฟอนต์"/บัญชีใน Nav · คลิกยังใช้ได้ (มือถือ/แตะ) */}
           {weights.length > 0 && (
-            <select
-              value={weightId}
-              onChange={(e) => setWeightId(e.target.value)}
-              className="text-[13px] px-3 py-1.5 border border-[0.5px] border-[#ddd] rounded-[8px] bg-white text-navy outline-none cursor-pointer"
+            <div
+              ref={weightRef}
+              className="relative"
+              onMouseEnter={() => setWeightOpen(true)}
+              onMouseLeave={() => setWeightOpen(false)}
             >
-              {weights.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {fontName} {w.label}
-                </option>
-              ))}
-            </select>
+              <button
+                type="button"
+                onClick={() => setWeightOpen((o) => !o)}
+                aria-haspopup="listbox"
+                aria-expanded={weightOpen}
+                className="flex items-center gap-2 font-body text-body-sm text-black bg-surface px-3 py-2 border-none cursor-pointer hover:bg-grey-200/60 transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              >
+                <span className="whitespace-nowrap">{fontName} {weights.find((w) => w.id === weightId)?.label ?? ""}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 shrink-0 transition-transform duration-150 ${weightOpen ? "rotate-180" : ""}`}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {/* มือถือปุ่มขึ้นบรรทัดใหม่ชิดซ้าย → anchor ซ้าย (เมนูกางไปขวา ไม่ล้นจอ)
+                  เดสก์ท็อปปุ่มอยู่ขวาสุด → anchor ขวา (เมนูกางไปซ้าย มีที่ว่าง)
+                  pt-1 = สะพานกันเมาส์หลุดช่วงว่างระหว่างปุ่มกับเมนู (hover ไม่ขาด · เหมือน Nav) */}
+              {weightOpen && (
+                <div className="absolute left-0 sm:left-auto sm:right-0 top-full pt-1 w-max min-w-full z-30">
+                <div role="listbox" className="bg-surface shadow-lg py-1">
+                  {weights.map((w, i) => (
+                    <button
+                      key={w.id}
+                      role="option"
+                      aria-selected={w.id === weightId}
+                      onClick={() => { setWeightId(w.id); setWeightOpen(false); }}
+                      className={`flex items-center gap-2 w-full text-left whitespace-nowrap px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none cursor-pointer hover:bg-mint transition-colors duration-150 ease-base ${i > 0 ? "border-t border-grey-200" : ""}`}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 shrink-0 ${w.id === weightId ? "opacity-100" : "opacity-0"}`}>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      {fontName} {w.label}
+                    </button>
+                  ))}
+                </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -215,10 +293,11 @@ export default function TypeTester({ font }: { font: Font }) {
         onChange={(e) => setText(e.target.value)}
         placeholder={DEFAULT_TESTER_TEXT}
         maxLength={80}
-        className="w-full px-4 py-3 mb-3 border border-border rounded-xl bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]"
+        aria-label="ข้อความทดสอบ"
+        className="w-full px-4 py-3 mb-px bg-surface font-body text-body-sm text-black border-none outline-none placeholder:text-grey-400 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
       />
 
-      <div className="min-h-[140px] bg-bg rounded-lg border border-[0.5px] border-border px-4 py-3 overflow-x-auto flex items-center">
+      <div className="min-h-[140px] bg-surface px-4 py-3 overflow-x-auto flex items-center">
         {imgSrc ? (
           <img
             src={imgSrc}
@@ -229,10 +308,10 @@ export default function TypeTester({ font }: { font: Font }) {
             style={{ width: imgWidth || undefined }}
           />
         ) : (
-          <span className="text-[13px] text-[#bbb]">กำลังเตรียมตัวอย่าง...</span>
+          <span className="font-body text-body text-grey-400">กำลังเตรียมตัวอย่าง...</span>
         )}
       </div>
-      {error && <p className="text-[12px] text-[#c0392b] mt-1.5">{error}</p>}
+      {error && <p className="font-body text-body-sm text-danger mt-2">{error}</p>}
     </div>
   );
 }

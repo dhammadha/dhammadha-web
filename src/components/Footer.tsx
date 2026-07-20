@@ -2,6 +2,27 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Container from "@/components/ui/Container";
+import { cn } from "@/lib/cn";
+
+/**
+ * Footer — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/footer.png)
+ *
+ * โครงตรงกับของเดิมเกือบหมด (คอลัมน์ครบ + social อยู่แล้ว) → restyle ล้วน
+ * ไม่เพิ่ม ไม่ตัดลิงก์สักตัว
+ *
+ * moodboard วาด social เป็นสี่เหลี่ยมขาว 4 อัน = ที่วางไอคอน ไม่ใช่สี่เหลี่ยมจริง
+ * → คงไอคอนจริงทั้ง 4 (Facebook/Instagram/TikTok/LINE) ไว้
+ *
+ * ข้อความลิขสิทธิ์คงของเดิม "© 2012–2026 DHAMMADHA STUDIO" —
+ * moodboard เขียน "สงวนลิขสิทธิ์ (C) ธรรมดาสตูดิโอ" ซึ่งเป็นการเปลี่ยน "เนื้อหา"
+ * ไม่ใช่ดีไซน์ และทิ้งช่วงปีไป → ไม่แตะ ถ้าอยากเปลี่ยนค่อยบอก
+ *
+ * เปลี่ยนโครงสร้าง 1 จุด: ปุ่ม social จาก <button onClick={window.open}> → <a target="_blank">
+ * ปลายทางเหมือนเดิมเป๊ะ (เปิดแท็บใหม่ + noopener) แต่แก้บั๊ก a11y จริง —
+ * element ที่พาไปหน้าอื่นต้องเป็นลิงก์ ไม่ใช่ปุ่ม (screen reader อ่านผิดบทบาท,
+ * คลิกกลางเปิดแท็บไม่ได้, คัดลอกลิงก์ไม่ได้)
+ */
 
 const socials = [
   {
@@ -44,67 +65,98 @@ const socials = [
   },
 ];
 
-export default function Footer() {
+// grey-400 บนพื้นดำ = 9.23:1 ผ่าน AA สบาย (DESIGN.md §3.2 — กฎ "ห้ามใช้กับตัวหนังสือ"
+// ใช้กับพื้นขาวเท่านั้น ซึ่งได้แค่ 2.17:1)
+const LINK = cn(
+  "block font-body text-body-sm text-grey-400 no-underline",
+  "hover:text-mint transition-colors duration-150 ease-base",
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+);
+
+// หัวคอลัมน์ใช้ `ui` (Sans Bold 16) — Figma ไม่มีสไตล์ "footer heading" โดยเฉพาะ
+// และ fc-heading สงวนไว้ให้ชื่อฟอนต์บนการ์ด (สองอันเป็น Sans Bold 16 เหมือนกัน
+// แต่ชื่อต้องตรงกับหน้าที่)
+const HEADING = "font-heading text-ui text-white mb-3";
+
+function Col({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <footer className="bg-white">
-      <div className="max-w-site mx-auto grid grid-cols-1 md:grid-cols-[1.8fr_1fr_1fr_1fr] gap-8 px-8 pt-9 pb-7">
+    <div>
+      <h4 className={HEADING}>{title}</h4>
+      <div className="flex flex-col gap-2">{children}</div>
+    </div>
+  );
+}
+
+export default function Footer() {
+  // mt-auto — ดันตัวเองไปชิดขอบล่างเมื่อเนื้อหาสั้นกว่าจอ (body เป็น flex-col min-h-screen
+  // ใน app/layout.tsx) หน้าเนื้อยาวไม่มีผล เพราะไม่เหลือที่ว่างให้ดัน
+  return (
+    <footer className="bg-black mt-auto">
+      <Container className="grid grid-cols-1 md:grid-cols-[1.8fr_1fr_1fr_1fr] gap-8 md:gap-6 pt-10 pb-8">
         {/* Brand */}
-        <div className="flex flex-col gap-3">
-          <Link href="/" className="flex items-center gap-2 no-underline">
+        <div className="flex flex-col gap-4">
+          <Link
+            href="/"
+            className={cn(
+              "flex items-center gap-2.5 no-underline w-fit",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+            )}
+          >
             <Image
-              src="/logo_DHAMMADHA_2025_simple.png"
+              src="/logo_DHAMMADHA_192px.png"
               alt="Dhammadha Studio"
               width={28}
               height={28}
-              className="rounded-[5px] object-cover"
+              className="object-cover"
             />
-            <span className="text-[13px] font-semibold text-navy tracking-[0.04em]">
+            <span className="font-heading text-body-sm font-bold text-white tracking-wide">
               DHAMMADHA STUDIO
             </span>
           </Link>
-          <div className="flex gap-2.5 mt-1">
+          <div className="flex gap-3">
             {socials.map((s) => (
-              <button
+              <a
                 key={s.name}
-                onClick={() => window.open(s.url, "_blank", "noopener")}
-                className="bg-transparent border-none p-0 cursor-pointer text-navy hover:text-mint transition-colors flex"
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "text-white hover:text-mint transition-colors duration-150 ease-base flex",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                )}
                 aria-label={s.name}
               >
                 {s.icon}
-              </button>
+              </a>
             ))}
           </div>
         </div>
 
-        {/* Fonts */}
-        <div>
-          <h4 className="text-[12px] font-semibold text-navy mb-3 tracking-[0.02em]">ผลิตภัณฑ์</h4>
-          <Link href="/fonts/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ฟอนต์ทั้งหมด</Link>
-          <Link href="/agreement/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">สัญญาอนุญาต</Link>
-          <Link href="/#pricing" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ราคาและแผนบริการ</Link>
-        </div>
+        <Col title="ผลิตภัณฑ์">
+          <Link href="/fonts/" className={LINK}>ฟอนต์ทั้งหมด</Link>
+          <Link href="/agreement/" className={LINK}>สัญญาอนุญาต</Link>
+          <Link href="/#pricing" className={LINK}>ราคาและแผนบริการ</Link>
+        </Col>
 
-        {/* Legal */}
-        <div>
-          <h4 className="text-[12px] font-semibold text-navy mb-3 tracking-[0.02em]">นโยบาย</h4>
-          <Link href="/privacy/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">นโยบายความเป็นส่วนตัว</Link>
-          <Link href="/terms/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ข้อกำหนดการใช้งาน</Link>
-          <Link href="/refund-policy/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">นโยบายการคืนเงิน</Link>
-          <Link href="/designer-agreement/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ข้อตกลงสำหรับนักออกแบบ</Link>
-        </div>
+        <Col title="นโยบาย">
+          <Link href="/terms/" className={LINK}>ข้อกำหนดการใช้งาน</Link>
+          <Link href="/privacy/" className={LINK}>นโยบายความเป็นส่วนตัว</Link>
+          <Link href="/refund-policy/" className={LINK}>นโยบายการคืนเงิน</Link>
+          <Link href="/designer-agreement/" className={LINK}>ข้อตกลงสำหรับนักออกแบบ</Link>
+        </Col>
 
-        {/* Help */}
-        <div>
-          <h4 className="text-[12px] font-semibold text-navy mb-3 tracking-[0.02em]">ช่วยเหลือ</h4>
-          <a href="mailto:info@dhammadha.com" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">ติดต่อสอบถาม</a>
-          <Link href="/become-a-designer/" className="block text-[12px] text-[#888] no-underline mb-2 hover:text-mint transition-colors">สมัครเป็นนักออกแบบ</Link>
-        </div>
-      </div>
+        <Col title="ช่วยเหลือ">
+          <Link href="/contact/" className={LINK}>ติดต่อสอบถาม</Link>
+          <Link href="/verify/" className={LINK}>ตรวจสอบสิทธิการใช้งานฟอนต์</Link>
+          <Link href="/become-a-designer/" className={LINK}>สมัครเป็นนักออกแบบ</Link>
+        </Col>
+      </Container>
 
-      <div className="border-t border-[#f0f0f0]">
-        <div className="max-w-site mx-auto px-8 py-3.5 text-center text-[11px] text-[#bbb]">
+      {/* แถบล่างพื้นอ่อน ตาม moodboard/footer.png — ใช้ `footnote` (Looped Light 12) */}
+      <div className="bg-surface">
+        <Container className="py-4 text-center font-body text-footnote text-grey-600">
           © 2012–2026 DHAMMADHA STUDIO
-        </div>
+        </Container>
       </div>
     </footer>
   );
