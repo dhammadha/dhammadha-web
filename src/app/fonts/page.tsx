@@ -168,29 +168,36 @@ function AllFontsContent() {
               flex-wrap ไม่ scroll — กันไม่ให้เกิด horizontal scroll ที่ 375px */}
           {!loading && fonts.length > 0 && (
             <div className="flex flex-col gap-3 mb-5">
-              {/* Search */}
-              <div className="relative w-full sm:w-72">
-                <Input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="ค้นหาฟอนต์…"
-                  aria-label="ค้นหาฟอนต์"
-                  icon={<SearchIcon />}
-                  // เว้นที่ให้ปุ่ม × ตอนมีคำค้น — ทับ pr-3 ที่ Input ใส่มากับ icon
-                  // ปลอดภัยแม้ cn() จะไม่ merge tailwind (§13.6) เพราะเป็น utility ตระกูลเดียวกัน
-                  // Tailwind ปล่อย padding ไล่จากค่าน้อยไปมาก → pr-9 อยู่หลัง pr-3 ในสไตล์ชีตเสมอ
-                  // (ยืนยันด้วย getComputedStyle: 36px)
-                  className={search ? "pr-9" : undefined}
-                />
-                {search && (
-                  <button
-                    onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-base leading-none p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                    aria-label="ล้างคำค้นหา"
-                  >
-                    ×
-                  </button>
+              {/* Search + ล้างตัวกรอง (เจ้าของสั่ง 2026-07-21: ย้าย ล้างตัวกรอง ขึ้นมาต่อจากช่องค้นหา) */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative w-full sm:w-72">
+                  <Input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="ค้นหาฟอนต์…"
+                    aria-label="ค้นหาฟอนต์"
+                    icon={<SearchIcon />}
+                    // เว้นที่ให้ปุ่ม × ตอนมีคำค้น — ทับ pr-3 ที่ Input ใส่มากับ icon
+                    // ปลอดภัยแม้ cn() จะไม่ merge tailwind (§13.6) เพราะเป็น utility ตระกูลเดียวกัน
+                    // Tailwind ปล่อย padding ไล่จากค่าน้อยไปมาก → pr-9 อยู่หลัง pr-3 ในสไตล์ชีตเสมอ
+                    // (ยืนยันด้วย getComputedStyle: 36px)
+                    className={search ? "pr-9" : undefined}
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-base leading-none p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                      aria-label="ล้างคำค้นหา"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                {hasActiveFilters && (
+                  <Button size="sm" variant="ghost" onClick={clearFilters}>
+                    ล้างตัวกรอง
+                  </Button>
                 )}
               </div>
 
@@ -228,12 +235,6 @@ function AllFontsContent() {
                     {p.label}
                   </Button>
                 ))}
-
-                {hasActiveFilters && (
-                  <Button size="sm" variant="ghost" onClick={clearFilters}>
-                    ล้างตัวกรอง
-                  </Button>
-                )}
 
                 <span className="font-body text-body-sm text-grey-600 sm:ml-auto">
                   พบ {filteredFonts.length} ฟอนต์

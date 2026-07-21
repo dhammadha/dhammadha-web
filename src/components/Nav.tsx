@@ -83,6 +83,8 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [loggedOutMenuOpen, setLoggedOutMenuOpen] = useState(false);
+  const [cartMenuOpen, setCartMenuOpen] = useState(false);
   const [fontMenuOpen, setFontMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<FontOption[]>([]);
@@ -384,35 +386,64 @@ export default function Nav() {
           ) : (
             /* ยังไม่ล็อกอิน = ไอคอนคน ตาม moodboard/main page (update - closeup).png
                (เดิมเป็นปุ่ม "เข้าสู่ระบบ" สีมิ้นต์ — moodboard วาดเป็นไอคอนคู่กับตะกร้า)
-               ปลายทางเหมือนเดิม: /auth/login */
+               submenu เปิดตอน hover เหมือน "ฟอนต์"/บัญชี — กดแล้วไปที่เดิม /auth/login */
+            <div
+              className="relative"
+              onMouseEnter={() => setLoggedOutMenuOpen(true)}
+              onMouseLeave={() => setLoggedOutMenuOpen(false)}
+            >
+              <Link
+                href="/auth/login"
+                aria-label="เข้าสู่ระบบ"
+                className={cn(
+                  "flex items-center justify-center w-8 h-8 text-white",
+                  "hover:text-mint transition-colors duration-150 ease-base",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                )}
+              >
+                <PersonIcon />
+              </Link>
+              {loggedOutMenuOpen && (
+                <div className="absolute right-0 top-full pt-2 w-44 z-50">
+                  <div className="bg-surface shadow-lg py-1">
+                    <Link
+                      href="/auth/login"
+                      className="block px-4 py-2.5 font-ui text-ui text-black no-underline hover:bg-mint transition-colors duration-150 ease-base"
+                    >
+                      เข้าสู่ระบบ
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ตะกร้า — ตัวระบบจริงเป็น milestone แยก (money-path · DESIGN.md §10) ยังไม่มี state ของจริง
+              submenu ตอน hover จึงว่างเสมอตอนนี้ — พอ milestone ตะกร้าเสร็จค่อยใส่รายการ/ราคารวม/ปุ่ม checkout จริง */}
+          <div
+            className="relative"
+            onMouseEnter={() => setCartMenuOpen(true)}
+            onMouseLeave={() => setCartMenuOpen(false)}
+          >
             <Link
-              href="/auth/login"
-              aria-label="เข้าสู่ระบบ"
-              title="เข้าสู่ระบบ"
+              href="/cart/"
+              aria-label="ตะกร้า"
               className={cn(
                 "flex items-center justify-center w-8 h-8 text-white",
                 "hover:text-mint transition-colors duration-150 ease-base",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
               )}
             >
-              <PersonIcon />
+              <CartIcon />
             </Link>
-          )}
-
-          {/* ตะกร้า — ตัวระบบจริงเป็น milestone แยก (money-path · DESIGN.md §10)
-              ตอนนี้ลิงก์ไปหน้า /cart ที่บอกว่า "เร็ว ๆ นี้" → เห็นดีไซน์ครบ กดแล้วไม่ 404
-              พอ milestone ตะกร้าเสร็จ ค่อยใส่ของจริงลงหน้านั้น */}
-          <Link
-            href="/cart/"
-            aria-label="ตะกร้า"
-            className={cn(
-              "flex items-center justify-center w-8 h-8 text-white",
-              "hover:text-mint transition-colors duration-150 ease-base",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+            {cartMenuOpen && (
+              <div className="absolute right-0 top-full pt-2 w-64 z-50">
+                <div className="bg-surface shadow-lg py-4 px-4 text-center">
+                  <p className="font-body text-body-sm text-grey-600">ยังไม่มีสินค้าในตะกร้า</p>
+                </div>
+              </div>
             )}
-          >
-            <CartIcon />
-          </Link>
+          </div>
           </div>
 
           {/* Mobile hamburger */}
