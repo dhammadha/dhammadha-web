@@ -4,9 +4,9 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import Nav from "@/components/Nav";
-import Footer from "@/components/Footer";
-import Button from "@/components/Button";
+import AuthShell from "@/components/auth/AuthShell";
+import { FIELD, LABEL } from "@/components/form/field";
+import Button from "@/components/ui/Button";
 
 export default function LoginPage() {
   return (
@@ -42,74 +42,64 @@ function LoginForm() {
   };
 
   return (
-    <>
-      <Nav />
-      <div className="min-h-screen bg-bg flex items-center justify-center px-4">
-      <div className="w-full max-w-[400px]">
-        <div className="bg-white rounded-2xl shadow-sm border border-border p-8">
-          <h1 className="text-[20px] font-semibold text-navy mb-6">เข้าสู่ระบบ</h1>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] text-[#555] font-medium">อีเมล</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className="px-4 py-2.5 rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]"
-                placeholder="your@email.com"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-[13px] text-[#555] font-medium">รหัสผ่าน</label>
-                <Link href="/auth/forgot-password" className="text-[12px] text-mint no-underline hover:underline">
-                  ลืมพาสเวิร์ด
-                </Link>
-              </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="px-4 py-2.5 rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {error && (
-              <p className="text-[13px] text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
-            )}
-
-            <Button type="submit" disabled={loading} size="lg" className="mt-2 w-full">
-              {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
-            </Button>
-          </form>
-
-          <p className="text-center text-[13px] text-[#aaa] mt-6">
-            ยังไม่มีบัญชี?{" "}
-            <Link href="/auth/signup" className="text-mint no-underline hover:underline">
-              สมัครสมาชิก
-            </Link>
-          </p>
+    <AuthShell title="เข้าสู่ระบบ">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div>
+          <label className={LABEL}>อีเมล</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+            className={FIELD}
+            placeholder="your@email.com"
+          />
         </div>
 
-        <p className="text-center text-[13px] text-[#aaa] mt-5">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="text-[#aaa] bg-transparent border-none cursor-pointer hover:text-navy transition-colors p-0 text-[13px] font-[inherit]"
-          >
-            ← ย้อนกลับ
-          </button>
-        </p>
-      </div>
-    </div>
-      <Footer />
-    </>
+        <div>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <label className="font-ui text-ui text-black">รหัสผ่าน</label>
+            <Link href="/auth/forgot-password" className="font-body text-body-sm text-mint-text no-underline hover:underline">
+              ลืมพาสเวิร์ด
+            </Link>
+          </div>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+            className={FIELD}
+            placeholder="••••••••"
+          />
+        </div>
+
+        {error && (
+          <p className="font-body text-body-sm text-danger-dark">{error}</p>
+        )}
+
+        <Button type="submit" disabled={loading} size="lg" className="mt-2 w-full">
+          {loading ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
+        </Button>
+      </form>
+
+      <p className="text-center font-body text-body-sm text-grey-600 mt-6">
+        ยังไม่มีบัญชี?{" "}
+        <Link href="/auth/signup" className="text-mint-text no-underline hover:underline">
+          สมัครสมาชิก
+        </Link>
+      </p>
+
+      <p className="text-center mt-5">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="font-body text-body-sm text-grey-600 bg-transparent border-none cursor-pointer hover:text-black transition-colors p-0"
+        >
+          ← ย้อนกลับ
+        </button>
+      </p>
+    </AuthShell>
   );
 }
