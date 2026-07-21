@@ -6,6 +6,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/ui/Button";
 import { licenseLabel } from "@/lib/license";
 
 type Entitlement = {
@@ -103,9 +104,9 @@ export default function MyDownloads() {
   if (!loaded || items.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl border border-border p-6 mt-6">
-      <h2 className="text-[16px] font-semibold text-navy mb-1">ดาวน์โหลดของฉัน</h2>
-      <p className="text-[12px] text-[#aaa] mb-4">
+    <section className="mt-10">
+      <h2 className="font-heading text-h2 text-black mb-1">ดาวน์โหลดของฉัน</h2>
+      <p className="font-body text-body-sm text-grey-600 mb-4">
         ไฟล์ฟอนต์ที่คุณมีสิทธิ์ใช้งาน — ดาวน์โหลดซ้ำได้ตลอด ไฟล์ถูกประทับข้อมูลสิทธิ์ของคุณ
       </p>
 
@@ -114,41 +115,42 @@ export default function MyDownloads() {
           const fontName = ent.fonts?.name ?? ent.fonts?.name_th ?? "ฟอนต์";
           const isOpen = openId === ent.id;
           return (
-            <div key={ent.id} className="border border-border rounded-xl overflow-hidden">
+            <div key={ent.id} className="bg-surface overflow-hidden">
               <button
                 onClick={() => toggleOpen(ent)}
-                className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-none cursor-pointer text-left hover:bg-[#fafaf8] transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-transparent border-none cursor-pointer text-left hover:bg-grey-200/40 transition-colors"
               >
                 {ent.fonts?.cover_image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={ent.fonts.cover_image_url} alt="" className="w-14 h-9 object-cover rounded-lg border border-border" />
+                  <img src={ent.fonts.cover_image_url} alt="" className="w-14 h-9 object-cover" />
                 ) : (
-                  <div className="w-14 h-9 rounded-lg bg-[#f5f5f2]" />
+                  <div className="w-14 h-9 bg-grey-200" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[14px] font-medium text-navy truncate">{fontName}</div>
-                  <div className="text-[12px] text-[#aaa]">
+                  <div className="font-body text-body text-black truncate">{fontName}</div>
+                  <div className="font-body text-footnote text-grey-600">
                     สิทธิ์: {licenseLabel(ent.license_type)}
                     {ent.orders?.order_no ? ` · ${ent.orders.order_no}` : ""}
                   </div>
                 </div>
-                <span className="text-[#aaa] text-[12px]">{isOpen ? "▲" : "▼"}</span>
+                <span className="text-grey-600 font-body text-footnote">{isOpen ? "▲" : "▼"}</span>
               </button>
 
               {isOpen && (
-                <div className="px-4 pb-3 pt-1 border-t border-[#f4f4f0] flex flex-col gap-1.5">
+                <div className="px-4 pb-3 pt-3 bg-grey-200/40 flex flex-col gap-1.5">
                   {!files[ent.id] ? (
-                    <span className="text-[13px] text-[#aaa] py-2">กำลังโหลดรายการไฟล์…</span>
+                    <span className="font-body text-body-sm text-grey-600 py-2">กำลังโหลดรายการไฟล์…</span>
                   ) : files[ent.id].map((f) => (
                     <div key={f.index} className="flex items-center justify-between gap-3">
-                      <span className="text-[13px] text-[#555] truncate">{f.name}</span>
-                      <button
+                      <span className="font-body text-body-sm text-grey-800 truncate">{f.name}</span>
+                      <Button
                         onClick={() => download(ent, f)}
                         disabled={busy !== null}
-                        className="text-[12px] px-3 py-1.5 rounded-lg bg-mint text-white border-none cursor-pointer hover:bg-navy transition-colors disabled:opacity-50 disabled:cursor-wait flex-shrink-0"
+                        size="sm"
+                        className="flex-shrink-0"
                       >
                         {busy === `${ent.id}:${f.index}` ? "กำลังเตรียมไฟล์…" : "ดาวน์โหลด"}
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -158,7 +160,7 @@ export default function MyDownloads() {
         })}
       </div>
 
-      {error && <p className="text-[12px] text-red-500 mt-3">{error}</p>}
-    </div>
+      {error && <p className="font-body text-body-sm text-danger-dark mt-3">{error}</p>}
+    </section>
   );
 }

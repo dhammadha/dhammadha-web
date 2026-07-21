@@ -4,9 +4,10 @@
 // การสมัคร/ต่ออายุ/ชำระเงิน อยู่ที่หน้า /subscribe
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
 import {
   isSubActive,
   parseSubSettings,
@@ -49,59 +50,52 @@ export default function SubscriptionCard() {
   const active = isSubActive(sub);
 
   return (
-    <section className="mt-6">
-      <div className="bg-white rounded-2xl border border-border p-6">
+    <section className="mt-10">
+      <div className="bg-surface p-6">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <h2 className="text-[18px] font-semibold text-navy">Subscription</h2>
+          <h2 className="font-heading text-h2 text-black">Subscription</h2>
           {active ? (
-            <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-mint-light text-mint border border-mint-mid">
-              ใช้งานอยู่
-            </span>
+            <Badge variant="free">ใช้งานอยู่</Badge>
           ) : (
-            <span className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[#f5f5f2] text-[#888]">
-              ยังไม่ได้สมัคร
-            </span>
+            <Badge variant="tag">ยังไม่ได้สมัคร</Badge>
           )}
         </div>
 
         {active && sub ? (
           <>
-            <div className="grid grid-cols-[120px_1fr] gap-y-2.5 text-[14px] mb-4">
-              <span className="text-[#aaa]">แผน</span>
-              <span className="text-navy">{PROVIDER_LABEL[sub.provider] ?? sub.provider}</span>
-              <span className="text-[#aaa]">ใช้ได้ถึง</span>
-              <span className="text-navy">{fmtDate(sub.current_period_end)}</span>
+            <div className="grid grid-cols-[120px_1fr] gap-y-2.5 mb-4">
+              <span className="font-body text-body-sm text-grey-600">แผน</span>
+              <span className="font-body text-body text-black">{PROVIDER_LABEL[sub.provider] ?? sub.provider}</span>
+              <span className="font-body text-body-sm text-grey-600">ใช้ได้ถึง</span>
+              <span className="font-body text-body text-black">{fmtDate(sub.current_period_end)}</span>
             </div>
 
-            <div className="border-t border-border pt-4">
-              <p className="text-[13px] text-[#666] mb-2.5">ดาวน์โหลดแอปเพื่อ activate ฟอนต์บนเครื่องของคุณ</p>
+            <div className="pt-4">
+              <p className="font-body text-body-sm text-grey-600 mb-2.5">ดาวน์โหลดแอปเพื่อ activate ฟอนต์บนเครื่องของคุณ</p>
               <div className="flex flex-wrap gap-2">
                 {settings?.download_mac ? (
-                  <a href={settings.download_mac} className="text-[13px] font-medium text-navy no-underline border border-[0.5px] border-navy rounded-[8px] px-3.5 py-2 hover:bg-navy hover:text-white transition-colors">
+                  <Button as="a" href={settings.download_mac} variant="outline" size="sm">
                     ดาวน์โหลดสำหรับ macOS
-                  </a>
+                  </Button>
                 ) : (
-                  <span className="text-[13px] text-[#aaa] border border-[0.5px] border-border rounded-[8px] px-3.5 py-2">macOS — เร็ว ๆ นี้</span>
+                  <span className="font-body text-body-sm text-grey-400 bg-grey-200 px-3.5 py-2">macOS — เร็ว ๆ นี้</span>
                 )}
                 {settings?.download_win ? (
-                  <a href={settings.download_win} className="text-[13px] font-medium text-navy no-underline border border-[0.5px] border-navy rounded-[8px] px-3.5 py-2 hover:bg-navy hover:text-white transition-colors">
+                  <Button as="a" href={settings.download_win} variant="outline" size="sm">
                     ดาวน์โหลดสำหรับ Windows
-                  </a>
+                  </Button>
                 ) : (
-                  <span className="text-[13px] text-[#aaa] border border-[0.5px] border-border rounded-[8px] px-3.5 py-2">Windows — เร็ว ๆ นี้</span>
+                  <span className="font-body text-body-sm text-grey-400 bg-grey-200 px-3.5 py-2">Windows — เร็ว ๆ นี้</span>
                 )}
               </div>
             </div>
           </>
         ) : (
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[14px] text-[#666]">สมัคร subscription เพื่อใช้ฟอนต์ทุกตัวผ่านแอป</p>
-            <Link
-              href="/subscribe/"
-              className="flex-shrink-0 text-[13px] font-medium text-white no-underline bg-mint hover:bg-navy rounded-[8px] px-4 py-2 transition-colors"
-            >
+            <p className="font-body text-body text-grey-800">สมัคร subscription เพื่อใช้ฟอนต์ทุกตัวผ่านแอป</p>
+            <Button as="link" href="/subscribe/" size="sm" className="flex-shrink-0">
               ดูแผนบริการ
-            </Link>
+            </Button>
           </div>
         )}
       </div>

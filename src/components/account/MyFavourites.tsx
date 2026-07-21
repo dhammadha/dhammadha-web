@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
 import FontCard, { Font } from "@/components/FontCard";
+import Button from "@/components/ui/Button";
 import { isSubActive, type SubscriptionRow } from "@/lib/subscription";
 
 export default function MyFavourites() {
@@ -52,35 +53,32 @@ export default function MyFavourites() {
   if (!user) return null;
 
   return (
-    <section className="mt-8">
+    <section className="mt-10">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="text-[18px] font-semibold text-navy">ฟอนต์ที่บันทึกไว้</h2>
-        {fonts.length > 0 && <span className="text-[13px] text-[#aaa]">{fonts.length} ฟอนต์</span>}
+        <h2 className="font-heading text-h2 text-black">ฟอนต์ที่บันทึกไว้</h2>
+        {fonts.length > 0 && <span className="font-body text-body-sm text-grey-600">{fonts.length} ฟอนต์</span>}
       </div>
 
       {!hasActiveSub && (
-        <div className="bg-mint-light border border-[0.5px] border-mint-mid rounded-[10px] px-4 py-3.5 mb-4 flex items-center justify-between gap-3">
-          <p className="text-[13px] text-[#0a8a84] leading-relaxed">
+        <div className="bg-surface px-4 py-3.5 mb-4 flex items-center justify-between gap-3">
+          <p className="font-body text-body-sm text-grey-800 leading-relaxed">
             สมัคร subscription เพื่อ activate ฟอนต์ที่บันทึกไว้ผ่านแอปบนเครื่องของคุณ
           </p>
-          <Link
-            href="/subscribe/"
-            className="flex-shrink-0 text-[13px] font-medium text-[#0a8a84] no-underline bg-white border border-[0.5px] border-mint rounded-[7px] px-3.5 py-1.5 hover:bg-mint hover:text-navy transition-colors"
-          >
+          <Button as="link" href="/subscribe/" size="sm" className="flex-shrink-0">
             ดูแผนบริการ
-          </Link>
+          </Button>
         </div>
       )}
 
       {!loaded ? (
-        <p className="text-[14px] text-[#aaa]">กำลังโหลด…</p>
+        <p className="font-body text-body-sm text-grey-600">กำลังโหลด…</p>
       ) : fonts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-border p-8 text-center">
-          <p className="text-[14px] text-[#888] mb-1">ยังไม่มีฟอนต์ที่บันทึกไว้</p>
-          <p className="text-[13px] text-[#aaa]">
+        <div className="bg-surface p-8 text-center">
+          <p className="font-body text-body text-grey-800 mb-1">ยังไม่มีฟอนต์ที่บันทึกไว้</p>
+          <p className="font-body text-body-sm text-grey-600">
             กดรูปหัวใจบนฟอนต์ที่ชอบ เพื่อบันทึกไว้ดูภายหลังและใช้งานผ่านแอป
           </p>
-          <Link href="/fonts/" className="inline-block mt-3 text-[13px] text-mint no-underline hover:underline font-medium">
+          <Link href="/fonts/" className="inline-block mt-3 font-body text-body-sm text-mint-text no-underline hover:underline">
             เลือกดูฟอนต์ →
           </Link>
         </div>
