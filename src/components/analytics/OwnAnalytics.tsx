@@ -149,7 +149,7 @@ export default function OwnAnalytics() {
 
       {/* Month selector — pattern เดียวกับหน้ารายได้ */}
       <div className="flex items-center gap-2 mb-4">
-        <label className="font-body text-body-sm text-grey-600">เดือน</label>
+        <label className="font-body font-bold text-body-sm text-grey-600">เดือน</label>
         <select
           value={monthKey}
           onChange={(e) => setMonthKey(e.target.value)}

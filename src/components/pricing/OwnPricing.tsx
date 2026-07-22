@@ -309,7 +309,7 @@ export default function OwnPricing() {
             {defaultTiers.map((t) => (
               <div key={t.id} className="flex justify-between items-center py-2">
                 <div>
-                  <span className="font-body text-body-sm text-grey-600">{t.name}</span>
+                  <span className="font-body font-bold text-body-sm text-grey-600">{t.name}</span>
                   {t.desc && <p className="font-body text-footnote text-grey-600 mt-0.5">{t.desc}</p>}
                 </div>
                 <span className="font-ui text-ui text-black">฿{t.price.toLocaleString()}</span>
@@ -345,11 +345,11 @@ export default function OwnPricing() {
         )}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">ส่วนลด (%)</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">ส่วนลด (%)</label>
             <input type="number" value={promo.discount} onChange={(e) => setPromo((p) => ({ ...p, discount: e.target.value }))} placeholder="เช่น 20" min="1" max="100" className={iCls} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">วันสิ้นสุด *</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">วันสิ้นสุด *</label>
             <input type="date" value={promo.end} min={todayISO()} onChange={(e) => setPromo((p) => ({ ...p, end: e.target.value }))} className={iCls} />
           </div>
         </div>

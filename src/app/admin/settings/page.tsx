@@ -243,7 +243,7 @@ function Section({ title, desc, children }: { title: string; desc: string; child
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="font-body text-body-sm text-grey-600">{label}</label>
+      <label className="font-body font-bold text-body-sm text-grey-600">{label}</label>
       {children}
     </div>
   );

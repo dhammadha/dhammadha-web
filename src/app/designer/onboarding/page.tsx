@@ -31,7 +31,7 @@ function Field({ label, hint, children, className = "" }: {
 }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="font-body text-body-sm text-grey-600">{label}</label>
+      <label className="font-body font-bold text-body-sm text-grey-600">{label}</label>
       {children}
       {hint && <p className="font-body text-footnote text-grey-600 leading-[1.5]">{hint}</p>}
     </div>

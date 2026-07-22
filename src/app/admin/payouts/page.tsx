@@ -276,7 +276,7 @@ export default function AdminPayoutsPage() {
         <>
           {/* Month selector */}
           <div className="flex items-center gap-2 mb-4">
-            <label className="font-body text-body-sm text-grey-600">เดือน</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">เดือน</label>
             <select
               value={selectedMonthKey ?? ""}
               onChange={(e) => { setSelectedMonthKey(e.target.value); setSelectedDesignerId(null); }}
@@ -405,14 +405,14 @@ export default function AdminPayoutsPage() {
                     </>
                   ) : selectedRow.statement.designerAmount > 0 ? (
                     <>
-                      <label className="font-body text-body-sm text-grey-600">จำนวนเงินที่โอน</label>
+                      <label className="font-body font-bold text-body-sm text-grey-600">จำนวนเงินที่โอน</label>
                       <input
                         type="number"
                         value={payAmount}
                         onChange={(e) => setPayAmount(e.target.value)}
                         className="w-full px-3 py-2 h-[38px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base"
                       />
-                      <label className="font-body text-body-sm text-grey-600">โน้ต / เลขอ้างอิง (ถ้ามี)</label>
+                      <label className="font-body font-bold text-body-sm text-grey-600">โน้ต / เลขอ้างอิง (ถ้ามี)</label>
                       <input
                         value={payNote}
                         onChange={(e) => setPayNote(e.target.value)}

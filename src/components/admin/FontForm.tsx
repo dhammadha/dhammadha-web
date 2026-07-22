@@ -477,77 +477,83 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       {/* ข้อมูลพื้นฐาน */}
       <section>
         <h3 className="font-ui text-ui text-black mb-3">ข้อมูลพื้นฐาน</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="ชื่อฟอนต์ (EN) *">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} disabled={identityLocked} />
-          </FormField>
-          <FormField label="ชื่อฟอนต์ (TH)">
-            <input value={nameTh} onChange={(e) => setNameTh(e.target.value)} placeholder="เช่น สุรัตนา" className={inputCls} disabled={identityLocked} />
-          </FormField>
-          <FormField label="Slug (URL) *">
-            <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="เช่น suratana" className={inputCls} disabled={identityLocked} />
-          </FormField>
-          <FormField label="นักออกแบบ">
-            <input value={designerName} onChange={(e) => setDesignerName(e.target.value)} className={inputCls} disabled={identityLocked} />
-          </FormField>
-          <FormField label="หมวดหมู่">
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </FormField>
-          <FormField label="Tags (คั่นด้วย comma)">
-            <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="thai, display, bold" className={inputCls} />
-          </FormField>
-        </div>
-        {identityLocked && (
-          <p className="font-body text-footnote text-grey-600 mt-2">
-            ชื่อฟอนต์ · Slug · นักออกแบบ แก้ไขไม่ได้ — หากต้องการเปลี่ยน กรุณาติดต่อแอดมิน
-          </p>
-        )}
-        <div className="grid grid-cols-1 gap-3 mt-3">
-          <FormField label="คำอธิบาย (TH)">
-            <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} className={textareaCls} placeholder="คำอธิบายภาษาไทย..." />
-          </FormField>
-          <FormField label="คำอธิบาย (EN)">
-            <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} className={textareaCls} placeholder="English description..." />
-          </FormField>
+        <div className="bg-surface p-5">
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="ชื่อฟอนต์ (EN) *">
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} disabled={identityLocked} />
+            </FormField>
+            <FormField label="ชื่อฟอนต์ (TH)">
+              <input value={nameTh} onChange={(e) => setNameTh(e.target.value)} placeholder="เช่น สุรัตนา" className={inputCls} disabled={identityLocked} />
+            </FormField>
+            <FormField label="Slug (URL) *">
+              <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))} placeholder="เช่น suratana" className={inputCls} disabled={identityLocked} />
+            </FormField>
+            <FormField label="นักออกแบบ">
+              <input value={designerName} onChange={(e) => setDesignerName(e.target.value)} className={inputCls} disabled={identityLocked} />
+            </FormField>
+            <FormField label="หมวดหมู่">
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputCls}>
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </FormField>
+            <FormField label="Tags (คั่นด้วย comma)">
+              <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="thai, display, bold" className={inputCls} />
+            </FormField>
+          </div>
+          {identityLocked && (
+            <p className="font-body text-footnote text-grey-600 mt-2">
+              ชื่อฟอนต์ · Slug · นักออกแบบ แก้ไขไม่ได้ — หากต้องการเปลี่ยน กรุณาติดต่อแอดมิน
+            </p>
+          )}
+          <div className="grid grid-cols-1 gap-3 mt-3">
+            <FormField label="คำอธิบาย (TH)">
+              <textarea value={descTh} onChange={(e) => setDescTh(e.target.value)} className={textareaCls} placeholder="คำอธิบายภาษาไทย..." />
+            </FormField>
+            <FormField label="คำอธิบาย (EN)">
+              <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} className={textareaCls} placeholder="English description..." />
+            </FormField>
+          </div>
         </div>
       </section>
 
       {/* ราคาและโปรโมชั่น */}
       <section>
         <h3 className="font-ui text-ui text-black mb-3">ราคาและโปรโมชั่น</h3>
-        <Toggle label="ฟอนต์ฟรี" desc="ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน" checked={isFree} onChange={setIsFree} />
-        {!isFree && (
-          <div className="mt-3 flex flex-col gap-3">
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="ราคาปกติ (฿)">
-                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" min="0" className={inputCls} />
-              </FormField>
-              <FormField label="ส่วนลด %">
-                <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="เช่น 30" min="0" max="100" className={inputCls} />
-              </FormField>
-            </div>
-            {parseInt(discount) > 0 && (
+        <div className="bg-surface p-5">
+          <Toggle label="ฟอนต์ฟรี" desc="ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน" checked={isFree} onChange={setIsFree} />
+          {!isFree && (
+            <div className="mt-3 flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
-                <FormField label="ข้อความโปรโมชั่น (badge)">
-                  <input value={saleLabel} onChange={(e) => setSaleLabel(e.target.value)} placeholder="เช่น ลด 30%" className={inputCls} />
+                <FormField label="ราคาปกติ (฿)">
+                  <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" min="0" className={inputCls} />
                 </FormField>
-                <FormField label="วันสิ้นสุดโปรโมชั่น *">
-                  <input type="date" value={saleEnd} min={todayISO()} onChange={(e) => setSaleEnd(e.target.value)} className={inputCls} />
+                <FormField label="ส่วนลด %">
+                  <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="เช่น 30" min="0" max="100" className={inputCls} />
                 </FormField>
               </div>
-            )}
-          </div>
-        )}
+              {parseInt(discount) > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField label="ข้อความโปรโมชั่น (badge)">
+                    <input value={saleLabel} onChange={(e) => setSaleLabel(e.target.value)} placeholder="เช่น ลด 30%" className={inputCls} />
+                  </FormField>
+                  <FormField label="วันสิ้นสุดโปรโมชั่น *">
+                    <input type="date" value={saleEnd} min={todayISO()} onChange={(e) => setSaleEnd(e.target.value)} className={inputCls} />
+                  </FormField>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* การแสดงผล */}
       <section>
         <h3 className="font-ui text-ui text-black mb-3">การแสดงผล</h3>
-        <div className="flex flex-col gap-3">
-          <Toggle label="แสดงบนเว็บ" desc="ปิดเพื่อซ่อนโดยไม่ลบข้อมูล" checked={isActive} onChange={setIsActive} />
-          <Toggle label="อยู่ใน Subscription" desc="รวมในแพลนรายเดือน — รับส่วนแบ่งจาก pool ตามยอดใช้งาน" checked={isSub} onChange={setIsSub} />
+        <div className="bg-surface p-5">
+          <div className="flex flex-col gap-3">
+            <Toggle label="แสดงบนเว็บ" desc="ปิดเพื่อซ่อนโดยไม่ลบข้อมูล" checked={isActive} onChange={setIsActive} />
+            <Toggle label="อยู่ใน Subscription" desc="รวมในแพลนรายเดือน — รับส่วนแบ่งจาก pool ตามยอดใช้งาน" checked={isSub} onChange={setIsSub} />
+          </div>
         </div>
       </section>
 
@@ -559,51 +565,53 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       {/* รูปภาพ */}
       <section>
         <h3 className="font-ui text-ui text-black mb-3">รูปภาพ</h3>
-        <FormField label="Cover Image * — 1280×720 (16:9)">
-          {coverUrl ? (
-            <div className="relative inline-block">
-              <img src={coverUrl} alt="cover" className="w-full object-cover aspect-video" />
-              <button onClick={() => { setCoverFile(null); setCoverUrl(""); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white text-[12px] border-none cursor-pointer flex items-center justify-center">✕</button>
-            </div>
-          ) : (
-            <label className="flex flex-col items-center justify-center gap-2 p-6 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-grey-400"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
-              <span className="font-body text-body-sm text-grey-600">คลิกเพื่อเลือกรูป Cover</span>
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleCoverFile(e.target.files[0])} />
+        <div className="bg-surface p-5">
+          <FormField label="Cover Image * — 1280×720 (16:9)">
+            {coverUrl ? (
+              <div className="relative inline-block">
+                <img src={coverUrl} alt="cover" className="w-full object-cover aspect-video" />
+                <button onClick={() => { setCoverFile(null); setCoverUrl(""); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white text-[12px] border-none cursor-pointer flex items-center justify-center">✕</button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center gap-2 p-6 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-grey-400"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+                <span className="font-body text-body-sm text-grey-600">คลิกเพื่อเลือกรูป Cover</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleCoverFile(e.target.files[0])} />
+              </label>
+            )}
+          </FormField>
+          <FormField label="รูป Preview (ลากเพื่อเรียงลำดับ)" className="mt-3">
+            <label className="flex items-center gap-2 px-4 py-2 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-body-sm text-grey-600">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              เพิ่มรูป Preview
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
             </label>
-          )}
-        </FormField>
-        <FormField label="รูป Preview (ลากเพื่อเรียงลำดับ)" className="mt-3">
-          <label className="flex items-center gap-2 px-4 py-2 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-body-sm text-grey-600">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            เพิ่มรูป Preview
-            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
-          </label>
-          {previewItems.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {previewItems.map((item, i) => (
-                <div
-                  key={i}
-                  draggable
-                  onDragStart={() => onDragStart(i)}
-                  onDragOver={(e) => onDragOver(e, i)}
-                  onDrop={(e) => onDrop(e, i)}
-                  onDragEnd={onDragEnd}
-                  className={`relative aspect-video overflow-hidden cursor-grab select-none transition-all duration-150 ease-base ${
-                    draggingIdx === i ? "opacity-40 outline outline-2 outline-dashed outline-mint" :
-                    dragOverIdx === i ? "outline outline-2 outline-mint" :
-                    "bg-white"
-                  }`}
-                >
-                  <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
-                  <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 leading-none">{i + 1}</span>
-                  <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full bg-black/60 text-white text-[11px] border-none cursor-pointer flex items-center justify-center hover:bg-danger transition-colors duration-150 ease-base">✕</button>
-                  <div className="absolute bottom-1 left-1 text-[11px] bg-black/50 text-white px-1.5 py-0.5 leading-none select-none">⠿</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </FormField>
+            {previewItems.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {previewItems.map((item, i) => (
+                  <div
+                    key={i}
+                    draggable
+                    onDragStart={() => onDragStart(i)}
+                    onDragOver={(e) => onDragOver(e, i)}
+                    onDrop={(e) => onDrop(e, i)}
+                    onDragEnd={onDragEnd}
+                    className={`relative aspect-video overflow-hidden cursor-grab select-none transition-all duration-150 ease-base ${
+                      draggingIdx === i ? "opacity-40 outline outline-2 outline-dashed outline-mint" :
+                      dragOverIdx === i ? "outline outline-2 outline-mint" :
+                      "bg-white"
+                    }`}
+                  >
+                    <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
+                    <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 leading-none">{i + 1}</span>
+                    <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full bg-black/60 text-white text-[11px] border-none cursor-pointer flex items-center justify-center hover:bg-danger transition-colors duration-150 ease-base">✕</button>
+                    <div className="absolute bottom-1 left-1 text-[11px] bg-black/50 text-white px-1.5 py-0.5 leading-none select-none">⠿</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </FormField>
+        </div>
       </section>
 
       {/* ไฟล์ฟอนต์ */}
@@ -744,8 +752,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
 const inputCls = "w-full px-3 py-2 h-[42px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base disabled:bg-grey-200 disabled:text-grey-600 disabled:cursor-not-allowed";
 
-// เหมือน inputCls แต่เอา h-[42px] ออก (ไม่งั้นมัน override rows) + สูงขั้นต่ำ 210px (~5 เท่าของ input ปกติ) + ลากขยายได้
-const textareaCls = "w-full px-3 py-2 min-h-[210px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base resize-y";
+// เหมือน inputCls แต่เอา h-[42px] ออก (ไม่งั้นมัน override rows) + สูงขั้นต่ำ 170px (ลดลงจาก 210px ~20%) + ลากขยายได้
+const textareaCls = "w-full px-3 py-2 min-h-[170px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base resize-y";
 
 function FormField({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -834,16 +842,33 @@ function FontFileSection({
         เลือกไฟล์
         <input type="file" accept={accept} multiple className="hidden" onChange={(e) => e.target.files && onAdd(Array.from(e.target.files))} />
       </label>
-      {files.length > 0 && (
-        <div className="mt-2 flex flex-col gap-1">
-          {files.map((f, i) => (
-            <div key={i} className="flex items-center justify-between px-2 py-1 bg-white font-body text-footnote text-grey-600">
-              <span className="truncate mr-2">{f.name}</span>
-              <button onClick={() => onRemove(i)} className="text-grey-600 hover:text-danger-dark bg-transparent border-none cursor-pointer text-[14px] leading-none flex-shrink-0 transition-colors duration-150 ease-base">✕</button>
-            </div>
-          ))}
-        </div>
-      )}
+      {files.length > 0 && (() => {
+        // จัดกลุ่มไฟล์ตามนามสกุลเพื่อแสดงผลเท่านั้น — ไม่แก้ลำดับ/ไม่แตะ array ต้นฉบับ
+        // เก็บ index เดิมของแต่ละไฟล์ไว้คู่กัน เพื่อให้ onRemove ลบตัวที่ถูกต้องใน files ต้นฉบับ
+        const groups = new Map<string, { f: FontFileEntry; originalIndex: number }[]>();
+        files.forEach((f, i) => {
+          const ext = f.name.split(".").pop()?.toUpperCase() ?? "";
+          if (!groups.has(ext)) groups.set(ext, []);
+          groups.get(ext)!.push({ f, originalIndex: i });
+        });
+        return (
+          <div className="mt-2 flex flex-col gap-1">
+            {Array.from(groups.entries()).map(([ext, items]) => (
+              <div key={ext}>
+                <div className="font-body text-footnote text-grey-600 mt-2 mb-1">{ext}</div>
+                <div className="flex flex-col gap-1">
+                  {items.map(({ f, originalIndex }) => (
+                    <div key={originalIndex} className="flex items-center justify-between px-2 py-1 bg-white font-body text-footnote text-grey-600">
+                      <span className="truncate mr-2">{f.name}</span>
+                      <button onClick={() => onRemove(originalIndex)} className="text-grey-600 hover:text-danger-dark bg-transparent border-none cursor-pointer text-[14px] leading-none flex-shrink-0 transition-colors duration-150 ease-base">✕</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }

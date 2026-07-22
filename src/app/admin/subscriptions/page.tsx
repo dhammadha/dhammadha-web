@@ -148,34 +148,34 @@ export default function AdminSubscriptionsPage() {
         )}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">ราคารายเดือน (฿)</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">ราคารายเดือน (฿)</label>
             <input type="number" value={subMonthly} onChange={(e) => setSubMonthly(e.target.value)} className={iCls} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">ราคารายปี (฿)</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">ราคารายปี (฿)</label>
             <input type="number" value={subYearly} onChange={(e) => setSubYearly(e.target.value)} className={iCls} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 mt-3">
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">เปิดช่วงทดสอบฟรี</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">เปิดช่วงทดสอบฟรี</label>
             <label className="flex items-center gap-2 h-[38px] px-3 bg-white cursor-pointer">
               <input type="checkbox" checked={subTrialActive} onChange={(e) => setSubTrialActive(e.target.checked)} className="accent-black" />
-              <span className="font-body text-body-sm text-black">{subTrialActive ? "เปิด" : "ปิด"}</span>
+              <span className="font-body text-body-sm text-black">{subTrialActive ? "กดเพื่อปิด" : "กดเพื่อเปิด"}</span>
             </label>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">วันสิ้นสุดช่วงทดสอบ</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">วันสิ้นสุดช่วงทดสอบ</label>
             <input type="date" value={subTrialEnd} onChange={(e) => setSubTrialEnd(e.target.value)} className={iCls} />
           </div>
         </div>
         <div className="grid grid-cols-1 gap-3 mt-3">
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">ลิงก์ดาวน์โหลดแอป macOS (.dmg)</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">ลิงก์ดาวน์โหลดแอป macOS (.dmg)</label>
             <input type="url" value={subDownMac} onChange={(e) => setSubDownMac(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-body-sm text-grey-600">ลิงก์ดาวน์โหลดแอป Windows (.msi)</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">ลิงก์ดาวน์โหลดแอป Windows (.msi)</label>
             <input type="url" value={subDownWin} onChange={(e) => setSubDownWin(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
           </div>
         </div>
@@ -195,11 +195,11 @@ export default function AdminSubscriptionsPage() {
           <p className="font-body text-footnote text-grey-600 mb-3">ให้สิทธิ์ฟรีกับบัญชีทดสอบ — ผู้ใช้ต้องสมัครสมาชิกในเว็บก่อน</p>
           <div className="flex flex-wrap gap-2 items-end">
             <div className="flex flex-col gap-1 flex-1 min-w-[200px]">
-              <label className="font-body text-body-sm text-grey-600">อีเมลผู้ใช้</label>
+              <label className="font-body font-bold text-body-sm text-grey-600">อีเมลผู้ใช้</label>
               <input type="email" value={compEmail} onChange={(e) => setCompEmail(e.target.value)} placeholder="user@email.com" className={iCls} />
             </div>
             <div className="flex flex-col gap-1 w-[120px]">
-              <label className="font-body text-body-sm text-grey-600">จำนวนวัน</label>
+              <label className="font-body font-bold text-body-sm text-grey-600">จำนวนวัน</label>
               <input type="number" value={compDays} onChange={(e) => setCompDays(e.target.value)} className={iCls} />
             </div>
             <Button onClick={addComp} disabled={compBusy}>{compBusy ? "กำลังเพิ่ม…" : "เพิ่มสิทธิ์"}</Button>
