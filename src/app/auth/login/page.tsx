@@ -85,7 +85,7 @@ function LoginForm() {
       </form>
 
       <p className="text-center font-body text-body-sm text-grey-600 mt-6">
-        ยังไม่มีบัญชี?{" "}
+        ยังไม่มีบัญชี ?{" "}
         <Link href="/auth/signup" className="text-mint-text no-underline hover:underline">
           สมัครสมาชิก
         </Link>
