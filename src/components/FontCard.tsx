@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
 import Badge from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
-import { isSaleActive } from "@/lib/sale";
+import { effectiveSale } from "@/lib/sale";
 
 /**
  * FontCard — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/font card.png)
@@ -45,6 +45,9 @@ export interface Font {
   sale_end?: string;
   is_active?: boolean;
   is_free?: boolean;
+  owner_id?: string | null;
+  shop_discount_percent?: number | null;
+  shop_sale_end?: string | null;
   is_subscription?: boolean;
   is_popular?: boolean;
   cover_image_url?: string;
@@ -95,9 +98,10 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
     : { background: "#2B1B3D" };
 
   const newFlag = isNew(font);
-  const saleActive = isSaleActive(font);
+  const eff = effectiveSale(font);
+  const saleActive = eff.active;
   const badge = saleActive
-    ? { text: font.sale_label || "Sale", variant: "sale" as const }
+    ? { text: eff.saleLabel, variant: "sale" as const }
     : font.is_free
     ? { text: "FREE", variant: "free" as const }
     : newFlag
@@ -188,12 +192,12 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
           <div className="shrink-0 leading-none">
             {font.is_free ? (
               <span className="font-heading text-h2 text-success">ฟรี</span>
-            ) : saleActive && font.sale_price && font.price ? (
+            ) : saleActive && eff.salePrice > 0 && font.price ? (
               /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ
                  ราคาลดใช้สีเดียวกับ "ฟรี" (success) ตามที่เจ้าของสั่ง 2026-07-18 */
               <span className="flex items-baseline gap-1.5">
                 <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
-                <span className="font-heading text-h2 text-success">฿{font.sale_price.toLocaleString()}</span>
+                <span className="font-heading text-h2 text-success">฿{eff.salePrice.toLocaleString()}</span>
               </span>
             ) : font.price ? (
               <span className="font-heading text-h2 text-black">฿{font.price.toLocaleString()}</span>

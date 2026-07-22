@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 
 const THAI_BANKS = [
   "ธนาคารกสิกรไทย (KBANK)",
@@ -135,7 +135,8 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="p-6 max-w-[680px] flex flex-col gap-8">
+    <div className="p-6 max-w-[720px] flex flex-col gap-8">
+      <h1 className="font-heading text-h2 text-black">ตั้งค่า</h1>
       <Section title="ข้อมูลผู้ขาย" desc="ใช้แสดงในใบเสนอราคาและใบเสร็จ">
         <div className="flex gap-2 mb-4">
           {(["individual", "juristic"] as const).map((t) => (
@@ -152,17 +153,17 @@ export default function AdminSettingsPage() {
           <Field label="Designer Slug (URL)">
             {savedSlug ? (
               <div>
-                <div className={`${iCls} flex items-center gap-2 cursor-default text-[#888] bg-[#f5f5f2]`}>
-                  <span className="text-[#aaa]">/designer/</span>
-                  <span className="font-medium text-navy">{designerSlug}</span>
-                  <span className="ml-auto text-[10px] text-[#bbb] bg-[#eee] px-2 py-0.5 rounded-full">ล็อก</span>
+                <div className={`${iCls} flex items-center gap-2 cursor-default text-grey-600`}>
+                  <span className="text-grey-600">/designer/</span>
+                  <span className="text-black">{designerSlug}</span>
+                  <span className="ml-auto text-badge font-heading text-grey-600 bg-white px-2 py-0.5">ล็อก</span>
                 </div>
-                <p className="text-[11px] text-[#aaa] mt-1">URL ถูกล็อกหลังตั้งครั้งแรก — ติดต่อ admin เพื่อเปลี่ยน</p>
+                <p className="font-body text-footnote text-grey-600 mt-1">URL ถูกล็อกหลังตั้งครั้งแรก — ติดต่อ admin เพื่อเปลี่ยน</p>
               </div>
             ) : (
               <div>
                 <input value={designerSlug} onChange={(e) => { const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""); setDesignerSlug(v); saveDraft({ designerSlug: v }); }} placeholder="เช่น dhammadha" className={iCls} />
-                <p className="text-[11px] text-amber-600 mt-1">⚠️ ตั้งได้ครั้งเดียว — ไม่สามารถแก้ไขได้หลังบันทึก</p>
+                <p className="font-body text-footnote text-warning mt-1">⚠️ ตั้งได้ครั้งเดียว — ไม่สามารถแก้ไขได้หลังบันทึก</p>
               </div>
             )}
           </Field>
@@ -181,18 +182,18 @@ export default function AdminSettingsPage() {
               placeholder="0000000000000"
               maxLength={13}
               inputMode="numeric"
-              className={`${iCls} ${sellerTaxId && sellerTaxId.length !== 13 ? "border-red-400 focus:border-red-400 focus:shadow-[0_0_0_3px_#ef444420]" : ""}`}
+              className={iCls}
             />
             {sellerTaxId && sellerTaxId.length !== 13 && (
-              <span className="text-[11px] text-red-500">{sellerTaxId.length}/13 หลัก</span>
+              <span className="font-body text-footnote text-danger-dark">{sellerTaxId.length}/13 หลัก</span>
             )}
           </Field>
         </div>
         <Field label="ที่อยู่" className="mt-3"><textarea value={sellerAddress} onChange={(e) => { setSellerAddress(e.target.value); saveDraft({ sellerAddress: e.target.value }); }} rows={2} className={iCls} /></Field>
         <Field label="โทรศัพท์" className="mt-3"><input value={sellerPhone} onChange={(e) => { setSellerPhone(e.target.value); saveDraft({ sellerPhone: e.target.value }); }} className={iCls} /></Field>
 
-        <div className="mt-3 pt-3 border-t border-border">
-          <div className="text-[12px] font-medium text-[#666] mb-2">ข้อมูลบัญชีธนาคาร</div>
+        <div className="mt-3 pt-3">
+          <div className="font-ui text-ui text-black mb-3">ข้อมูลบัญชีธนาคาร</div>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <Field label="ธนาคาร">
               <select value={bankName} onChange={(e) => { setBankName(e.target.value); saveDraft({ bankName: e.target.value }); }} className={iCls}>
@@ -217,7 +218,7 @@ export default function AdminSettingsPage() {
       </Section>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-xl text-[13px] font-medium shadow-lg ${toast.error ? "bg-red-500 text-white" : "bg-navy text-white"}`}>
+        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 font-body text-body-sm shadow-lg ${toast.error ? "bg-danger text-white" : "bg-black text-white"}`}>
           {toast.msg}
         </div>
       )}
@@ -225,14 +226,14 @@ export default function AdminSettingsPage() {
   );
 }
 
-const iCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+const iCls = "w-full px-3 py-2 h-[42px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
 
 function Section({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl border border-border p-6">
+    <div className="bg-surface p-6">
       <div className="mb-4">
-        <h2 className="text-[16px] font-semibold text-navy">{title}</h2>
-        <p className="text-[12px] text-[#aaa] mt-0.5">{desc}</p>
+        <h2 className="font-ui text-ui text-black">{title}</h2>
+        <p className="font-body text-footnote text-grey-600 mt-0.5">{desc}</p>
       </div>
       {children}
     </div>
@@ -242,7 +243,7 @@ function Section({ title, desc, children }: { title: string; desc: string; child
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-[12px] font-medium text-[#666]">{label}</label>
+      <label className="font-body text-body-sm text-grey-600">{label}</label>
       {children}
     </div>
   );

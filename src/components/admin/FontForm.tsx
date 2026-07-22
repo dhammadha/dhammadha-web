@@ -29,7 +29,7 @@ const CATEGORIES = ["serif", "sans-serif", "display", "handwriting", "monospace"
 
 function Toast({ msg, error }: { msg: string; error?: boolean }) {
   return (
-    <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-xl text-[13px] font-medium shadow-lg transition-all ${error ? "bg-red-500 text-white" : "bg-navy text-white"}`}>
+    <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 font-body text-body-sm shadow-lg ${error ? "bg-danger text-white" : "bg-black text-white"}`}>
       {msg}
     </div>
   );
@@ -476,7 +476,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     <div className="flex flex-col gap-6">
       {/* ข้อมูลพื้นฐาน */}
       <section>
-        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ข้อมูลพื้นฐาน</h3>
+        <h3 className="font-ui text-ui text-black mb-3">ข้อมูลพื้นฐาน</h3>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="ชื่อฟอนต์ (EN) *">
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น SURATANA" className={inputCls} disabled={identityLocked} />
@@ -500,7 +500,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
           </FormField>
         </div>
         {identityLocked && (
-          <p className="text-[11px] text-[#aaa] mt-2">
+          <p className="font-body text-footnote text-grey-600 mt-2">
             ชื่อฟอนต์ · Slug · นักออกแบบ แก้ไขไม่ได้ — หากต้องการเปลี่ยน กรุณาติดต่อแอดมิน
           </p>
         )}
@@ -516,7 +516,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
       {/* ราคาและโปรโมชั่น */}
       <section>
-        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ราคาและโปรโมชั่น</h3>
+        <h3 className="font-ui text-ui text-black mb-3">ราคาและโปรโมชั่น</h3>
         <Toggle label="ฟอนต์ฟรี" desc="ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน" checked={isFree} onChange={setIsFree} />
         {!isFree && (
           <div className="mt-3 flex flex-col gap-3">
@@ -544,7 +544,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
       {/* การแสดงผล */}
       <section>
-        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">การแสดงผล</h3>
+        <h3 className="font-ui text-ui text-black mb-3">การแสดงผล</h3>
         <div className="flex flex-col gap-3">
           <Toggle label="แสดงบนเว็บ" desc="ปิดเพื่อซ่อนโดยไม่ลบข้อมูล" checked={isActive} onChange={setIsActive} />
           <Toggle label="อยู่ใน Subscription" desc="รวมในแพลนรายเดือน — รับส่วนแบ่งจาก pool ตามยอดใช้งาน" checked={isSub} onChange={setIsSub} />
@@ -558,23 +558,23 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     <div className="flex flex-col gap-6">
       {/* รูปภาพ */}
       <section>
-        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">รูปภาพ</h3>
+        <h3 className="font-ui text-ui text-black mb-3">รูปภาพ</h3>
         <FormField label="Cover Image * — 1280×720 (16:9)">
           {coverUrl ? (
             <div className="relative inline-block">
-              <img src={coverUrl} alt="cover" className="w-full rounded-xl object-cover aspect-video" />
+              <img src={coverUrl} alt="cover" className="w-full object-cover aspect-video" />
               <button onClick={() => { setCoverFile(null); setCoverUrl(""); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white text-[12px] border-none cursor-pointer flex items-center justify-center">✕</button>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed border-[#ddd] bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#ccc]"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
-              <span className="text-[13px] text-[#aaa]">คลิกเพื่อเลือกรูป Cover</span>
+            <label className="flex flex-col items-center justify-center gap-2 p-6 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-grey-400"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+              <span className="font-body text-body-sm text-grey-600">คลิกเพื่อเลือกรูป Cover</span>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleCoverFile(e.target.files[0])} />
             </label>
           )}
         </FormField>
         <FormField label="รูป Preview (ลากเพื่อเรียงลำดับ)" className="mt-3">
-          <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[13px] text-[#666]">
+          <label className="flex items-center gap-2 px-4 py-2 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-body-sm text-grey-600">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             เพิ่มรูป Preview
             <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
@@ -589,16 +589,16 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                   onDragOver={(e) => onDragOver(e, i)}
                   onDrop={(e) => onDrop(e, i)}
                   onDragEnd={onDragEnd}
-                  className={`relative aspect-video rounded-lg overflow-hidden border cursor-grab select-none transition-all ${
-                    draggingIdx === i ? "opacity-40 border-dashed border-mint border-2" :
-                    dragOverIdx === i ? "border-mint border-2 shadow-[0_0_0_3px_#5ECEC840]" :
-                    "border-border"
+                  className={`relative aspect-video overflow-hidden cursor-grab select-none transition-all duration-150 ease-base ${
+                    draggingIdx === i ? "opacity-40 outline outline-2 outline-dashed outline-mint" :
+                    dragOverIdx === i ? "outline outline-2 outline-mint" :
+                    "bg-white"
                   }`}
                 >
                   <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
-                  <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded font-medium leading-none">{i + 1}</span>
-                  <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full bg-black/60 text-white text-[11px] border-none cursor-pointer flex items-center justify-center hover:bg-red-600 transition-colors">✕</button>
-                  <div className="absolute bottom-1 left-1 text-[11px] bg-black/50 text-white px-1.5 py-0.5 rounded leading-none select-none">⠿</div>
+                  <span className="absolute top-1 left-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 leading-none">{i + 1}</span>
+                  <button onClick={() => removePreviewItem(i)} className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full bg-black/60 text-white text-[11px] border-none cursor-pointer flex items-center justify-center hover:bg-danger transition-colors duration-150 ease-base">✕</button>
+                  <div className="absolute bottom-1 left-1 text-[11px] bg-black/50 text-white px-1.5 py-0.5 leading-none select-none">⠿</div>
                 </div>
               ))}
             </div>
@@ -608,10 +608,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
       {/* ไฟล์ฟอนต์ */}
       <section>
-        <h3 className="text-[11px] font-semibold text-[#aaa] tracking-[0.07em] uppercase mb-3 pb-2 border-b border-border">ไฟล์ฟอนต์</h3>
+        <h3 className="font-ui text-ui text-black mb-3">ไฟล์ฟอนต์</h3>
         {!isFree && (
           <>
-            <FontFileSection label="Full Family *" badge="Protected" badgeColor="bg-red-50 text-red-600" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
+            <FontFileSection label="Full Family *" badge="Protected" badgeColor="bg-danger text-white" files={fullFonts} onAdd={(f) => addFontFiles(f, setFullFonts)} onRemove={(i) => removeFontFile(i, setFullFonts)} accept=".otf,.ttf,.woff,.woff2" />
 
             <FontMetaSummaryBlock
               loading={metaLoading}
@@ -623,33 +623,33 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             />
 
             {/* Auto-generate demo จากไฟล์เต็ม (ประมวลผลในเบราว์เซอร์) */}
-            <div className="mt-2.5 rounded-xl border border-[0.5px] border-mint-mid bg-mint-light/40 p-3">
+            <div className="mt-2.5 bg-surface p-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={handleGenerateDemo}
                   disabled={!!genProgress}
-                  className="px-3.5 py-2 rounded-lg border border-[0.5px] border-navy text-navy bg-white text-[12px] font-medium cursor-pointer hover:bg-[#f5f5f2] transition-colors disabled:opacity-50"
+                  className="font-ui text-ui px-3.5 py-2 bg-white text-black cursor-pointer hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none"
                 >
                   สร้าง Demo
                 </button>
                 {genProgress && (
-                  <span className="text-[12px] text-[#0a8a84] animate-pulse">{genProgress}</span>
+                  <span className="font-body text-footnote text-success animate-pulse">{genProgress}</span>
                 )}
               </div>
-              <p className="text-[11px] text-[#888] mt-2 leading-[1.6]">
+              <p className="font-body text-footnote text-grey-600 mt-2 leading-[1.6]">
                 สร้างจากไฟล์ Full Family ที่เลือกไว้ด้านบน เติมลงช่องด้านล่างให้อัตโนมัติ<br />
                 <b>สร้าง Demo</b> — ได้ demo ภาษาไทย (Regular) 1 ไฟล์ <b>ไม่บังคับ</b> ข้ามได้ ถ้าไม่ต้องการแจก demo<br />
                 ประมวลผลในเบราว์เซอร์ทั้งหมด ครั้งแรกจะโหลดเครื่องมือ ~10MB
               </p>
             </div>
 
-            <FontFileSection label="Demo Font (ให้ลูกค้าดาวน์โหลดทดลอง) — ไม่บังคับ" badge="Public" badgeColor="bg-mint-light text-mint" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
+            <FontFileSection label="Demo Font (ให้ลูกค้าดาวน์โหลดทดลอง) — ไม่บังคับ" badge="Public" badgeColor="bg-success text-white" files={demoFonts} onAdd={(f) => addFontFiles(f, setDemoFonts)} onRemove={(i) => removeFontFile(i, setDemoFonts)} accept=".otf,.ttf,.woff,.woff2" className="mt-3" />
           </>
         )}
         {isFree && (
           <>
-            <FontFileSection label="Free Font*" badge="Public" badgeColor="bg-mint-light text-mint" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
+            <FontFileSection label="Free Font*" badge="Public" badgeColor="bg-success text-white" files={freeFonts} onAdd={(f) => addFontFiles(f, setFreeFonts)} onRemove={(i) => removeFontFile(i, setFreeFonts)} accept=".otf,.ttf,.woff,.woff2" />
             <FontMetaSummaryBlock
               loading={metaLoading}
               summary={metaSummary}
@@ -660,7 +660,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             />
           </>
         )}
-        <FontFileSection label="Font Specimen PDF" badge="Public" badgeColor="bg-mint-light text-mint" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
+        <FontFileSection label="Font Specimen PDF" badge="Public" badgeColor="bg-success text-white" files={specimens} onAdd={(f) => addFontFiles(f, setSpecimens)} onRemove={(i) => removeFontFile(i, setSpecimens)} accept=".pdf" className="mt-3" />
       </section>
     </div>
   );
@@ -675,18 +675,19 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   if (mode === "page") {
     return (
       <div className="flex flex-col min-h-screen bg-white">
-        <div className="flex-1 overflow-y-auto px-6 py-5 w-full">
-          <div className="grid grid-cols-2 gap-8 max-w-[1100px] mx-auto">
+        <div className="flex-1 overflow-y-auto p-6 w-full">
+          <h1 className="font-heading text-h2 text-black mb-6">{editingFont ? "แก้ไขฟอนต์" : "เพิ่มฟอนต์"}</h1>
+          <div className="grid grid-cols-2 gap-8 max-w-[1200px]">
             {leftCol}
             {rightCol}
           </div>
         </div>
-        <div className="sticky bottom-0 border-t border-border bg-white px-6 py-4 flex justify-end gap-2 max-w-[720px] mx-auto w-full">
-          {saving && <span className="text-[13px] text-[#aaa] mr-auto self-center">⏳ กำลังบันทึก…</span>}
-          <button onClick={handleCancel} disabled={saving} className="px-4 py-2 rounded-xl border border-border text-[14px] text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors disabled:opacity-50">
+        <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-2 max-w-[1200px] w-full">
+          {saving && <span className="font-body text-body-sm text-grey-600 mr-auto self-center">⏳ กำลังบันทึก…</span>}
+          <button onClick={handleCancel} disabled={saving} className="font-ui text-ui px-4 py-2 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
             ยกเลิก
           </button>
-          <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50">
+          <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-mint text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
             {saving ? "กำลังบันทึก…" : "บันทึก"}
           </button>
         </div>
@@ -707,12 +708,12 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         className={`fixed top-0 right-0 h-screen w-full max-w-[680px] bg-white z-[100] flex flex-col shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 bg-surface flex-shrink-0">
           <div>
-            <span className="text-[11px] text-[#aaa] tracking-wide">{role === "admin" ? "Admin" : "Designer"} → </span>
-            <span className="text-[14px] font-semibold text-navy">{editingFont ? `แก้ไข — ${editingFont.name}` : "เพิ่มฟอนต์ใหม่"}</span>
+            <span className="font-body text-footnote text-grey-600 tracking-wide">{role === "admin" ? "Admin" : "Designer"} → </span>
+            <span className="font-ui text-ui text-black">{editingFont ? `แก้ไข — ${editingFont.name}` : "เพิ่มฟอนต์ใหม่"}</span>
           </div>
-          <button onClick={handleCancel} className="text-[#aaa] hover:text-navy text-xl bg-transparent border-none cursor-pointer leading-none">✕</button>
+          <button onClick={handleCancel} className="text-grey-600 hover:text-black text-xl bg-transparent border-none cursor-pointer leading-none transition-colors duration-150 ease-base">✕</button>
         </div>
 
         {/* Body */}
@@ -721,13 +722,13 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border flex-shrink-0 bg-white">
-          {saving && <span className="text-[13px] text-[#aaa]">⏳ กำลังบันทึก…</span>}
+        <div className="flex items-center justify-between px-6 py-4 bg-surface flex-shrink-0">
+          {saving && <span className="font-body text-body-sm text-grey-600">⏳ กำลังบันทึก…</span>}
           <div className="flex gap-2 ml-auto">
-            <button onClick={onClose} disabled={saving} className="px-4 py-2 rounded-xl border border-border text-[14px] text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors disabled:opacity-50">
+            <button onClick={onClose} disabled={saving} className="font-ui text-ui px-4 py-2 bg-white text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
               ยกเลิก
             </button>
-            <button onClick={handleSave} disabled={saving} className="px-5 py-2 rounded-xl bg-mint text-white text-[14px] font-medium border-none cursor-pointer hover:bg-[#4dbfb9] transition-colors disabled:opacity-50">
+            <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-mint text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
               {saving ? "กำลังบันทึก…" : "บันทึก"}
             </button>
           </div>
@@ -741,15 +742,15 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit] disabled:bg-[#f1f1ee] disabled:text-[#aaa] disabled:cursor-not-allowed";
+const inputCls = "w-full px-3 py-2 h-[42px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base disabled:bg-grey-200 disabled:text-grey-600 disabled:cursor-not-allowed";
 
 // เหมือน inputCls แต่เอา h-[42px] ออก (ไม่งั้นมัน override rows) + สูงขั้นต่ำ 210px (~5 เท่าของ input ปกติ) + ลากขยายได้
-const textareaCls = "w-full px-3 py-2 min-h-[210px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit] resize-y";
+const textareaCls = "w-full px-3 py-2 min-h-[210px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base resize-y";
 
 function FormField({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-[12px] font-medium text-[#666]">{label}</label>
+      <label className="font-body text-body-sm text-grey-600">{label}</label>
       {children}
     </div>
   );
@@ -757,16 +758,16 @@ function FormField({ label, children, className = "" }: { label: string; childre
 
 function Toggle({ label, desc, checked, onChange }: { label: string; desc: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-[#f5f5f2] last:border-0">
+    <div className="flex items-center justify-between py-2">
       <div>
-        <div className="text-[14px] text-navy font-medium">{label}</div>
-        <div className="text-[12px] text-[#aaa]">{desc}</div>
+        <div className="font-body text-body-sm text-black">{label}</div>
+        <div className="font-body text-footnote text-grey-600">{desc}</div>
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-10 h-6 rounded-full transition-colors border-none cursor-pointer flex-shrink-0 ${checked ? "bg-mint" : "bg-[#ddd]"}`}
+        className={`relative w-10 h-6 rounded-full transition-colors duration-150 ease-base border-none cursor-pointer flex-shrink-0 ${checked ? "bg-mint" : "bg-grey-200"}`}
       >
-        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${checked ? "left-5" : "left-1"}`} />
+        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-150 ease-base ${checked ? "left-5" : "left-1"}`} />
       </button>
     </div>
   );
@@ -784,30 +785,30 @@ function FontMetaSummaryBlock({
   onStyleChange: (v: string) => void;
 }) {
   if (loading) {
-    return <p className="text-[12px] text-[#888] mt-2.5">กำลังอ่านข้อมูลจากไฟล์ฟอนต์…</p>;
+    return <p className="font-body text-body-sm text-grey-600 mt-2.5">กำลังอ่านข้อมูลจากไฟล์ฟอนต์…</p>;
   }
   if (!summary) return null;
   return (
-    <div className="mt-2.5 rounded-xl border border-border p-3 bg-[#fafaf8]">
-      <p className="text-[13px] text-navy font-medium">
+    <div className="mt-2.5 bg-surface p-3">
+      <p className="font-ui text-ui text-black">
         {summary.weightCount} weights · {summary.styleCount} styles
         {summary.formats.length > 0 && <> · {summary.formats.join(", ")}</>}
       </p>
       {summary.families.length > 1 && (
-        <p className="text-[11px] text-[#888] mt-1">
+        <p className="font-body text-footnote text-grey-600 mt-1">
           {summary.families.length} ตระกูล: {summary.families.join(", ")}
         </p>
       )}
       <div className="grid grid-cols-2 gap-3 mt-2.5">
         <FormField label="จำนวน Weight (อ่านอัตโนมัติ แก้ไขได้)">
-          <input type="number" min="0" value={weightOverride} onChange={(e) => onWeightChange(e.target.value)} className={inputCls} />
+          <input type="number" min="0" value={weightOverride} onChange={(e) => onWeightChange(e.target.value)} className={`${inputCls} bg-white`} />
         </FormField>
         <FormField label="จำนวน Style (อ่านอัตโนมัติ แก้ไขได้)">
-          <input type="number" min="0" value={styleOverride} onChange={(e) => onStyleChange(e.target.value)} className={inputCls} />
+          <input type="number" min="0" value={styleOverride} onChange={(e) => onStyleChange(e.target.value)} className={`${inputCls} bg-white`} />
         </FormField>
       </div>
       {summary.failed.length > 0 && (
-        <p className="text-[12px] text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-2.5">
+        <p className="font-body text-footnote text-black bg-warning px-3 py-2 mt-2.5">
           ⚠ อ่านข้อมูลจากไฟล์นี้ไม่ได้: {summary.failed.join(", ")} — กรุณาตรวจสอบ/กรอกจำนวน weight และ style เองด้านบน
         </p>
       )}
@@ -823,12 +824,12 @@ function FontFileSection({
   accept: string; className?: string;
 }) {
   return (
-    <div className={`rounded-xl border border-border p-3 ${className}`}>
+    <div className={`bg-surface p-3 ${className}`}>
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-[13px] font-medium text-navy">{label}</span>
-        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${badgeColor}`}>{badge}</span>
+        <span className="font-ui text-ui text-black">{label}</span>
+        <span className={`text-badge font-heading px-2 py-0.5 ${badgeColor}`}>{badge}</span>
       </div>
-      <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-[#fafaf8] cursor-pointer hover:border-mint transition-colors w-fit text-[12px] text-[#666]">
+      <label className="flex items-center gap-2 px-3 py-1.5 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-footnote text-grey-600">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
         เลือกไฟล์
         <input type="file" accept={accept} multiple className="hidden" onChange={(e) => e.target.files && onAdd(Array.from(e.target.files))} />
@@ -836,9 +837,9 @@ function FontFileSection({
       {files.length > 0 && (
         <div className="mt-2 flex flex-col gap-1">
           {files.map((f, i) => (
-            <div key={i} className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#fafaf8] text-[12px] text-[#555]">
+            <div key={i} className="flex items-center justify-between px-2 py-1 bg-white font-body text-footnote text-grey-600">
               <span className="truncate mr-2">{f.name}</span>
-              <button onClick={() => onRemove(i)} className="text-[#bbb] hover:text-red-500 bg-transparent border-none cursor-pointer text-[14px] leading-none flex-shrink-0">✕</button>
+              <button onClick={() => onRemove(i)} className="text-grey-600 hover:text-danger-dark bg-transparent border-none cursor-pointer text-[14px] leading-none flex-shrink-0 transition-colors duration-150 ease-base">✕</button>
             </div>
           ))}
         </div>

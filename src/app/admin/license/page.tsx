@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 import {
   parseLicenseSettings,
   newTierId,
@@ -74,26 +74,26 @@ export default function AdminLicensePage() {
   };
 
   if (loading) {
-    return <div className="p-6 text-[#aaa] text-[14px]">กำลังโหลด…</div>;
+    return <div className="p-6 font-body text-body-sm text-grey-600">กำลังโหลด…</div>;
   }
 
   return (
-    <div className="p-6 max-w-[680px] flex flex-col gap-8">
-      <div className="bg-white rounded-2xl border border-border p-6">
-        <div className="mb-4">
-          <h1 className="text-[16px] font-semibold text-navy">License</h1>
-          <p className="text-[12px] text-[#aaa] mt-0.5 leading-[1.6]">
-            โครงสร้างและราคาสิทธิ์ใช้งาน <strong className="text-[#666] font-medium">default ของเว็บ</strong> —
-            ใช้กับหน้าฟอนต์และหน้าขอใบเสนอราคาทั้งเว็บ เพิ่ม/ลบ/แก้ไขรูปแบบสิทธิได้อิสระ
-            <br />
-            นักออกแบบแต่ละคนยังตั้งค่าสิทธิของตัวเองทับได้ที่หน้า “ราคาและโปรโมชั่น” ของตน
-          </p>
-        </div>
+    <div className="p-6 max-w-[720px] flex flex-col gap-8">
+      <div>
+        <h1 className="font-heading text-h2 text-black">License</h1>
+        <p className="font-body text-body-sm text-grey-600 mt-0.5 leading-[1.6]">
+          โครงสร้างและราคาสิทธิ์ใช้งาน <strong className="text-black">default ของเว็บ</strong> —
+          ใช้กับหน้าฟอนต์และหน้าขอใบเสนอราคาทั้งเว็บ เพิ่ม/ลบ/แก้ไขรูปแบบสิทธิได้อิสระ
+          <br />
+          นักออกแบบแต่ละคนยังตั้งค่าสิทธิของตัวเองทับได้ที่หน้า &quot;ราคาและโปรโมชั่น&quot; ของตน
+        </p>
+      </div>
 
+      <div className="bg-surface p-6">
         <div className="flex flex-col gap-3">
           {tiers.map((tier, i) => (
             <div key={tier.id} className="flex gap-2 items-start">
-              <div className="flex-1 flex flex-col gap-2 p-3 rounded-xl border border-border bg-[#fafaf8]">
+              <div className="flex-1 flex flex-col gap-2">
                 <input
                   type="text"
                   value={tier.name}
@@ -109,7 +109,7 @@ export default function AdminLicensePage() {
                   className={iCls}
                 />
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-[#aaa] shrink-0">฿</span>
+                  <span className="font-body text-body-sm text-grey-600 shrink-0">฿</span>
                   <input
                     type="number"
                     value={tier.price}
@@ -119,16 +119,13 @@ export default function AdminLicensePage() {
                     className={iCls}
                   />
                 </div>
-                <p className="text-[11px] text-[#bbb] font-mono">
-                  id: {tier.id}
-                </p>
               </div>
               {tiers.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeTier(i)}
                   title="ลบรูปแบบสิทธินี้"
-                  className="w-8 h-8 mt-1 flex items-center justify-center rounded-[6px] border border-[0.5px] border-[#ddd] text-[#bbb] hover:border-red-300 hover:text-red-400 transition-colors bg-white cursor-pointer shrink-0"
+                  className="w-8 h-8 mt-1 flex items-center justify-center text-grey-600 hover:text-danger-dark transition-colors duration-150 ease-base bg-white cursor-pointer shrink-0 border-none"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -142,7 +139,7 @@ export default function AdminLicensePage() {
         <button
           type="button"
           onClick={addTier}
-          className="mt-3 flex items-center gap-1.5 text-[13px] text-[#0a8a84] cursor-pointer border-none bg-transparent p-0 hover:opacity-70 transition-opacity"
+          className="mt-3 flex items-center gap-1.5 font-body text-body-sm text-mint-text cursor-pointer border-none bg-transparent p-0 hover:opacity-70 transition-opacity duration-150 ease-base"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
             <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -150,7 +147,7 @@ export default function AdminLicensePage() {
           เพิ่มรูปแบบสิทธิ
         </button>
 
-        <p className="text-[11px] text-[#bbb] mt-4 leading-[1.6]">
+        <p className="font-body text-footnote text-grey-600 mt-4 leading-[1.6]">
           หมายเหตุ: id ของแต่ละรูปแบบสิทธิถูกตรึงไว้ถาวรและแก้ไม่ได้ — เปลี่ยนชื่อได้ตามต้องการโดยไม่กระทบใบเสนอราคา/ใบเสร็จเก่า
           แต่การลบรูปแบบสิทธิจะทำให้ลูกค้าเลือกรายการนั้นใหม่ไม่ได้ (ข้อมูลเก่ายังแสดงชื่อเดิมตามปกติ)
         </p>
@@ -161,7 +158,7 @@ export default function AdminLicensePage() {
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-xl text-[13px] font-medium shadow-lg ${toast.error ? "bg-red-500 text-white" : "bg-navy text-white"}`}>
+        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 font-body text-body-sm shadow-lg ${toast.error ? "bg-danger text-white" : "bg-black text-white"}`}>
           {toast.msg}
         </div>
       )}
@@ -169,4 +166,4 @@ export default function AdminLicensePage() {
   );
 }
 
-const iCls = "w-full px-3 py-2 rounded-xl border border-border bg-white text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+const iCls = "w-full px-3 py-2 bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";

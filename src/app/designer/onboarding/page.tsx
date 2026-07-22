@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 
 const THAI_BANKS = [
   "ธนาคารกสิกรไทย (KBANK)",
@@ -24,16 +24,16 @@ const THAI_BANKS = [
 ];
 
 const iCls =
-  "w-full px-3 py-2 h-[42px] rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+  "w-full px-3 py-2 h-[42px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
 
 function Field({ label, hint, children, className = "" }: {
   label: string; hint?: string; children: React.ReactNode; className?: string;
 }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-[12px] font-medium text-[#666]">{label}</label>
+      <label className="font-body text-body-sm text-grey-600">{label}</label>
       {children}
-      {hint && <p className="text-[11px] text-[#aaa] leading-[1.5]">{hint}</p>}
+      {hint && <p className="font-body text-footnote text-grey-600 leading-[1.5]">{hint}</p>}
     </div>
   );
 }
@@ -53,8 +53,8 @@ function Step1({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[20px] font-semibold text-navy mb-1">ตั้งชื่อ URL หน้าร้านของคุณ</h2>
-        <p className="text-[13px] text-[#888] leading-[1.7]">
+        <h2 className="font-heading text-h2 text-black mb-1">ตั้งชื่อ URL หน้าร้านของคุณ</h2>
+        <p className="font-body text-body-sm text-grey-600 leading-[1.7]">
           Slug คือที่อยู่หน้าร้านและเป็นส่วนหนึ่งของลิงก์ฟอนต์ทุกตัว
           — ตั้งได้ครั้งเดียว เปลี่ยนภายหลังต้องติดต่อ admin
         </p>
@@ -65,14 +65,14 @@ function Step1({
         hint={isLocked ? "URL ถูกล็อกหลังตั้งครั้งแรก — ติดต่อ admin เพื่อเปลี่ยน" : "⚠️ ตั้งได้ครั้งเดียว — ไม่สามารถแก้ไขได้หลังบันทึก"}
       >
         {isLocked ? (
-          <div className={`${iCls} flex items-center gap-2 cursor-default text-[#888] bg-[#f5f5f2]`}>
-            <span className="text-[#aaa]">/designer/</span>
-            <span className="font-medium text-navy">{slug}</span>
-            <span className="ml-auto text-[10px] text-[#bbb] bg-[#eee] px-2 py-0.5 rounded-full">ล็อก</span>
+          <div className={`${iCls} flex items-center gap-2 cursor-default text-grey-600`}>
+            <span className="text-grey-600">/designer/</span>
+            <span className="font-ui text-ui text-black">{slug}</span>
+            <span className="ml-auto text-badge font-heading text-grey-600 bg-surface px-2 py-0.5">ล็อก</span>
           </div>
         ) : (
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-[#aaa] pointer-events-none select-none">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-body text-body-sm text-grey-600 pointer-events-none select-none">
               /designer/
             </span>
             <input
@@ -86,7 +86,7 @@ function Step1({
         )}
       </Field>
 
-      {error && <p className="text-[12px] text-red-500">{error}</p>}
+      {error && <p className="font-body text-footnote text-danger-dark">{error}</p>}
 
       <Button onClick={onNext} disabled={saving || !slug} className="w-full">
         {saving ? "กำลังบันทึก…" : "ถัดไป →"}
@@ -111,8 +111,8 @@ function Step2({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[20px] font-semibold text-navy mb-1">ข้อมูลผู้ขาย</h2>
-        <p className="text-[13px] text-[#888] leading-[1.7]">
+        <h2 className="font-heading text-h2 text-black mb-1">ข้อมูลผู้ขาย</h2>
+        <p className="font-body text-body-sm text-grey-600 leading-[1.7]">
           ใช้แสดงในใบเสนอราคาและเอกสารที่ออกให้ลูกค้าองค์กร
         </p>
       </div>
@@ -153,10 +153,10 @@ function Step2({
             placeholder="0000000000000"
             maxLength={13}
             inputMode="numeric"
-            className={`${iCls} ${sellerTaxId && sellerTaxId.length !== 13 ? "border-red-400 focus:border-red-400 focus:shadow-[0_0_0_3px_#ef444420]" : ""}`}
+            className={iCls}
           />
           {sellerTaxId && sellerTaxId.length !== 13 && (
-            <span className="text-[11px] text-red-500">{sellerTaxId.length}/13 หลัก</span>
+            <span className="font-body text-footnote text-danger-dark">{sellerTaxId.length}/13 หลัก</span>
           )}
         </Field>
         <Field label="โทรศัพท์">
@@ -177,7 +177,7 @@ function Step2({
         />
       </Field>
 
-      {error && <p className="text-[12px] text-red-500">{error}</p>}
+      {error && <p className="font-body text-footnote text-danger-dark">{error}</p>}
 
       <div className="flex gap-3">
         <Button onClick={onBack} variant="outline" className="flex-1">← ย้อนกลับ</Button>
@@ -203,8 +203,8 @@ function Step3({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-[20px] font-semibold text-navy mb-1">บัญชีธนาคาร</h2>
-        <p className="text-[13px] text-[#888] leading-[1.7]">
+        <h2 className="font-heading text-h2 text-black mb-1">บัญชีธนาคาร</h2>
+        <p className="font-body text-body-sm text-grey-600 leading-[1.7]">
           ใช้โอนส่วนแบ่งรายได้จากการขายผ่านเว็บ
         </p>
       </div>
@@ -244,7 +244,7 @@ function Step3({
         </Field>
       </div>
 
-      {error && <p className="text-[12px] text-red-500">{error}</p>}
+      {error && <p className="font-body text-footnote text-danger-dark">{error}</p>}
 
       <div className="flex gap-3">
         <Button onClick={onBack} variant="outline" className="flex-1">← ย้อนกลับ</Button>
@@ -274,19 +274,19 @@ function Stepper({ step }: { step: number }) {
           <div key={n} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold transition-colors ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-badge font-heading transition-colors duration-150 ease-base ${
                   done
-                    ? "bg-mint text-white"
+                    ? "bg-mint text-black"
                     : active
-                    ? "bg-navy text-white"
-                    : "bg-[#e8e8e2] text-[#bbb]"
+                    ? "bg-black text-white"
+                    : "bg-surface text-grey-600"
                 }`}
               >
                 {done ? "✓" : n}
               </div>
               <span
-                className={`text-[10px] whitespace-nowrap ${
-                  active ? "text-navy font-medium" : done ? "text-mint" : "text-[#bbb]"
+                className={`font-body text-footnote whitespace-nowrap ${
+                  active ? "text-black" : done ? "text-mint-text" : "text-grey-600"
                 }`}
               >
                 {label}
@@ -294,8 +294,8 @@ function Stepper({ step }: { step: number }) {
             </div>
             {n < steps.length && (
               <div
-                className={`flex-1 h-[1px] mb-4 mx-1 transition-colors ${
-                  step > n ? "bg-mint" : "bg-[#e8e8e2]"
+                className={`flex-1 h-[1px] mb-4 mx-1 transition-colors duration-150 ease-base ${
+                  step > n ? "bg-mint" : "bg-surface"
                 }`}
               />
             )}
@@ -459,26 +459,26 @@ export default function OnboardingPage() {
 
   if (loading || !user || !dbLoaded) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
-        <span className="text-[#aaa] text-[14px]">กำลังโหลด…</span>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <span className="font-body text-body-sm text-grey-600">กำลังโหลด…</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[520px]">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-[720px]">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-[11px] font-semibold tracking-[0.14em] text-[#aaa] uppercase mb-2">
+          <div className="font-heading text-badge tracking-[0.14em] text-grey-600 uppercase mb-2">
             DHAMMADHA STUDIO
           </div>
-          <h1 className="text-[22px] font-semibold text-navy">ตั้งค่าร้านของคุณ</h1>
-          <p className="text-[13px] text-[#999] mt-1">ทำครั้งเดียว ใช้ได้ตลอด</p>
+          <h1 className="font-heading text-h2 text-black">ตั้งค่าร้านของคุณ</h1>
+          <p className="font-body text-body-sm text-grey-600 mt-1">ทำครั้งเดียว ใช้ได้ตลอด</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-border p-8 shadow-sm">
+        <div className="bg-surface p-8">
           <Stepper step={step} />
 
           {step === 1 && (

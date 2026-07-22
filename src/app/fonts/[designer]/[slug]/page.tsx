@@ -89,5 +89,18 @@ export default async function FontPage({ params }: { params: Promise<{ slug: str
   const designerMap = raw ? await fetchDesignerMap([raw.owner_id]) : new Map();
   const initialFont = raw ? flattenFont(raw, raw.owner_id ? designerMap.get(raw.owner_id) : undefined) : null;
 
+  // โปรร้าน (designer_promotions) — layer แยกจาก sale_* รายฟอนต์ ต้อง query แยกแล้ว stamp ใส่ initialFont
+  if (initialFont && raw?.owner_id) {
+    const { data: promoRow } = await supabase
+      .from("designer_promotions")
+      .select("discount_percent, sale_end")
+      .eq("designer_id", raw.owner_id)
+      .maybeSingle();
+    if (promoRow) {
+      initialFont.shop_discount_percent = promoRow.discount_percent;
+      initialFont.shop_sale_end = promoRow.sale_end;
+    }
+  }
+
   return <FontDetail initialFont={initialFont} />;
 }

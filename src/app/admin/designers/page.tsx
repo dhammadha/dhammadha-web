@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 
 type UserRow = {
   id: string;
@@ -107,12 +107,12 @@ export default function AdminDesignersPage() {
   const list = tab === "applications" ? applications : designers;
 
   return (
-    <div className="p-6 max-w-[1100px]">
+    <div className="p-6 max-w-[1200px]">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-[20px] font-semibold text-navy">Designers</h1>
+          <h1 className="font-heading text-h2 text-black">Designers</h1>
           {applications.length > 0 && (
-            <p className="text-[13px] text-amber-600 mt-0.5">
+            <p className="font-body text-body-sm text-warning mt-0.5">
               ⚠️ {applications.length} คำขอรอพิจารณา
             </p>
           )}
@@ -120,18 +120,18 @@ export default function AdminDesignersPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-[#f5f5f2] rounded-xl p-1 w-fit">
+      <div className="flex gap-1 mb-4 w-fit">
         {(["applications", "designers"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => { setTab(t); setSelected(null); }}
-            className={`px-4 py-1.5 rounded-[9px] text-[13px] font-medium transition-colors border-none cursor-pointer ${
-              tab === t ? "bg-white text-navy shadow-sm" : "bg-transparent text-[#888] hover:text-navy"
+            className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${
+              tab === t ? "bg-mint text-black" : "bg-surface text-grey-600 hover:bg-grey-200"
             }`}
           >
             {t === "applications" ? "คำขอสมัคร" : "Designers"}
             {t === "applications" && applications.length > 0 && (
-              <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-500 text-white leading-none">
+              <span className="ml-1.5 text-badge font-heading px-1.5 py-0.5 bg-danger text-white leading-none">
                 {applications.length}
               </span>
             )}
@@ -141,36 +141,36 @@ export default function AdminDesignersPage() {
 
       <div className="flex gap-4 items-start">
         {/* List */}
-        <div className="flex-1 bg-white rounded-2xl border border-border overflow-hidden">
+        <div className="flex-1 bg-surface overflow-hidden">
           {tab === "applications" && (
-            <div className="grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+            <div className="grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
               <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>สถานะ</div>
             </div>
           )}
 
           {tab === "designers" && (
-            <div className="grid grid-cols-[100px_1fr_1fr_120px_80px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+            <div className="grid grid-cols-[100px_1fr_1fr_120px_80px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
               <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>ลิงก์</div><div>Role</div>
             </div>
           )}
 
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">กำลังโหลด…</div>
+            <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">กำลังโหลด…</div>
           ) : list.length === 0 ? (
-            <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">
+            <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">
               {tab === "applications" ? "ไม่มีคำขอรอพิจารณา" : "ยังไม่มี designer"}
             </div>
           ) : list.map((u) => (
             <div
               key={u.id}
               onClick={() => setSelected(selected?.id === u.id ? null : u)}
-              className={`grid gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 cursor-pointer transition-colors items-center ${
+              className={`grid gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${
                 tab === "designers" ? "grid-cols-[100px_1fr_1fr_120px_80px]" : "grid-cols-[100px_1fr_1.5fr_80px]"
-              } ${selected?.id === u.id ? "bg-mint-light" : "hover:bg-[#fafaf8]"}`}
+              } ${selected?.id === u.id ? "bg-mint/20" : "hover:bg-grey-200"}`}
             >
-              <div className="text-[12px] text-[#888]">{fmtDate(u.created_at)}</div>
-              <div className="text-[13px] text-navy font-medium truncate">{u.name ?? "—"}</div>
-              <div className="text-[13px] text-[#555] truncate">{u.email ?? "—"}</div>
+              <div className="font-body text-footnote text-grey-600">{fmtDate(u.created_at)}</div>
+              <div className="font-ui text-ui text-black truncate">{u.name ?? "—"}</div>
+              <div className="font-body text-body-sm text-grey-600 truncate">{u.email ?? "—"}</div>
               {tab === "designers" && (
                 <div>
                   {u.designer_slug ? (
@@ -179,20 +179,20 @@ export default function AdminDesignersPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-[12px] text-mint no-underline hover:underline truncate block"
+                      className="font-body text-footnote text-mint-text no-underline hover:underline truncate block"
                     >
                       {u.designer_slug}
                     </a>
                   ) : (
-                    <span className="text-[12px] text-[#ccc]">—</span>
+                    <span className="font-body text-footnote text-grey-600">—</span>
                   )}
                 </div>
               )}
               <div>
                 {tab === "applications" ? (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">รอพิจารณา</span>
+                  <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอพิจารณา</span>
                 ) : (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-mint-light text-[#0a8a84] font-medium capitalize">{u.role}</span>
+                  <span className="text-badge font-heading px-2 py-0.5 bg-mint text-black capitalize">{u.role}</span>
                 )}
               </div>
             </div>
@@ -201,25 +201,25 @@ export default function AdminDesignersPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="w-[280px] flex-shrink-0 bg-white rounded-2xl border border-border p-5 flex flex-col gap-4">
+          <div className="w-[280px] flex-shrink-0 bg-surface p-5 flex flex-col gap-4">
             <div className="flex items-start justify-between">
-              <h3 className="text-[15px] font-semibold text-navy">รายละเอียด</h3>
-              <button onClick={() => setSelected(null)} className="text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer text-lg leading-none">✕</button>
+              <h3 className="font-ui text-ui text-black">รายละเอียด</h3>
+              <button onClick={() => setSelected(null)} className="text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-lg leading-none">✕</button>
             </div>
 
-            <div className="flex flex-col gap-2 text-[13px]">
+            <div className="flex flex-col gap-2 font-body text-body-sm">
               <Row label="ชื่อ" value={selected.name} />
               <Row label="อีเมล" value={selected.email} />
               <Row label="Role" value={selected.role} />
               {selected.designer_slug && <Row label="Slug" value={selected.designer_slug} />}
               {selected.portfolio_url && (
                 <div>
-                  <span className="text-[#aaa]">ผลงาน: </span>
+                  <span className="text-grey-600">ผลงาน: </span>
                   <a
                     href={selected.portfolio_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-mint no-underline hover:underline break-all"
+                    className="text-mint-text no-underline hover:underline break-all"
                   >
                     {selected.portfolio_url}
                   </a>
@@ -227,7 +227,7 @@ export default function AdminDesignersPage() {
               )}
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-border pt-3">
+            <div className="flex flex-col gap-2 pt-3">
               {tab === "applications" && (
                 <>
                   <Button onClick={() => promote(selected)} className="w-full">
@@ -235,7 +235,7 @@ export default function AdminDesignersPage() {
                   </Button>
                   <button
                     onClick={() => reject(selected)}
-                    className="w-full py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[13px] cursor-pointer hover:bg-red-100 transition-colors"
+                    className="w-full py-2 text-danger-dark bg-white font-ui text-ui cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base border-none"
                   >
                     ปฏิเสธ
                   </button>
@@ -261,7 +261,7 @@ export default function AdminDesignersPage() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 rounded-xl bg-navy text-white text-[13px] font-medium shadow-lg">
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">
           {toast}
         </div>
       )}
@@ -273,8 +273,8 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   if (!value) return null;
   return (
     <div>
-      <span className="text-[#aaa]">{label}: </span>
-      <span className="text-navy">{value}</span>
+      <span className="text-grey-600">{label}: </span>
+      <span className="text-black">{value}</span>
     </div>
   );
 }

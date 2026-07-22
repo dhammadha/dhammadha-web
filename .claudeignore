@@ -1,0 +1,19 @@
+# dependencies / build output — ไม่ต้องอ่าน/ค้นหา
+node_modules/
+.next/
+out/
+.firebase/
+tsconfig.tsbuildinfo
+
+# junk ของ macOS — ลบไปแล้ว แต่กัน Finder สร้างใหม่แล้วหลุดเข้า context
+.DS_Store
+
+# logs
+*.log
+
+# lockfile ใหญ่ ไม่มีประโยชน์ให้ Claude อ่าน
+package-lock.json
+
+# secrets — ห้ามอ่านเข้า context
+.env
+.env.local

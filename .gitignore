@@ -81,3 +81,4 @@ supabase/.DS_Store
 .claude/agents/researcher.md
 .claude/agents/verifier.md
 .claude/subagents.md
+next-env.d.ts

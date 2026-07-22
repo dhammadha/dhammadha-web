@@ -10,7 +10,7 @@
 //                               (service_role, idempotent) → อีเมล delivery
 
 import { handleEmailRequest } from "./email-service";
-import { isSaleActive } from "./sale";
+import { effectiveSale } from "./sale";
 
 export interface CheckoutEnv {
   STRIPE_SECRET_KEY?: string;
@@ -45,6 +45,11 @@ export interface PurchasableFont {
   sale_end: string | null;
   is_sale: boolean;
   is_free: boolean;
+  owner_id: string | null;
+  discount_percent?: number | null;
+  sale_label?: string | null;
+  shop_discount_percent?: number | null;
+  shop_sale_end?: string | null;
 }
 
 export function computePersonalPrice(
@@ -52,7 +57,8 @@ export function computePersonalPrice(
   now: number = Date.now()
 ): number | null {
   if (font.is_free || !font.price || font.price <= 0) return null;
-  if (isSaleActive(font, now) && font.sale_price) return font.sale_price;
+  const eff = effectiveSale(font, now);
+  if (eff.active && eff.salePrice > 0) return eff.salePrice;
   return font.price;
 }
 
@@ -120,10 +126,23 @@ export async function handleCheckoutRequest(
   const fonts = await supabaseGet<PurchasableFont>(
     env,
     `fonts?id=eq.${fontId}&is_active=eq.true&published_at=not.is.null` +
-      `&select=id,slug,name,name_th,price,sale_price,sale_end,is_sale,is_free`
+      `&select=id,slug,name,name_th,price,sale_price,sale_end,is_sale,is_free,owner_id,discount_percent,sale_label`
   );
   const font = fonts?.[0];
   if (!font) return { status: 404, body: { ok: false, error: "font_not_found" } };
+
+  // โปรร้าน (layer แยกจาก sale_* รายฟอนต์) — fetch fail = คิดราคาแบบไม่มีโปรร้าน
+  // (fail ทางราคาเต็ม ตาม philosophy เดิม)
+  if (font.owner_id) {
+    const promos = await supabaseGet<{ discount_percent: number; sale_end: string }>(
+      env,
+      `designer_promotions?designer_id=eq.${font.owner_id}&select=discount_percent,sale_end`
+    );
+    if (promos?.[0]) {
+      font.shop_discount_percent = promos[0].discount_percent;
+      font.shop_sale_end = promos[0].sale_end;
+    }
+  }
 
   const price = computePersonalPrice(font);
   if (!price) return { status: 400, body: { ok: false, error: "not_purchasable" } };

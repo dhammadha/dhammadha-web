@@ -6,7 +6,8 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import { Font } from "@/components/FontCard";
-import { isSaleActive } from "@/lib/sale";
+import { effectiveSale } from "@/lib/sale";
+import { mergeShopPromos } from "@/lib/shop-promo";
 import FontGrid from "@/components/FontGrid";
 import CoverCarousel, { type Slide } from "@/components/CoverCarousel";
 import AdBanner from "@/components/AdBanner";
@@ -48,12 +49,6 @@ function getUniqueWeights(urls: string[]): string[] {
 const FacebookIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
     <path d="M15 8.5h-2a1.5 1.5 0 0 0-1.5 1.5v2H15l-.5 3H11.5V21H8.5v-6H7v-3h1.5V9.5A3.5 3.5 0 0 1 12 6h3v2.5z" />
-  </svg>
-);
-
-const XIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-    <path d="M4 4l16 16M20 4L4 20" />
   </svg>
 );
 
@@ -151,12 +146,13 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         // รายละเอียดอาจค้างจนกว่าจะ deploy ใหม่ ถ้าแถวสดหาไม่เจอ (เช่นถูกซ่อนหลัง build)
         // ค่อย fallback เป็น initialFont
         const flat = ((allRows ?? []) as unknown as RawFont[]).map(flattenFont);
-        const liveCurrent = flat.find((f) => f.slug === slug) ?? null;
+        const merged = await mergeShopPromos(flat);
+        const liveCurrent = merged.find((f) => f.slug === slug) ?? null;
         const currentFont = liveCurrent ?? initialFont ?? null;
         if (!currentFont) { setLoading(false); return; }
         if (liveCurrent) setFont(liveCurrent);
 
-        const others = flat.filter((f) => f.slug !== slug);
+        const others = merged.filter((f) => f.slug !== slug);
         setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
 
         for (const row of (settings ?? []) as { key: string; value: Record<string, unknown> }[]) {
@@ -189,8 +185,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     trackFontView(font.id);
   }, [font?.id]);
 
-  // ส่วนลดรายฟอนต์ — เช็ควันหมดอายุด้วย helper เดียวกับ checkout ให้ราคาที่โชว์ตรงกับที่เก็บเงิน
-  const saleActive = font ? isSaleActive(font) : false;
+  // ส่วนลด (โปรร้าน/รายฟอนต์) — เช็ควันหมดอายุด้วย helper เดียวกับ checkout ให้ราคาที่โชว์ตรงกับที่เก็บเงิน
+  const eff = font ? effectiveSale(font) : { active: false, discountPercent: 0, salePrice: 0, saleLabel: "" };
+  const saleActive = eff.active;
 
   // ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — สร้าง Stripe Checkout Session ฝั่ง server
   // แล้วพาไปหน้าจ่ายเงิน ราคาคำนวณจาก DB ที่ server ไม่ได้ส่งจาก client
@@ -388,14 +385,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       >
                         <FacebookIcon /> Facebook
                       </a>
-                      <a
-                        href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black no-underline hover:bg-mint transition-colors duration-150 ease-base"
-                      >
-                        <XIcon /> X
-                      </a>
                       <button
                         type="button"
                         onClick={() => copyShareLink("ig")}
@@ -507,12 +496,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                           <span className="font-ui text-ui text-success">ฟรี</span>
                         ) : saleActive ? (
                           <>
-                            <Badge variant="sale">-{font.discount_percent ?? 0}%</Badge>
+                            <Badge variant="sale">-{eff.discountPercent}%</Badge>
                             <span className="font-body text-body-sm text-grey-400 line-through">
                               ฿{(font.price ?? 0).toLocaleString()}
                             </span>
                             <span className="font-ui text-ui text-success">
-                              ฿{(font.sale_price ?? 0).toLocaleString()}
+                              ฿{eff.salePrice.toLocaleString()}
                             </span>
                           </>
                         ) : font.price ? (

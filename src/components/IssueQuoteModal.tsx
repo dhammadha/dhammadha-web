@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { licenseLabel } from "@/lib/license";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 
 export type IssueQuote = {
   id: string;
@@ -117,29 +117,29 @@ export default function IssueQuoteModal({ quote, initialItems, onClose, onIssued
   return (
     <div className="fixed inset-0 z-[200] bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl w-full max-w-[560px] max-h-[85vh] overflow-y-auto p-6"
+        className="bg-white shadow-lg w-full max-w-[560px] max-h-[85vh] overflow-y-auto p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-1">
-          <h3 className="text-[17px] font-semibold text-navy">ออกใบเสนอราคา</h3>
-          <button onClick={onClose} className="text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer text-lg leading-none">✕</button>
+          <h3 className="font-heading text-h2 text-black">ออกใบเสนอราคา</h3>
+          <button onClick={onClose} className="text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-lg leading-none transition-colors duration-150 ease-base">✕</button>
         </div>
-        <p className="text-[13px] text-[#888] mb-4">
+        <p className="font-body text-body-sm text-grey-600 mb-4">
           ตรวจสอบ/แก้ราคาแต่ละฟอนต์และส่วนลดก่อนออกเอกสาร — ราคานี้จะถูกใช้ต่อในขั้นยืนยันรับชำระ
         </p>
 
         <div className="flex flex-col gap-3 mb-4">
           {rows.map((row, i) => (
-            <div key={i} className="border border-border rounded-xl p-3">
-              <div className="text-[13px] font-medium text-navy mb-2">
+            <div key={i} className="bg-surface p-3">
+              <div className="font-ui text-ui text-black mb-2">
                 {row.quoteName}
-                <span className="text-[#aaa] font-normal"> · {licenseLabel(row.license_type)}</span>
+                <span className="font-body text-body-sm text-grey-600"> · {licenseLabel(row.license_type)}</span>
               </div>
               <div className="flex gap-2">
                 <select
                   value={row.font_id}
                   onChange={(e) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, font_id: e.target.value } : r)))}
-                  className="flex-1 text-[13px] border border-border rounded-lg px-2 py-2 bg-white text-navy"
+                  className="flex-1 font-body text-body-sm px-2 py-2 bg-white text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                   <option value="">— เลือกฟอนต์ในระบบ —</option>
                   {fonts.map((f) => (
@@ -147,13 +147,13 @@ export default function IssueQuoteModal({ quote, initialItems, onClose, onIssued
                   ))}
                 </select>
                 <div className="flex items-center gap-1">
-                  <span className="text-[13px] text-[#aaa]">฿</span>
+                  <span className="font-body text-body-sm text-grey-600">฿</span>
                   <input
                     type="number"
                     min="0"
                     value={row.price}
                     onChange={(e) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, price: e.target.value } : r)))}
-                    className="w-[100px] text-[13px] border border-border rounded-lg px-2 py-2 text-right text-navy"
+                    className="w-[100px] font-body text-body-sm px-2 py-2 text-right bg-white text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                   />
                 </div>
               </div>
@@ -161,31 +161,31 @@ export default function IssueQuoteModal({ quote, initialItems, onClose, onIssued
           ))}
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-border pt-3 mb-4">
+        <div className="flex flex-col gap-2 pt-3 mb-4">
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-[#555]">รวมจำนวนเงิน</span>
-            <span className="text-[14px] text-navy">฿{subtotal.toLocaleString()}</span>
+            <span className="font-body text-body-sm text-grey-600">รวมจำนวนเงิน</span>
+            <span className="font-body text-body-sm text-black">฿{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[13px] text-[#555]">ส่วนลด (บาท)</span>
+            <span className="font-body text-body-sm text-grey-600">ส่วนลด (บาท)</span>
             <div className="flex items-center gap-1">
-              <span className="text-[13px] text-[#aaa]">฿</span>
+              <span className="font-body text-body-sm text-grey-600">฿</span>
               <input
                 type="number"
                 min="0"
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
-                className="w-[110px] text-[13px] border border-border rounded-lg px-2 py-2 text-right text-navy"
+                className="w-[110px] font-body text-body-sm px-2 py-2 text-right bg-surface text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               />
             </div>
           </div>
-          <div className="flex items-center justify-between border-t border-border pt-2">
-            <span className="text-[13px] text-[#555]">ยอดสุทธิ</span>
-            <span className="text-[16px] font-semibold text-navy">฿{net.toLocaleString()}</span>
+          <div className="flex items-center justify-between pt-2 bg-surface px-3 py-2 -mx-3">
+            <span className="font-body text-body-sm text-grey-600">ยอดสุทธิ</span>
+            <span className="font-heading text-h2 text-black">฿{net.toLocaleString()}</span>
           </div>
         </div>
 
-        {error && <p className="text-[13px] text-red-500 mb-3">{error}</p>}
+        {error && <p className="font-body text-body-sm text-danger-dark mb-3">{error}</p>}
 
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={onClose} disabled={saving}>ยกเลิก</Button>

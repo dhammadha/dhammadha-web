@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -77,21 +77,21 @@ export default function DesignerFontsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-border p-4">
-            <div className="text-[28px] font-semibold leading-none mb-1 text-navy">{s.value}</div>
-            <div className="text-[12px] text-[#aaa]">{s.label}</div>
+          <div key={s.label} className="bg-surface p-4">
+            <div className="font-heading text-h2 text-black leading-none mb-1">{s.value}</div>
+            <div className="font-body text-footnote text-grey-600">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Actions */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-1 bg-white border border-border rounded-xl p-1">
+        <div className="flex gap-1 bg-surface p-1">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-4 py-2 rounded-lg text-[13px] font-medium transition-colors border-none cursor-pointer ${tab === t.key ? "bg-mint text-white" : "text-[#888] bg-transparent hover:bg-[#f5f5f2]"}`}
+              className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${tab === t.key ? "bg-mint text-black" : "text-grey-600 bg-transparent hover:bg-grey-200"}`}
             >
               {t.label}
             </button>
@@ -104,68 +104,71 @@ export default function DesignerFontsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_130px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+      <div className="bg-surface overflow-hidden">
+        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_130px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
           <div /><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>โปรโมชั่น</div><div>สถานะ</div><div>จัดการ</div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">กำลังโหลด…</div>
+          <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">กำลังโหลด…</div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <p className="text-[#aaa] text-[14px]">ยังไม่มีฟอนต์ในหมวดนี้</p>
+            <p className="font-body text-body-sm text-grey-600">ยังไม่มีฟอนต์ในหมวดนี้</p>
             {tab === "all" && (
               <Button as="link" href="/designer/add" size="sm">เพิ่มฟอนต์แรก →</Button>
             )}
           </div>
         ) : filtered.map((f) => (
-          <div key={f.id} className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_130px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 hover:bg-[#fafaf8] transition-colors items-center">
+          <div key={f.id} className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_130px] gap-3 px-4 py-3 hover:bg-grey-200 transition-colors duration-150 ease-base items-center">
             <div>
               {f.cover_image_url
-                ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-10 h-[22px] rounded object-cover" />
-                : <div className="w-10 h-[22px] rounded bg-[#eee]" />}
+                ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-10 h-[22px] object-cover" />
+                : <div className="w-10 h-[22px] bg-grey-200" />}
             </div>
             <div>
               {designerSlug && f.published_at ? (
-                <a href={`/fonts/${designerSlug}/${f.slug}`} target="_blank" rel="noopener" className="text-[14px] font-semibold text-navy no-underline hover:text-mint">{f.name ?? "—"}</a>
+                <a href={`/fonts/${designerSlug}/${f.slug}`} target="_blank" rel="noopener" className="font-ui text-ui text-black no-underline hover:text-mint-text">{f.name ?? "—"}</a>
               ) : (
-                <div className="text-[14px] font-semibold text-navy">{f.name ?? "—"}</div>
+                <div className="font-ui text-ui text-black">{f.name ?? "—"}</div>
               )}
-              {f.name_th && <div className="text-[11px] text-[#aaa]">{f.name_th}</div>}
+              {f.name_th && <div className="font-body text-footnote text-grey-600">{f.name_th}</div>}
             </div>
-            <div className="text-[12px] text-[#888] capitalize">{f.category ?? "—"}</div>
-            <div className="text-[11px] text-[#aaa] truncate">{(f.tags ?? []).slice(0, 3).join(", ") || "—"}</div>
-            <div className="text-[13px] font-medium text-navy">
-              {f.is_free ? <span className="text-green-600">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
+            <div className="font-body text-footnote text-grey-600 capitalize">{f.category ?? "—"}</div>
+            <div className="font-body text-footnote text-grey-600 truncate">{(f.tags ?? []).slice(0, 3).join(", ") || "—"}</div>
+            <div className="font-body text-body-sm text-black">
+              {f.is_free ? <span className="text-success">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
             </div>
-            <div className="text-[11px] text-[#666]">
+            <div className="font-body text-footnote text-grey-600">
               {f.is_sale && f.discount_percent ? (
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[#e07000] font-semibold">ลด {f.discount_percent}%</span>
+                  <span className="text-black font-ui text-ui">ลด {f.discount_percent}%</span>
                   {f.sale_end && (
-                    <span className="text-[10px] text-[#aaa]">
+                    <span className="font-body text-footnote text-grey-600">
                       ถึง {new Date(f.sale_end).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}
                     </span>
                   )}
                 </div>
-              ) : <span className="text-[#ddd]">—</span>}
+              ) : <span className="text-grey-600">—</span>}
             </div>
             <div>
               {f.published_at ? (
-                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${f.is_active ? "bg-green-50 text-green-600" : "bg-[#f5f5f2] text-[#aaa]"}`}>
+                <span className={`text-badge font-heading px-2 py-0.5 ${f.is_active ? "bg-success text-white" : "bg-surface text-grey-600"}`}>
                   {f.is_active ? "แสดงบนเว็บ" : "ซ่อน"}
                 </span>
               ) : (
-                <span className="text-[11px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600">รอ Publish</span>
+                <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอ Publish</span>
               )}
             </div>
             <div className="flex gap-1.5">
               {f.published_at && (
-                <button onClick={() => toggleActive(f)} className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border cursor-pointer transition-colors ${f.is_active ? "border-border text-[#666] bg-white hover:bg-[#f5f5f2]" : "border-mint text-mint bg-mint-light hover:bg-mint-mid"}`}>
+                <button
+                  onClick={() => toggleActive(f)}
+                  className={`font-ui text-ui px-2.5 py-1 border-none cursor-pointer transition-colors duration-150 ease-base ${f.is_active ? "bg-surface text-black hover:bg-black hover:text-white" : "bg-mint text-black hover:bg-black hover:text-white"}`}
+                >
                   {f.is_active ? "ซ่อน" : "แสดง"}
                 </button>
               )}
-              <button onClick={() => openEdit(f)} className="px-2.5 py-1 rounded-lg text-[11px] font-medium border border-border text-[#666] bg-white hover:bg-[#f5f5f2] cursor-pointer transition-colors">
+              <button onClick={() => openEdit(f)} className="font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer">
                 แก้ไข
               </button>
             </div>
@@ -183,7 +186,7 @@ export default function DesignerFontsPage() {
       />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-xl bg-navy text-white text-[13px] font-medium shadow-lg">
+        <div className="fixed bottom-6 right-6 z-[200] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">
           {toast}
         </div>
       )}

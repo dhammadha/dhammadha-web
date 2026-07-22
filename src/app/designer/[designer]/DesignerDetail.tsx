@@ -10,6 +10,7 @@ import FontGrid from "@/components/FontGrid";
 import CoverCarousel from "@/components/CoverCarousel";
 import Container from "@/components/ui/Container";
 import { supabase } from "@/lib/supabase";
+import { mergeShopPromos } from "@/lib/shop-promo";
 import PdfLightbox from "@/components/PdfLightbox";
 
 // pool สไลด์ = 4 ฟอนต์ (เจ้าของกำหนด 2026-07-18 · เดิม 3)
@@ -65,11 +66,12 @@ export default function DesignerDetail() {
         .not("published_at", "is", null)
         .order("created_at", { ascending: false });
 
-      const allFonts = ((fontData ?? []) as Font[]).map((f) => ({
+      const flat = ((fontData ?? []) as Font[]).map((f) => ({
         ...f,
         designer_slug: designerSlug,
         designer_business_name: userData.business_name || userData.name || "",
       }));
+      const allFonts = await mergeShopPromos(flat);
 
       setFonts(allFonts);
       setSliderPool(buildSliderPool(allFonts));

@@ -5,7 +5,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 import { DEFAULT_SUB_SETTINGS, isSubActive, parseSubSettings, type SubscriptionRow } from "@/lib/subscription";
 import { fetchAllRows } from "@/lib/fetch-all";
 
@@ -132,50 +132,50 @@ export default function AdminSubscriptionsPage() {
   };
 
   return (
-    <div className="p-6 max-w-[900px] flex flex-col gap-8">
-      <h1 className="text-[20px] font-semibold text-navy">Subscription</h1>
+    <div className="p-6 max-w-[1200px] flex flex-col gap-8">
+      <h1 className="font-heading text-h2 text-black">Subscription</h1>
 
       {/* Subscription settings */}
-      <div className="bg-white rounded-2xl border border-border p-6">
+      <div className="bg-surface p-6">
         <div className="mb-4">
-          <h2 className="text-[16px] font-semibold text-navy">ตั้งค่า Subscription</h2>
-          <p className="text-[12px] text-[#aaa] mt-0.5">ราคาแพลนรายเดือน/รายปี และช่วงทดสอบฟรี (฿0)</p>
+          <h2 className="font-ui text-ui text-black">ตั้งค่า Subscription</h2>
+          <p className="font-body text-footnote text-grey-600 mt-0.5">ราคาแพลนรายเดือน/รายปี และช่วงทดสอบฟรี (฿0)</p>
         </div>
         {subTrialActive && (
-          <div className="mb-3 px-4 py-3 rounded-xl bg-mint-light border border-mint-mid text-[13px] text-[#0a8a84]">
+          <div className="mb-3 px-4 py-3 bg-mint/20 font-body text-body-sm text-black">
             ⚡ ช่วงทดสอบเปิดอยู่{subTrialEnd ? ` ถึง ${subTrialEnd}` : ""} — สมัครได้ในราคา ฿0
           </div>
         )}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">ราคารายเดือน (฿)</label>
+            <label className="font-body text-body-sm text-grey-600">ราคารายเดือน (฿)</label>
             <input type="number" value={subMonthly} onChange={(e) => setSubMonthly(e.target.value)} className={iCls} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">ราคารายปี (฿)</label>
+            <label className="font-body text-body-sm text-grey-600">ราคารายปี (฿)</label>
             <input type="number" value={subYearly} onChange={(e) => setSubYearly(e.target.value)} className={iCls} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 mt-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">เปิดช่วงทดสอบฟรี</label>
-            <label className="flex items-center gap-2 h-[38px] px-3 rounded-xl border border-border bg-[#fafaf8] cursor-pointer">
-              <input type="checkbox" checked={subTrialActive} onChange={(e) => setSubTrialActive(e.target.checked)} className="accent-mint" />
-              <span className="text-[13px] text-navy">{subTrialActive ? "เปิด" : "ปิด"}</span>
+            <label className="font-body text-body-sm text-grey-600">เปิดช่วงทดสอบฟรี</label>
+            <label className="flex items-center gap-2 h-[38px] px-3 bg-white cursor-pointer">
+              <input type="checkbox" checked={subTrialActive} onChange={(e) => setSubTrialActive(e.target.checked)} className="accent-black" />
+              <span className="font-body text-body-sm text-black">{subTrialActive ? "เปิด" : "ปิด"}</span>
             </label>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">วันสิ้นสุดช่วงทดสอบ</label>
+            <label className="font-body text-body-sm text-grey-600">วันสิ้นสุดช่วงทดสอบ</label>
             <input type="date" value={subTrialEnd} onChange={(e) => setSubTrialEnd(e.target.value)} className={iCls} />
           </div>
         </div>
         <div className="grid grid-cols-1 gap-3 mt-3">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">ลิงก์ดาวน์โหลดแอป macOS (.dmg)</label>
+            <label className="font-body text-body-sm text-grey-600">ลิงก์ดาวน์โหลดแอป macOS (.dmg)</label>
             <input type="url" value={subDownMac} onChange={(e) => setSubDownMac(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#666]">ลิงก์ดาวน์โหลดแอป Windows (.msi)</label>
+            <label className="font-body text-body-sm text-grey-600">ลิงก์ดาวน์โหลดแอป Windows (.msi)</label>
             <input type="url" value={subDownWin} onChange={(e) => setSubDownWin(e.target.value)} placeholder="เว้นว่าง = แสดง 'เร็ว ๆ นี้'" className={iCls} />
           </div>
         </div>
@@ -185,21 +185,21 @@ export default function AdminSubscriptionsPage() {
       {/* สมาชิก */}
       <div className="flex flex-col gap-6">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-[16px] font-semibold text-navy">สมาชิก</h2>
-          <span className="text-[13px] text-[#888]">ใช้งานอยู่ {activeCount} · ทั้งหมด {rows.length}</span>
+          <h2 className="font-ui text-ui text-black">สมาชิก</h2>
+          <span className="font-body text-body-sm text-grey-600">ใช้งานอยู่ {activeCount} · ทั้งหมด {rows.length}</span>
         </div>
 
         {/* Comp form */}
-        <div className="bg-white rounded-2xl border border-border p-5">
-          <h2 className="text-[15px] font-semibold text-navy mb-1">เพิ่มสิทธิ์ (Comp)</h2>
-          <p className="text-[12px] text-[#aaa] mb-3">ให้สิทธิ์ฟรีกับบัญชีทดสอบ — ผู้ใช้ต้องสมัครสมาชิกในเว็บก่อน</p>
+        <div className="bg-surface p-5">
+          <h2 className="font-ui text-ui text-black mb-1">เพิ่มสิทธิ์ (Comp)</h2>
+          <p className="font-body text-footnote text-grey-600 mb-3">ให้สิทธิ์ฟรีกับบัญชีทดสอบ — ผู้ใช้ต้องสมัครสมาชิกในเว็บก่อน</p>
           <div className="flex flex-wrap gap-2 items-end">
             <div className="flex flex-col gap-1 flex-1 min-w-[200px]">
-              <label className="text-[12px] font-medium text-[#666]">อีเมลผู้ใช้</label>
+              <label className="font-body text-body-sm text-grey-600">อีเมลผู้ใช้</label>
               <input type="email" value={compEmail} onChange={(e) => setCompEmail(e.target.value)} placeholder="user@email.com" className={iCls} />
             </div>
             <div className="flex flex-col gap-1 w-[120px]">
-              <label className="text-[12px] font-medium text-[#666]">จำนวนวัน</label>
+              <label className="font-body text-body-sm text-grey-600">จำนวนวัน</label>
               <input type="number" value={compDays} onChange={(e) => setCompDays(e.target.value)} className={iCls} />
             </div>
             <Button onClick={addComp} disabled={compBusy}>{compBusy ? "กำลังเพิ่ม…" : "เพิ่มสิทธิ์"}</Button>
@@ -207,44 +207,44 @@ export default function AdminSubscriptionsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-border overflow-hidden">
+        <div className="bg-surface overflow-hidden">
         {!loaded ? (
-          <p className="text-[14px] text-[#aaa] p-6">กำลังโหลด…</p>
+          <p className="font-body text-body-sm text-grey-600 p-6">กำลังโหลด…</p>
         ) : rows.length === 0 ? (
-          <p className="text-[14px] text-[#aaa] p-6">ยังไม่มีสมาชิก</p>
+          <p className="font-body text-body-sm text-grey-600 p-6">ยังไม่มีสมาชิก</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
+            <table className="w-full font-body text-body-sm">
               <thead>
-                <tr className="text-left text-[#aaa] border-b border-border">
-                  <th className="px-4 py-3 font-medium">ผู้ใช้</th>
-                  <th className="px-4 py-3 font-medium">แผน</th>
-                  <th className="px-4 py-3 font-medium">สถานะ</th>
-                  <th className="px-4 py-3 font-medium">ใช้ได้ถึง</th>
-                  <th className="px-4 py-3 font-medium text-right">จัดการ</th>
+                <tr className="text-left bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+                  <th className="px-4 py-3 font-heading">ผู้ใช้</th>
+                  <th className="px-4 py-3 font-heading">แผน</th>
+                  <th className="px-4 py-3 font-heading">สถานะ</th>
+                  <th className="px-4 py-3 font-heading">ใช้ได้ถึง</th>
+                  <th className="px-4 py-3 font-heading text-right">จัดการ</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r) => {
                   const active = isSubActive(r);
                   return (
-                    <tr key={r.id} className="border-b border-border last:border-0">
+                    <tr key={r.id} className="hover:bg-grey-200 transition-colors duration-150 ease-base">
                       <td className="px-4 py-3">
-                        <div className="text-navy">{r.users?.name || "—"}</div>
-                        <div className="text-[11px] text-[#aaa]">{r.users?.email ?? r.user_id.slice(0, 8)}</div>
+                        <div className="text-black">{r.users?.name || "—"}</div>
+                        <div className="font-body text-footnote text-grey-600">{r.users?.email ?? r.user_id.slice(0, 8)}</div>
                       </td>
-                      <td className="px-4 py-3 text-[#666]">{PROVIDER_LABEL[r.provider] ?? r.provider}</td>
+                      <td className="px-4 py-3 text-grey-600">{PROVIDER_LABEL[r.provider] ?? r.provider}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full ${active ? "bg-mint-light text-mint border border-mint-mid" : "bg-[#f5f5f2] text-[#888]"}`}>
+                        <span className={`text-badge font-heading px-2 py-0.5 ${active ? "bg-success text-white" : "bg-white text-grey-600"}`}>
                           {active ? "ใช้งาน" : STATUS_LABEL[r.status] ?? r.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[#666]">{fmtDate(r.current_period_end)}</td>
+                      <td className="px-4 py-3 text-grey-600">{fmtDate(r.current_period_end)}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => extend(r)} className="text-[12px] text-mint hover:underline bg-transparent border-none cursor-pointer p-0">+30 วัน</button>
+                          <button onClick={() => extend(r)} className="font-body text-footnote text-mint-text hover:underline bg-transparent border-none cursor-pointer p-0">+30 วัน</button>
                           {r.status === "active" && (
-                            <button onClick={() => cancel(r)} className="text-[12px] text-red-500 hover:underline bg-transparent border-none cursor-pointer p-0">ยกเลิก</button>
+                            <button onClick={() => cancel(r)} className="font-body text-footnote text-danger-dark hover:underline bg-transparent border-none cursor-pointer p-0">ยกเลิก</button>
                           )}
                         </div>
                       </td>
@@ -259,7 +259,7 @@ export default function AdminSubscriptionsPage() {
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-xl text-[13px] font-medium shadow-lg ${toast.error ? "bg-red-500 text-white" : "bg-navy text-white"}`}>
+        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 font-body text-body-sm shadow-lg ${toast.error ? "bg-danger text-white" : "bg-black text-white"}`}>
           {toast.msg}
         </div>
       )}
@@ -267,4 +267,4 @@ export default function AdminSubscriptionsPage() {
   );
 }
 
-const iCls = "w-full px-3 py-2 rounded-xl border border-border bg-[#fafaf8] text-[14px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]";
+const iCls = "w-full px-3 py-2 bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";

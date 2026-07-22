@@ -14,7 +14,7 @@ import PrintLightbox, { type PrintData } from "@/components/admin/PrintLightbox"
 import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
 import IssueQuoteModal, { type IssueQuote, type InitialItem } from "@/components/IssueQuoteModal";
 import type { Database } from "@/lib/database.types";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 
 type QuoteRow = Database["public"]["Tables"]["quotes"]["Row"] & {
   quote_no?: string | null;
@@ -292,43 +292,43 @@ export default function AdminQuotesPage() {
     <div className="p-6 max-w-[1200px]">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-[20px] font-semibold text-navy">ใบเสนอราคา</h1>
+          <h1 className="font-heading text-h2 text-black">ใบเสนอราคา</h1>
           {quotes.filter((q) => !q.quote_no).length > 0 && (
-            <p className="text-[13px] text-amber-600 mt-0.5">⚠️ {quotes.filter((q) => !q.quote_no).length} รายการรอดำเนินการ</p>
+            <p className="font-body text-body-sm text-warning mt-0.5">⚠️ {quotes.filter((q) => !q.quote_no).length} รายการรอดำเนินการ</p>
           )}
         </div>
       </div>
 
       <div className="flex gap-4 items-start">
         {/* Quote list */}
-        <div className="flex-1 bg-white rounded-2xl border border-border overflow-hidden">
-          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px_80px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+        <div className="flex-1 bg-surface overflow-hidden">
+          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px_80px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
             <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท/องค์กร</div><div>รูปแบบสิทธิ์</div><div>ใบเสนอราคา</div><div>ใบเสร็จ</div>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">กำลังโหลด…</div>
+            <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">กำลังโหลด…</div>
           ) : quotes.length === 0 ? (
-            <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">ยังไม่มีใบเสนอราคา</div>
+            <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">ยังไม่มีใบเสนอราคา</div>
           ) : quotes.map((q) => (
             <div
               key={q.id}
               onClick={() => setSelected(selected?.id === q.id ? null : q)}
-              className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px_80px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 cursor-pointer transition-colors items-center ${selected?.id === q.id ? "bg-mint-light" : "hover:bg-[#fafaf8]"}`}
+              className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px_80px] gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${selected?.id === q.id ? "bg-mint/20" : "hover:bg-grey-200"}`}
             >
-              <div className="text-[12px] text-[#888]">{fmtDate(q.created_at)}</div>
-              <div className="text-[13px] text-navy font-medium truncate">{q.contact_name}</div>
-              <div className="text-[13px] text-[#555] truncate">{q.company_name}</div>
-              <div className="text-[12px] text-[#888] truncate">{licenseLabel(q.license_type, allTiers)}</div>
+              <div className="font-body text-footnote text-grey-600">{fmtDate(q.created_at)}</div>
+              <div className="font-ui text-ui text-black truncate">{q.contact_name}</div>
+              <div className="font-body text-body-sm text-grey-600 truncate">{q.company_name}</div>
+              <div className="font-body text-footnote text-grey-600 truncate">{licenseLabel(q.license_type, allTiers)}</div>
               <div>
                 {q.quote_no
-                  ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">{q.quote_no}</span>
-                  : <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">รอดำเนินการ</span>}
+                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white">{q.quote_no}</span>
+                  : <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอดำเนินการ</span>}
               </div>
               <div>
                 {q.receipt_no
-                  ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">{q.receipt_no}</span>
-                  : <span className="text-[10px] text-[#ddd]">—</span>}
+                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white">{q.receipt_no}</span>
+                  : <span className="font-body text-footnote text-grey-600">—</span>}
               </div>
             </div>
           ))}
@@ -336,13 +336,13 @@ export default function AdminQuotesPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="w-[300px] flex-shrink-0 bg-white rounded-2xl border border-border p-5 flex flex-col gap-4">
+          <div className="w-[300px] flex-shrink-0 bg-surface p-5 flex flex-col gap-4">
             <div className="flex items-start justify-between">
-              <h3 className="text-[15px] font-semibold text-navy">รายละเอียด</h3>
-              <button onClick={() => setSelected(null)} className="text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer text-lg leading-none">✕</button>
+              <h3 className="font-ui text-ui text-black">รายละเอียด</h3>
+              <button onClick={() => setSelected(null)} className="text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-lg leading-none">✕</button>
             </div>
 
-            <div className="flex flex-col gap-2 text-[13px]">
+            <div className="flex flex-col gap-2 font-body text-body-sm">
               <Row label="บริษัท" value={selected.company_name} />
               <Row label="ผู้ติดต่อ" value={selected.contact_name} />
               <Row label="อีเมล" value={selected.email} />
@@ -353,18 +353,18 @@ export default function AdminQuotesPage() {
             </div>
 
             <div>
-              <div className="text-[11px] font-semibold text-[#aaa] uppercase tracking-wide mb-1.5">ฟอนต์ที่ขอ</div>
+              <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">ฟอนต์ที่ขอ</div>
               <div className="flex flex-col gap-1">
                 {selected.fonts.map((f, i) => (
-                  <div key={i} className="text-[13px] text-navy px-2 py-1 rounded-lg bg-[#f8f8f6]">{f}</div>
+                  <div key={i} className="font-body text-body-sm text-black px-2 py-1 bg-white">{f}</div>
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-border pt-3">
+            <div className="flex flex-col gap-2 pt-3">
               {selected.quote_no && (
                 orders[selected.id] ? (
-                  <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2">
+                  <div className="font-body text-body-sm text-white bg-success px-3 py-2">
                     ✓ ยืนยันรับชำระแล้ว — {orders[selected.id].order_no}
                   </div>
                 ) : (
@@ -394,11 +394,11 @@ export default function AdminQuotesPage() {
                 </Button>
               )}
               {selected.receipt_no ? (
-                <p className="text-[12px] text-[#aaa] text-center leading-relaxed px-2">
+                <p className="font-body text-footnote text-grey-600 text-center leading-relaxed px-2">
                   ออกใบเสร็จ {selected.receipt_no} แล้ว — ลบไม่ได้เพื่อเก็บหลักฐานทางบัญชี
                 </p>
               ) : (
-                <button onClick={() => deleteQuote(selected)} className="w-full py-2 rounded-xl border border-red-200 text-red-500 bg-red-50 text-[13px] cursor-pointer hover:bg-red-100 transition-colors">
+                <button onClick={() => deleteQuote(selected)} className="w-full py-2 text-danger-dark bg-white font-ui text-ui cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base border-none">
                   ลบ
                 </button>
               )}
@@ -453,7 +453,7 @@ export default function AdminQuotesPage() {
       />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 rounded-xl bg-navy text-white text-[13px] font-medium shadow-lg">{toast}</div>
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">{toast}</div>
       )}
     </div>
   );
@@ -463,8 +463,8 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   if (!value) return null;
   return (
     <div>
-      <span className="text-[#aaa]">{label}: </span>
-      <span className="text-navy">{value}</span>
+      <span className="text-grey-600">{label}: </span>
+      <span className="text-black">{value}</span>
     </div>
   );
 }

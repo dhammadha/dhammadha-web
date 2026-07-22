@@ -7,7 +7,8 @@ import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
-import { isSaleActive } from "@/lib/sale";
+import { effectiveSale } from "@/lib/sale";
+import { mergeShopPromos } from "@/lib/shop-promo";
 import FontCard, { Font } from "@/components/FontCard";
 import CoverCarousel from "@/components/CoverCarousel";
 import AdBanner from "@/components/AdBanner";
@@ -23,8 +24,8 @@ const SLIDER_SIZE = 8;
 // pool สไลด์คัดสรร: ฟอนต์ลดราคาก่อน แล้วสุ่มที่เหลือ ตัดเหลือ SLIDER_SIZE
 // (logic สไลด์ทั้งหมดอยู่ใน CoverCarousel — หน้านี้แค่คัด pool ส่งเข้าไป)
 function buildSliderPool(fonts: Font[]): Font[] {
-  const sale = fonts.filter((f) => isSaleActive(f));
-  const others = shuffle(fonts.filter((f) => !isSaleActive(f)));
+  const sale = fonts.filter((f) => effectiveSale(f).active);
+  const others = shuffle(fonts.filter((f) => !effectiveSale(f).active));
   return [...sale, ...others].slice(0, SLIDER_SIZE);
 }
 
@@ -39,22 +40,23 @@ export default function HomePage() {
 
   useEffect(() => {
     setLoading(true);
-    supabase
-      .from("fonts")
-      // embed ผ่าน view designer_profiles ไม่ใช่ users — ตั้งแต่ 0054 anon อ่าน users
-      // ไม่ได้แล้ว (bank/tax_id อยู่ในนั้น) ถ้า embed users ทั้ง query จะ 401 = ไม่มีฟอนต์ขึ้นเลย
-      .select("*, designer_profiles!owner_id(designer_slug, business_name)")
-      .eq("is_active", true)
-      .not("published_at", "is", null)
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (error) { setLoading(false); return; }
-        type RawFont = { designer_profiles?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
-        const active = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.designer_profiles?.designer_slug ?? undefined, designer_business_name: r.designer_profiles?.business_name ?? undefined, designer_profiles: undefined })) as unknown as Font[];
-        setFonts(active);
-        setSliderPool(buildSliderPool(active));
-        setLoading(false);
-      });
+    (async () => {
+      const { data, error } = await supabase
+        .from("fonts")
+        // embed ผ่าน view designer_profiles ไม่ใช่ users — ตั้งแต่ 0054 anon อ่าน users
+        // ไม่ได้แล้ว (bank/tax_id อยู่ในนั้น) ถ้า embed users ทั้ง query จะ 401 = ไม่มีฟอนต์ขึ้นเลย
+        .select("*, designer_profiles!owner_id(designer_slug, business_name)")
+        .eq("is_active", true)
+        .not("published_at", "is", null)
+        .order("created_at", { ascending: false });
+      if (error) { setLoading(false); return; }
+      type RawFont = { designer_profiles?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
+      const flat = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.designer_profiles?.designer_slug ?? undefined, designer_business_name: r.designer_profiles?.business_name ?? undefined, designer_profiles: undefined })) as unknown as Font[];
+      const active = await mergeShopPromos(flat);
+      setFonts(active);
+      setSliderPool(buildSliderPool(active));
+      setLoading(false);
+    })();
   }, []);
 
   const gridFonts = fonts.slice(0, GRID_SHOW);

@@ -158,6 +158,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      designer_promotions: {
+        Row: {
+          id: string;
+          designer_id: string;
+          discount_percent: number;
+          sale_end: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          designer_id: string;
+          discount_percent: number;
+          sale_end: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          designer_id?: string;
+          discount_percent?: number;
+          sale_end?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       font_files_private: {
         Row: {
           font_id: string;

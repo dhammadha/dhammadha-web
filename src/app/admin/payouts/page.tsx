@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import Button from "@/components/Button";
+import Button from "@/components/ui/Button";
 import { fetchAllRows } from "@/lib/fetch-all";
 import SubscriptionRevenue from "@/components/revenue/SubscriptionRevenue";
 import {
@@ -245,8 +245,8 @@ export default function AdminPayoutsPage() {
   return (
     <div className="p-6 max-w-[1200px]">
       <div className="mb-6">
-        <h1 className="text-[20px] font-semibold text-navy">Payouts / จ่ายส่วนแบ่ง</h1>
-        <p className="text-[13px] text-[#aaa] mt-0.5">สรุปยอดขายและรายได้แบ่งปันนักออกแบบ</p>
+        <h1 className="font-heading text-h2 text-black">Payouts / จ่ายส่วนแบ่ง</h1>
+        <p className="font-body text-body-sm text-grey-600 mt-0.5">สรุปยอดขายและรายได้แบ่งปันนักออกแบบ</p>
       </div>
 
       {/* Stat tiles — current month, all designers */}
@@ -258,17 +258,17 @@ export default function AdminPayoutsPage() {
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-border py-16 flex items-center justify-center text-[#aaa] text-[14px]">
+        <div className="bg-surface py-16 flex items-center justify-center font-body text-body-sm text-grey-600">
           กำลังโหลด…
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-border p-12 flex flex-col items-center justify-center text-center gap-3">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="text-[#ddd]">
+        <div className="bg-surface p-12 flex flex-col items-center justify-center text-center gap-3">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" className="text-grey-400">
             <path d="M5 30l8-10 8 6 8-14 8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M5 35h30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <div className="text-[15px] font-medium text-navy">ยังไม่มีคำสั่งซื้อ</div>
-          <div className="text-[13px] text-[#aaa] max-w-[380px] leading-relaxed">
+          <div className="font-ui text-ui text-black">ยังไม่มีคำสั่งซื้อ</div>
+          <div className="font-body text-body-sm text-grey-600 max-w-[380px] leading-relaxed">
             เมื่อมีออเดอร์เข้ามา สรุปรายได้และรายการที่ต้องโอนให้ designer จะแสดงที่นี่
           </div>
         </div>
@@ -276,11 +276,11 @@ export default function AdminPayoutsPage() {
         <>
           {/* Month selector */}
           <div className="flex items-center gap-2 mb-4">
-            <label className="text-[12px] font-medium text-[#666]">เดือน</label>
+            <label className="font-body text-body-sm text-grey-600">เดือน</label>
             <select
               value={selectedMonthKey ?? ""}
               onChange={(e) => { setSelectedMonthKey(e.target.value); setSelectedDesignerId(null); }}
-              className="px-3 py-2 h-[38px] rounded-xl border border-border bg-[#fafaf8] text-[13px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]"
+              className="px-3 py-2 h-[38px] bg-surface font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base"
             >
               {monthKeys.map((m) => (
                 <option key={m.key} value={m.key}>{monthLabel(m.year, m.month)}</option>
@@ -290,13 +290,13 @@ export default function AdminPayoutsPage() {
 
           <div className="flex gap-4 items-start">
             {/* Designer rows for selected month */}
-            <div className="flex-1 bg-white rounded-2xl border border-border overflow-hidden">
-              <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_70px_110px] gap-3 px-4 py-2.5 bg-[#f8f8f6] text-[11px] font-semibold text-[#aaa] tracking-[0.04em] border-b border-border">
+            <div className="flex-1 bg-surface overflow-hidden">
+              <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_70px_110px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
                 <div>Designer</div><div>ยอด B2C</div><div>ส่วนแบ่ง designer</div><div>ยอด B2B</div><div>Orders</div><div>สถานะ</div>
               </div>
 
               {monthRows.length === 0 ? (
-                <div className="flex items-center justify-center py-12 text-[#aaa] text-[14px]">ไม่มีข้อมูลในเดือนนี้</div>
+                <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">ไม่มีข้อมูลในเดือนนี้</div>
               ) : (
                 monthRows.map(({ designerId, statement }) => {
                   const d = designers[designerId];
@@ -306,22 +306,22 @@ export default function AdminPayoutsPage() {
                     <div
                       key={designerId}
                       onClick={() => setSelectedDesignerId(selectedDesignerId === designerId ? null : designerId)}
-                      className={`grid grid-cols-[1.4fr_1fr_1fr_1fr_70px_110px] gap-3 px-4 py-3 border-b border-[#f8f8f8] last:border-0 cursor-pointer transition-colors items-center ${selectedDesignerId === designerId ? "bg-mint-light" : "hover:bg-[#fafaf8]"}`}
+                      className={`grid grid-cols-[1.4fr_1fr_1fr_1fr_70px_110px] gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${selectedDesignerId === designerId ? "bg-mint/20" : "hover:bg-grey-200"}`}
                     >
-                      <div className="text-[13px] text-navy font-medium truncate">{displayName(d, designerId)}</div>
-                      <div className="text-[13px] text-[#555]">{fmtBaht(statement.b2cTotal)}</div>
-                      <div className="text-[13px] text-navy font-medium">{fmtBaht(statement.designerAmount)}</div>
-                      <div className="text-[13px] text-[#555]">{fmtBaht(statement.b2bTotal)}</div>
-                      <div className="text-[12px] text-[#888]">{statement.b2cCount + statement.b2bCount}</div>
+                      <div className="font-ui text-ui text-black truncate">{displayName(d, designerId)}</div>
+                      <div className="font-body text-body-sm text-grey-600">{fmtBaht(statement.b2cTotal)}</div>
+                      <div className="font-ui text-ui text-black">{fmtBaht(statement.designerAmount)}</div>
+                      <div className="font-body text-body-sm text-grey-600">{fmtBaht(statement.b2bTotal)}</div>
+                      <div className="font-body text-footnote text-grey-600">{statement.b2cCount + statement.b2bCount}</div>
                       <div>
                         {paid ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-600 font-medium">
+                          <span className="text-badge font-heading px-2 py-0.5 bg-success text-white">
                             จ่ายแล้ว {statement.payout ? fmtDate(statement.payout.paid_at) : ""}
                           </span>
                         ) : pendingPayout ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-medium">รอโอน</span>
+                          <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอโอน</span>
                         ) : (
-                          <span className="text-[10px] text-[#ddd]">—</span>
+                          <span className="font-body text-footnote text-grey-600">—</span>
                         )}
                       </div>
                     </div>
@@ -332,26 +332,26 @@ export default function AdminPayoutsPage() {
 
             {/* Detail panel */}
             {selectedRow && (
-              <div className="w-[320px] flex-shrink-0 bg-white rounded-2xl border border-border p-5 flex flex-col gap-4">
+              <div className="w-[320px] flex-shrink-0 bg-surface p-5 flex flex-col gap-4">
                 <div className="flex items-start justify-between">
-                  <h3 className="text-[15px] font-semibold text-navy">{displayName(selectedDesigner, selectedRow.designerId)}</h3>
-                  <button onClick={() => setSelectedDesignerId(null)} className="text-[#aaa] hover:text-navy bg-transparent border-none cursor-pointer text-lg leading-none">✕</button>
+                  <h3 className="font-ui text-ui text-black">{displayName(selectedDesigner, selectedRow.designerId)}</h3>
+                  <button onClick={() => setSelectedDesignerId(null)} className="text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-lg leading-none">✕</button>
                 </div>
-                <p className="text-[12px] text-[#aaa] -mt-3">{monthLabel(selectedRow.statement.year, selectedRow.statement.month)}</p>
+                <p className="font-body text-footnote text-grey-600 -mt-3">{monthLabel(selectedRow.statement.year, selectedRow.statement.month)}</p>
 
                 {/* Bank info — ไม่โชว์สำหรับยอดสตูดิโอ (ไม่มีการโอน) */}
                 {!isStudio && (
                 <div>
-                  <div className="text-[11px] font-semibold text-[#aaa] uppercase tracking-wide mb-1.5">บัญชีธนาคาร (สำหรับโอน)</div>
+                  <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">บัญชีธนาคาร (สำหรับโอน)</div>
                   {hasBank ? (
-                    <div className="flex flex-col gap-1 text-[13px] bg-[#f8f8f6] rounded-xl px-3 py-2.5">
+                    <div className="flex flex-col gap-1 font-body text-body-sm bg-white px-3 py-2.5">
                       <Row label="ธนาคาร" value={bank?.bank_name} />
                       <Row label="สาขา" value={bank?.branch} />
                       <Row label="ชื่อบัญชี" value={bank?.account_name} />
                       <Row label="เลขที่บัญชี" value={bank?.account_number} />
                     </div>
                   ) : (
-                    <div className="text-[12px] text-amber-600 bg-amber-50 rounded-xl px-3 py-2.5">
+                    <div className="font-body text-footnote text-black bg-warning px-3 py-2.5">
                       ⚠️ designer ยังไม่กรอกบัญชีธนาคาร
                     </div>
                   )}
@@ -359,7 +359,7 @@ export default function AdminPayoutsPage() {
                 )}
 
                 {/* Breakdown */}
-                <div className="flex flex-col gap-1.5 text-[13px] border-t border-border pt-3">
+                <div className="flex flex-col gap-1.5 font-body text-body-sm pt-3">
                   <Row label="ยอดขาย B2C" value={fmtBaht(selectedRow.statement.b2cTotal)} />
                   <Row label="รายได้ของเว็บ" value={fmtBaht(selectedRow.statement.platformAmount)} />
                   <Row label="ส่วนแบ่ง designer" value={fmtBaht(selectedRow.statement.designerAmount)} />
@@ -367,63 +367,63 @@ export default function AdminPayoutsPage() {
                 </div>
 
                 {/* Orders list */}
-                <div className="border-t border-border pt-3">
-                  <div className="text-[11px] font-semibold text-[#aaa] uppercase tracking-wide mb-1.5">ออเดอร์</div>
+                <div className="pt-3">
+                  <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">ออเดอร์</div>
                   <div className="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto">
                     {selectedRow.statement.orders.map((o) => (
-                      <div key={o.id} className="text-[12px] bg-[#f8f8f6] rounded-lg px-2.5 py-2">
+                      <div key={o.id} className="font-body text-footnote bg-white px-2.5 py-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-navy font-medium truncate">{o.order_no}</span>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${o.source === "checkout" ? "bg-mint-light text-[#0a8a84]" : "bg-[#eee] text-[#888]"}`}>
+                          <span className="text-black truncate">{o.order_no}</span>
+                          <span className={`text-badge font-heading px-1.5 py-0.5 flex-shrink-0 ${o.source === "checkout" ? "bg-mint text-black" : "bg-surface text-grey-600"}`}>
                             {o.source === "checkout" ? "B2C" : "B2B"}
                           </span>
                         </div>
-                        <div className="text-[#aaa] text-[11px] mt-0.5">{fmtDate(o.paid_at ?? o.created_at)}</div>
-                        <div className="text-[#666] truncate mt-0.5">{(o.items ?? []).map((it) => it.name).join(", ") || "—"}</div>
-                        <div className="text-navy font-medium mt-0.5">{fmtBaht(o.total_amount)}</div>
+                        <div className="text-grey-600 mt-0.5">{fmtDate(o.paid_at ?? o.created_at)}</div>
+                        <div className="text-grey-600 truncate mt-0.5">{(o.items ?? []).map((it) => it.name).join(", ") || "—"}</div>
+                        <div className="text-black mt-0.5">{fmtBaht(o.total_amount)}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Payout action */}
-                <div className="border-t border-border pt-3 flex flex-col gap-2">
+                <div className="pt-3 flex flex-col gap-2">
                   {isStudio ? (
-                    <div className="text-[12px] text-[#aaa]">ยอดของสตูดิโอเอง (order ไม่ผูก designer) — ไม่มีการโอนส่วนแบ่ง</div>
+                    <div className="font-body text-footnote text-grey-600">ยอดของสตูดิโอเอง (order ไม่ผูก designer) — ไม่มีการโอนส่วนแบ่ง</div>
                   ) : selectedRow.statement.payout ? (
                     <>
-                      <div className="text-[13px] text-green-600 bg-green-50 rounded-lg px-3 py-2 flex flex-col gap-0.5">
+                      <div className="font-body text-body-sm text-white bg-success px-3 py-2 flex flex-col gap-0.5">
                         <span>✓ จ่ายแล้ว {fmtBaht(selectedRow.statement.payout.amount)}</span>
-                        <span className="text-[11px] text-green-700">{fmtDateFull(selectedRow.statement.payout.paid_at)}</span>
+                        <span className="font-body text-footnote">{fmtDateFull(selectedRow.statement.payout.paid_at)}</span>
                         {selectedRow.statement.payout.note && (
-                          <span className="text-[11px] text-green-700">โน้ต: {selectedRow.statement.payout.note}</span>
+                          <span className="font-body text-footnote">โน้ต: {selectedRow.statement.payout.note}</span>
                         )}
                       </div>
-                      <button onClick={unmarkPaid} className="text-[12px] text-[#aaa] hover:text-red-500 bg-transparent border-none cursor-pointer transition-colors self-start">
+                      <button onClick={unmarkPaid} className="font-body text-footnote text-grey-600 hover:text-danger-dark bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base self-start">
                         ยกเลิกการบันทึก
                       </button>
                     </>
                   ) : selectedRow.statement.designerAmount > 0 ? (
                     <>
-                      <label className="text-[12px] font-medium text-[#666]">จำนวนเงินที่โอน</label>
+                      <label className="font-body text-body-sm text-grey-600">จำนวนเงินที่โอน</label>
                       <input
                         type="number"
                         value={payAmount}
                         onChange={(e) => setPayAmount(e.target.value)}
-                        className="w-full px-3 py-2 h-[38px] rounded-xl border border-border bg-[#fafaf8] text-[13px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]"
+                        className="w-full px-3 py-2 h-[38px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base"
                       />
-                      <label className="text-[12px] font-medium text-[#666]">โน้ต / เลขอ้างอิง (ถ้ามี)</label>
+                      <label className="font-body text-body-sm text-grey-600">โน้ต / เลขอ้างอิง (ถ้ามี)</label>
                       <input
                         value={payNote}
                         onChange={(e) => setPayNote(e.target.value)}
-                        className="w-full px-3 py-2 h-[38px] rounded-xl border border-border bg-[#fafaf8] text-[13px] text-navy outline-none focus:border-mint focus:shadow-[0_0_0_3px_#5ECEC820] transition-all font-[inherit]"
+                        className="w-full px-3 py-2 h-[38px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base"
                       />
                       <Button onClick={markPaid} disabled={saving} className="w-full mt-1">
                         {saving ? "กำลังบันทึก…" : "บันทึกจ่ายแล้ว"}
                       </Button>
                     </>
                   ) : (
-                    <div className="text-[12px] text-[#aaa]">เดือนนี้มีเฉพาะยอด B2B (รับเงินตรงกับ designer) — ไม่มีรายการต้องโอน</div>
+                    <div className="font-body text-footnote text-grey-600">เดือนนี้มีเฉพาะยอด B2B (รับเงินตรงกับ designer) — ไม่มีรายการต้องโอน</div>
                   )}
                 </div>
               </div>
@@ -435,7 +435,7 @@ export default function AdminPayoutsPage() {
       <SubscriptionRevenue mode="admin" />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 rounded-xl bg-navy text-white text-[13px] font-medium shadow-lg">{toast}</div>
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">{toast}</div>
       )}
     </div>
   );
@@ -443,9 +443,9 @@ export default function AdminPayoutsPage() {
 
 function StatTile({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="bg-white rounded-2xl border border-border p-4">
-      <div className={`text-[22px] font-semibold leading-none mb-1 ${highlight ? "text-mint" : "text-navy"}`}>{value}</div>
-      <div className="text-[12px] text-[#aaa]">{label}</div>
+    <div className="bg-surface p-4">
+      <div className={`font-heading text-h2 leading-none mb-1 ${highlight ? "text-mint-text" : "text-black"}`}>{value}</div>
+      <div className="font-body text-footnote text-grey-600">{label}</div>
     </div>
   );
 }
@@ -454,8 +454,8 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   if (!value) return null;
   return (
     <div>
-      <span className="text-[#aaa]">{label}: </span>
-      <span className="text-navy">{value}</span>
+      <span className="text-grey-600">{label}: </span>
+      <span className="text-black">{value}</span>
     </div>
   );
 }

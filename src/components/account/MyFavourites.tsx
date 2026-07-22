@@ -12,6 +12,7 @@ import { useFavourites } from "@/context/FavouritesContext";
 import FontCard, { Font } from "@/components/FontCard";
 import Button from "@/components/ui/Button";
 import { isSubActive, type SubscriptionRow } from "@/lib/subscription";
+import { mergeShopPromos } from "@/lib/shop-promo";
 
 export default function MyFavourites() {
   const { user } = useAuth();
@@ -44,8 +45,9 @@ export default function MyFavourites() {
       .from("fonts")
       .select("*")
       .in("id", ids)
-      .then(({ data }) => {
-        setFonts((data as Font[]) ?? []);
+      .then(async ({ data }) => {
+        const merged = await mergeShopPromos((data as Font[]) ?? []);
+        setFonts(merged);
         setLoaded(true);
       });
   }, [favourites, favLoading]);

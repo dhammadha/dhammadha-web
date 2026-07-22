@@ -10,7 +10,8 @@ import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { supabase } from "@/lib/supabase";
-import { isSaleActive } from "@/lib/sale";
+import { effectiveSale } from "@/lib/sale";
+import { mergeShopPromos } from "@/lib/shop-promo";
 
 // 9 แถว × 4 คอลัมน์ (เดสก์ท็อป) ต่อหน้า — FontGrid แทรก ad คั่นทุก 3 แถวให้เอง (เจ้าของ 2026-07-20)
 const PAGE_SIZE = 36;
@@ -92,21 +93,22 @@ function AllFontsContent() {
 
   useEffect(() => {
     setLoading(true);
-    supabase
-      .from("fonts")
-      // embed ผ่าน view designer_profiles ไม่ใช่ users (ดู 0054 — anon อ่าน users ไม่ได้แล้ว)
-      .select("*, designer_profiles!owner_id(designer_slug, business_name)")
-      .eq("is_active", true)
-      .not("published_at", "is", null)
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (!error) {
-          type RawFont = { designer_profiles?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
-          const flat = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.designer_profiles?.designer_slug ?? undefined, designer_business_name: r.designer_profiles?.business_name ?? undefined, designer_profiles: undefined }));
-          setFonts(flat as unknown as Font[]);
-        }
-        setLoading(false);
-      });
+    (async () => {
+      const { data, error } = await supabase
+        .from("fonts")
+        // embed ผ่าน view designer_profiles ไม่ใช่ users (ดู 0054 — anon อ่าน users ไม่ได้แล้ว)
+        .select("*, designer_profiles!owner_id(designer_slug, business_name)")
+        .eq("is_active", true)
+        .not("published_at", "is", null)
+        .order("created_at", { ascending: false });
+      if (!error) {
+        type RawFont = { designer_profiles?: { designer_slug?: string; business_name?: string } | null } & Record<string, unknown>;
+        const flat = ((data ?? []) as unknown as RawFont[]).map((r) => ({ ...r, designer_slug: r.designer_profiles?.designer_slug ?? undefined, designer_business_name: r.designer_profiles?.business_name ?? undefined, designer_profiles: undefined })) as unknown as Font[];
+        const merged = await mergeShopPromos(flat);
+        setFonts(merged as unknown as Font[]);
+      }
+      setLoading(false);
+    })();
   }, []);
 
   // Union of hardcoded categories + any distinct legacy category values found in data
@@ -131,7 +133,7 @@ function AllFontsContent() {
       }
       if (category !== "all" && f.category !== category) return false;
       if (priceFilter === "free" && !f.is_free) return false;
-      if (priceFilter === "sale" && !isSaleActive(f)) return false;
+      if (priceFilter === "sale" && !effectiveSale(f).active) return false;
       return true;
     });
   }, [fonts, search, category, priceFilter]);
