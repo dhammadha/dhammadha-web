@@ -141,7 +141,7 @@ export default function DesignerFontsPage() {
             <div className="font-body text-footnote text-grey-600">
               {f.is_sale && f.discount_percent ? (
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-mint-text font-ui text-ui">ลด {f.discount_percent}%</span>
+                  <span className="text-warning font-ui text-ui">ลด {f.discount_percent}%</span>
                   {f.sale_end && (
                     <span className="font-body text-footnote text-grey-600">
                       ถึง {new Date(f.sale_end).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "2-digit" })}
