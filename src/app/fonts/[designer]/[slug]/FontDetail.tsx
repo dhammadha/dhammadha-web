@@ -45,6 +45,41 @@ function getUniqueWeights(urls: string[]): string[] {
   return unique.sort((a, b) => weightToCss(a) - weightToCss(b));
 }
 
+const FacebookIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+    <path d="M15 8.5h-2a1.5 1.5 0 0 0-1.5 1.5v2H15l-.5 3H11.5V21H8.5v-6H7v-3h1.5V9.5A3.5 3.5 0 0 1 12 6h3v2.5z" />
+  </svg>
+);
+
+const XIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+    <path d="M4 4l16 16M20 4L4 20" />
+  </svg>
+);
+
+const InstagramIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17" cy="7" r="0.8" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const LinkIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+    <path d="M9 15l6-6M10.5 6.5l1-1a3.5 3.5 0 0 1 5 5l-1 1M13.5 17.5l-1 1a3.5 3.5 0 0 1-5-5l1-1" />
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+    <circle cx="18" cy="5" r="2.5" />
+    <circle cx="6" cy="12" r="2.5" />
+    <circle cx="18" cy="19" r="2.5" />
+    <path d="M8.2 10.7l7.6-4.4M8.2 13.3l7.6 4.4" />
+  </svg>
+);
+
 function getFormats(urls: string[]): string {
   const exts = new Set(
     urls
@@ -81,8 +116,20 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [customLicenseTiers, setCustomLicenseTiers] = useState<LicenseTier[] | null>(null);
   const [tab, setTab] = useState<Tab>("detail");
   const [specimenOpen, setSpecimenOpen] = useState(false);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState<"link" | "ig" | null>(null);
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState("");
+
+  async function copyShareLink(kind: "link" | "ig") {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShareCopied(kind);
+      setTimeout(() => setShareCopied(null), 2000);
+    } catch {
+      // clipboard permission ปฏิเสธ — ปล่อยผ่าน ไม่ต้อง block UI
+    }
+  }
 
   useEffect(() => {
     if (!slug) return;
@@ -313,26 +360,82 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
               <div className="mt-2">{designerLine}</div>
             </div>
 
-            {/* บันทึกไว้ดูภายหลัง — เหลือแค่ไอคอนเพราะพื้นที่ข้างชื่อฟอนต์จำกัด
-                ข้อความเดิมย้ายไปอยู่ใน aria-label/title แทน */}
-            <button
-              type="button"
-              onClick={() => {
-                if (!user) {
-                  router.push(`/auth/login?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`);
-                  return;
-                }
-                toggle(font.id);
-              }}
-              aria-pressed={isFavourite(font.id)}
-              aria-label={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
-              title={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
-              className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-mint-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-            >
-              <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            </button>
+            <div className="shrink-0 flex items-center gap-2">
+              {/* แชร์ — hover เปิด submenu เหมือนไอคอนตะกร้า/user ใน Nav.tsx, กดก็เปิดได้ (มือถือ) */}
+              <div
+                className="relative"
+                onMouseEnter={() => setShareMenuOpen(true)}
+                onMouseLeave={() => setShareMenuOpen(false)}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShareMenuOpen((v) => !v)}
+                  aria-label="แชร์ฟอนต์นี้"
+                  aria-expanded={shareMenuOpen}
+                  title="แชร์"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-mint-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                >
+                  <ShareIcon />
+                </button>
+                {shareMenuOpen && (
+                  <div className="absolute right-0 top-full pt-2 w-56 z-50">
+                    <div className="bg-surface shadow-lg py-1">
+                      <a
+                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black no-underline hover:bg-mint transition-colors duration-150 ease-base"
+                      >
+                        <FacebookIcon /> Facebook
+                      </a>
+                      <a
+                        href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black no-underline hover:bg-mint transition-colors duration-150 ease-base"
+                      >
+                        <XIcon /> X
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => copyShareLink("ig")}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none text-left cursor-pointer hover:bg-mint transition-colors duration-150 ease-base"
+                      >
+                        <InstagramIcon /> {shareCopied === "ig" ? "คัดลอกลิงก์แล้ว วางใน Instagram ได้เลย" : "Instagram"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyShareLink("link")}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none text-left cursor-pointer hover:bg-mint transition-colors duration-150 ease-base"
+                      >
+                        <LinkIcon /> {shareCopied === "link" ? "คัดลอกลิงก์แล้ว" : "คัดลอกลิงก์"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* บันทึกไว้ดูภายหลัง — เหลือแค่ไอคอนเพราะพื้นที่ข้างชื่อฟอนต์จำกัด
+                  ข้อความเดิมย้ายไปอยู่ใน aria-label/title แทน */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!user) {
+                    router.push(`/auth/login?next=${encodeURIComponent(`/fonts/${font.designer_slug ?? ""}/${font.slug}/`)}`);
+                    return;
+                  }
+                  toggle(font.id);
+                }}
+                aria-pressed={isFavourite(font.id)}
+                aria-label={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
+                title={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-mint-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              >
+                <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* แถบเมนู 3 หัวข้อ — มือถือเรียงแนวตั้ง (§15.5 เจ้าของเคาะ 2026-07-20)
