@@ -155,11 +155,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">ADMIN PANEL</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
-          <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-1 pb-1 uppercase">ของฉัน</div>
+          <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-1 pb-1 uppercase">Designer Section</div>
           {MAIN_NAV.map((item) => (
             <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
           ))}
-          <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-4 pb-1 uppercase">จัดการระบบ</div>
+          <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-4 pb-1 uppercase">Admin Section</div>
           {REVIEW_NAV.map((item) => (
             <NavItem key={item.href} {...item} isActive={isActive(item.href)} />
           ))}
@@ -201,11 +201,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="font-heading text-badge text-white tracking-[0.05em] uppercase">DHAMMADHA ADMIN</span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
-              <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-1 pb-1 uppercase">ของฉัน</div>
+              <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-1 pb-1 uppercase">Designer Section</div>
               {MAIN_NAV.map((item) => (
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
-              <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-4 pb-1 uppercase">จัดการระบบ</div>
+              <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-4 pb-1 uppercase">Admin Section</div>
               {REVIEW_NAV.map((item) => (
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
