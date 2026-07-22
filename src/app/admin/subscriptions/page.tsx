@@ -132,7 +132,7 @@ export default function AdminSubscriptionsPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1200px] flex flex-col gap-8">
+    <div className="p-6 max-w-[720px] flex flex-col gap-8">
       <h1 className="font-heading text-h2 text-black">Subscription</h1>
 
       {/* Subscription settings */}
