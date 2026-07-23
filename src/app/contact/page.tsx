@@ -168,7 +168,7 @@ export default function ContactPage() {
                   <textarea id="c-message" value={form.message} onChange={set("message")} rows={7} className={FIELD} placeholder="รายละเอียดที่ต้องการสอบถาม" />
                 </div>
 
-                {TURNSTILE_SITE_KEY && <div ref={containerRef} />}
+                {TURNSTILE_SITE_KEY && <div className="flex justify-end" ref={containerRef} />}
 
                 {errorMsg && (
                   <p className="font-body text-body-sm text-danger-dark">{errorMsg}</p>
