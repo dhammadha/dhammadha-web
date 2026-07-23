@@ -122,7 +122,7 @@ export default function HomePage() {
             <div className="p-5 bg-surface flex flex-col">
               <div className="font-heading text-h2 text-black">ซื้อรายฟอนต์</div>
               <div className="font-heading text-h2 text-black">ราคาแตกต่างกัน</div>
-              <div className="font-body text-body-sm text-grey-600 mt-2.5 mb-2.5">/ ชุดฟอนต์</div>
+              <div className="font-body text-body-sm text-grey-600 mt-2.5 mb-2.5">ราคา / ชุดฟอนต์</div>
               <div className="font-body text-body-sm text-grey-600 flex-1">
                 ดาวน์โหลดไฟล์ฟอนต์ได้ทันทีหลังชำระเงิน
               </div>

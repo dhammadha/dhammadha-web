@@ -134,7 +134,7 @@ export default function ContactPage() {
           <div className="max-w-[640px] mx-auto">
             <h1 className="font-heading text-h1 text-black mb-3">ติดต่อสอบถาม</h1>
             <p className="font-body text-body text-grey-600 leading-[1.8] mb-8">
-              มีคำถามเรื่องฟอนต์ สิทธิการใช้งาน หรือใบเสนอราคา กรอกแบบฟอร์มด้านล่างได้เลย
+              มีคำถามเรื่องฟอนต์ สิทธิการใช้งาน หรือใบเสนอราคา สามารถแจ้งผ่านแบบฟอร์มด้านล่างนี้<br/>
               เราจะตอบกลับทางอีเมลภายใน 1–2 วันทำการ
             </p>
 
@@ -168,13 +168,13 @@ export default function ContactPage() {
                   <textarea id="c-message" value={form.message} onChange={set("message")} rows={7} className={FIELD} placeholder="รายละเอียดที่ต้องการสอบถาม" />
                 </div>
 
-                {TURNSTILE_SITE_KEY && <div ref={containerRef} />}
+                {TURNSTILE_SITE_KEY && <div className="flex justify-end" ref={containerRef} />}
 
                 {errorMsg && (
                   <p className="font-body text-body-sm text-danger-dark">{errorMsg}</p>
                 )}
 
-                <div>
+                <div className="flex items-center justify-end gap-6">
                   <Button type="submit" size="lg" disabled={status === "loading"}>
                     {status === "loading" ? "กำลังส่ง…" : "ส่งข้อความ"}
                   </Button>

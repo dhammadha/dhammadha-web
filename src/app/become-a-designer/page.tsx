@@ -76,8 +76,8 @@ export default function BecomeADesignerPage() {
           <h1 className="font-heading text-hero text-black mb-3.5">
             ขายฟอนต์ของคุณ<br />ได้ส่วนแบ่ง <em className="text-mint-text not-italic">75%*</em> สูงกว่าทุกที่
           </h1>
-          <p className="font-body text-body text-grey-600 max-w-[560px] mb-6">
-            เราคือแพลตฟอร์มตลาดฟอนต์ไทยที่สร้างโดยนักออกแบบฟอนต์
+          <p className="font-body text-body text-grey-600 max-w-[720px] mb-6">
+            เราคือแพลตฟอร์มตลาดฟอนต์ไทยที่สร้างโดยนักออกแบบฟอนต์<br />
             เราจัดการเรื่องเว็บ ระบบป้องกันไฟล์ เอกสาร และลูกค้าองค์กรให้ — คุณโฟกัสแค่การออกแบบ
           </p>
           <div className="flex flex-wrap gap-3 items-center">
@@ -96,8 +96,8 @@ export default function BecomeADesignerPage() {
       <section className="bg-white">
         <Container className="pt-6 pb-10">
           <h2 className="font-heading text-h1 text-black mb-3">ส่วนแบ่งรายได้</h2>
-          <p className="font-body text-body text-grey-600 max-w-[560px] mb-7">
-            เราเปิดตัวเลขทุกส่วนให้ดูก่อนตัดสินใจ เลือกโมเดลรายได้ที่สนใจ แล้วกดหรือชี้ที่แต่ละส่วนเพื่อดูวิธีคำนวณ
+          <p className="font-body text-body text-grey-600 max-w-[720px] mb-7">
+            เราเปิดตัวเลขทุกส่วนให้ดูก่อนตัดสินใจ เลือกโมเดลรายได้ที่สนใจ เพื่อดูวิธีคำนวณส่วนแบ่งของคุณ
           </p>
           <RevenueShareChart />
         </Container>
@@ -142,7 +142,7 @@ export default function BecomeADesignerPage() {
             <div>
               <h2 className="font-heading text-h1 text-white mb-2.5">พร้อมวางขายฟอนต์แรกของคุณหรือยัง?</h2>
               <p className="font-body text-body-sm text-grey-400 leading-[1.8] max-w-[480px]">
-                ไม่มีค่าแรกเข้า ไม่มีค่ารายเดือน — มีผลงานฟอนต์ไทยของตัวเอง ก็เริ่มได้เลยวันนี้
+                ไม่มีค่าแรกเข้า ไม่มีค่ารายเดือน — มีผลงานฟอนต์ไทยของตัวเอง ก็เริ่มได้เลยวันนี้<br />
                 ทำฟอนต์ฟรีเป็นงานอดิเรกก็ร่วมเผยแพร่ผลงานกับเราได้เช่นกัน
               </p>
             </div>

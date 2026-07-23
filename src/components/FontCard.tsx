@@ -169,7 +169,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         <div className="font-heading text-fc-heading text-black truncate leading-none">{font.name || "—"}</div>
 
         <div className="flex items-baseline justify-between gap-2">
-          <div className="font-body text-fc-byline text-grey-600 truncate min-w-0 leading-none">
+          <div className="font-body text-fc-byline text-grey-600 truncate min-w-0 leading-0">
             โดย{" "}
             {font.designer_slug ? (
               <span
