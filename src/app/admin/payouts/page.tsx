@@ -207,37 +207,28 @@ export default function AdminPayoutsPage() {
     return Array.from(set.values());
   }, [periodKeyStr, statementsByDesigner]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // สถานะการโอนต่อ designer (rollup ทุกไตรมาสค้าง) เทียบวันปัจจุบันกับเดือนรอบโอน
-  // overdue(ค้างชำระ) > waiting(รอโอน) > notdue(ยังไม่ถึงรอบ) > clear(จ่ายครบ) · Retail เท่านั้น (sub=0)
+  // สถานะการโอนต่อ designer — คิด "เฉพาะไตรมาสในช่วงที่เลือก" (quartersInPeriod) เท่านั้น
+  // ไม่ rollup ข้ามช่วง: ดูไตรมาสไหน สถานะก็ของไตรมาสนั้น · เทียบวันปัจจุบันกับเดือนรอบโอน
+  // overdue(ค้างชำระ) > waiting(รอโอน) > notdue(ยังไม่ถึงรอบ) > clear(จ่ายครบ/ไม่มียอด)
   const statusByDesigner = useMemo(() => {
     const now = new Date();
-    const earned = new Map<string, number>();
-    const keysByDesigner = new Map<string, Set<string>>();
-    for (const o of orders) {
-      if (o.status !== "paid" || o.source !== "checkout" || !o.designer_id) continue;
-      const d = new Date(o.paid_at ?? o.created_at);
-      const y = d.getFullYear(), q = quarterOfMonth(d.getMonth() + 1);
-      earned.set(`${o.designer_id}:${y}:${q}`, (earned.get(`${o.designer_id}:${y}:${q}`) ?? 0) + (o.designer_amount ?? o.total_amount * 0.75));
-      let set = keysByDesigner.get(o.designer_id);
-      if (!set) { set = new Set(); keysByDesigner.set(o.designer_id, set); }
-      set.add(`${y}:${q}`);
-    }
-    const paidSet = new Set(payouts.map((p) => `${p.designer_id}:${p.period_year}:${p.period_quarter}`));
     const rank: Record<PayoutStatus, number> = { clear: 0, notdue: 1, waiting: 2, overdue: 3 };
     const out: Record<string, PayoutStatus> = {};
-    for (const [id, keys] of keysByDesigner) {
+    for (const [designerId, statements] of statementsByDesigner) {
+      if (designerId === STUDIO_KEY) continue;
       let worst: PayoutStatus = "clear";
-      for (const yq of keys) {
-        const [y, q] = yq.split(":").map(Number);
-        if ((earned.get(`${id}:${y}:${q}`) ?? 0) <= 0.005) continue;
-        if (paidSet.has(`${id}:${y}:${q}`)) continue;
-        const s: PayoutStatus = isPayoutOverdue(y, q, now) ? "overdue" : isPayoutDue(y, q, now) ? "waiting" : "notdue";
-        if (rank[s] > rank[worst]) worst = s;
+      for (const q of quartersInPeriod) {
+        const s = statements.find((st) => st.year === q.year && st.quarter === q.quarter);
+        const earned = (s?.designerAmount ?? 0) + subForQuarter(designerId, q.quarter);
+        if (earned <= 0.005) continue;
+        if (s?.payout) continue; // ไตรมาสนี้จ่ายแล้ว → clear
+        const st: PayoutStatus = isPayoutOverdue(q.year, q.quarter, now) ? "overdue" : isPayoutDue(q.year, q.quarter, now) ? "waiting" : "notdue";
+        if (rank[st] > rank[worst]) worst = st;
       }
-      out[id] = worst;
+      out[designerId] = worst;
     }
     return out;
-  }, [orders, payouts]);
+  }, [statementsByDesigner, quartersInPeriod, subForQuarter, payouts]);
 
   // แถวสรุปของช่วงที่เลือก — aggregate ทุกไตรมาสในช่วง (โหมดปี = 4 ไตรมาส)
   // Row เก็บทั้งยอดรวมของช่วง + statement รายไตรมาส (โหมดไตรมาสใช้ตอนบันทึกโอน)
@@ -290,16 +281,8 @@ export default function AdminPayoutsPage() {
       const row = build(designerId, []);
       if (row.subAmount > 0) { rows.push(row); seen.add(designerId); }
     }
-    // designer ที่ค้างชำระ/รอโอน ต้องเรียกขึ้นมาแสดงเสมอ แม้ไม่มีข้อมูลในช่วงที่เลือก
-    for (const [designerId, st] of Object.entries(statusByDesigner)) {
-      if (seen.has(designerId) || designerId === STUDIO_KEY) continue;
-      if (st === "overdue" || st === "waiting") {
-        rows.push(build(designerId, statementsByDesigner.get(designerId) ?? []));
-        seen.add(designerId);
-      }
-    }
     return rows;
-  }, [statementsByDesigner, quartersInPeriod, subByDQ, subForQuarter, period.type, statusByDesigner]);
+  }, [statementsByDesigner, quartersInPeriod, subByDQ, subForQuarter, period.type]);
 
   // ยอดค้างโอนสะสมทั้งหมด (all-time) ต่อ designer — earned(Retail) − paid ทั้งหมด
   // เงินที่ค้างจากไตรมาสเก่าที่ยังไม่โอนไม่หายไปไหน (sub=0 ยังไม่รวม — เพิ่มเมื่อ Phase 4.1 live)
@@ -319,6 +302,41 @@ export default function AdminPayoutsPage() {
     () => Object.values(outstandingByDesigner).reduce((s, v) => s + v, 0),
     [outstandingByDesigner]
   );
+
+  // badge แจ้งเตือน "เผื่อตกหล่น" — นับ designer ที่ค้างชำระ/รอโอน แบบรวมทุกไตรมาส (all-time)
+  // ไม่ผูกกับช่วงที่เลือก: ดู Q3 อยู่ แต่ Q2 ยังรอโอน/ค้างชำระ ก็ต้องเด้งเตือนทุกหน้า filter
+  const { waitingCount, overdueCount } = useMemo(() => {
+    const now = new Date();
+    const earned = new Map<string, number>();
+    const keysByDesigner = new Map<string, Set<string>>();
+    for (const o of orders) {
+      if (o.status !== "paid" || o.source !== "checkout" || !o.designer_id) continue;
+      const d = new Date(o.paid_at ?? o.created_at);
+      const y = d.getFullYear(), q = quarterOfMonth(d.getMonth() + 1);
+      const k = `${o.designer_id}:${y}:${q}`;
+      earned.set(k, (earned.get(k) ?? 0) + (o.designer_amount ?? o.total_amount * 0.75));
+      let set = keysByDesigner.get(o.designer_id);
+      if (!set) { set = new Set(); keysByDesigner.set(o.designer_id, set); }
+      set.add(`${y}:${q}`);
+    }
+    const paidSet = new Set(payouts.map((p) => `${p.designer_id}:${p.period_year}:${p.period_quarter}`));
+    const rank: Record<PayoutStatus, number> = { clear: 0, notdue: 1, waiting: 2, overdue: 3 };
+    let waiting = 0, overdue = 0;
+    for (const [id, keys] of keysByDesigner) {
+      if (id === STUDIO_KEY) continue;
+      let worst: PayoutStatus = "clear";
+      for (const yq of keys) {
+        const [y, q] = yq.split(":").map(Number);
+        if ((earned.get(`${id}:${y}:${q}`) ?? 0) <= 0.005) continue;
+        if (paidSet.has(`${id}:${y}:${q}`)) continue;
+        const s: PayoutStatus = isPayoutOverdue(y, q, now) ? "overdue" : isPayoutDue(y, q, now) ? "waiting" : "notdue";
+        if (rank[s] > rank[worst]) worst = s;
+      }
+      if (worst === "overdue") overdue++;
+      else if (worst === "waiting") waiting++;
+    }
+    return { waitingCount: waiting, overdueCount: overdue };
+  }, [orders, payouts]);
 
   // stat tiles ยอดขาย — ตามช่วงที่เลือก (tile "ค้างโอน" ใช้ยอดสะสมทั้งหมดแยกด้านล่าง)
   const periodStats = useMemo(() => {
@@ -481,6 +499,16 @@ export default function AdminPayoutsPage() {
             {readOnly && (
               <span className="font-body text-footnote text-grey-600">โหมดรายปี/ทั้งหมด — ดูสรุปอย่างเดียว (บันทึกการโอนทำได้ทีละไตรมาส)</span>
             )}
+            {(overdueCount > 0 || waitingCount > 0) && (
+              <div className="ml-auto flex items-center gap-2">
+                {overdueCount > 0 && (
+                  <span className="text-badge font-heading px-2 py-0.5 bg-danger text-white">ค้างชำระ {overdueCount} ราย</span>
+                )}
+                {waitingCount > 0 && (
+                  <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอโอน {waitingCount} ราย</span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* สรุปยอดต้องโอนต่อ designer — คลิกแถวเพื่อกางรายละเอียดใต้แถวนั้นเลย */}
@@ -503,7 +531,6 @@ export default function AdminPayoutsPage() {
                 const rowBank = d?.bank;
                 const rowHasBank = !!(rowBank && (rowBank.bank_name || rowBank.account_number));
                 const rowIsStudio = r.designerId === STUDIO_KEY;
-                const outstanding = outstandingByDesigner[r.designerId] ?? 0; // ยอดสะสมทั้งหมด
                 const status = rowIsStudio ? "clear" : statusByDesigner[r.designerId] ?? "clear";
                 return (
                   <Fragment key={r.designerId}>
@@ -515,7 +542,7 @@ export default function AdminPayoutsPage() {
                       <div className="font-body text-body-sm text-grey-600">{fmtBaht(r.designerAmount)}</div>
                       <div className="font-body text-body-sm text-grey-600">{fmtBaht(r.subAmount)}</div>
                       <div className="font-body text-body-sm text-grey-600">{fmtBaht(r.b2bTotal)}</div>
-                      <div className="font-ui text-ui text-black">{fmtBaht(outstanding)}</div>
+                      <div className="font-ui text-ui text-black">{fmtBaht(r.pending)}</div>
                       <div><PayoutStatusBadge status={status} /></div>
                     </div>
 
@@ -638,7 +665,7 @@ export default function AdminPayoutsPage() {
               })
             )}
             <div className="px-4 py-3 font-body text-footnote text-grey-600">
-              ยอดค้างโอน = ยอดสะสมทั้งหมดที่ยังไม่ได้โอน (ทุกไตรมาสรวมกัน) · กดจ่ายทีละไตรมาส (ยอด B2B designer รับเงินตรงจากลูกค้า ไม่ผ่านเว็บ)
+              ยอดค้างโอน = ยอดของไตรมาสที่เลือกที่ยังไม่ได้โอน · ยอดสะสมทุกไตรมาสดูที่การ์ด &ldquo;ค้างโอนให้ designer (สะสมทั้งหมด)&rdquo; ด้านบน · กดจ่ายทีละไตรมาส (ยอด B2B designer รับเงินตรงจากลูกค้า ไม่ผ่านเว็บ)
             </div>
           </div>
         </>
