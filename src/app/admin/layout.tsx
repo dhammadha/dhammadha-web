@@ -38,20 +38,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [pendingQuotes, setPendingQuotes] = useState(0);
   const [pendingDesigners, setPendingDesigners] = useState(0);
   const [pendingFonts, setPendingFonts] = useState(0);
+  const [pendingPayouts, setPendingPayouts] = useState(0);
 
   const loadPending = useCallback(async () => {
     if (!user) return;
-    const [quotesRes, designersRes, fontsRes] = await Promise.all([
+    const [quotesRes, designersRes, fontsRes, payoutsRes] = await Promise.all([
       // เมนู "ใบเสนอราคา" อยู่ใต้หัวข้อ "ของฉัน" และหน้า /admin/quotes กรอง
       // .eq("designer_id", user.id) อยู่แล้ว — badge ต้องกรองให้ตรงกัน ไม่งั้นนับ
       // ใบของ designer คนอื่นมารวมด้วย แล้วตัวเลขไม่ตรงกับรายการที่เห็นในหน้า
       supabase.from("quotes").select("id").is("quote_no", null).eq("designer_id", user.id),
       supabase.from("users").select("id").eq("designer_application_status", "pending"),
       supabase.from("fonts").select("id").is("published_at", null),
+      // designer ที่ถึงรอบโอนแล้วแต่ยังไม่บันทึกจ่าย — คำนวณใน DB (0065) เพราะ
+      // ถ้าทำฝั่ง client ต้องดึง orders ทั้งตารางมา group ทุกครั้งที่เปิดหน้า admin
+      supabase.rpc("pending_payout_designer_count"),
     ]);
     setPendingQuotes(quotesRes.data?.length ?? 0);
     setPendingDesigners(designersRes.data?.length ?? 0);
     setPendingFonts(fontsRes.data?.length ?? 0);
+    setPendingPayouts((payoutsRes.data as number | null) ?? 0);
   }, [user]);
 
   useEffect(() => {
@@ -135,8 +140,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 13c0-2.485 2.015-4 4.5-4s4.5 1.515 4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 7.5l1.5 1.5L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     },
     {
+      href: "/admin/orders",
+      label: "Orders",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2" width="11" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
+    {
       href: "/admin/payouts",
       label: "Payouts",
+      badge: pendingPayouts,
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="4" width="13" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/><path d="M4 8h.01M12 8h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
     },
     {

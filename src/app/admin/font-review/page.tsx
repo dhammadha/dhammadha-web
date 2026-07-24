@@ -1,10 +1,23 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import FontForm from "@/components/admin/FontForm";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 import type { Database } from "@/lib/database.types";
+
+// หมวดหมู่มาตรฐาน — ชุดเดียวกับหน้า /fonts สาธารณะ
+const CATEGORIES = ["serif", "sans-serif", "display", "handwriting", "monospace"];
+
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"] & {
   designer_slug?: string | null;
@@ -137,7 +150,11 @@ export default function AdminAllFontsPage() {
   const [reviewing, setReviewing] = useState<FontRow | null>(null);
   const [privateFiles, setPrivateFiles] = useState<string[] | null>(null);
   const [publishing, setPublishing] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<FontRow | null>(null);
+  const [deletingBusy, setDeletingBusy] = useState(false);
   const [toast, setToast] = useState("");
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3500); };
 
@@ -160,11 +177,24 @@ export default function AdminAllFontsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // หมวดหมู่ที่มีจริงในข้อมูล + ชุดมาตรฐาน (เผื่อ legacy category นอกลิสต์)
+  const categoryOptions = useMemo(() => {
+    const found = new Set<string>(CATEGORIES);
+    for (const f of fonts) if (f.category) found.add(f.category);
+    return Array.from(found);
+  }, [fonts]);
+
   const filtered = fonts.filter((f) => {
-    if (tab === "active") return !!f.published_at && f.is_active;
-    if (tab === "hidden") return !!f.published_at && !f.is_active;
-    if (tab === "pending") return !f.published_at;
-    if (tab === "sale") return f.is_sale;
+    if (tab === "active" && !(f.published_at && f.is_active)) return false;
+    if (tab === "hidden" && !(f.published_at && !f.is_active)) return false;
+    if (tab === "pending" && f.published_at) return false;
+    if (tab === "sale" && !f.is_sale) return false;
+    if (category !== "all" && f.category !== category) return false;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      const hay = `${f.name ?? ""} ${f.name_th ?? ""} ${f.slug ?? ""} ${f.designer_slug ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
 
@@ -225,6 +255,21 @@ export default function AdminAllFontsPage() {
     load();
   };
 
+  // ลบฟอนต์เป็นสิทธิ์ของ admin section เท่านั้น — designer (รวมถึง admin ตอนอยู่ใน
+  // designer section) ทำได้แค่ซ่อน ไม่มีปุ่มลบในหน้า "ฟอนต์ของฉัน"
+  const deleteFont = async () => {
+    if (!deleting) return;
+    setDeletingBusy(true);
+    // .select() เพื่อรู้ว่าลบได้จริงกี่แถว — RLS ที่บล็อก delete คืน 0 แถวเงียบ ๆ ไม่คืน error
+    const { data, error } = await supabase.from("fonts").delete().eq("id", deleting.id).select("id");
+    setDeletingBusy(false);
+    if (error) { showToast("ลบไม่สำเร็จ: " + error.message); return; }
+    if (!data?.length) { showToast("ลบไม่สำเร็จ: ไม่มีสิทธิ์ลบฟอนต์นี้"); return; }
+    showToast(`ลบ "${deleting.name ?? deleting.slug}" เรียบร้อย`);
+    setDeleting(null);
+    load();
+  };
+
   const pendingCount = fonts.filter((f) => !f.published_at).length;
 
   const TABS: { key: Tab; label: string; badge?: number }[] = [
@@ -235,7 +280,7 @@ export default function AdminAllFontsPage() {
     { key: "sale", label: "โปรโมชั่น" },
   ];
 
-  const GRID = "grid grid-cols-[52px_2fr_110px_90px_1fr_90px_140px_90px_170px] gap-3";
+  const GRID = "grid grid-cols-[52px_2fr_110px_90px_1fr_90px_140px_90px_230px] gap-3";
 
   return (
     <div className="p-6 max-w-[1200px]">
@@ -246,6 +291,40 @@ export default function AdminAllFontsPage() {
         </div>
         <div className="font-ui text-ui text-black bg-surface px-4 py-2">
           {fonts.length} ฟอนต์
+        </div>
+      </div>
+
+      {/* Search + category filter (เหมือนหน้า /fonts — ไม่มี filter tags) */}
+      <div className="flex flex-col gap-3 mb-4">
+        <div className="relative w-full sm:w-72">
+          <Input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหาฟอนต์…"
+            aria-label="ค้นหาฟอนต์"
+            icon={<SearchIcon />}
+            className={search ? "pr-9" : undefined}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-base leading-none p-0"
+              aria-label="ล้างคำค้นหา"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant={category === "all" ? "primary" : "outline"} onClick={() => setCategory("all")}>
+            ทุกหมวดหมู่
+          </Button>
+          {categoryOptions.map((c) => (
+            <Button key={c} size="sm" variant={category === c ? "primary" : "outline"} onClick={() => setCategory(c)} className="capitalize">
+              {c}
+            </Button>
+          ))}
         </div>
       </div>
 
@@ -294,7 +373,7 @@ export default function AdminAllFontsPage() {
             </div>
             <div className="font-body text-footnote text-grey-600 truncate">
               {f.designer_slug ? (
-                <Link href={`/designer/${f.designer_slug}`} target="_blank" className="text-mint-text no-underline hover:underline">
+                <Link href={`/designer/${f.designer_slug}`} target="_blank" className="text-black no-underline hover:text-mint-text">
                   {f.designer_slug}
                 </Link>
               ) : <span className="text-grey-600">—</span>}
@@ -350,6 +429,12 @@ export default function AdminAllFontsPage() {
                   แก้ไข
                 </button>
               )}
+              <button
+                onClick={() => setDeleting(f)}
+                className="font-ui text-ui px-2.5 py-1 text-danger-dark bg-white hover:bg-danger hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+              >
+                ลบ
+              </button>
             </div>
           </div>
         ))}
@@ -374,6 +459,30 @@ export default function AdminAllFontsPage() {
           ownerId={editing.owner_id ?? undefined}
         />
       )}
+
+      <ConfirmDeleteModal
+        open={!!deleting}
+        onClose={() => setDeleting(null)}
+        onConfirm={deleteFont}
+        confirmText={deleting?.name ?? deleting?.slug ?? ""}
+        busy={deletingBusy}
+        description={
+          deleting && (
+            <div className="flex flex-col gap-1 font-body text-body-sm bg-white px-3 py-2.5">
+              <div className="font-ui text-ui text-black">{deleting.name ?? "—"}</div>
+              {deleting.name_th && <div className="text-grey-600">{deleting.name_th}</div>}
+              <div className="text-grey-600">
+                Designer: {deleting.designer_business_name ?? deleting.designer_slug ?? "—"}
+              </div>
+            </div>
+          )
+        }
+        warning={
+          <span className="block mt-1">
+            ไฟล์ฟอนต์และรูปภาพใน Storage จะไม่ถูกลบตาม ต้องลบเองที่ Supabase Storage
+          </span>
+        }
+      />
 
       {toast && (
         <div className="fixed bottom-6 right-6 z-[200] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">

@@ -126,6 +126,35 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     }
   }
 
+  // เช็คหลัง mount เท่านั้น — static export ไม่มี navigator ตอน prerender
+  //
+  // ต้องเช็ค pointer:coarse ด้วย ไม่ใช่แค่ navigator.share: macOS Safari มี navigator.share
+  // เหมือนกัน แต่ share sheet ที่เด้งคือของระบบ (AirDrop/Mail/Notes) ไม่มีโซเชียลสักตัว —
+  // แย่กว่า dropdown เดิม ส่วนบนมือถือ share sheet มี Facebook/Line/Messenger ครบตามแอปที่ติดตั้ง
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  useEffect(() => {
+    setCanNativeShare(
+      typeof navigator !== "undefined" &&
+      !!navigator.share &&
+      window.matchMedia("(pointer: coarse)").matches
+    );
+  }, []);
+
+  // มือถือ: เปิด share sheet ของเครื่อง แทน dropdown ที่มีลิงก์ facebook.com/sharer ตรง ๆ
+  // ซึ่ง content blocker บน iOS ซ่อนทิ้ง · desktop ใช้ dropdown เดิม
+  async function handleShareClick() {
+    if (!canNativeShare) { setShareMenuOpen((v) => !v); return; }
+    try {
+      await navigator.share({
+        title: font?.name ?? "DHAMMADHA",
+        text: font?.name_th ? `ฟอนต์ "${font.name_th}"` : undefined,
+        url: window.location.href,
+      });
+    } catch {
+      // ผู้ใช้กดยกเลิก share sheet → AbortError ไม่ต้องทำอะไร
+    }
+  }
+
   useEffect(() => {
     if (!slug) return;
     async function load() {
@@ -361,12 +390,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
               {/* แชร์ — hover เปิด submenu เหมือนไอคอนตะกร้า/user ใน Nav.tsx, กดก็เปิดได้ (มือถือ) */}
               <div
                 className="relative"
-                onMouseEnter={() => setShareMenuOpen(true)}
+                onMouseEnter={() => { if (!canNativeShare) setShareMenuOpen(true); }}
                 onMouseLeave={() => setShareMenuOpen(false)}
               >
                 <button
                   type="button"
-                  onClick={() => setShareMenuOpen((v) => !v)}
+                  onClick={handleShareClick}
                   aria-label="แชร์ฟอนต์นี้"
                   aria-expanded={shareMenuOpen}
                   title="แชร์"
@@ -377,14 +406,19 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 {shareMenuOpen && (
                   <div className="absolute right-0 top-full pt-2 w-56 z-50">
                     <div className="bg-surface shadow-lg py-1">
-                      <a
-                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black no-underline hover:bg-mint transition-colors duration-150 ease-base"
+                      {/* เปิดด้วย window.open ไม่ใช่ <a href> — content blocker จับจาก URL
+                          ใน markup แล้วซ่อนทั้งรายการทิ้ง (ต้นเหตุที่แท็บนี้หายบนมือถือ) */}
+                      <button
+                        type="button"
+                        onClick={() => window.open(
+                          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+                          "_blank",
+                          "noopener,noreferrer"
+                        )}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none text-left cursor-pointer hover:bg-mint transition-colors duration-150 ease-base"
                       >
                         <FacebookIcon /> Facebook
-                      </a>
+                      </button>
                       <button
                         type="button"
                         onClick={() => copyShareLink("ig")}

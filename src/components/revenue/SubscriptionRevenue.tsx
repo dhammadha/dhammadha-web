@@ -172,7 +172,7 @@ function AdminView({ stmt, names }: { stmt: SubMonthStatement; names: Record<str
         )}
       </div>
       <p className="font-body text-footnote text-grey-600 mt-2.5 leading-relaxed">
-        ยอดที่ต้องโอนให้ designer แต่ละเดือน = ส่วนแบ่ง B2C + ส่วนแบ่ง Subscription รวมกัน (บันทึกการจ่ายในตารางด้านบน)
+        ยอดที่ต้องโอนให้ designer แต่ละเดือน = ส่วนแบ่ง Retail Font + ส่วนแบ่ง Subscription รวมกัน (บันทึกการจ่ายในตารางด้านบน)
       </p>
     </>
   );

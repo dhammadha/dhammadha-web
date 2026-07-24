@@ -605,6 +605,109 @@ async function handleDocument(
   return { status: 200, body: { ok: true } };
 }
 
+// ── Payout confirmation ─────────────────────────────────────────────────────
+
+function payoutHtml(d: {
+  designerName: string;
+  periodLabel: string;
+  totalAmount: string;
+  b2cAmount: string;
+  subscriptionAmount: string;
+  note: string;
+}): string {
+  return `
+<p>สวัสดี คุณ ${escapeHtml(d.designerName)},</p>
+<p>เราได้โอนส่วนแบ่งรายได้งวด <strong>${escapeHtml(d.periodLabel)}</strong> ให้คุณเรียบร้อยแล้ว</p>
+<table style="border-collapse:collapse;width:100%;max-width:420px">
+  <tr><td style="padding:6px 0;color:#888;width:220px">ส่วนแบ่งจากการขายผ่านเว็บ</td><td style="padding:6px 0;text-align:right">${escapeHtml(d.b2cAmount)}</td></tr>
+  <tr><td style="padding:6px 0;color:#888">ส่วนแบ่ง Subscription</td><td style="padding:6px 0;text-align:right">${escapeHtml(d.subscriptionAmount)}</td></tr>
+  <tr><td style="padding:10px 0;border-top:1px solid #eee"><strong>ยอดโอนรวม</strong></td><td style="padding:10px 0;border-top:1px solid #eee;text-align:right"><strong>${escapeHtml(d.totalAmount)}</strong></td></tr>
+</table>
+${d.note ? `<p style="color:#888;font-size:13px">หมายเหตุ: ${escapeHtml(d.note)}</p>` : ""}
+<p>รายละเอียดฉบับเต็มอยู่ในไฟล์ PDF ที่แนบมากับอีเมลนี้ และดูสรุปรายได้ย้อนหลังได้ที่หน้า
+<a href="https://dhammadha.com/designer/revenue">รายได้</a> ใน dashboard ของคุณ</p>
+<p>หากยอดไม่ตรงหรือมีคำถาม ตอบกลับอีเมลนี้ได้เลย</p>
+${STUDIO_FOOTER}
+`;
+}
+
+/**
+ * อีเมลยืนยันการโอนส่วนแบ่ง (admin กดหลังโอนเงินจริงแล้ว) พร้อมแนบ PDF ใบสรุป
+ *
+ * ต่างจาก handleDocument ตรงที่ตรวจสิทธิ์ตรง ๆ ว่าผู้เรียกเป็น admin — ไม่มี RLS
+ * ของ quote มาคุมให้เหมือนเคสนั้น (อ่านอีเมลของ designer คนอื่นได้ต้องเป็น admin)
+ */
+async function handlePayout(
+  raw: Record<string, unknown>,
+  authToken: string | null | undefined,
+  env: EmailEnv
+): Promise<EmailResult> {
+  if (!authToken) return { status: 401, body: { ok: false, error: "unauthorized" } };
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+    return { status: 500, body: { ok: false, error: "not_configured" } };
+  }
+
+  const roleRes = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/get_my_role`, {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${authToken}`,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+  });
+  if (!roleRes.ok || (await roleRes.json()) !== "admin") {
+    return { status: 403, body: { ok: false, error: "forbidden" } };
+  }
+
+  const designerId = str(raw.designer_id, 40);
+  if (!UUID_RE.test(designerId)) return { status: 400, body: { ok: false, error: "invalid_payload" } };
+
+  const periodLabel = str(raw.period_label, 80);
+  const totalAmount = str(raw.total_amount, 40);
+  if (!periodLabel || !totalAmount) return { status: 400, body: { ok: false, error: "invalid_payload" } };
+
+  // ไฟล์แนบเป็นออปชันนัล — สร้าง PDF ไม่สำเร็จก็ยังต้องแจ้ง designer ได้
+  const pdfBase64 = typeof raw.pdf_base64 === "string" ? raw.pdf_base64.trim() : "";
+  const filename = str(raw.filename, 200);
+  let attachments: { filename: string; content: string }[] | undefined;
+  if (pdfBase64) {
+    if (
+      !PDF_FILENAME_RE.test(filename) ||
+      pdfBase64.length > PDF_BASE64_MAX_LEN ||
+      !BASE64_RE.test(pdfBase64)
+    ) {
+      return { status: 400, body: { ok: false, error: "invalid_attachment" } };
+    }
+    attachments = [{ filename, content: pdfBase64 }];
+  }
+
+  const rows = await supabaseSelect<UserRow>(
+    env,
+    `users?id=eq.${designerId}&select=email,name,business_name,phone`,
+    authToken
+  );
+  const target = rows?.[0];
+  if (!target?.email) return { status: 404, body: { ok: false, error: "designer_not_found" } };
+  if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
+
+  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+    to: target.email,
+    subject: `ยืนยันการโอนส่วนแบ่ง ${periodLabel} — DHAMMADHA STUDIO`,
+    html: payoutHtml({
+      designerName: target.business_name ?? target.name ?? target.email,
+      periodLabel,
+      totalAmount,
+      b2cAmount: str(raw.b2c_amount, 40) || "฿0",
+      subscriptionAmount: str(raw.subscription_amount, 40) || "฿0",
+      note: str(raw.note, 300),
+    }),
+    attachments,
+  });
+  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  return { status: 200, body: { ok: true } };
+}
+
 // ── Entry point ─────────────────────────────────────────────────────────────
 
 export async function handleEmailRequest(ctx: EmailRequestContext, env: EmailEnv): Promise<EmailResult> {
@@ -629,6 +732,9 @@ export async function handleEmailRequest(ctx: EmailRequestContext, env: EmailEnv
     }
     if (body.type === "document") {
       return await handleDocument(payload, ctx.authToken, env);
+    }
+    if (body.type === "payout") {
+      return await handlePayout(payload, ctx.authToken, env);
     }
     return { status: 400, body: { ok: false, error: "unknown_type" } };
   } catch {

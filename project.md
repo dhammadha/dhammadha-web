@@ -18,7 +18,7 @@ Supabase (Postgres+RLS+Storage เป็นแนวป้องกันจร�
 ใช้ Pages Functions เฉพาะจุด (`/api/send-email`, `/api/checkout`, `/api/stripe-webhook`)
 Publish ฟอนต์ = rebuild ทั้งเว็บ (~2 นาที เพราะหน้า detail เป็น SSG)
 
-## สถานะปัจจุบัน (22 ก.ค. 2026)
+## สถานะปัจจุบัน (24 ก.ค. 2026)
 
 | ส่วน | สถานะ |
 |---|---|
@@ -27,6 +27,11 @@ Publish ฟอนต์ = rebuild ทั้งเว็บ (~2 นาที เ�
 | Backend Phase 4.1 (Subscription) | ⏸ รอข้อมูลยอดขายจริง + waitlist ก่อนเคาะราคา/กติกา — Milestone A+B เสร็จ, C (`sub-font` Edge Fn + Tauri app) และ D (เปิด trial) ยกไปหลัง go-live |
 | Redesign หน้าสาธารณะ Phase 0–10 (หน้าแรก, /fonts, FontDetail, เอกสาร, become-a-designer, contact, verify, auth, account, quote, subscribe, checkout) | ✅ เสร็จหมด — merge เข้า `main` แล้ว |
 | Redesign dashboard admin/designer | ✅ restyle ครบทุกหน้า (Phase D1–D4) — ดู [docs/design/DESIGN.md](docs/design/DESIGN.md) §18 · ยังไม่ตรวจสดหลัง login |
+| Dashboard: รวม designer section ของ admin + ปุ่มลบฟอนต์ + share มือถือ | ✅ โค้ดเสร็จ (24 ก.ค. 2026) — `/admin/*` designer section เป็น wrapper ครอบ `src/components/dashboard/Own*.tsx` ชุดเดียวกับ `/designer/*` แล้ว (ไม่มีปุ่มลบ) · ปุ่มลบย้ายไป `/admin/font-review` พร้อม modal พิมพ์ชื่อยืนยัน |
+| Payout รายไตรมาส + สรุปยอดต่อ designer + เอกสาร/อีเมล | ✅ โค้ดเสร็จ + apply DB จริงแล้ว (0064/0065, 24 ก.ค. 2026) — จ่ายทุก 3 เดือน โอน ม.ค./เม.ย./ก.ค./ต.ค. · **เลย์เอาต์ PDF ใน `src/lib/payout-doc.ts` ยังเป็น placeholder รอตัวอย่างเอกสารจากเจ้าของ** |
+| Dashboard รอบ 2: รายได้ designer 4 กล่องกดได้ + Payouts filter ช่วงเวลา + Fonts search | ✅ โค้ดเสร็จ (24 ก.ค. 2026) — filter dropdown (ไตรมาสนี้/ก่อน/3 ปี/**ทั้งหมด**) helper กลางใน `src/lib/revenue.ts` (`periodOptions`/`monthsInPeriod`/`buildFontSales`) · ศัพท์บนจอ B2C→Retail Font · โหมดรายปี/ทั้งหมดใน Payouts = อ่านอย่างเดียว · ตาราง Retail Font **แยกแถวตามจุดราคา** · ยอดค้างโอน = **all-time outstanding** (`earned Retail − paid`) เงินค้างเก่าไม่หาย |
+| Dashboard: เมนู Orders + สถานะการโอนตามเวลา | ✅ โค้ดเสร็จ + apply DB (0066/0067, 24 ก.ค. 2026) — หน้า `/admin/orders` (Retail/Subscription tab) · สถานะ payout ต่อ designer (rollup): **ยังไม่ถึงรอบโอน**(เขียวอ่อน)/**รอโอน**(เหลือง)/**ค้างชำระ**(แดง โผล่เสมอ)/จ่ายครบ · badge นับ รอโอน+ค้างชำระ (due-based, 0067) |
+| เกณฑ์เลือกฟอนต์ "น่าจะสนใจ" / "คัดสรรพิเศษ" | ⏳ ยังไม่ทำ (เฟส 3 ของแผน) — ตอนนี้สุ่มล้วน ต้องเปลี่ยนเป็นตาม tag/category + ยอดขาย ซึ่งต้องมี RPC `font_sales_counts()` ใหม่ |
 | Go-live จริง (ย้ายฟอนต์ 35 ตัว, Stripe, Zoho, DNS cutover) | ⏳ ยังไม่ทำ — เป็นงานปฏิบัติการของเจ้าของทั้งหมด ดูด้านล่าง |
 
 **Branch:** ทำงานบน `main` สายเดียว — **มีงาน dashboard redesign ค้างอยู่แบบยังไม่ commit**
@@ -37,6 +42,11 @@ Publish ฟอนต์ = rebuild ทั้งเว็บ (~2 นาที เ�
 1. **ตรวจสด dashboard หลัง login** — Claude verify เองไม่ได้ (ไม่กรอกรหัสผ่าน) เจ้าของ spot-check
    หน้า admin/designer ทุกหน้าว่า restyle แล้วหน้าตาถูก + ทดสอบฟีเจอร์โปรร้าน (ตั้ง/ปิด แล้วส่วนลด
    รายฟอนต์ไม่หาย) + ปุ่มแชร์หน้า font detail
+   · **รอบล่าสุด (24 ก.ค.)**: เทียบ `/admin` กับ `/designer` ทีละหน้าว่าเหมือนกัน, ลอง login ด้วย
+   บัญชี designer จริงด้วย (แตะ shared component), กดลบฟอนต์ที่ `/admin/font-review`,
+   หน้า `/admin/payouts` ตารางสรุปรายไตรมาส
+1b. **ส่งตัวอย่างเอกสารใบสรุปการโอนส่วนแบ่ง** ให้ Claude แก้ `src/lib/payout-doc.ts` (ตอนนี้เป็น
+   layout ชั่วคราว) + เคาะว่าต้องมีหัก ณ ที่จ่าย/เลขที่เอกสารไหม
 2. ทดสอบ B2C Stripe + quote-to-cash + designer quotes/revenue/analytics ด้วยบัญชีจริงบน production
 3. ตั้งค่า Stripe จริง (env keys + webhook) — มีบัญชี "DHAMMADHA STUDIO" + PromptPay แล้ว
 4. ย้ายฟอนต์ 35 ตัวจากเว็บเก่า (ใช้ปุ่ม ⚡ ใน FontForm)
@@ -70,4 +80,4 @@ Phase D dashboard → [docs/design/DESIGN.md](docs/design/DESIGN.md) §18
   derive จาก git log/docs ได้อยู่แล้ว**
 
 ---
-*อัปเดตล่าสุด: 22 ก.ค. 2026 (ระหว่าง session redesign dashboard)*
+*อัปเดตล่าสุด: 24 ก.ค. 2026 (session dashboard: designer section + payout รายไตรมาส/all-time + Orders + สถานะการโอน)*

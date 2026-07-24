@@ -422,7 +422,7 @@ export interface Database {
           id: string;
           designer_id: string;
           period_year: number;
-          period_month: number;
+          period_quarter: number;
           amount: number;
           note: string | null;
           paid_at: string;
@@ -433,7 +433,7 @@ export interface Database {
           id?: string;
           designer_id: string;
           period_year: number;
-          period_month: number;
+          period_quarter: number;
           amount: number;
           note?: string | null;
           paid_at?: string;
@@ -444,7 +444,7 @@ export interface Database {
           id?: string;
           designer_id?: string;
           period_year?: number;
-          period_month?: number;
+          period_quarter?: number;
           amount?: number;
           note?: string | null;
           paid_at?: string;
@@ -621,6 +621,10 @@ export interface Database {
       subscription_month_data: {
         Args: { p_year: number; p_month: number };
         Returns: Json;
+      };
+      pending_payout_designer_count: {
+        Args: Record<string, never>;
+        Returns: number;
       };
       submit_public_quote: {
         Args: {
