@@ -29,8 +29,9 @@ Publish ฟอนต์ = rebuild ทั้งเว็บ (~2 นาที เ�
 | Redesign dashboard admin/designer | ✅ restyle ครบทุกหน้า (Phase D1–D4) — ดู [docs/design/DESIGN.md](docs/design/DESIGN.md) §18 · ยังไม่ตรวจสดหลัง login |
 | Dashboard: รวม designer section ของ admin + ปุ่มลบฟอนต์ + share มือถือ | ✅ โค้ดเสร็จ (24 ก.ค. 2026) — `/admin/*` designer section เป็น wrapper ครอบ `src/components/dashboard/Own*.tsx` ชุดเดียวกับ `/designer/*` แล้ว (ไม่มีปุ่มลบ) · ปุ่มลบย้ายไป `/admin/font-review` พร้อม modal พิมพ์ชื่อยืนยัน |
 | Payout รายไตรมาส + สรุปยอดต่อ designer + เอกสาร/อีเมล | ✅ โค้ดเสร็จ + apply DB จริงแล้ว (0064/0065, 24 ก.ค. 2026) — จ่ายทุก 3 เดือน โอน ม.ค./เม.ย./ก.ค./ต.ค. · **เลย์เอาต์ PDF ใน `src/lib/payout-doc.ts` ยังเป็น placeholder รอตัวอย่างเอกสารจากเจ้าของ** |
-| Dashboard รอบ 2: รายได้ designer 4 กล่องกดได้ + Payouts filter ช่วงเวลา + Fonts search | ✅ โค้ดเสร็จ (24 ก.ค. 2026) — filter dropdown (ไตรมาสนี้/ก่อน/3 ปี/**ทั้งหมด**) helper กลางใน `src/lib/revenue.ts` (`periodOptions`/`monthsInPeriod`/`buildFontSales`) · ศัพท์บนจอ B2C→Retail Font · โหมดรายปี/ทั้งหมดใน Payouts = อ่านอย่างเดียว · ตาราง Retail Font **แยกแถวตามจุดราคา** · ยอดค้างโอน = **all-time outstanding** (`earned Retail − paid`) เงินค้างเก่าไม่หาย |
-| Dashboard: เมนู Orders + สถานะการโอนตามเวลา | ✅ โค้ดเสร็จ + apply DB (0066/0067, 24 ก.ค. 2026) — หน้า `/admin/orders` (Retail/Subscription tab) · สถานะ payout ต่อ designer (rollup): **ยังไม่ถึงรอบโอน**(เขียวอ่อน)/**รอโอน**(เหลือง)/**ค้างชำระ**(แดง โผล่เสมอ)/จ่ายครบ · badge นับ รอโอน+ค้างชำระ (due-based, 0067) |
+| Dashboard รอบ 2: รายได้ designer 4 กล่องกดได้ + Payouts filter ช่วงเวลา + Fonts search | ✅ โค้ดเสร็จ (24 ก.ค. 2026) — filter dropdown (ไตรมาสนี้/ก่อน/3 ปี/**ทั้งหมด**) helper กลางใน `src/lib/revenue.ts` (`periodOptions`/`monthsInPeriod`/`buildFontSales`) · ศัพท์บนจอ B2C→Retail Font · โหมดรายปี/ทั้งหมดใน Payouts = อ่านอย่างเดียว · ตาราง Retail Font **แยกแถวตามจุดราคา** · top tile "สะสมทั้งหมด" = all-time outstanding (`earned Retail − paid`) เงินค้างเก่าไม่หาย |
+| Dashboard: เมนู Orders + สถานะการโอนตามเวลา | ✅ โค้ดเสร็จ + apply DB (0066/0067, 24 ก.ค. 2026) — หน้า `/admin/orders` (Retail/Subscription tab) · สถานะ payout: **ยังไม่ถึงรอบโอน**(เขียวอ่อน)/**รอโอน**(เหลือง)/**ค้างชำระ**(แดง)/จ่ายครบแล้ว |
+| Payout: สถานะ+ยอดค้างโอนเป็น**รายไตรมาสที่เลือก** + badge แจ้งเตือน all-time | ✅ โค้ดเสร็จ (24 ก.ค. 2026, `admin/payouts/page.tsx`) — `statusByDesigner` เลิก rollup ข้ามช่วง คิดเฉพาะ `quartersInPeriod` (ดูไตรมาสไหน = สถานะไตรมาสนั้น) · คอลัมน์ยอดค้างโอนในตาราง = ยอดรายไตรมาส (`r.pending`) · **badge "รอโอน/ค้างชำระ X ราย" บนแถวเลือกช่วงเวลา นับ all-time (รวมทุกไตรมาส) เจตนาให้เตือนข้ามช่วงกันตกหล่น** — ต่างจากคอลัมน์ที่เป็นรายไตรมาส |
 | เกณฑ์เลือกฟอนต์ "น่าจะสนใจ" / "คัดสรรพิเศษ" | ⏳ ยังไม่ทำ (เฟส 3 ของแผน) — ตอนนี้สุ่มล้วน ต้องเปลี่ยนเป็นตาม tag/category + ยอดขาย ซึ่งต้องมี RPC `font_sales_counts()` ใหม่ |
 | Go-live จริง (ย้ายฟอนต์ 35 ตัว, Stripe, Zoho, DNS cutover) | ⏳ ยังไม่ทำ — เป็นงานปฏิบัติการของเจ้าของทั้งหมด ดูด้านล่าง |
 
@@ -80,4 +81,4 @@ Phase D dashboard → [docs/design/DESIGN.md](docs/design/DESIGN.md) §18
   derive จาก git log/docs ได้อยู่แล้ว**
 
 ---
-*อัปเดตล่าสุด: 24 ก.ค. 2026 (session dashboard: designer section + payout รายไตรมาส/all-time + Orders + สถานะการโอน)*
+*อัปเดตล่าสุด: 24 ก.ค. 2026 (payout: สถานะ/ยอดค้างโอนเป็นรายไตรมาสที่เลือก + badge แจ้งเตือนแบบ all-time)*
