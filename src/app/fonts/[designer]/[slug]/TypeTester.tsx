@@ -12,6 +12,10 @@ interface Weight {
 
 const DEFAULT_TESTER_TEXT = "พิมพ์ทดสอบตรงนี้";
 
+// เพดาน client cache — panel นี้ mount ค้างไว้จนออกจากหน้า (ดู FontDetail.tsx)
+// ภาพละ ~50–200KB ถ้าไม่จำกัดคนที่พิมพ์ทดสอบทั้งวันจะสะสมไปเรื่อย ๆ
+const CLIENT_CACHE_MAX = 40;
+
 // ต้อง byte-match กับฝั่ง server (Edge Function render-tester) เป๊ะๆ
 // ไม่งั้น hash ที่คำนวณจะไม่ตรงกับไฟล์ที่ cache ไว้ใน bucket tester-cache
 function normalizeTesterText(raw: string): string {
@@ -78,6 +82,8 @@ export default function TypeTester({ font }: { font: Font }) {
   // client-side cache ต่อ session: cacheKey → image URL (CDN url หรือ objectURL)
   // สลับน้ำหนัก/ลากสไลเดอร์กลับค่าเดิม/ลบ-พิมพ์ซ้ำ = โชว์ทันที ไม่วิ่ง network
   const clientCacheRef = useRef<Map<string, string>>(new Map());
+  // url ที่กำลังโชว์อยู่ — กันเผลอ revoke ตัวที่อยู่บนจอตอนไล่ของเก่าออก
+  const shownUrlRef = useRef<string>("");
   // objectURL ทุกอันที่สร้าง — เก็บไว้ให้ cache reuse ได้ แล้ว revoke ทีเดียวตอน unmount
   const objectUrlsRef = useRef<string[]>([]);
   const prevWeightRef = useRef<string>("");
@@ -145,14 +151,35 @@ export default function TypeTester({ font }: { font: Font }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, size, weightId, infoError, font.id]);
 
-  // Revoke object URL ทุกอันตอน unmount เท่านั้น — ระหว่าง session ต้องคงไว้ให้
-  // client cache reuse ได้ (revoke ระหว่างทางจะทำให้ภาพที่ cache ไว้เสีย)
+  // กวาด object URL ที่เหลือทิ้งตอน unmount (ออกจากหน้าไปแล้ว) — ระหว่างใช้งานจะ revoke
+  // เฉพาะตัวที่ถูกไล่ออกจาก cache ใน showFromCache() เท่านั้น เพราะ revoke ตัวที่ยังอยู่
+  // ใน cache จะทำให้ภาพที่ cache ไว้เสีย (ตัวที่ revoke ซ้ำไม่มีผลอะไร)
   useEffect(() => {
     const urls = objectUrlsRef.current;
     return () => {
       for (const u of urls) URL.revokeObjectURL(u);
     };
   }, []);
+
+  // เก็บผลลง cache แบบ LRU + โชว์ภาพ — Map เรียงตามลำดับที่ใส่ ตัวแรกคือเก่าสุด
+  // (ตัวที่เพิ่ง hit ต้อง set ใหม่ด้วย ไม่งั้นของที่ใช้บ่อยจะกลายเป็นเก่าสุดแล้วโดนไล่ออก)
+  function showFromCache(key: string, url: string) {
+    const cache = clientCacheRef.current;
+    cache.delete(key);
+    cache.set(key, url);
+    while (cache.size > CLIENT_CACHE_MAX) {
+      const oldKey = cache.keys().next().value;
+      if (oldKey === undefined) break;
+      const oldUrl = cache.get(oldKey)!;
+      cache.delete(oldKey);
+      if (oldUrl.startsWith("blob:") && oldUrl !== url && oldUrl !== shownUrlRef.current) {
+        URL.revokeObjectURL(oldUrl);
+      }
+    }
+    shownUrlRef.current = url;
+    setImgSrc(url);
+    setError("");
+  }
 
   async function runRender() {
     const seq = ++seqRef.current;
@@ -164,24 +191,28 @@ export default function TypeTester({ font }: { font: Font }) {
     // ── client cache: เคย render combination นี้แล้วในรอบนี้ → โชว์ทันที ไม่วิ่ง network ──
     const hit = clientCacheRef.current.get(key);
     if (hit) {
-      setImgSrc(hit);
-      setError("");
+      showFromCache(key, hit);
       setRendering(false);
       return;
     }
 
     setRendering(true);
     try {
-      const url = supabase.storage.from("tester-cache").getPublicUrl(key).data.publicUrl;
+      // ── probe CDN (bucket tester-cache) เฉพาะ key ที่ "คนอื่นน่าจะเคย render ไว้" ──
+      // bucket เก็บผลของผู้เข้าชมทุกคน → hit ได้เมื่อมีคนเคย render ข้อความเดียวกัน
+      // ข้อความ default (รวมช่องว่าง/pre-warm) + ทุกขนาด/น้ำหนัก = โอกาส hit สูง คุ้มที่จะ probe
+      // ข้อความที่ผู้ใช้พิมพ์เอง = แทบไม่มีทาง hit → probe คือเสีย 1 RTT เปล่าก่อน render
+      // จึงข้ามไปเรียก Edge Function ตรง (เส้นทางนั้นเดิมก็ต้องเรียกอยู่แล้วหลัง 404)
+      if (normalized === DEFAULT_TESTER_TEXT) {
+        const url = supabase.storage.from("tester-cache").getPublicUrl(key).data.publicUrl;
 
-      const cached = await probeImage(url);
-      if (seq !== seqRef.current) return;
+        const cached = await probeImage(url);
+        if (seq !== seqRef.current) return;
 
-      if (cached) {
-        clientCacheRef.current.set(key, url);
-        setImgSrc(url);
-        setError("");
-        return;
+        if (cached) {
+          showFromCache(key, url);
+          return;
+        }
       }
 
       // เรียกผ่าน fetch ตรง — functions.invoke แปลงเป็น Blob เฉพาะ
@@ -209,9 +240,7 @@ export default function TypeTester({ font }: { font: Font }) {
         return;
       }
       objectUrlsRef.current.push(objectUrl);
-      clientCacheRef.current.set(key, objectUrl);
-      setImgSrc(objectUrl);
-      setError("");
+      showFromCache(key, objectUrl);
     } catch {
       if (seq === seqRef.current) {
         setError("แสดงตัวอย่างไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");

@@ -144,6 +144,8 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [customLicenseTiers, setCustomLicenseTiers] = useState<LicenseTier[] | null>(null);
   const [tab, setTab] = useState<Tab>("detail");
+  // เคยเปิดแท็บ "พิมพ์ทดสอบ" แล้วหรือยัง — ดูคอมเมนต์ตรงตัว panel ว่าทำไมต้องจำ
+  const [testerOpened, setTesterOpened] = useState(false);
   const [specimenOpen, setSpecimenOpen] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState<"link" | "ig" | null>(null);
@@ -506,7 +508,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 id={`tab-${t.id}`}
                 aria-selected={tab === t.id}
                 aria-controls={`panel-${t.id}`}
-                onClick={() => setTab(t.id)}
+                onClick={() => { setTab(t.id); if (t.id === "tester") setTesterOpened(true); }}
                 className={`flex items-center justify-center text-center font-ui text-ui px-2 py-3 border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
                   tab === t.id ? "bg-mint text-black" : "bg-surface text-black hover:bg-mint"
                 }`}
@@ -516,8 +518,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
             ))}
           </div>
 
-          {/* แท็บที่ไม่ active ไม่ render — TypeTester ยิง Edge Function ตอน mount
-              ถ้าปล่อยไว้จะยิงทุกครั้งที่เปิดหน้า ทั้งที่ผู้ใช้ยังไม่ได้กดดู */}
           {tab === "detail" && (
             <div role="tabpanel" id="panel-detail" aria-labelledby="tab-detail">
               <p className="font-ui text-ui text-black mb-4">{specLine}</p>
@@ -530,8 +530,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
             </div>
           )}
 
-          {tab === "tester" && (
-            <div role="tabpanel" id="panel-tester" aria-labelledby="tab-tester">
+          {/* แท็บนี้ mount ต่อเมื่อผู้ใช้กดดูครั้งแรก (TypeTester ยิง Edge Function ตอน mount —
+              ถ้า mount ทิ้งไว้จะยิงทุกครั้งที่เปิดหน้า ทั้งที่ยังไม่มีใครกดดู) แต่พอเปิดแล้ว
+              **คงไว้** ซ่อนด้วย hidden แทนการถอดออก: ถอดออก = ยิง info ใหม่ (~1 วิ) + ล้าง
+              client cache/ข้อความ/ขนาด/น้ำหนักที่ลูกค้าตั้งไว้ทุกครั้งที่สลับแท็บกลับมา */}
+          {testerOpened && (
+            <div role="tabpanel" id="panel-tester" aria-labelledby="tab-tester" hidden={tab !== "tester"}>
               <TypeTester font={font} />
               {font.specimen_files && font.specimen_files.length > 0 && (
                 <Button variant="outline" size="lg" className="mt-5" onClick={() => setSpecimenOpen(true)}>
