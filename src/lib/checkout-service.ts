@@ -161,6 +161,12 @@ export async function handleCheckoutRequest(
     "line_items[0][price_data][product_data][name]": `ฟอนต์ ${fontName} — สิทธิ์บุคคลทั่วไป`,
     success_url: `${site}/checkout/success/?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${site}${cancelPath}`,
+    // บังคับติ๊กยอมรับสัญญาอนุญาตก่อนจ่าย — Stripe เก็บผลไว้ที่ session.consent
+    // เป็นหลักฐานว่าลูกค้ายอมรับ (ทำฝั่ง Stripe ไม่ใช่ฝั่งเรา ลูกค้าจะข้ามไม่ได้)
+    // ⚠️ ลิงก์ที่ติ๊กชี้ไปตาม "Terms of service URL" ใน Stripe Dashboard →
+    // ต้องตั้งเป็น <โดเมน>/agreement/ ให้ครบ **ทั้งโหมด test และ live**
+    // ถ้าไม่ตั้ง Stripe จะปฏิเสธการสร้าง session ทันที (ปุ่มซื้อพัง)
+    "consent_collection[terms_of_service]": "required",
     "metadata[font_id]": font.id,
     "metadata[license_type]": "personal",
   });

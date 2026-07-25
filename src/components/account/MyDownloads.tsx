@@ -4,6 +4,7 @@
 // ดาวน์โหลดผ่าน Edge Function download-font ซึ่งตรวจสิทธิ์ + stamp license ลงไฟล์
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
@@ -31,6 +32,21 @@ const ERR_TH: Record<string, string> = {
 };
 function errMsg(code?: string, fallback = "เกิดข้อผิดพลาด กรุณาลองใหม่") {
   return (code && ERR_TH[code]) || fallback;
+}
+
+/**
+ * จัดกลุ่มไฟล์ตามนามสกุล (OTF / TTF / …) เพื่อการแสดงผลเท่านั้น — วิธีเดียวกับ
+ * `FontFileSection` ในหน้าเพิ่มฟอนต์ · ห้ามเรียงใหม่หรือแตะ `file.index`
+ * เพราะ index คือตัวชี้ไฟล์ที่ Edge Function `download-font` ใช้ตรวจสิทธิ์
+ */
+function groupByExt(files: FileEntry[]): [string, FileEntry[]][] {
+  const groups = new Map<string, FileEntry[]>();
+  for (const f of files) {
+    const ext = f.name.split(".").pop()?.toUpperCase() || "อื่น ๆ";
+    if (!groups.has(ext)) groups.set(ext, []);
+    groups.get(ext)!.push(f);
+  }
+  return Array.from(groups.entries());
 }
 
 export default function MyDownloads() {
@@ -106,8 +122,11 @@ export default function MyDownloads() {
   return (
     <section className="mt-10">
       <h2 className="font-heading text-h2 text-black mb-1">ดาวน์โหลดของฉัน</h2>
-      <p className="font-body text-body-sm text-grey-600 mb-4">
+      <p className="font-body text-body-sm text-grey-600 mb-1">
         ไฟล์ฟอนต์ที่คุณมีสิทธิ์ใช้งาน — ดาวน์โหลดซ้ำได้ตลอด ไฟล์ถูกประทับข้อมูลสิทธิ์ของคุณ
+      </p>
+      <p className="font-body text-body-sm text-grey-600 mb-4">
+        <Link href="/agreement/" className="text-mint-text">ดูรายละเอียดสัญญาอนุญาต</Link>
       </p>
 
       <div className="flex flex-col gap-2">
@@ -137,20 +156,27 @@ export default function MyDownloads() {
               </button>
 
               {isOpen && (
-                <div className="px-4 pb-3 pt-3 bg-grey-200/40 flex flex-col gap-1.5">
+                <div className="px-4 pb-3 pt-3 bg-grey-200/40 flex flex-col">
                   {!files[ent.id] ? (
                     <span className="font-body text-body-sm text-grey-600 py-2">กำลังโหลดรายการไฟล์…</span>
-                  ) : files[ent.id].map((f) => (
-                    <div key={f.index} className="flex items-center justify-between gap-3">
-                      <span className="font-body text-body-sm text-grey-800 truncate">{f.name}</span>
-                      <Button
-                        onClick={() => download(ent, f)}
-                        disabled={busy !== null}
-                        size="sm"
-                        className="flex-shrink-0"
-                      >
-                        {busy === `${ent.id}:${f.index}` ? "กำลังเตรียมไฟล์…" : "ดาวน์โหลด"}
-                      </Button>
+                  ) : groupByExt(files[ent.id]).map(([ext, group]) => (
+                    <div key={ext}>
+                      <div className="font-body text-footnote text-grey-600 mt-2 mb-1 first:mt-0">{ext}</div>
+                      <div className="flex flex-col gap-1.5">
+                        {group.map((f) => (
+                          <div key={f.index} className="flex items-center justify-between gap-3">
+                            <span className="font-body text-body-sm text-grey-800 truncate">{f.name}</span>
+                            <Button
+                              onClick={() => download(ent, f)}
+                              disabled={busy !== null}
+                              size="sm"
+                              className="flex-shrink-0"
+                            >
+                              {busy === `${ent.id}:${f.index}` ? "กำลังเตรียมไฟล์…" : "ดาวน์โหลด"}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
