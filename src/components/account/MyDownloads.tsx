@@ -127,7 +127,10 @@ export default function MyDownloads() {
         ไฟล์ฟอนต์ที่คุณมีสิทธิ์ใช้งาน — ดาวน์โหลดซ้ำได้ตลอด ไฟล์ถูกประทับข้อมูลสิทธิ์ของคุณ
       </p>
       <p className="font-body text-body-sm text-grey-600 mb-4">
-        <Link href="/agreement/" className="text-mint-text">ดูรายละเอียดสัญญาอนุญาต</Link>
+        ดูรายละเอียด{" "}
+        <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text">
+          สัญญาอนุญาต
+        </Link>
       </p>
 
       {!loaded ? (

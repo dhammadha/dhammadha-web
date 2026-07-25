@@ -132,10 +132,13 @@ export default function CartView() {
         <span className="font-heading text-h3 text-black">{fmtBaht(total)}</span>
       </div>
 
+      {/* เปิดแท็บใหม่ — คนกำลังจะจ่ายเงิน ไม่ควรถูกพาออกจากตะกร้าไปอ่านสัญญา */}
       <p className="font-body text-footnote text-grey-600 mt-2">
-        กดชำระเงินแล้วจะมีให้ติ๊กยอมรับ{" "}
-        <Link href="/agreement/" className="text-mint-text">สัญญาอนุญาต</Link>{" "}
-        ก่อนจ่ายเงิน · ไฟล์ที่ได้จะถูกประทับข้อมูลสิทธิ์ของผู้ซื้อ
+        กรุณาศึกษา{" "}
+        <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text">
+          สัญญาอนุญาต
+        </Link>{" "}
+        ก่อนสั่งซื้อฟอนต์
         {!user && " · ซื้อโดยไม่ต้องสมัครสมาชิกได้ ลิงก์ดาวน์โหลดจะส่งไปทางอีเมล"}
       </p>
 
