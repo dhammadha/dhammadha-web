@@ -266,7 +266,7 @@ export default function OwnPricing() {
           <div className="bg-surface p-5 mb-4">
             <h2 className="font-ui text-ui text-black mb-1">ไฟล์สัญญาอนุญาต (PDF)</h2>
             <p className="font-body text-body-sm text-grey-600 mb-4 leading-[1.6]">
-              จำเป็นต้องแนบเมื่อตั้งค่าสิทธิเอง — จะแสดงให้ลูกค้าดูใน lightbox ในหน้าขอใบเสนอราคา
+              จำเป็นต้องแนบเมื่อตั้งค่าสิทธิเอง — จะแสดงให้ลูกค้าดูแทนสัญญาฉบับกลางของเว็บ ทั้งในหน้าฟอนต์ หน้าร้านของคุณ หน้าขอใบเสนอราคา และหน้าดาวน์โหลดของลูกค้า
             </p>
 
             {pdfUrl && !pdfFile && (
