@@ -54,6 +54,8 @@ Publish ฟอนต์ = rebuild ทั้งเว็บ (~2 นาที เ�
 3. ตั้งค่า Stripe จริง (env keys + webhook) — มีบัญชี "DHAMMADHA STUDIO" + PromptPay แล้ว
 4. ย้ายฟอนต์ 35 ตัวจากเว็บเก่า (ใช้ปุ่ม ⚡ ใน FontForm)
 5. Zoho Mail `info@dhammadha.com` (ตอนนี้ใช้ `dhammadha@outlook.com` ชั่วคราว)
+   · **พอมีเมลจริงแล้วต้องกลับไปแก้ Stripe → Settings → Business → Customer support email**
+   (ตอนนี้เป็น outlook ชั่วคราว ลูกค้าเห็นอีเมลนี้บนหน้าจ่ายเงิน/ใบเสร็จของ Stripe)
 6. DNS cutover → dhammadha.com (ต้อง proxied/เมฆส้ม) + **อัป Supabase Auth Site URL/Redirect URLs**
 7. เปิดตัว + เริ่มชวน designer ผ่าน `/become-a-designer`
 8. (รอข้อมูลขาย) Phase 4.1 Subscription ต่อ

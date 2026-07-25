@@ -258,17 +258,23 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
   /**
    * ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — **ทุกการซื้อผ่านตะกร้าทางเดียว** ไม่ยิง
-   * /api/checkout จากหน้านี้แล้ว เพื่อให้มี flow เดียวทั้งเว็บ: หยิบใส่ตะกร้า →
-   * /cart → Stripe (ราคายังคิดฝั่ง server เหมือนเดิมตอนกดชำระเงินที่ตะกร้า)
+   * /api/checkout จากหน้านี้แล้ว (ราคาคิดฝั่ง server ตอนกดชำระเงินที่ตะกร้า)
+   *
+   * กดครั้งแรก = ใส่ตะกร้าเฉย ๆ **ไม่พาไปไหน** ลูกค้าจะได้เลือกตัวอื่นต่อได้
+   * (สัญญาณว่าใส่แล้วคือไอคอนตะกร้าบน Nav ขยับ + ตัวเลขเพิ่ม) · กดซ้ำตอนที่มี
+   * ในตะกร้าแล้ว = ผู้ใช้ตั้งใจจะไปจ่าย จึงพาไป /cart ให้
    */
   function handleBuy() {
     if (!font) return;
+    if (inCart) {
+      router.push("/cart/");
+      return;
+    }
     if (!addToCart(font.id)) {
       setBuyError(`ตะกร้าเต็มแล้ว (สูงสุด ${CART_LIMIT} ฟอนต์ต่อครั้ง) กรุณาชำระเงินรอบนี้ก่อน`);
       return;
     }
     setBuyError("");
-    router.push("/cart/");
   }
 
   if (loading) {
