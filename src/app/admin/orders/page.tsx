@@ -55,7 +55,8 @@ export default function AdminOrdersPage() {
       fetchAllRows<OrderLite>(async (from, to) => {
         const { data, error } = await supabase
           .from("orders")
-          .select("id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, customer_name, customer_email, company_name")
+          // order_items: ใบที่ซื้อข้ามร้านมี designer คนละคนต่อรายการ (orders.designer_id เป็น null)
+          .select("id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, customer_name, customer_email, company_name, order_items(font_id, designer_id, name, price)")
           .order("created_at", { ascending: false })
           .range(from, to);
         return { data: data as unknown as OrderLite[] | null, error };
@@ -70,6 +71,7 @@ export default function AdminOrdersPage() {
     // users map สำหรับชื่อ designer (ต่อ order) + ชื่อ/อีเมลสมาชิก (ต่อ subscription)
     const ids = Array.from(new Set([
       ...allOrders.map((o) => o.designer_id).filter((x): x is string => !!x),
+      ...allOrders.flatMap((o) => (o.order_items ?? []).map((i) => i.designer_id)).filter((x): x is string => !!x),
       ...allSubs.map((s) => s.user_id),
     ]));
     if (ids.length > 0) {
@@ -87,6 +89,16 @@ export default function AdminOrdersPage() {
     if (!id) return "—";
     const u = users[id];
     return u?.business_name ?? u?.name ?? id.slice(0, 8);
+  };
+
+  /**
+   * ชื่อนักออกแบบของ "รายการหนึ่งบรรทัด" — ต้องดูจาก order_items เพราะใบที่ซื้อ
+   * ข้ามร้านจะมี orders.designer_id เป็น null (ของหลายคน) ถ้าดูจากระดับใบจะขึ้น —
+   * ใบเก่าก่อนมี order_items ค่อย fallback ไปที่ designer ระดับใบ
+   */
+  const itemDesignerName = (o: OrderLite, fontId?: string) => {
+    const match = (o.order_items ?? []).find((i) => i.font_id === fontId);
+    return designerName(match?.designer_id ?? o.designer_id);
   };
 
   const retailOrders = useMemo(
@@ -173,7 +185,7 @@ export default function AdminOrdersPage() {
                       {(o.items ?? []).map((it, i) => (
                         <div key={i} className="grid grid-cols-[1fr_1fr] gap-3 font-body text-body-sm bg-surface px-3 py-2">
                           <span className="text-black truncate">{it.name}</span>
-                          <span className="text-grey-600 truncate">{designerName(o.designer_id)}</span>
+                          <span className="text-grey-600 truncate">{itemDesignerName(o, it.font_id)}</span>
                         </div>
                       ))}
                     </div>

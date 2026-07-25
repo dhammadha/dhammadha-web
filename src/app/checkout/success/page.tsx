@@ -12,6 +12,7 @@ import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 
 const POLL_INTERVAL_MS = 2500;
 const MAX_POLLS = 24; // ~60 วินาที
@@ -22,6 +23,8 @@ interface OrderStatus {
   paid_at?: string;
   customer_email?: string;
   fonts?: string[];
+  /** id ของฟอนต์ในใบนี้ — ใช้เอาออกจากตะกร้าหลังจ่ายสำเร็จ (0071) */
+  font_ids?: string[];
 }
 
 export default function CheckoutSuccessPage() {
@@ -36,6 +39,7 @@ function CheckoutSuccess() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id") ?? "";
   const { user } = useAuth();
+  const { removeMany: removeFromCart } = useCart();
   const [order, setOrder] = useState<OrderStatus | null>(null);
   const [timedOut, setTimedOut] = useState(false);
 
@@ -53,6 +57,9 @@ function CheckoutSuccess() {
       const status = data as OrderStatus | null;
       if (status?.found) {
         setOrder(status);
+        // จ่ายแล้ว → เอาเฉพาะฟอนต์ในใบนี้ออกจากตะกร้า (ไม่ล้างทั้งตะกร้า เผื่อมีของ
+        // ที่หยิบเพิ่มระหว่างรอจ่าย) — ต้องทำที่นี่เพราะเป็นจุดแรกที่ยืนยันว่าจ่ายสำเร็จ
+        removeFromCart(status.font_ids ?? []);
         // ผูกสิทธิ์เข้ากับบัญชีทันทีถ้า login อยู่ — หน้า "ดาวน์โหลดของฉัน" เห็นไฟล์เลย
         supabase.rpc("claim_my_entitlements").then(() => {});
         return;

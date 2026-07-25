@@ -11,7 +11,7 @@
  * ส่วน "รายการโปรด" ที่ต้องข้ามเครื่องมี FavouritesContext แยกอยู่แล้ว
  */
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { mergeShopPromos } from "@/lib/shop-promo";
 
@@ -55,6 +55,8 @@ interface CartContextValue {
   /** คืน false เมื่อตะกร้าเต็ม */
   add: (fontId: string) => boolean;
   remove: (fontId: string) => void;
+  /** เอาหลายตัวออกพร้อมกัน — ใช้ตอนจ่ายเงินสำเร็จแล้วเคลียร์เฉพาะฟอนต์ในใบนั้น */
+  removeMany: (fontIds: string[]) => void;
   clear: () => void;
 }
 
@@ -68,6 +70,7 @@ const CartContext = createContext<CartContextValue>({
   has: () => false,
   add: () => false,
   remove: () => {},
+  removeMany: () => {},
   clear: () => {},
 });
 
@@ -85,19 +88,33 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<string[]>([]);
   // ready = อ่าน localStorage แล้ว — กันตัวเลขบนไอคอนตะกร้ากะพริบจาก 0 ตอน hydrate
   const [ready, setReady] = useState(false);
+  /**
+   * กระจกเงาของ items ไว้ให้ callback อ่านค่าล่าสุดเสมอ — จำเป็นเพราะ
+   * `add/remove/removeMany` ถูกเรียกจาก effect ที่ผูก dependency ไว้ตัวอื่น
+   * (เช่นหน้า success poll แล้วลบทีละใบ) ถ้าอ่านจาก closure จะเห็นค่าเก่า
+   * แล้วการลบหลายตัวติดกันจะทับกันเอง เหลือผลของตัวสุดท้ายตัวเดียว
+   */
+  const itemsRef = useRef<string[]>([]);
 
   useEffect(() => {
-    setItems(read());
+    const initial = read();
+    itemsRef.current = initial;
+    setItems(initial);
     setReady(true);
     // แท็บอื่นแก้ตะกร้า → ตามให้ทัน
     const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) setItems(read());
+      if (e.key === STORAGE_KEY) {
+        const next = read();
+        itemsRef.current = next;
+        setItems(next);
+      }
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const persist = useCallback((next: string[]) => {
+    itemsRef.current = next;
     setItems(next);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -110,18 +127,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const add = useCallback(
     (fontId: string) => {
-      if (items.includes(fontId)) return true;
-      if (items.length >= CART_LIMIT) return false;
-      persist([...items, fontId]);
+      const current = itemsRef.current;
+      if (current.includes(fontId)) return true;
+      if (current.length >= CART_LIMIT) return false;
+      persist([...current, fontId]);
       setBump((n) => n + 1);
       return true;
     },
-    [items, persist]
+    [persist]
   );
 
   const remove = useCallback(
-    (fontId: string) => persist(items.filter((id) => id !== fontId)),
-    [items, persist]
+    (fontId: string) => persist(itemsRef.current.filter((id) => id !== fontId)),
+    [persist]
+  );
+
+  const removeMany = useCallback(
+    (fontIds: string[]) => {
+      if (!fontIds.length) return;
+      const next = itemsRef.current.filter((id) => !fontIds.includes(id));
+      if (next.length !== itemsRef.current.length) persist(next);
+    },
+    [persist]
   );
 
   const clear = useCallback(() => persist([]), [persist]);
@@ -169,6 +196,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         has: (fontId) => items.includes(fontId),
         add,
         remove,
+        removeMany,
         clear,
       }}
     >
