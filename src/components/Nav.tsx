@@ -82,7 +82,15 @@ const NAV_LINK = cn(
 export default function Nav() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
-  const { count: cartCount, ready: cartReady, fonts: cartFonts, remove: removeFromCart } = useCart();
+  const { count: cartCount, ready: cartReady, fonts: cartFonts, remove: removeFromCart, bump: cartBump } = useCart();
+  // เล่น animation สั้น ๆ ทุกครั้งที่หยิบฟอนต์ใส่ตะกร้า แล้วถอด class ออกให้เล่นซ้ำได้
+  const [cartAnimating, setCartAnimating] = useState(false);
+  useEffect(() => {
+    if (cartBump === 0) return;
+    setCartAnimating(true);
+    const t = setTimeout(() => setCartAnimating(false), 450);
+    return () => clearTimeout(t);
+  }, [cartBump]);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -434,12 +442,18 @@ export default function Nav() {
               className={cn(
                 "relative flex items-center justify-center w-8 h-8 text-white",
                 "hover:text-mint transition-colors duration-150 ease-base",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint",
+                cartAnimating && "cart-bounce"
               )}
             >
               <CartIcon />
               {cartReady && cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center">
+                <span
+                  className={cn(
+                    "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center",
+                    cartAnimating && "cart-badge-pop"
+                  )}
+                >
                   {cartCount}
                 </span>
               )}

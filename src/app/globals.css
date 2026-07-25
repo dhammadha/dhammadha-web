@@ -62,3 +62,26 @@ body {
   outline: 2px solid #080808;
   outline-offset: 4px;
 }
+
+/* ── ตะกร้า: สัญญาณตอนหยิบฟอนต์ใส่ ────────────────────────────────────────────
+   ปุ่ม "ซื้อฟอนต์นี้" ไม่พาไปหน้าตะกร้าแล้ว (ลูกค้าเลือกตัวอื่นต่อได้) ไอคอนเด้ง
+   กับเลขที่โป๊ะขึ้นจึงเป็นตัวบอกว่าใส่สำเร็จ · เคารพ prefers-reduced-motion */
+@keyframes cart-bounce {
+  0%, 100% { transform: translateY(0); }
+  30%      { transform: translateY(-5px); }
+  60%      { transform: translateY(1px); }
+}
+@keyframes cart-badge-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+.cart-bounce {
+  animation: cart-bounce 420ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.cart-badge-pop {
+  animation: cart-badge-pop 420ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cart-bounce, .cart-badge-pop { animation: none; }
+}

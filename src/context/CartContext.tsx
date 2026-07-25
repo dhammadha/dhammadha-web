@@ -49,6 +49,8 @@ interface CartContextValue {
   /** ฟอนต์ในตะกร้าพร้อมข้อมูลแสดงผล เรียงตามลำดับที่หยิบใส่ (ตัวที่ปิดขายแล้วจะหายไป) */
   fonts: CartFont[];
   loadingFonts: boolean;
+  /** เพิ่มขึ้น 1 ทุกครั้งที่หยิบของใส่ตะกร้าสำเร็จ — Nav ใช้เป็นสัญญาณเล่น animation */
+  bump: number;
   has: (fontId: string) => boolean;
   /** คืน false เมื่อตะกร้าเต็ม */
   add: (fontId: string) => boolean;
@@ -62,6 +64,7 @@ const CartContext = createContext<CartContextValue>({
   ready: false,
   fonts: [],
   loadingFonts: false,
+  bump: 0,
   has: () => false,
   add: () => false,
   remove: () => {},
@@ -103,11 +106,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const [bump, setBump] = useState(0);
+
   const add = useCallback(
     (fontId: string) => {
       if (items.includes(fontId)) return true;
       if (items.length >= CART_LIMIT) return false;
       persist([...items, fontId]);
+      setBump((n) => n + 1);
       return true;
     },
     [items, persist]
@@ -159,6 +165,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         ready,
         fonts,
         loadingFonts,
+        bump,
         has: (fontId) => items.includes(fontId),
         add,
         remove,
