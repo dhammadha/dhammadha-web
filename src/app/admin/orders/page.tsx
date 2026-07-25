@@ -36,6 +36,8 @@ function fmtDate(s: string | null) {
 
 const RETAIL_GRID = "grid grid-cols-[110px_140px_1fr_110px] gap-3";
 const SUB_GRID = "grid grid-cols-[110px_120px_1.2fr_1.4fr_120px] gap-3";
+// รายการฟอนต์ในออเดอร์ (แถวที่กางออกมา) — หัวตารางกับแถวข้อมูลต้องใช้ตัวเดียวกัน
+const ITEM_GRID = "grid grid-cols-[1.6fr_1.2fr_100px_150px_120px] gap-3";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderLite[]>([]);
@@ -99,6 +101,26 @@ export default function AdminOrdersPage() {
   const itemDesignerName = (o: OrderLite, fontId?: string) => {
     const match = (o.order_items ?? []).find((i) => i.font_id === fontId);
     return designerName(match?.designer_id ?? o.designer_id);
+  };
+
+  /**
+   * ราคา/ส่วนแบ่งของรายการหนึ่งบรรทัด — ยึด order_items เป็นหลักเพราะเป็นยอดที่
+   * บันทึกไว้ ณ เวลาขาย · ใบเก่าก่อนมี order_items ค่อยคำนวณย้อนจากราคาใน items
+   * (Retail หัก 25% · ใบจากใบเสนอราคาเงินเข้านักออกแบบเต็ม เว็บไม่หัก)
+   */
+  const itemShare = (o: OrderLite, fontId?: string, price?: number) => {
+    const match = (o.order_items ?? []).find((i) => i.font_id === fontId);
+    if (match) {
+      return {
+        price: match.price,
+        designer: match.designer_amount ?? 0,
+        platform: match.platform_amount ?? 0,
+      };
+    }
+    const p = price ?? 0;
+    if (o.source !== "checkout") return { price: p, designer: p, platform: 0 };
+    const platform = Math.round(p * 0.25 * 100) / 100;
+    return { price: p, designer: p - platform, platform };
   };
 
   const retailOrders = useMemo(
@@ -180,14 +202,26 @@ export default function AdminOrdersPage() {
                 </div>
                 {open && (
                   <div className="bg-white px-4 py-3">
-                    <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">ฟอนต์ในออเดอร์</div>
+                    <div className={`${ITEM_GRID} px-3 pb-1.5 font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+                      <div>ฟอนต์</div>
+                      <div>ดีไซน์เนอร์</div>
+                      <div className="text-right">ราคา</div>
+                      <div className="text-right">ส่วนแบ่งดีไซน์เนอร์</div>
+                      <div className="text-right">ส่วนแบ่งเว็บ</div>
+                    </div>
                     <div className="flex flex-col gap-1">
-                      {(o.items ?? []).map((it, i) => (
-                        <div key={i} className="grid grid-cols-[1fr_1fr] gap-3 font-body text-body-sm bg-surface px-3 py-2">
-                          <span className="text-black truncate">{it.name}</span>
-                          <span className="text-grey-600 truncate">{itemDesignerName(o, it.font_id)}</span>
-                        </div>
-                      ))}
+                      {(o.items ?? []).map((it, i) => {
+                        const share = itemShare(o, it.font_id, it.price);
+                        return (
+                          <div key={i} className={`${ITEM_GRID} font-body text-body-sm bg-surface px-3 py-2`}>
+                            <span className="text-black truncate">{it.name}</span>
+                            <span className="text-grey-600 truncate">{itemDesignerName(o, it.font_id)}</span>
+                            <span className="text-black text-right">{fmtBaht(share.price)}</span>
+                            <span className="text-black text-right">{fmtBaht(share.designer)}</span>
+                            <span className="text-grey-600 text-right">{fmtBaht(share.platform)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
