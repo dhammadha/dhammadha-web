@@ -3,9 +3,22 @@
 // เรียกเก็บเสมอ — framework-free: ห้าม import อะไรนอกจาก plain TS
 
 /**
+ * สิ้นสุดวันตาม **เวลาไทย (UTC+7)** เป็น epoch ms
+ *
+ * ต้องตรึง timezone ไว้ ห้ามใช้ `new Date(y, m, d, 23, 59, 59)` ซึ่งอิง TZ ของเครื่องที่รัน —
+ * โค้ดไฟล์นี้รันสองที่: เบราว์เซอร์ลูกค้า (ไทย UTC+7) และ Cloudflare Pages Function (UTC)
+ * ถ้าอิง TZ เครื่อง วันสุดท้ายของโปรจะเหลื่อมกัน 7 ชม. → ช่วง 00:00–07:00 ของวันถัดมา
+ * หน้าเว็บโชว์ราคาเต็มแล้วแต่ checkout ยังเก็บราคาลดอยู่ (โชว์กับเก็บเงินไม่ตรงกัน)
+ */
+function endOfDayBangkok(iso: string): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  return m ? Date.parse(`${m[1]}-${m[2]}-${m[3]}T23:59:59+07:00`) : Date.parse(iso);
+}
+
+/**
  * ส่วนลดรายฟอนต์ active เมื่อ is_sale + มี sale_price และยังไม่พ้นวันสิ้นสุด
  * sale_end เก็บแบบ ISO `yyyy-mm-dd` (จาก `<input type="date">`) — นับให้หมดอายุ
- * เมื่อพ้นสิ้นวันนั้น (23:59:59) ตามเวลาท้องถิ่น
+ * เมื่อพ้นสิ้นวันนั้น (23:59:59) ตามเวลาไทย
  */
 export function isSaleActive(
   font: { is_sale?: boolean | null; sale_price?: number | null; sale_end?: string | null },
@@ -13,10 +26,7 @@ export function isSaleActive(
 ): boolean {
   if (!font.is_sale || !font.sale_price || font.sale_price <= 0) return false;
   if (font.sale_end) {
-    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(font.sale_end);
-    const end = m
-      ? new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59).getTime()
-      : Date.parse(font.sale_end);
+    const end = endOfDayBangkok(font.sale_end);
     if (!Number.isNaN(end) && now > end) return false;
   }
   return true;
@@ -37,10 +47,7 @@ export function shopSaleActive(
 ): boolean {
   if (typeof font.shop_discount_percent !== "number" || font.shop_discount_percent <= 0) return false;
   if (!font.shop_sale_end) return false;
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(font.shop_sale_end);
-  const end = m
-    ? new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59).getTime()
-    : Date.parse(font.shop_sale_end);
+  const end = endOfDayBangkok(font.shop_sale_end);
   if (!Number.isNaN(end) && now > end) return false;
   return true;
 }
