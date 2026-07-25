@@ -44,8 +44,9 @@ src/app/
 
 `src/components/designer/SetupGate.tsx` exports:
 - `useDesignerSetup()` — reads `users` table, returns `{ hasSlug, hasSellerInfo, hasBank, complete }`
-- `DesignerSetupCard` — checklist card rendered on dashboard when `!complete`
 - `AddFontGate` — blocks `/designer/add` if `!hasSlug`
+
+When `!complete`, `src/app/designer/(dashboard)/layout.tsx` redirects to `/designer/onboarding`.
 
 ### Database
 

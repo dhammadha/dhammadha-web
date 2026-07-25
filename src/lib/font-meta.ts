@@ -113,9 +113,3 @@ export function summarizeFontMeta(metas: FontFileMeta[]): FontMetaSummary {
     families,
   };
 }
-
-/** อ่านหลายไฟล์พร้อมกันแล้วสรุป */
-export async function readFontMetaSummary(files: File[]): Promise<FontMetaSummary> {
-  const metas = await Promise.all(files.map(readFontFileMeta));
-  return summarizeFontMeta(metas);
-}

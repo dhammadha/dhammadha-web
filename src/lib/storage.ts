@@ -17,10 +17,6 @@ export async function uploadProtectedFile(bucket: StorageBucket, path: string, f
   return path;
 }
 
-export async function deleteFile(bucket: StorageBucket, path: string): Promise<void> {
-  await supabase.storage.from(bucket).remove([path]);
-}
-
 export function slugifyFilename(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9.\-_]/g, "_");
 }

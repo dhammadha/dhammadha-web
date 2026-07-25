@@ -16,6 +16,7 @@ import {
   periodOptions,
   monthLabel,
   fmtBaht,
+  designerShareOf,
   type FontSale,
   type FontSaleAgg,
   type OrderLite,
@@ -134,7 +135,7 @@ export default function OwnRevenue() {
   const retailShareAllTime = useMemo(
     () => orders
       .filter((o) => o.status === "paid" && o.source === "checkout")
-      .reduce((s, o) => s + (o.designer_amount ?? o.total_amount * 0.75), 0),
+      .reduce((s, o) => s + designerShareOf(o), 0),
     [orders]
   );
   const paidAllTime = useMemo(() => payouts.reduce((s, p) => s + p.amount, 0), [payouts]);

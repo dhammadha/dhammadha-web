@@ -4,15 +4,13 @@ import { cn } from "@/lib/cn";
 /**
  * Button — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.2)
  *
- * API เหมือน components/Button.tsx เดิมเป๊ะ ไม่มี prop เพิ่ม ไม่มี prop หาย
- * → ย้ายหน้าไหนก็เปลี่ยนแค่ import path บรรทัดเดียว
+ * ปุ่มตัวเดียวของทั้งเว็บ — `components/Button.tsx` ตัวเก่าถูกลบทิ้งแล้ว
+ * (ทุกหน้าย้ายมา import ที่นี่ครบตั้งแต่ 2026-07-22 ดู DESIGN.md §18.1)
  *
  * ตั้งใจไม่มี prop `loading` แม้ DESIGN.md จะระบุ state นั้นไว้ —
  * โปรเจกต์นี้ใช้ pattern `disabled={loading}` + สลับข้อความลูกอยู่แล้ว
  * (auth/signup:241, auth/forgot-password:72, auth/reset-password:119)
  * เพิ่ม prop เข้ามาจะกลายเป็น API ที่ไม่มีใครเรียก
- *
- * ⚠️ components/Button.tsx (ตัวเก่า) แช่แข็ง ห้ามแก้ — admin/designer 15 ไฟล์ใช้อยู่
  */
 
 type BaseProps = {

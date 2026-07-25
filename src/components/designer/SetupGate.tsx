@@ -6,8 +6,9 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
 
-// สถานะการตั้งค่าร้านของ designer — ใช้ทั้งการ์ด checklist บน dashboard
-// และ gate กันเพิ่มฟอนต์ก่อนตั้ง slug (ไม่มี slug = ลิงก์หน้าฟอนต์ใช้ไม่ได้)
+// สถานะการตั้งค่าร้านของ designer — layout ของ dashboard ใช้ redirect ไป
+// /designer/onboarding เมื่อยังตั้งค่าไม่ครบ และใช้ gate กันเพิ่มฟอนต์ก่อนตั้ง slug
+// (ไม่มี slug = ลิงก์หน้าฟอนต์ใช้ไม่ได้)
 
 export interface DesignerSetup {
   loading: boolean;
@@ -43,61 +44,6 @@ export function useDesignerSetup(): DesignerSetup {
   }, [user]);
 
   return setup;
-}
-
-function StepRow({ done, label, desc }: { done: boolean; label: string; desc: string }) {
-  return (
-    <div className="flex items-start gap-3">
-      <span
-        className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-badge font-heading shrink-0 ${
-          done ? "bg-mint text-black" : "bg-white text-grey-600"
-        }`}
-      >
-        {done ? "✓" : "•"}
-      </span>
-      <div>
-        <div className={`font-body text-body-sm ${done ? "text-grey-600 line-through" : "text-black"}`}>{label}</div>
-        {!done && <div className="font-body text-footnote text-grey-600 mt-0.5 leading-[1.6]">{desc}</div>}
-      </div>
-    </div>
-  );
-}
-
-/** การ์ด checklist บน dashboard — ซ่อนตัวเองเมื่อตั้งค่าครบแล้ว */
-export function DesignerSetupCard() {
-  const setup = useDesignerSetup();
-  if (setup.loading || setup.complete) return null;
-
-  return (
-    <div className="bg-surface p-5 mb-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-        <div>
-          <h2 className="font-ui text-ui text-black">ตั้งค่าร้านของคุณให้พร้อมขาย</h2>
-          <p className="font-body text-footnote text-grey-600 mt-0.5">
-            ทำครบ {[setup.hasSlug, setup.hasSellerInfo, setup.hasBank].filter(Boolean).length}/3 ขั้นตอน
-          </p>
-        </div>
-        <Button as="link" href="/designer/settings" size="sm">ไปหน้าตั้งค่า →</Button>
-      </div>
-      <div className="flex flex-col gap-3">
-        <StepRow
-          done={setup.hasSlug}
-          label="ตั้ง Designer Slug (URL หน้าร้าน)"
-          desc="จำเป็นก่อนเพิ่มฟอนต์ — เป็นที่อยู่หน้าร้านและหน้าฟอนต์ทุกตัวของคุณ ตั้งได้ครั้งเดียว"
-        />
-        <StepRow
-          done={setup.hasSellerInfo}
-          label="กรอกข้อมูลผู้ขาย (ชื่อ + ที่อยู่)"
-          desc="ใช้ออกใบเสนอราคาและเอกสารให้ลูกค้าองค์กร"
-        />
-        <StepRow
-          done={setup.hasBank}
-          label="เพิ่มบัญชีธนาคาร"
-          desc="ใช้รับส่วนแบ่งรายได้จากการขายผ่านเว็บ"
-        />
-      </div>
-    </div>
-  );
 }
 
 /** Gate หน้าเพิ่มฟอนต์ — ยังไม่ตั้ง slug ให้ไปตั้งก่อน */

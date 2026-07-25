@@ -48,12 +48,6 @@ type Totals = {
   orders: OrderLite[]; // orders ของงวดนั้น เรียงใหม่→เก่า
 };
 
-export type MonthStatement = Totals & {
-  key: string; // "2026-07"
-  year: number; // ค.ศ.
-  month: number; // 1-12
-};
-
 export type QuarterStatement = Totals & {
   key: string; // "2026-Q3"
   year: number; // ค.ศ.
@@ -62,10 +56,6 @@ export type QuarterStatement = Totals & {
 };
 
 const PLATFORM_RATE_FALLBACK = 0.25; // ต้องตรงกับ create_checkout_order ใน 0033
-
-function monthKey(year: number, month: number): string {
-  return `${year}-${String(month).padStart(2, "0")}`;
-}
 
 function quarterKey(year: number, quarter: number): string {
   return `${year}-Q${quarter}`;
@@ -95,13 +85,22 @@ function emptyTotals(): Totals {
   };
 }
 
+/**
+ * ส่วนแบ่งที่ designer ได้จาก order หนึ่งใบ — จุดเดียวที่รู้สูตร fallback
+ * (designer_amount อาจเป็น null ในข้อมูลผิดปกติ ที่ไม่ควรเกิดจาก create_checkout_order ปกติ)
+ * ต้องเรียกผ่านฟังก์ชันนี้เสมอ ห้าม hardcode `* 0.75` ซ้ำ — ที่เขียนเองมักลืม round2
+ * แล้วเศษ floating-point จะไหลไปโผล่ใน input จำนวนเงินตอน admin บันทึกจ่าย
+ */
+export function designerShareOf(order: Pick<OrderLite, "total_amount" | "platform_amount" | "designer_amount">): number {
+  const platformAmount = order.platform_amount ?? round2(order.total_amount * PLATFORM_RATE_FALLBACK);
+  return order.designer_amount ?? round2(order.total_amount - platformAmount);
+}
+
 function addOrder(t: Totals, order: OrderLite): void {
   t.orders.push(order);
   if (order.source === "checkout") {
-    // platform_amount/designer_amount อาจเป็น null ในข้อมูลผิดปกติ (ไม่ควรเกิด
-    // จาก create_checkout_order ปกติ) — fallback คำนวณ 25/75 จาก total_amount
     const platformAmount = order.platform_amount ?? round2(order.total_amount * PLATFORM_RATE_FALLBACK);
-    const designerAmount = order.designer_amount ?? round2(order.total_amount - platformAmount);
+    const designerAmount = designerShareOf(order);
     t.b2cTotal += order.total_amount;
     t.platformAmount += platformAmount;
     t.designerAmount += designerAmount;
@@ -129,36 +128,13 @@ function seal(t: Totals): void {
 }
 
 /**
- * สรุปยอดรายเดือน (ไม่มีสถานะการโอน — การโอนเป็นรายไตรมาส ดู buildQuarterlyStatements)
- *
- * ข้อสมมติสำคัญ: ฟังก์ชันนี้ถือว่า orders ที่ส่งเข้ามาทั้งหมดเป็นของ designer
- * คนเดียวกัน (ไม่กรอง designer_id ซ้ำภายในฟังก์ชัน) — หน้า designer ส่ง order
- * ของตัวเองเข้ามาได้ตรง ๆ ส่วนหน้า admin ต้อง groupOrdersByDesigner ก่อน
- * แล้วเรียกฟังก์ชันนี้แยกทีละ designer
- */
-export function buildMonthlyStatements(orders: OrderLite[]): MonthStatement[] {
-  const map = new Map<string, MonthStatement>();
-
-  for (const order of orders.filter((o) => o.status === "paid")) {
-    const { year, month } = orderMonthParts(order);
-    const key = monthKey(year, month);
-    let stmt = map.get(key);
-    if (!stmt) {
-      stmt = { key, year, month, ...emptyTotals() };
-      map.set(key, stmt);
-    }
-    addOrder(stmt, order);
-  }
-
-  for (const stmt of map.values()) seal(stmt);
-  return Array.from(map.values()).sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
-}
-
-/**
  * สรุปยอดรายไตรมาส + สถานะการโอน — งวดการจ่ายส่วนแบ่งจริงของระบบ
  * (จ่ายทุก 3 เดือน โอนในเดือน ม.ค./เม.ย./ก.ค./ต.ค. ดู payoutMonthFor)
  *
- * ข้อสมมติเดียวกับ buildMonthlyStatements: orders/payouts ต้องเป็นของ designer คนเดียว
+ * ข้อสมมติสำคัญ: ฟังก์ชันนี้ถือว่า orders/payouts ที่ส่งเข้ามาเป็นของ designer
+ * คนเดียวกัน (ไม่กรอง designer_id ซ้ำภายในฟังก์ชัน) — หน้า designer ส่ง order
+ * ของตัวเองเข้ามาได้ตรง ๆ ส่วนหน้า admin ต้อง groupOrdersByDesigner ก่อน
+ * แล้วเรียกฟังก์ชันนี้แยกทีละ designer
  */
 export function buildQuarterlyStatements(orders: OrderLite[], payouts: PayoutRow[]): QuarterStatement[] {
   const map = new Map<string, QuarterStatement>();

@@ -19,6 +19,7 @@ import {
   periodOptions,
   periodLabel,
   fmtBaht,
+  designerShareOf,
   type OrderLite,
   type PayoutRow,
   type Period,
@@ -290,7 +291,7 @@ export default function AdminPayoutsPage() {
     const earned = new Map<string, number>();
     for (const o of orders) {
       if (o.status !== "paid" || o.source !== "checkout" || !o.designer_id) continue;
-      earned.set(o.designer_id, (earned.get(o.designer_id) ?? 0) + (o.designer_amount ?? o.total_amount * 0.75));
+      earned.set(o.designer_id, (earned.get(o.designer_id) ?? 0) + designerShareOf(o));
     }
     const paid = new Map<string, number>();
     for (const p of payouts) paid.set(p.designer_id, (paid.get(p.designer_id) ?? 0) + p.amount);
@@ -314,7 +315,7 @@ export default function AdminPayoutsPage() {
       const d = new Date(o.paid_at ?? o.created_at);
       const y = d.getFullYear(), q = quarterOfMonth(d.getMonth() + 1);
       const k = `${o.designer_id}:${y}:${q}`;
-      earned.set(k, (earned.get(k) ?? 0) + (o.designer_amount ?? o.total_amount * 0.75));
+      earned.set(k, (earned.get(k) ?? 0) + designerShareOf(o));
       let set = keysByDesigner.get(o.designer_id);
       if (!set) { set = new Set(); keysByDesigner.set(o.designer_id, set); }
       set.add(`${y}:${q}`);
@@ -517,7 +518,7 @@ export default function AdminPayoutsPage() {
               <div>Designer</div>
               <div>ส่วนแบ่ง Retail Font</div>
               <div>ส่วนแบ่ง Subscription</div>
-              <div>ยอด B2B (รับตรง)</div>
+              <div>ยอดรับตรง (ไม่ผ่านเว็บ)</div>
               <div>ยอดค้างโอน</div>
               <div>สถานะ</div>
             </div>
@@ -595,7 +596,7 @@ export default function AdminPayoutsPage() {
                                         <div key={o.id} className="grid grid-cols-[auto_1fr_auto] gap-3 items-baseline font-body text-body-sm bg-surface px-3 py-2">
                                           <span className="text-grey-600">{o.order_no}</span>
                                           <span className="text-black truncate">{(o.items ?? []).map((it) => it.name).join(", ") || "—"}</span>
-                                          <span className="font-ui text-ui text-black">{fmtBaht(o.designer_amount ?? o.total_amount * 0.75)}</span>
+                                          <span className="font-ui text-ui text-black">{fmtBaht(designerShareOf(o))}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -665,7 +666,7 @@ export default function AdminPayoutsPage() {
               })
             )}
             <div className="px-4 py-3 font-body text-footnote text-grey-600">
-              ยอดค้างโอน = ยอดของไตรมาสที่เลือกที่ยังไม่ได้โอน · ยอดสะสมทุกไตรมาสดูที่การ์ด &ldquo;ค้างโอนให้ designer (สะสมทั้งหมด)&rdquo; ด้านบน · กดจ่ายทีละไตรมาส (ยอด B2B designer รับเงินตรงจากลูกค้า ไม่ผ่านเว็บ)
+              ยอดค้างโอน = ยอดของไตรมาสที่เลือกที่ยังไม่ได้โอน · ยอดสะสมทุกไตรมาสดูที่การ์ด &ldquo;ค้างโอนให้ designer (สะสมทั้งหมด)&rdquo; ด้านบน · กดจ่ายทีละไตรมาส (ยอดรับตรง designer รับเงินจากลูกค้าเอง ไม่ผ่านเว็บ)
             </div>
           </div>
         </>

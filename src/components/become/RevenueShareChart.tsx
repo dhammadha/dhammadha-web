@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
  * hover/แตะ slice ไหน → แผงขวาขึ้นวิธีคำนวณของส่วนนั้น
  *
  * ตัวเลข subscription ผูกกับ SPLIT ใน lib/subscription-revenue.ts (แหล่งความจริงเดียว)
- * ส่วน retail 75/25 ตรงกับ PLATFORM_RATE_FALLBACK ใน lib/revenue.ts:55 + สัญญานักออกแบบ
+ * ส่วน retail 75/25 ตรงกับ PLATFORM_RATE_FALLBACK ใน lib/revenue.ts + สัญญานักออกแบบ
  *
  * ⚠️ ห้ามใช้คำว่า B2B/B2C ในข้อความที่ผู้ใช้เห็น (เจ้าของสั่ง) — งานใบเสนอราคา
  * พูดเป็น "ระบบใบเสนอราคาฟรี" ในส่วน benefit ของหน้า ไม่ใช่ในชาร์ตนี้

@@ -167,9 +167,11 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
 
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black flex items-center justify-between px-4 py-3">
-        <span className="font-heading text-badge text-white tracking-[0.05em] uppercase">
-          {designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}
-        </span>
+        <Link href="/" className="no-underline">
+          <span className="font-heading text-badge text-white tracking-[0.05em] uppercase">
+            {designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}
+          </span>
+        </Link>
         <button onClick={() => setMenuOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-1 text-white">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -182,13 +184,35 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
         <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setMenuOpen(false)}>
           <div className="w-[220px] bg-black h-full flex flex-col overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-5">
-              <span className="font-heading text-badge text-white uppercase">{designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}</span>
+              <span className="font-heading text-badge text-white tracking-[0.05em] uppercase">{designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}</span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
               {NAV.map((item) => (
                 <NavItem key={item.href} {...item} isActive={isActive(item.href)} onClick={() => setMenuOpen(false)} />
               ))}
             </nav>
+            {/* ท้าย drawer เหมือน sidebar desktop — ไม่งั้นบนมือถือไม่มีทางออกจากระบบ */}
+            <div className="p-3 flex flex-col gap-1">
+              {role === "admin" && (
+                <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-mint hover:text-black" onClick={() => setMenuOpen(false)}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.4 3.4l.85.85M11.75 11.75l.85.85M3.4 12.6l.85-.85M11.75 4.25l.85-.85" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5"/></svg>
+                  <span>Admin Panel</span>
+                </Link>
+              )}
+              <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-mint hover:text-black" onClick={() => setMenuOpen(false)}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2l6 6M3.5 6.5V14h3v-3h3v3h3V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span>กลับหน้าแรก</span>
+              </Link>
+              <div className="px-3 pt-3">
+                <div className="font-body text-body-sm text-grey-400 mb-2 truncate">{user.email}</div>
+                <button
+                  onClick={() => signOut().then(() => router.push("/"))}
+                  className="w-full text-left font-body text-body-sm text-grey-400 hover:text-mint bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base p-0"
+                >
+                  ออกจากระบบ
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
