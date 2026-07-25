@@ -22,6 +22,40 @@ import { useFavourites } from "@/context/FavouritesContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
 import { parseLicenseSettings, parseDesignerTiers, type LicenseTier } from "@/lib/license";
 
+function shuffle<T>(arr: T[]): T[] {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+// เลือกฟอนต์ "น่าจะสนใจ" 4 ใบ: 2 จาก designer เดียวกัน + 2 จากฟอนต์ทั้งหมด
+// เกณฑ์ match = แชร์ tag อย่างน้อย 1 tag หรือ category เดียวกัน; ถ้าตัว match ไม่พอ
+// ครึ่ง A เติมด้วยฟอนต์อื่นของ designer เดียวกัน, ครึ่ง B เติมด้วยฟอนต์ใดก็ได้
+function pickRelated(current: Font, others: Font[]): Font[] {
+  const curTags = new Set((current.tags ?? []).filter(Boolean));
+  const curCat = current.category ?? null;
+  const match = (f: Font) =>
+    (curCat != null && f.category === curCat) ||
+    (f.tags ?? []).some((t) => curTags.has(t));
+
+  const sameDesigner = others.filter((f) => f.owner_id === current.owner_id);
+
+  const picked: Font[] = [];
+  const fill = (pool: Font[], upTo: number) => {
+    for (const f of shuffle(pool)) {
+      if (picked.length >= upTo) break;
+      if (!picked.includes(f)) picked.push(f);
+    }
+  };
+
+  // ครึ่ง A — 2 จาก designer เดียวกัน (match ก่อน แล้วเติมด้วยฟอนต์อื่นของ designer)
+  fill(sameDesigner.filter(match), 2);
+  fill(sameDesigner, 2);
+  // ครึ่ง B — อีก 2 จากฟอนต์ทั้งหมด (match ก่อน แล้วเติมด้วยฟอนต์ใดก็ได้), dedupe อัตโนมัติ
+  fill(others.filter(match), 4);
+  fill(others, 4);
+
+  return picked.slice(0, 4);
+}
+
 function parseWeight(url: string): string {
   const decoded = decodeURIComponent(url.split("?")[0]);
   const filename = decoded.split("/").pop() || "";
@@ -182,7 +216,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         if (liveCurrent) setFont(liveCurrent);
 
         const others = merged.filter((f) => f.slug !== slug);
-        setRelated([...others].sort(() => Math.random() - 0.5).slice(0, 4));
+        setRelated(currentFont ? pickRelated(currentFont, others) : []);
 
         for (const row of (settings ?? []) as { key: string; value: Record<string, unknown> }[]) {
           if (row.key === "licensing") setDefaultTiers(parseLicenseSettings(row.value));

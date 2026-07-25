@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Container from "@/components/ui/Container";
+import Badge from "@/components/ui/Badge";
 import { Font } from "@/components/FontCard";
+import { effectiveSale } from "@/lib/sale";
 
 /**
  * CoverCarousel — สไลด์ cover แบบ full-bleed เน้นตรงกลาง prev/next โผล่ข้าง ๆ ต่อเนื่อง
@@ -28,8 +30,9 @@ import { Font } from "@/components/FontCard";
 // (peek โชว์เพื่อนบ้าน 1 ใบต่อข้าง ถ้า clone แค่ 1 ขอบจะมีช่องว่างวูบตอน snap)
 const PAD = 2;
 
-/** สไลด์หนึ่งใบ — `href` ละได้ (font detail ไม่ลิงก์ไปไหน รูปเป็นของฟอนต์ที่เปิดอยู่แล้ว) */
-export type Slide = { key: string; src: string; alt: string; href?: string };
+/** สไลด์หนึ่งใบ — `href` ละได้ (font detail ไม่ลิงก์ไปไหน รูปเป็นของฟอนต์ที่เปิดอยู่แล้ว)
+ *  `saleLabel` = ป้ายลดราคา (เช่น "ลด 30%") โชว์เฉพาะโหมด `fonts` ที่ฟอนต์กำลังลดราคา */
+export type Slide = { key: string; src: string; alt: string; href?: string; saleLabel?: string };
 
 function buildStrip(pool: Slide[], v: number): Slide[] {
   if (!pool.length) return [];
@@ -37,12 +40,16 @@ function buildStrip(pool: Slide[], v: number): Slide[] {
 }
 
 function fontsToSlides(fonts: Font[]): Slide[] {
-  return fonts.map((f) => ({
-    key: f.id ?? f.slug,
-    src: f.cover_image_url ?? "",
-    alt: f.name ?? "",
-    href: `/fonts/${f.designer_slug}/${f.slug}`,
-  }));
+  return fonts.map((f) => {
+    const eff = effectiveSale(f);
+    return {
+      key: f.id ?? f.slug,
+      src: f.cover_image_url ?? "",
+      alt: f.name ?? "",
+      href: `/fonts/${f.designer_slug}/${f.slug}`,
+      saleLabel: eff.active ? eff.saleLabel : undefined,
+    };
+  });
 }
 
 export default function CoverCarousel({
@@ -162,10 +169,16 @@ export default function CoverCarousel({
             >
               {strip.map((s, i) => {
                 const cover = (
-                  <div className="aspect-video w-full bg-grey-200 overflow-hidden">
+                  <div className="relative aspect-video w-full bg-grey-200 overflow-hidden">
                     {s.src
                       ? <img src={s.src} alt={s.alt} className="w-full h-full object-cover" />
                       : <div className="w-full h-full bg-grey-200" />}
+                    {/* ป้ายลดราคา — มุมขวาบนของ cover (เฉพาะฟอนต์ที่กำลังลดราคา · โหมด fonts) */}
+                    {s.saleLabel && (
+                      <Badge variant="sale" size="md" className="absolute top-4 right-4 z-10 pointer-events-none">
+                        {s.saleLabel}
+                      </Badge>
+                    )}
                   </div>
                 );
                 return s.href ? (

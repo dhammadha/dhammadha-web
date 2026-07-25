@@ -10,6 +10,7 @@ import FontGrid from "@/components/FontGrid";
 import CoverCarousel from "@/components/CoverCarousel";
 import Container from "@/components/ui/Container";
 import { supabase } from "@/lib/supabase";
+import { effectiveSale } from "@/lib/sale";
 import { mergeShopPromos } from "@/lib/shop-promo";
 import PdfLightbox from "@/components/PdfLightbox";
 
@@ -21,8 +22,11 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
+// ฟอนต์ลดราคาขึ้นก่อน (สุ่มในกลุ่ม) แล้วเติมด้วยฟอนต์อื่นของ designer (สุ่ม) ตัดเหลือ SLIDER_SIZE
 function buildSliderPool(fonts: Font[]): Font[] {
-  return shuffle(fonts).slice(0, SLIDER_SIZE);
+  const sale = shuffle(fonts.filter((f) => effectiveSale(f).active));
+  const others = shuffle(fonts.filter((f) => !effectiveSale(f).active));
+  return [...sale, ...others].slice(0, SLIDER_SIZE);
 }
 
 export default function DesignerDetail() {

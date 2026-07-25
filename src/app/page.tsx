@@ -20,13 +20,25 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 const SLIDER_SIZE = 8;
+const SALE_QUOTA = 3;
 
-// pool สไลด์คัดสรร: ฟอนต์ลดราคาก่อน แล้วสุ่มที่เหลือ ตัดเหลือ SLIDER_SIZE
+// pool สไลด์คัดสรร: สุ่มฟอนต์ลดราคาไม่เกินโควตา (SALE_QUOTA) ที่เหลือสุ่มจากฟอนต์ทั้งหมด
+// ถ้าฟอนต์ลดราคามีไม่ถึงโควตา โควตาที่เหลือยกให้ฟอนต์ทั้งหมดโดยอัตโนมัติ (เพราะ fill ต่อจนครบ)
 // (logic สไลด์ทั้งหมดอยู่ใน CoverCarousel — หน้านี้แค่คัด pool ส่งเข้าไป)
 function buildSliderPool(fonts: Font[]): Font[] {
-  const sale = fonts.filter((f) => effectiveSale(f).active);
-  const others = shuffle(fonts.filter((f) => !effectiveSale(f).active));
-  return [...sale, ...others].slice(0, SLIDER_SIZE);
+  const sale = shuffle(fonts.filter((f) => effectiveSale(f).active));
+
+  const picked: Font[] = [];
+  const fill = (pool: Font[], upTo: number) => {
+    for (const f of pool) {
+      if (picked.length >= upTo) break;
+      if (!picked.includes(f)) picked.push(f);
+    }
+  };
+
+  fill(sale, SALE_QUOTA);           // ลดราคาก่อน สูงสุด SALE_QUOTA ตัว
+  fill(shuffle(fonts), SLIDER_SIZE); // ที่เหลือสุ่มจากฟอนต์ทั้งหมด (dedupe ตัวที่เลือกแล้ว)
+  return picked.slice(0, SLIDER_SIZE);
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────

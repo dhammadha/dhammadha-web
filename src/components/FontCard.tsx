@@ -49,7 +49,6 @@ export interface Font {
   shop_discount_percent?: number | null;
   shop_sale_end?: string | null;
   is_subscription?: boolean;
-  is_popular?: boolean;
   cover_image_url?: string;
   preview_images?: string[];
   full_font_files?: string[];
