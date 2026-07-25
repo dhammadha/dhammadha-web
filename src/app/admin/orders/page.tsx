@@ -58,7 +58,7 @@ export default function AdminOrdersPage() {
         const { data, error } = await supabase
           .from("orders")
           // order_items: ใบที่ซื้อข้ามร้านมี designer คนละคนต่อรายการ (orders.designer_id เป็น null)
-          .select("id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, customer_name, customer_email, company_name, order_items(font_id, designer_id, name, price)")
+          .select("id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, customer_name, customer_email, company_name, order_items(font_id, designer_id, name, price, platform_amount, designer_amount)")
           .order("created_at", { ascending: false })
           .range(from, to);
         return { data: data as unknown as OrderLite[] | null, error };

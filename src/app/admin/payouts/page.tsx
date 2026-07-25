@@ -143,9 +143,16 @@ export default function AdminPayoutsPage() {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
+  /**
+   * order ของแต่ละนักออกแบบ — ใบที่ซื้อข้ามร้านถูกตัดเหลือเฉพาะส่วนของแต่ละคนแล้ว
+   * (groupOrdersByDesigner) ทุกการคิดเงินในหน้านี้ต้องเริ่มจากตัวนี้ **ห้ามวน
+   * `orders` ดิบแล้วอ่าน o.designer_id** เพราะใบข้ามร้านมีค่าเป็น null จะตกหล่น
+   */
+  const ordersByDesigner = useMemo(() => groupOrdersByDesigner(orders), [orders]);
+
   // statements per designer, built only from that designer's own orders + payouts (per lib contract)
   const statementsByDesigner = useMemo(() => {
-    const grouped = groupOrdersByDesigner(orders);
+    const grouped = ordersByDesigner;
     const map = new Map<string, QuarterStatement[]>();
     for (const [designerId, designerOrders] of grouped) {
       const designerPayouts = payouts.filter((p) => p.designer_id === designerId);
@@ -161,13 +168,17 @@ export default function AdminPayoutsPage() {
         );
       }
     }
-    // ยอดของ order ที่ไม่ผูก designer (ยอดสตูดิโอเอง) — โชว์เป็นแถวแยก ไม่มี payout
-    const studioOrders = orders.filter((o) => !o.designer_id);
+    // ยอดของ order ที่ไม่ผูก designer จริง ๆ (ยอดสตูดิโอเอง) — โชว์เป็นแถวแยก ไม่มี payout
+    // ⚠️ ต้องเช็ค order_items ด้วย: ใบที่ซื้อข้ามร้านก็มี designer_id = null แต่รายการ
+    // ข้างในมีเจ้าของครบ และถูกนับให้แต่ละคนไปแล้ว ถ้าไม่กรองออกจะถูกนับซ้ำสองรอบ
+    const studioOrders = orders.filter(
+      (o) => !o.designer_id && !(o.order_items ?? []).some((i) => i.designer_id)
+    );
     if (studioOrders.length > 0) {
       map.set(STUDIO_KEY, buildQuarterlyStatements(studioOrders, []));
     }
     return map;
-  }, [orders, payouts]);
+  }, [ordersByDesigner, orders, payouts]);
 
   // subscription ต่อ designer ต่อไตรมาส ในช่วงที่เลือก (RPC เป็นรายเดือน วนตามช่วง)
   useEffect(() => {
@@ -271,8 +282,11 @@ export default function AdminPayoutsPage() {
     };
     for (const [designerId, statements] of statementsByDesigner) {
       const row = build(designerId, statements);
-      // แสดงถ้ามียอดขาย/ยอด subscription/มีบันทึกจ่ายในช่วง
-      if (row.b2cTotal > 0 || row.b2bTotal > 0 || row.subAmount > 0 || row.payout) {
+      // หน้านี้คือ "ใครต้องได้เงินบ้าง" — แสดงเฉพาะคนที่มีส่วนแบ่งให้โอน (Retail /
+      // subscription) หรือมีบันทึกการโอนในช่วงนั้น (ต้องเห็นไว้ยกเลิกได้)
+      // **ยอดรับตรงจากใบเสนอราคา (b2bTotal) ไม่นับ** — เงินเข้านักออกแบบเองอยู่แล้ว
+      // เว็บไม่ได้เก็บส่วนแบ่ง คนที่มีแต่ยอดแบบนี้จึงไม่ต้องโผล่ในหน้าจ่ายเงิน
+      if (row.designerAmount > 0 || row.subAmount > 0 || row.payout) {
         rows.push(row);
         seen.add(designerId);
       }
@@ -291,16 +305,18 @@ export default function AdminPayoutsPage() {
   // เงินที่ค้างจากไตรมาสเก่าที่ยังไม่โอนไม่หายไปไหน (sub=0 ยังไม่รวม — เพิ่มเมื่อ Phase 4.1 live)
   const outstandingByDesigner = useMemo(() => {
     const earned = new Map<string, number>();
-    for (const o of orders) {
-      if (o.status !== "paid" || o.source !== "checkout" || !o.designer_id) continue;
-      earned.set(o.designer_id, (earned.get(o.designer_id) ?? 0) + designerShareOf(o));
+    for (const [designerId, designerOrders] of ordersByDesigner) {
+      for (const o of designerOrders) {
+        if (o.status !== "paid" || o.source !== "checkout") continue;
+        earned.set(designerId, (earned.get(designerId) ?? 0) + designerShareOf(o));
+      }
     }
     const paid = new Map<string, number>();
     for (const p of payouts) paid.set(p.designer_id, (paid.get(p.designer_id) ?? 0) + p.amount);
     const out: Record<string, number> = {};
     for (const [id, amt] of earned) out[id] = Math.max(0, amt - (paid.get(id) ?? 0));
     return out;
-  }, [orders, payouts]);
+  }, [ordersByDesigner, payouts]);
   const totalOutstanding = useMemo(
     () => Object.values(outstandingByDesigner).reduce((s, v) => s + v, 0),
     [outstandingByDesigner]
@@ -312,15 +328,16 @@ export default function AdminPayoutsPage() {
     const now = new Date();
     const earned = new Map<string, number>();
     const keysByDesigner = new Map<string, Set<string>>();
-    for (const o of orders) {
-      if (o.status !== "paid" || o.source !== "checkout" || !o.designer_id) continue;
-      const d = new Date(o.paid_at ?? o.created_at);
-      const y = d.getFullYear(), q = quarterOfMonth(d.getMonth() + 1);
-      const k = `${o.designer_id}:${y}:${q}`;
-      earned.set(k, (earned.get(k) ?? 0) + designerShareOf(o));
-      let set = keysByDesigner.get(o.designer_id);
-      if (!set) { set = new Set(); keysByDesigner.set(o.designer_id, set); }
-      set.add(`${y}:${q}`);
+    for (const [designerId, designerOrders] of ordersByDesigner) {
+      for (const o of designerOrders) {
+        if (o.status !== "paid" || o.source !== "checkout") continue;
+        const d = new Date(o.paid_at ?? o.created_at);
+        const y = d.getFullYear(), q = quarterOfMonth(d.getMonth() + 1);
+        earned.set(`${designerId}:${y}:${q}`, (earned.get(`${designerId}:${y}:${q}`) ?? 0) + designerShareOf(o));
+        let set = keysByDesigner.get(designerId);
+        if (!set) { set = new Set(); keysByDesigner.set(designerId, set); }
+        set.add(`${y}:${q}`);
+      }
     }
     const paidSet = new Set(payouts.map((p) => `${p.designer_id}:${p.period_year}:${p.period_quarter}`));
     const rank: Record<PayoutStatus, number> = { clear: 0, notdue: 1, waiting: 2, overdue: 3 };
@@ -339,7 +356,7 @@ export default function AdminPayoutsPage() {
       else if (worst === "waiting") waiting++;
     }
     return { waitingCount: waiting, overdueCount: overdue };
-  }, [orders, payouts]);
+  }, [ordersByDesigner, payouts]);
 
   // stat tiles ยอดขาย — ตามช่วงที่เลือก (tile "ค้างโอน" ใช้ยอดสะสมทั้งหมดแยกด้านล่าง)
   const periodStats = useMemo(() => {
