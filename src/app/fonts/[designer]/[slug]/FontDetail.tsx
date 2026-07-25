@@ -19,6 +19,7 @@ import TypeTester from "./TypeTester";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
+import { useCart, CART_LIMIT } from "@/context/CartContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
 import { parseLicenseSettings, parseDesignerTiers, type LicenseTier } from "@/lib/license";
 
@@ -136,6 +137,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const { user } = useAuth();
   const router = useRouter();
   const { isFavourite, toggle } = useFavourites();
+  const { add: addToCart, has: hasInCart } = useCart();
   const params = useParams();
   const slug = typeof params?.slug === "string" ? params.slug : "";
   const [font, setFont] = useState<Font | null>(initialFont ?? null);
@@ -253,9 +255,25 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   // ส่วนลด (โปรร้าน/รายฟอนต์) — เช็ควันหมดอายุด้วย helper เดียวกับ checkout ให้ราคาที่โชว์ตรงกับที่เก็บเงิน
   const eff = font ? effectiveSale(font) : { active: false, discountPercent: 0, salePrice: 0, saleLabel: "" };
   const saleActive = eff.active;
+  const inCart = !!font && hasInCart(font.id);
 
   // ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — สร้าง Stripe Checkout Session ฝั่ง server
   // แล้วพาไปหน้าจ่ายเงิน ราคาคำนวณจาก DB ที่ server ไม่ได้ส่งจาก client
+  // เพิ่มลงตะกร้า — ถ้ามีอยู่แล้วให้พาไปหน้าตะกร้าเลย (ปุ่มเดียวสองสถานะ
+  // ตามที่ปุ่มบอก) · ตะกร้าเต็ม = แจ้งด้วยข้อความเดียวกับ error ของปุ่มซื้อ
+  function handleAddToCart() {
+    if (!font) return;
+    if (inCart) {
+      router.push("/cart/");
+      return;
+    }
+    if (!addToCart(font.id)) {
+      setBuyError(`ตะกร้าเต็มแล้ว (สูงสุด ${CART_LIMIT} ฟอนต์ต่อครั้ง)`);
+      return;
+    }
+    setBuyError("");
+  }
+
   async function handleBuy() {
     if (!font || buying) return;
     setBuying(true);
@@ -614,6 +632,15 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                         onClick={handleBuy}
                       >
                         {buying ? "กำลังไปหน้าชำระเงิน..." : "ซื้อฟอนต์นี้"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full mt-2"
+                        disabled={!font.price || buying}
+                        onClick={handleAddToCart}
+                      >
+                        {inCart ? "อยู่ในตะกร้าแล้ว — ดูตะกร้า" : "เพิ่มลงตะกร้า"}
                       </Button>
                       {buyError && (
                         <p className="font-body text-body-sm text-danger text-center mt-2">{buyError}</p>

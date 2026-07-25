@@ -7,6 +7,7 @@ import Container from "@/components/ui/Container";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { cn } from "@/lib/cn";
 
 /**
@@ -80,6 +81,7 @@ const NAV_LINK = cn(
 export default function Nav() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
+  const { count: cartCount, ready: cartReady } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -418,8 +420,8 @@ export default function Nav() {
             </div>
           )}
 
-          {/* ตะกร้า — ตัวระบบจริงเป็น milestone แยก (money-path · DESIGN.md §10) ยังไม่มี state ของจริง
-              submenu ตอน hover จึงว่างเสมอตอนนี้ — พอ milestone ตะกร้าเสร็จค่อยใส่รายการ/ราคารวม/ปุ่ม checkout จริง */}
+          {/* ตะกร้า — จำนวนมาจาก CartContext (localStorage) · ตัวเลขขึ้นหลัง ready
+              เท่านั้น กันกะพริบ 0 ตอน hydrate */}
           <div
             className="relative"
             onMouseEnter={() => setCartMenuOpen(true)}
@@ -427,19 +429,33 @@ export default function Nav() {
           >
             <Link
               href="/cart/"
-              aria-label="ตะกร้า"
+              aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
               className={cn(
-                "flex items-center justify-center w-8 h-8 text-white",
+                "relative flex items-center justify-center w-8 h-8 text-white",
                 "hover:text-mint transition-colors duration-150 ease-base",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
               )}
             >
               <CartIcon />
+              {cartReady && cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             {cartMenuOpen && (
               <div className="absolute right-0 top-full pt-2 w-64 z-50">
                 <div className="bg-surface shadow-lg py-4 px-4 text-center">
-                  <p className="font-body text-body-sm text-grey-600">ยังไม่มีสินค้าในตะกร้า</p>
+                  {cartReady && cartCount > 0 ? (
+                    <>
+                      <p className="font-body text-body-sm text-grey-800">มี {cartCount} ฟอนต์ในตะกร้า</p>
+                      <Link href="/cart/" className="font-body text-body-sm text-mint-text no-underline mt-1 inline-block">
+                        ไปที่ตะกร้า
+                      </Link>
+                    </>
+                  ) : (
+                    <p className="font-body text-body-sm text-grey-600">ยังไม่มีสินค้าในตะกร้า</p>
+                  )}
                 </div>
               </div>
             )}

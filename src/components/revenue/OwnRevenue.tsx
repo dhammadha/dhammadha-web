@@ -17,6 +17,7 @@ import {
   monthLabel,
   fmtBaht,
   designerShareOf,
+  orderViewForDesigner,
   type FontSale,
   type FontSaleAgg,
   type OrderLite,
@@ -35,6 +36,11 @@ type Box = "retail" | "subscription" | "gross" | "pending";
 
 // ส่วนแบ่ง subscription รายเดือนของ designer (ใช้สร้างทั้งยอดกล่องและ detail)
 type SubMonth = { year: number; month: number; total: number; fonts: FontShare[] };
+
+// order_items: ยอดต่อรายการ — ใช้ตัดเฉพาะส่วนของ designer เมื่อใบนั้นซื้อข้ามร้าน (0069)
+const ORDERS_SELECT =
+  "id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, customer_name, customer_email, company_name, " +
+  "order_items(font_id, designer_id, name, price, platform_amount, designer_amount)";
 
 const RETAIL_GRID = "grid grid-cols-[44px_2fr_100px_100px_120px_110px] gap-3";
 const COMBINED_RETAIL_GRID = "grid grid-cols-[2fr_100px_120px_110px] gap-3";
@@ -65,12 +71,24 @@ export default function OwnRevenue() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const [orderRes, fontRes, payoutRes] = await Promise.all([
+    // ต้องยิงสองรอบ แล้ว merge — ใบที่ลูกค้าซื้อข้ามร้านในตะกร้าเดียวจะมี
+    // orders.designer_id = null (เป็นของหลายคน) จึงหาไม่เจอด้วย eq(designer_id)
+    // ต้องหาผ่าน order_items ของตัวเองแทน (RLS คืนเฉพาะรายการของ designer นั้น)
+    const [ownRes, itemRes, fontRes, payoutRes] = await Promise.all([
       fetchAllRows<OrderLite>(async (from, to) => {
         const { data, error } = await supabase
           .from("orders")
-          .select("id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, customer_name, customer_email, company_name")
+          .select(ORDERS_SELECT)
           .eq("designer_id", user.id)
+          .order("created_at", { ascending: false })
+          .range(from, to);
+        return { data: data as unknown as OrderLite[] | null, error };
+      }),
+      fetchAllRows<OrderLite>(async (from, to) => {
+        const { data, error } = await supabase
+          .from("orders")
+          .select(ORDERS_SELECT.replace("order_items(", "order_items!inner("))
+          .is("designer_id", null)
           .order("created_at", { ascending: false })
           .range(from, to);
         return { data: data as unknown as OrderLite[] | null, error };
@@ -78,7 +96,9 @@ export default function OwnRevenue() {
       supabase.from("fonts").select("id, name, slug, cover_image_url, price").eq("owner_id", user.id),
       supabase.from("payouts").select("*").eq("designer_id", user.id).order("paid_at", { ascending: false }),
     ]);
-    setOrders(orderRes.rows);
+    // ใบข้ามร้าน: ตัดให้เหลือเฉพาะส่วนของ designer คนนี้ก่อนเข้าสูตรคำนวณ
+    const shared = itemRes.rows.map((o) => orderViewForDesigner(o, user.id));
+    setOrders([...ownRes.rows, ...shared]);
     const map: Record<string, FontMeta> = {};
     for (const f of (fontRes.data as FontMeta[] | null) ?? []) map[f.id] = f;
     setFonts(map);

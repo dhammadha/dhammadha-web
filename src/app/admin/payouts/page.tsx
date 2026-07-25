@@ -53,8 +53,10 @@ function displayName(d: DesignerInfo | undefined, fallbackId: string) {
 // หรือฟอนต์ที่ owner_id หาย) — ไม่มีใครให้โอน แต่ยอดต้องไม่หายจากหน้ารายงาน
 const STUDIO_KEY = "__studio__";
 
+// order_items: ยอดต่อรายการ ใช้แยกส่วนแบ่งเมื่อใบเดียวมีหลายนักออกแบบ (0069)
 const ORDERS_SELECT =
-  "id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items";
+  "id, order_no, designer_id, total_amount, status, paid_at, created_at, source, platform_amount, designer_amount, items, " +
+  "order_items(font_id, designer_id, name, price, platform_amount, designer_amount)";
 
 // คอลัมน์ตารางสรุป — หัวตารางกับแถวต้องใช้ template เดียวกันเสมอ
 const SUMMARY_GRID = "grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_120px] gap-3";

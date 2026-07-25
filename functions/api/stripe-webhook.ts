@@ -3,7 +3,8 @@
 // signature, create the order + entitlement (idempotent RPC), then email the
 // customer. Shared logic lives in src/lib/checkout-service.ts.
 //
-// Required Pages env vars: STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY,
+// Required Pages env vars: STRIPE_WEBHOOK_SECRET, STRIPE_SECRET_KEY (อ่าน line_items
+// ของ session กลับมาเพื่อรู้ว่าเงินก้อนไหนเป็นของฟอนต์ไหน), SUPABASE_SERVICE_ROLE_KEY,
 // RESEND_API_KEY, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
 // ADMIN_EMAIL (หรือ NEXT_PUBLIC_ADMIN_EMAIL — รับสองชื่อ ดูเหตุผลใน api/send-email.ts).
 
@@ -27,6 +28,7 @@ export async function onRequestPost(context: PagesContext): Promise<Response> {
     },
     {
       STRIPE_WEBHOOK_SECRET: env.STRIPE_WEBHOOK_SECRET,
+      STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
       SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY,
       RESEND_API_KEY: env.RESEND_API_KEY,
       SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,

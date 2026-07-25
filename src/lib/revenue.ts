@@ -10,9 +10,24 @@
  *   → เว็บไม่หักส่วนแบ่ง ไม่มี payout เกี่ยวข้อง เป็นแค่ยอดข้อมูลประกอบ (informational)
  */
 
+/**
+ * รายการย่อยในคำสั่งซื้อ (ตาราง order_items — migration 0069)
+ * มีเฉพาะคำสั่งซื้อ Retail · ใบจากใบเสนอราคาเป็นของนักออกแบบคนเดียวอยู่แล้ว
+ * จึงยังใช้ orders.designer_id ตามเดิม
+ */
+export type OrderItemLite = {
+  font_id: string | null;
+  designer_id: string | null;
+  name: string | null;
+  price: number;
+  platform_amount: number | null;
+  designer_amount: number | null;
+};
+
 export type OrderLite = {
   id: string;
   order_no: string;
+  /** null ได้เมื่อในใบมีหลายนักออกแบบ (ตะกร้าข้ามร้าน) — ดู order_items */
   designer_id: string | null;
   total_amount: number;
   status: string;
@@ -22,6 +37,8 @@ export type OrderLite = {
   platform_amount: number | null;
   designer_amount: number | null;
   items: { font_id?: string; name: string; license_type?: string; price: number }[] | null;
+  /** แนบมาเมื่อ query ฝั่งหน้าเว็บ embed `order_items(...)` มาด้วย */
+  order_items?: OrderItemLite[] | null;
   // ข้อมูลผู้ซื้อ — optional เพราะบางหน้า (admin/payouts) select เฉพาะคอลัมน์ที่ใช้คำนวณยอด
   customer_name?: string | null;
   customer_email?: string | null;
@@ -175,16 +192,59 @@ export function buildQuarterlyStatements(orders: OrderLite[], payouts: PayoutRow
   return Array.from(map.values()).sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
 }
 
-/** จัดกลุ่ม orders ตาม designer_id — ข้าม order ที่ designer_id เป็น null */
+/**
+ * มุมมองของคำสั่งซื้อใบเดียว **เฉพาะส่วนของนักออกแบบคนหนึ่ง** — ใช้กับใบที่ลูกค้า
+ * ซื้อข้ามร้านในตะกร้าเดียว: ยอดรวม/ส่วนแบ่ง/รายการ ถูกตัดเหลือเฉพาะของคนนั้น
+ * เพื่อให้ฟังก์ชันคำนวณที่เหลือ (statement/payout/รายงานรายฟอนต์) ทำงานต่อได้
+ * เหมือนตอนที่ 1 ใบ = 1 นักออกแบบ
+ */
+export function orderViewForDesigner(order: OrderLite, designerId: string): OrderLite {
+  const mine = (order.order_items ?? []).filter((i) => i.designer_id === designerId);
+  if (!mine.length) return order;
+  const total = round2(mine.reduce((s, i) => s + i.price, 0));
+  const platform = round2(
+    mine.reduce((s, i) => s + (i.platform_amount ?? round2(i.price * PLATFORM_RATE_FALLBACK)), 0)
+  );
+  return {
+    ...order,
+    designer_id: designerId,
+    total_amount: total,
+    platform_amount: platform,
+    designer_amount: round2(total - platform),
+    items: mine.map((i) => ({
+      font_id: i.font_id ?? undefined,
+      name: i.name ?? "",
+      price: i.price,
+    })),
+    order_items: mine,
+  };
+}
+
+/**
+ * จัดกลุ่ม orders ตามนักออกแบบ
+ * - มี order_items → กลุ่มตาม designer ของรายการ (ใบข้ามร้านจะไปโผล่ในหลายกลุ่ม
+ *   โดยแต่ละกลุ่มเห็นเฉพาะส่วนของตัวเองผ่าน orderViewForDesigner)
+ * - ไม่มี order_items (ใบจากใบเสนอราคา/ข้อมูลเก่า) → ใช้ orders.designer_id
+ * - ไม่มีทั้งคู่ → ข้ามใบนั้น
+ */
 export function groupOrdersByDesigner(orders: OrderLite[]): Map<string, OrderLite[]> {
   const map = new Map<string, OrderLite[]>();
+  const push = (designerId: string, order: OrderLite) => {
+    const list = map.get(designerId);
+    if (list) list.push(order);
+    else map.set(designerId, [order]);
+  };
+
   for (const order of orders) {
-    if (!order.designer_id) continue;
-    const list = map.get(order.designer_id);
-    if (list) {
-      list.push(order);
-    } else {
-      map.set(order.designer_id, [order]);
+    const itemDesigners = Array.from(
+      new Set((order.order_items ?? []).map((i) => i.designer_id).filter((v): v is string => !!v))
+    );
+    if (itemDesigners.length > 1) {
+      for (const id of itemDesigners) push(id, orderViewForDesigner(order, id));
+    } else if (itemDesigners.length === 1) {
+      push(itemDesigners[0], order);
+    } else if (order.designer_id) {
+      push(order.designer_id, order);
     }
   }
   return map;
@@ -299,9 +359,10 @@ export type FontSale = {
  * รวมรายการขาย Retail Font (B2C) จาก order.items[] แยกตาม "จุดราคา"
  * ฟอนต์เดียวที่เคยขายราคาปกติ + ราคาลด จะได้คนละแถว (เหมือนใบเสร็จ MyFonts)
  *
- * ส่วนแบ่ง designer = 75% ของราคา item **เป๊ะ** — เพราะ B2C checkout ใช้ platform rate
- * คงที่ 0.25 (create_checkout_order) และ 1 order = 1 ฟอนต์ ยอดจ่ายจริงยังยึด
- * payouts.amount ที่ admin กรอกเอง
+ * ส่วนแบ่ง designer = 75% ของราคา item **เป๊ะ** — เพราะ Retail checkout ใช้ platform
+ * rate คงที่ 0.25 ทั้ง create_checkout_order_multi และของเดิม · ใบที่ซื้อข้ามร้าน
+ * ต้องส่ง order ที่ผ่าน orderViewForDesigner มาแล้ว (items เหลือเฉพาะของคนนั้น)
+ * ยอดจ่ายจริงยังยึด payouts.amount ที่ admin กรอกเอง
  */
 export function buildFontSales(orders: OrderLite[]): FontSale[] {
   const map = new Map<string, FontSale>();

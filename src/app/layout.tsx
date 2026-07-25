@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Noto_Sans_Thai, Noto_Sans_Thai_Looped } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
 import { FavouritesProvider } from "@/context/FavouritesContext";
+import { CartProvider } from "@/context/CartContext";
 import ScrollReset from "@/components/ScrollReset";
 import "./globals.css";
 
@@ -55,7 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${notoSansThai.variable} ${notoSansThaiLooped.variable} min-h-screen flex flex-col`}>
         <ScrollReset />
         <AuthProvider>
-          <FavouritesProvider>{children}</FavouritesProvider>
+          <FavouritesProvider>
+            <CartProvider>{children}</CartProvider>
+          </FavouritesProvider>
         </AuthProvider>
       </body>
     </html>

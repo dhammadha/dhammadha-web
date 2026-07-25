@@ -99,6 +99,9 @@ export interface CheckoutRequestContext {
   origin?: string | null;
 }
 
+/** จำนวนฟอนต์สูงสุดต่อการจ่าย 1 ครั้ง — กัน payload บวมและกันยิงถล่ม Stripe */
+export const MAX_CART_ITEMS = 20;
+
 export async function handleCheckoutRequest(
   ctx: CheckoutRequestContext,
   env: CheckoutEnv
@@ -108,8 +111,16 @@ export async function handleCheckoutRequest(
   }
 
   const raw = (ctx.body ?? {}) as Record<string, unknown>;
-  const fontId = typeof raw.font_id === "string" ? raw.font_id.trim() : "";
-  if (!UUID_RE.test(fontId)) {
+  // รับได้ทั้งแบบตะกร้า (font_ids[]) และแบบซื้อฟอนต์เดียว (font_id — ของเดิม)
+  const rawIds = Array.isArray(raw.font_ids)
+    ? raw.font_ids
+    : typeof raw.font_id === "string"
+      ? [raw.font_id]
+      : [];
+  const fontIds = Array.from(
+    new Set(rawIds.filter((v): v is string => typeof v === "string").map((v) => v.trim()))
+  );
+  if (!fontIds.length || fontIds.length > MAX_CART_ITEMS || !fontIds.every((id) => UUID_RE.test(id))) {
     return { status: 400, body: { ok: false, error: "invalid_font" } };
   }
 
@@ -125,40 +136,46 @@ export async function handleCheckoutRequest(
   // ราคาคำนวณจาก DB ฝั่ง server เสมอ — ไม่รับราคาจาก client
   const fonts = await supabaseGet<PurchasableFont>(
     env,
-    `fonts?id=eq.${fontId}&is_active=eq.true&published_at=not.is.null` +
+    `fonts?id=in.(${fontIds.join(",")})&is_active=eq.true&published_at=not.is.null` +
       `&select=id,slug,name,name_th,price,sale_price,sale_end,is_sale,is_free,owner_id,discount_percent,sale_label`
   );
-  const font = fonts?.[0];
-  if (!font) return { status: 404, body: { ok: false, error: "font_not_found" } };
+  if (!fonts || fonts.length !== fontIds.length) {
+    return { status: 404, body: { ok: false, error: "font_not_found" } };
+  }
 
   // โปรร้าน (layer แยกจาก sale_* รายฟอนต์) — fetch fail = คิดราคาแบบไม่มีโปรร้าน
-  // (fail ทางราคาเต็ม ตาม philosophy เดิม)
-  if (font.owner_id) {
-    const promos = await supabaseGet<{ discount_percent: number; sale_end: string }>(
+  // (fail ทางราคาเต็ม ตาม philosophy เดิม) · ดึงทีเดียวสำหรับทุกร้านในตะกร้า
+  const ownerIds = Array.from(new Set(fonts.map((f) => f.owner_id).filter((v): v is string => !!v)));
+  if (ownerIds.length) {
+    const promos = await supabaseGet<{ designer_id: string; discount_percent: number; sale_end: string }>(
       env,
-      `designer_promotions?designer_id=eq.${font.owner_id}&select=discount_percent,sale_end`
+      `designer_promotions?designer_id=in.(${ownerIds.join(",")})&select=designer_id,discount_percent,sale_end`
     );
-    if (promos?.[0]) {
-      font.shop_discount_percent = promos[0].discount_percent;
-      font.shop_sale_end = promos[0].sale_end;
+    for (const font of fonts) {
+      const promo = promos?.find((p) => p.designer_id === font.owner_id);
+      if (promo) {
+        font.shop_discount_percent = promo.discount_percent;
+        font.shop_sale_end = promo.sale_end;
+      }
     }
   }
 
-  const price = computePersonalPrice(font);
-  if (!price) return { status: 400, body: { ok: false, error: "not_purchasable" } };
+  // เรียงตามลำดับที่ client ส่งมา เพื่อให้รายการบนหน้าจ่ายเงินตรงกับตะกร้า
+  const ordered = fontIds.map((id) => fonts.find((f) => f.id === id)!);
+  const priced: { font: PurchasableFont; price: number }[] = [];
+  for (const font of ordered) {
+    const price = computePersonalPrice(font);
+    if (!price) return { status: 400, body: { ok: false, error: "not_purchasable" } };
+    priced.push({ font, price });
+  }
 
   const user = ctx.authToken ? await getAuthUser(env, ctx.authToken) : null;
-  const fontName = font.name || font.name_th || font.slug;
 
   const form = new URLSearchParams({
     mode: "payment",
     locale: "th",
     "payment_method_types[0]": "promptpay",
     "payment_method_types[1]": "card",
-    "line_items[0][quantity]": "1",
-    "line_items[0][price_data][currency]": "thb",
-    "line_items[0][price_data][unit_amount]": String(Math.round(price * 100)),
-    "line_items[0][price_data][product_data][name]": `ฟอนต์ ${fontName} — สิทธิ์บุคคลทั่วไป`,
     success_url: `${site}/checkout/success/?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${site}${cancelPath}`,
     // บังคับติ๊กยอมรับสัญญาอนุญาตก่อนจ่าย — Stripe เก็บผลไว้ที่ session.consent
@@ -167,9 +184,23 @@ export async function handleCheckoutRequest(
     // ต้องตั้งเป็น <โดเมน>/agreement/ ให้ครบ **ทั้งโหมด test และ live**
     // ถ้าไม่ตั้ง Stripe จะปฏิเสธการสร้าง session ทันที (ปุ่มซื้อพัง)
     "consent_collection[terms_of_service]": "required",
-    "metadata[font_id]": font.id,
     "metadata[license_type]": "personal",
   });
+
+  // แต่ละบรรทัดพก font_id ไว้ที่ product metadata — webhook อ่านกลับมาเพื่อรู้ว่า
+  // เงินก้อนไหนเป็นของฟอนต์ไหน (metadata ระดับ session เก็บได้จำกัด 500 ตัวอักษร
+  // ต่อค่า ใส่ทั้งตะกร้าไม่พอ และ line_items คือยอดที่ Stripe เก็บได้จริง)
+  priced.forEach(({ font, price }, i) => {
+    const fontName = font.name || font.name_th || font.slug;
+    form.set(`line_items[${i}][quantity]`, "1");
+    form.set(`line_items[${i}][price_data][currency]`, "thb");
+    form.set(`line_items[${i}][price_data][unit_amount]`, String(Math.round(price * 100)));
+    form.set(`line_items[${i}][price_data][product_data][name]`, `ฟอนต์ ${fontName} — สิทธิ์บุคคลทั่วไป`);
+    form.set(`line_items[${i}][price_data][product_data][metadata][font_id]`, font.id);
+  });
+  // ซื้อฟอนต์เดียว: คง metadata[font_id] ไว้เป็นทางถอยของ webhook (session เก่า
+  // ที่สร้างก่อน deploy รอบนี้ยังไม่มี product metadata)
+  if (priced.length === 1) form.set("metadata[font_id]", priced[0].font.id);
   if (user?.id) form.set("metadata[user_id]", user.id);
   if (user?.email) form.set("customer_email", user.email);
 
@@ -237,6 +268,49 @@ interface StripeCheckoutSession {
   metadata?: Record<string, string | undefined> | null;
 }
 
+export interface CheckoutItem {
+  font_id: string;
+  license_type: string;
+  price: number;
+}
+
+/**
+ * รายการในคำสั่งซื้อจาก line_items ของ session — font_id ฝังไว้ที่ product metadata
+ * ตอนสร้าง session · คืน [] เมื่ออ่านไม่ได้/ไม่มี metadata (session เก่า) ให้ผู้เรียก
+ * ไปใช้ทางถอย ไม่ throw เพราะ webhook ต้องตอบ Stripe เสมอ
+ */
+async function fetchSessionItems(
+  env: CheckoutEnv,
+  sessionId: string,
+  licenseType: string
+): Promise<CheckoutItem[]> {
+  if (!env.STRIPE_SECRET_KEY) return [];
+  const res = await fetch(
+    `https://api.stripe.com/v1/checkout/sessions/${sessionId}/line_items` +
+      `?limit=100&expand[]=data.price.product`,
+    { headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` } }
+  );
+  if (!res.ok) return [];
+  const body = (await res.json()) as {
+    data?: {
+      amount_total?: number;
+      price?: { product?: { metadata?: Record<string, string> } | string };
+    }[];
+  };
+  const items: CheckoutItem[] = [];
+  for (const line of body.data ?? []) {
+    const product = line.price?.product;
+    const fontId = typeof product === "object" ? product?.metadata?.font_id : undefined;
+    if (!fontId || !UUID_RE.test(fontId)) continue;
+    items.push({
+      font_id: fontId,
+      license_type: licenseType,
+      price: (line.amount_total ?? 0) / 100,
+    });
+  }
+  return items;
+}
+
 export interface WebhookRequestContext {
   /** body ดิบตามที่ Stripe ส่ง — ห้าม parse ก่อน ไม่งั้นลายเซ็นไม่ตรง */
   rawBody: string;
@@ -275,19 +349,35 @@ export async function handleStripeWebhookRequest(
     return { status: 200, body: { received: true, awaiting_payment: true } };
   }
 
-  const fontId = session.metadata?.font_id ?? "";
   const email = session.customer_details?.email || session.customer_email || "";
-  if (!session.id || !UUID_RE.test(fontId) || !email) {
+  if (!session.id || !email) {
     return { status: 400, body: { ok: false, error: "missing_fields" } };
   }
+  const licenseType = session.metadata?.license_type || "personal";
+
+  // รายการที่จ่ายจริง — อ่านจาก line_items ของ Stripe เพราะเป็นยอดที่เก็บเงินได้จริง
+  // และแต่ละบรรทัดพก font_id มาที่ product metadata (ดูตอนสร้าง session)
+  let items = await fetchSessionItems(env, session.id, licenseType);
+  if (!items.length) {
+    // ทางถอย: session ที่สร้างก่อนมีตะกร้า (ไม่มี product metadata) — ใช้ font เดียว
+    // จาก metadata ระดับ session ตามของเดิม
+    const fontId = session.metadata?.font_id ?? "";
+    if (UUID_RE.test(fontId)) {
+      items = [{ font_id: fontId, license_type: licenseType, price: (session.amount_total ?? 0) / 100 }];
+    }
+  }
+  if (!items.length) {
+    return { status: 400, body: { ok: false, error: "missing_fields" } };
+  }
+
   const userId = session.metadata?.user_id;
   const paymentIntent =
     typeof session.payment_intent === "string"
       ? session.payment_intent
       : session.payment_intent?.id ?? null;
 
-  // RPC เรียกด้วย service_role เท่านั้น (grant ไว้ใน migration 0033) — idempotent
-  const rpcRes = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/create_checkout_order`, {
+  // RPC เรียกด้วย service_role เท่านั้น (grant ไว้ใน migration 0069) — idempotent
+  const rpcRes = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/create_checkout_order_multi`, {
     method: "POST",
     headers: {
       apikey: env.SUPABASE_SERVICE_ROLE_KEY,
@@ -297,8 +387,7 @@ export async function handleStripeWebhookRequest(
     body: JSON.stringify({
       p_session_id: session.id,
       p_payment_intent: paymentIntent,
-      p_font_id: fontId,
-      p_license_type: session.metadata?.license_type || "personal",
+      p_items: items,
       p_email: email,
       p_customer_name: session.customer_details?.name ?? null,
       p_amount: (session.amount_total ?? 0) / 100,
