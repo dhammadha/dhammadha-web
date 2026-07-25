@@ -10,6 +10,8 @@
  *   → เว็บไม่หักส่วนแบ่ง ไม่มี payout เกี่ยวข้อง เป็นแค่ยอดข้อมูลประกอบ (informational)
  */
 
+import { effectiveSale } from "./sale";
+
 /**
  * รายการย่อยในคำสั่งซื้อ (ตาราง order_items — migration 0069)
  * มีเฉพาะคำสั่งซื้อ Retail · ใบจากใบเสนอราคาเป็นของนักออกแบบคนเดียวอยู่แล้ว
@@ -406,6 +408,15 @@ export function aggregateFontSales(sales: FontSale[]): FontSaleAgg[] {
     if (!row.name && s.name) row.name = s.name;
   }
   return Array.from(map.values()).sort((a, b) => b.total - a.total);
+}
+
+/**
+ * ราคาที่ต้องจ่ายจริงของฟอนต์หนึ่งตัว (ราคาลดถ้ามีโปร ไม่งั้นราคาเต็ม)
+ * ใช้ทั้งในตะกร้าและ submenu ตะกร้าบน Nav ให้ตัวเลขตรงกันเสมอ
+ */
+export function cartPriceOf(font: Parameters<typeof effectiveSale>[0] & { price?: number | null }): number {
+  const eff = effectiveSale(font);
+  return eff.active && eff.salePrice > 0 ? eff.salePrice : font.price ?? 0;
 }
 
 /** จัดรูปแบบจำนวนเงินบาท เช่น 1234.5 → "฿1,234.5", 1000 → "฿1,000" (ทศนิยมสูงสุด 2 ตำแหน่ง) */

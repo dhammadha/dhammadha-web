@@ -151,7 +151,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [specimenOpen, setSpecimenOpen] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState<"link" | "ig" | null>(null);
-  const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState("");
 
   async function copyShareLink(kind: "link" | "ig") {
@@ -257,50 +256,19 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const saleActive = eff.active;
   const inCart = !!font && hasInCart(font.id);
 
-  // ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — สร้าง Stripe Checkout Session ฝั่ง server
-  // แล้วพาไปหน้าจ่ายเงิน ราคาคำนวณจาก DB ที่ server ไม่ได้ส่งจาก client
-  // เพิ่มลงตะกร้า — ถ้ามีอยู่แล้วให้พาไปหน้าตะกร้าเลย (ปุ่มเดียวสองสถานะ
-  // ตามที่ปุ่มบอก) · ตะกร้าเต็ม = แจ้งด้วยข้อความเดียวกับ error ของปุ่มซื้อ
-  function handleAddToCart() {
+  /**
+   * ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — **ทุกการซื้อผ่านตะกร้าทางเดียว** ไม่ยิง
+   * /api/checkout จากหน้านี้แล้ว เพื่อให้มี flow เดียวทั้งเว็บ: หยิบใส่ตะกร้า →
+   * /cart → Stripe (ราคายังคิดฝั่ง server เหมือนเดิมตอนกดชำระเงินที่ตะกร้า)
+   */
+  function handleBuy() {
     if (!font) return;
-    if (inCart) {
-      router.push("/cart/");
-      return;
-    }
     if (!addToCart(font.id)) {
-      setBuyError(`ตะกร้าเต็มแล้ว (สูงสุด ${CART_LIMIT} ฟอนต์ต่อครั้ง)`);
+      setBuyError(`ตะกร้าเต็มแล้ว (สูงสุด ${CART_LIMIT} ฟอนต์ต่อครั้ง) กรุณาชำระเงินรอบนี้ก่อน`);
       return;
     }
     setBuyError("");
-  }
-
-  async function handleBuy() {
-    if (!font || buying) return;
-    setBuying(true);
-    setBuyError("");
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({
-          font_id: font.id,
-          cancel_path: `/fonts/${font.designer_slug ?? ""}/${font.slug}/`,
-        }),
-      });
-      const data = (await res.json()) as { ok?: boolean; url?: string };
-      if (data.ok && data.url) {
-        window.location.href = data.url;
-        return; // คง loading ไว้ระหว่าง browser พาไป Stripe
-      }
-      setBuyError("เริ่มการชำระเงินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
-    } catch {
-      setBuyError("เริ่มการชำระเงินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
-    }
-    setBuying(false);
+    router.push("/cart/");
   }
 
   if (loading) {
@@ -628,19 +596,10 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       <Button
                         size="lg"
                         className="w-full"
-                        disabled={!font.price || buying}
+                        disabled={!font.price}
                         onClick={handleBuy}
                       >
-                        {buying ? "กำลังไปหน้าชำระเงิน..." : "ซื้อฟอนต์นี้"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="w-full mt-2"
-                        disabled={!font.price || buying}
-                        onClick={handleAddToCart}
-                      >
-                        {inCart ? "อยู่ในตะกร้าแล้ว — ดูตะกร้า" : "เพิ่มลงตะกร้า"}
+                        {inCart ? "อยู่ในตะกร้าแล้ว — ไปที่ตะกร้า" : "ซื้อฟอนต์นี้"}
                       </Button>
                       {buyError && (
                         <p className="font-body text-body-sm text-danger text-center mt-2">{buyError}</p>

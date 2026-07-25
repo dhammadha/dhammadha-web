@@ -53,67 +53,76 @@ export default function AccountPage() {
       <Nav />
       <section className="bg-white">
         <Container className="pt-10 pb-16">
-          <div className="max-w-[680px] mx-auto">
+          {/* สองคอลัมน์ที่ ≥1024px: ซ้าย = โปรไฟล์/สมาชิก/รายการโปรด · ขวา = ดาวน์โหลด
+              จอเล็กกว่านั้นเรียงต่อกันตามเดิม (ขวาไปอยู่ล่างสุด) */}
+          <div className="max-w-[1120px] mx-auto">
             <h1 className="font-heading text-h1 text-black mb-8">บัญชีของฉัน</h1>
 
-            <div className="bg-surface p-6 flex flex-col gap-6">
-              {/* Avatar + role */}
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-mint flex items-center justify-center font-heading text-h2 text-black select-none">
-                    {(user.email?.[0] ?? "?").toUpperCase()}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 items-start">
+              <div className="min-w-0">
+              <div className="bg-surface p-6 flex flex-col gap-6">
+                {/* Avatar + role */}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-mint flex items-center justify-center font-heading text-h2 text-black select-none">
+                      {(user.email?.[0] ?? "?").toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-heading text-h2 text-black leading-snug">
+                        {profile?.name ?? user.email}
+                      </p>
+                      <span className="inline-block mt-1">
+                        {role === "admin" ? (
+                          <Badge className="bg-black text-white">{ROLE_LABEL.admin}</Badge>
+                        ) : role === "designer" ? (
+                          <Badge variant="free">{ROLE_LABEL.designer}</Badge>
+                        ) : (
+                          <Badge variant="tag">{ROLE_LABEL.customer}</Badge>
+                        )}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-heading text-h2 text-black leading-snug">
-                      {profile?.name ?? user.email}
-                    </p>
-                    <span className="inline-block mt-1">
-                      {role === "admin" ? (
-                        <Badge className="bg-black text-white">{ROLE_LABEL.admin}</Badge>
-                      ) : role === "designer" ? (
-                        <Badge variant="free">{ROLE_LABEL.designer}</Badge>
-                      ) : (
-                        <Badge variant="tag">{ROLE_LABEL.customer}</Badge>
-                      )}
-                    </span>
-                  </div>
+                  <Link
+                    href="/account/settings"
+                    className="inline-flex items-center gap-1.5 font-body text-body-sm text-mint-text no-underline hover:underline shrink-0"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                    ตั้งค่า
+                  </Link>
                 </div>
-                <Link
-                  href="/account/settings"
-                  className="inline-flex items-center gap-1.5 font-body text-body-sm text-mint-text no-underline hover:underline shrink-0"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                  </svg>
-                  ตั้งค่า
-                </Link>
+
+                {/* Info rows */}
+                <div className="grid grid-cols-[120px_1fr] gap-y-3">
+                  <span className="font-body text-body-sm text-grey-600">ชื่อ</span>
+                  <span className="font-body text-body text-black">{profile?.name ?? "-"}</span>
+                  <span className="font-body text-body-sm text-grey-600">อีเมล</span>
+                  <span className="font-body text-body text-black">{user.email}</span>
+                  <span className="font-body text-body-sm text-grey-600">เบอร์โทร</span>
+                  <span className="font-body text-body text-black">{profile?.phone ?? "-"}</span>
+                </div>
+
+                {/* Role shortcuts */}
+                {(role === "admin" || role === "designer") && (
+                  <Link
+                    href={role === "admin" ? "/admin" : "/designer"}
+                    className="inline-flex items-center gap-2 font-body text-body-sm text-mint-text no-underline hover:underline"
+                  >
+                    {role === "admin" ? "ไปที่ Admin Panel →" : "ไปที่ Designer Dashboard →"}
+                  </Link>
+                )}
               </div>
 
-              {/* Info rows */}
-              <div className="grid grid-cols-[120px_1fr] gap-y-3">
-                <span className="font-body text-body-sm text-grey-600">ชื่อ</span>
-                <span className="font-body text-body text-black">{profile?.name ?? "-"}</span>
-                <span className="font-body text-body-sm text-grey-600">อีเมล</span>
-                <span className="font-body text-body text-black">{user.email}</span>
-                <span className="font-body text-body-sm text-grey-600">เบอร์โทร</span>
-                <span className="font-body text-body text-black">{profile?.phone ?? "-"}</span>
+                {role !== "admin" && <SubscriptionCard />}
+                <MyFavourites />
               </div>
 
-              {/* Role shortcuts */}
-              {(role === "admin" || role === "designer") && (
-                <Link
-                  href={role === "admin" ? "/admin" : "/designer"}
-                  className="inline-flex items-center gap-2 font-body text-body-sm text-mint-text no-underline hover:underline"
-                >
-                  {role === "admin" ? "ไปที่ Admin Panel →" : "ไปที่ Designer Dashboard →"}
-                </Link>
-              )}
+              <div className="min-w-0">
+                <MyDownloads />
+              </div>
             </div>
-
-            {role !== "admin" && <SubscriptionCard />}
-            <MyFavourites />
-            <MyDownloads />
           </div>
         </Container>
       </section>

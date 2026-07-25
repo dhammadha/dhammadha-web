@@ -12,15 +12,43 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { mergeShopPromos } from "@/lib/shop-promo";
 
 const STORAGE_KEY = "dhammadha.cart.v1";
 /** ต้องตรงกับ MAX_CART_ITEMS ใน src/lib/checkout-service.ts */
 export const CART_LIMIT = 20;
 
+/** ข้อมูลฟอนต์ในตะกร้าเท่าที่ต้องใช้แสดงผล (โหลดจาก DB ทุกครั้งที่ตะกร้าเปลี่ยน) */
+export type CartFont = {
+  id: string;
+  slug: string;
+  name: string | null;
+  name_th: string | null;
+  price: number | null;
+  sale_price: number | null;
+  sale_end: string | null;
+  is_sale: boolean;
+  is_free: boolean;
+  discount_percent: number | null;
+  sale_label: string | null;
+  cover_image_url: string | null;
+  owner_id: string | null;
+  designer_profiles?: { designer_slug?: string | null; business_name?: string | null } | null;
+  shop_discount_percent?: number | null;
+  shop_sale_end?: string | null;
+};
+
+const FONT_SELECT =
+  "id, slug, name, name_th, price, sale_price, sale_end, is_sale, is_free, discount_percent, sale_label, cover_image_url, owner_id, designer_profiles!owner_id(designer_slug, business_name)";
+
 interface CartContextValue {
   items: string[];
   count: number;
   ready: boolean;
+  /** ฟอนต์ในตะกร้าพร้อมข้อมูลแสดงผล เรียงตามลำดับที่หยิบใส่ (ตัวที่ปิดขายแล้วจะหายไป) */
+  fonts: CartFont[];
+  loadingFonts: boolean;
   has: (fontId: string) => boolean;
   /** คืน false เมื่อตะกร้าเต็ม */
   add: (fontId: string) => boolean;
@@ -32,6 +60,8 @@ const CartContext = createContext<CartContextValue>({
   items: [],
   count: 0,
   ready: false,
+  fonts: [],
+  loadingFonts: false,
   has: () => false,
   add: () => false,
   remove: () => {},
@@ -90,12 +120,45 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clear = useCallback(() => persist([]), [persist]);
 
+  // ข้อมูลฟอนต์สำหรับ submenu ตะกร้าใน Nav และหน้า /cart — โหลดที่เดียวใช้สองที่
+  const [fonts, setFonts] = useState<CartFont[]>([]);
+  const [loadingFonts, setLoadingFonts] = useState(false);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (items.length === 0) {
+      setFonts([]);
+      setLoadingFonts(false);
+      return;
+    }
+    let active = true;
+    setLoadingFonts(true);
+    supabase
+      .from("fonts")
+      .select(FONT_SELECT)
+      .in("id", items)
+      .eq("is_active", true)
+      .not("published_at", "is", null)
+      .then(async ({ data }) => {
+        if (!active) return;
+        const withPromo = await mergeShopPromos((data ?? []) as unknown as CartFont[]);
+        if (!active) return;
+        setFonts(items.map((id) => withPromo.find((f) => f.id === id)).filter((f): f is CartFont => !!f));
+        setLoadingFonts(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [items, ready]);
+
   return (
     <CartContext.Provider
       value={{
         items,
         count: items.length,
         ready,
+        fonts,
+        loadingFonts,
         has: (fontId) => items.includes(fontId),
         add,
         remove,

@@ -17,7 +17,6 @@ import {
   monthLabel,
   fmtBaht,
   designerShareOf,
-  orderViewForDesigner,
   type FontSale,
   type FontSaleAgg,
   type OrderLite,
@@ -71,10 +70,10 @@ export default function OwnRevenue() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    // ต้องยิงสองรอบ แล้ว merge — ใบที่ลูกค้าซื้อข้ามร้านในตะกร้าเดียวจะมี
-    // orders.designer_id = null (เป็นของหลายคน) จึงหาไม่เจอด้วย eq(designer_id)
-    // ต้องหาผ่าน order_items ของตัวเองแทน (RLS คืนเฉพาะรายการของ designer นั้น)
-    const [ownRes, itemRes, fontRes, payoutRes] = await Promise.all([
+    // ใบที่ลูกค้าซื้อข้ามร้านในตะกร้าเดียวจะมี orders.designer_id = null จึงหาไม่เจอ
+    // ด้วย eq(designer_id) — และเราจงใจ**ไม่**เปิด RLS ให้นักออกแบบอ่านใบพวกนั้นตรง ๆ
+    // (จะเห็นยอดรวมของคนอื่นด้วย) ต้องผ่าน RPC ที่คืนเฉพาะยอดของตัวเอง (0070)
+    const [ownRes, sharedRes, fontRes, payoutRes] = await Promise.all([
       fetchAllRows<OrderLite>(async (from, to) => {
         const { data, error } = await supabase
           .from("orders")
@@ -84,21 +83,11 @@ export default function OwnRevenue() {
           .range(from, to);
         return { data: data as unknown as OrderLite[] | null, error };
       }),
-      fetchAllRows<OrderLite>(async (from, to) => {
-        const { data, error } = await supabase
-          .from("orders")
-          .select(ORDERS_SELECT.replace("order_items(", "order_items!inner("))
-          .is("designer_id", null)
-          .order("created_at", { ascending: false })
-          .range(from, to);
-        return { data: data as unknown as OrderLite[] | null, error };
-      }),
+      supabase.rpc("designer_shared_orders"),
       supabase.from("fonts").select("id, name, slug, cover_image_url, price").eq("owner_id", user.id),
       supabase.from("payouts").select("*").eq("designer_id", user.id).order("paid_at", { ascending: false }),
     ]);
-    // ใบข้ามร้าน: ตัดให้เหลือเฉพาะส่วนของ designer คนนี้ก่อนเข้าสูตรคำนวณ
-    const shared = itemRes.rows.map((o) => orderViewForDesigner(o, user.id));
-    setOrders([...ownRes.rows, ...shared]);
+    setOrders([...ownRes.rows, ...((sharedRes.data as unknown as OrderLite[] | null) ?? [])]);
     const map: Record<string, FontMeta> = {};
     for (const f of (fontRes.data as FontMeta[] | null) ?? []) map[f.id] = f;
     setFonts(map);

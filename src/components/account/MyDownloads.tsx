@@ -57,6 +57,8 @@ export default function MyDownloads() {
   const [files, setFiles] = useState<Record<string, FileEntry[]>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+  // แถบหมวดหมู่ไฟล์ที่กางอยู่ — คีย์ "<entitlementId>:<ext>" (ปิดไว้ก่อนให้ดูเป็นระเบียบ)
+  const [openExt, setOpenExt] = useState<Record<string, boolean>>({});
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -117,10 +119,9 @@ export default function MyDownloads() {
     }
   };
 
-  if (!loaded || items.length === 0) return null;
-
+  // อยู่คอลัมน์ขวาของ /account — โชว์หัวข้อเสมอแม้ยังไม่เคยซื้อ ไม่งั้นคอลัมน์จะว่างเปล่า
   return (
-    <section className="mt-10">
+    <section className="mt-10 lg:mt-0">
       <h2 className="font-heading text-h2 text-black mb-1">ดาวน์โหลดของฉัน</h2>
       <p className="font-body text-body-sm text-grey-600 mb-1">
         ไฟล์ฟอนต์ที่คุณมีสิทธิ์ใช้งาน — ดาวน์โหลดซ้ำได้ตลอด ไฟล์ถูกประทับข้อมูลสิทธิ์ของคุณ
@@ -129,6 +130,16 @@ export default function MyDownloads() {
         <Link href="/agreement/" className="text-mint-text">ดูรายละเอียดสัญญาอนุญาต</Link>
       </p>
 
+      {!loaded ? (
+        <p className="font-body text-body-sm text-grey-600">กำลังโหลด…</p>
+      ) : items.length === 0 ? (
+        <div className="bg-surface px-4 py-6 text-center">
+          <p className="font-body text-body-sm text-grey-600">ยังไม่มีคำสั่งซื้อ</p>
+          <Link href="/fonts/" className="font-body text-body-sm text-mint-text no-underline mt-1 inline-block">
+            เลือกดูฟอนต์
+          </Link>
+        </div>
+      ) : (
       <div className="flex flex-col gap-2">
         {items.map((ent) => {
           const fontName = ent.fonts?.name ?? ent.fonts?.name_th ?? "ฟอนต์";
@@ -159,32 +170,47 @@ export default function MyDownloads() {
                 <div className="px-4 pb-3 pt-3 bg-grey-200/40 flex flex-col">
                   {!files[ent.id] ? (
                     <span className="font-body text-body-sm text-grey-600 py-2">กำลังโหลดรายการไฟล์…</span>
-                  ) : groupByExt(files[ent.id]).map(([ext, group]) => (
-                    <div key={ext}>
-                      <div className="font-body text-footnote text-grey-600 mt-2 mb-1 first:mt-0">{ext}</div>
-                      <div className="flex flex-col gap-1.5">
-                        {group.map((f) => (
-                          <div key={f.index} className="flex items-center justify-between gap-3">
-                            <span className="font-body text-body-sm text-grey-800 truncate">{f.name}</span>
-                            <Button
-                              onClick={() => download(ent, f)}
-                              disabled={busy !== null}
-                              size="sm"
-                              className="flex-shrink-0"
-                            >
-                              {busy === `${ent.id}:${f.index}` ? "กำลังเตรียมไฟล์…" : "ดาวน์โหลด"}
-                            </Button>
+                  ) : groupByExt(files[ent.id]).map(([ext, group]) => {
+                    const key = `${ent.id}:${ext}`;
+                    const expanded = !!openExt[key];
+                    return (
+                      <div key={ext} className="mt-1.5 first:mt-0">
+                        <button
+                          onClick={() => setOpenExt((prev) => ({ ...prev, [key]: !prev[key] }))}
+                          aria-expanded={expanded}
+                          className="w-full flex items-center gap-2 px-3 py-2 bg-white border-none cursor-pointer text-left hover:bg-grey-200/60 transition-colors duration-150 ease-base"
+                        >
+                          <span className="font-ui text-ui text-black flex-1">{ext}</span>
+                          <span className="font-body text-footnote text-grey-600">{group.length} ไฟล์</span>
+                          <span className="font-body text-footnote text-grey-600">{expanded ? "▲" : "▼"}</span>
+                        </button>
+                        {expanded && (
+                          <div className="flex flex-col gap-1.5 px-3 pt-2 pb-1">
+                            {group.map((f) => (
+                              <div key={f.index} className="flex items-center justify-between gap-3">
+                                <span className="font-body text-body-sm text-grey-800 truncate">{f.name}</span>
+                                <Button
+                                  onClick={() => download(ent, f)}
+                                  disabled={busy !== null}
+                                  size="sm"
+                                  className="flex-shrink-0"
+                                >
+                                  {busy === `${ent.id}:${f.index}` ? "กำลังเตรียมไฟล์…" : "ดาวน์โหลด"}
+                                </Button>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           );
         })}
       </div>
+      )}
 
       {error && <p className="font-body text-body-sm text-danger-dark mt-3">{error}</p>}
     </section>

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { cartPriceOf, fmtBaht } from "@/lib/revenue";
 import { cn } from "@/lib/cn";
 
 /**
@@ -81,7 +82,7 @@ const NAV_LINK = cn(
 export default function Nav() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
-  const { count: cartCount, ready: cartReady } = useCart();
+  const { count: cartCount, ready: cartReady, fonts: cartFonts, remove: removeFromCart } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -444,17 +445,41 @@ export default function Nav() {
               )}
             </Link>
             {cartMenuOpen && (
-              <div className="absolute right-0 top-full pt-2 w-64 z-50">
-                <div className="bg-surface shadow-lg py-4 px-4 text-center">
-                  {cartReady && cartCount > 0 ? (
-                    <>
-                      <p className="font-body text-body-sm text-grey-800">มี {cartCount} ฟอนต์ในตะกร้า</p>
-                      <Link href="/cart/" className="font-body text-body-sm text-mint-text no-underline mt-1 inline-block">
-                        ไปที่ตะกร้า
-                      </Link>
-                    </>
-                  ) : (
-                    <p className="font-body text-body-sm text-grey-600">ยังไม่มีสินค้าในตะกร้า</p>
+              <div className="absolute right-0 top-full pt-2 w-[320px] z-50">
+                <div className="bg-surface shadow-lg py-2">
+                  <div className="font-ui text-ui text-black px-4 py-2">
+                    {cartCount > 0 ? "ฟอนต์ในตะกร้า" : "ยังไม่มีฟอนต์ในตะกร้า"}
+                  </div>
+                  {cartFonts.map((f) => (
+                    <div key={f.id} className="flex items-center gap-2 px-4 py-2 hover:bg-grey-200/40 transition-colors duration-150 ease-base">
+                      {f.cover_image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={f.cover_image_url} alt="" className="w-10 h-7 object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-10 h-7 bg-grey-200 flex-shrink-0" />
+                      )}
+                      <span className="font-body text-body-sm text-black truncate flex-1">
+                        {f.name || f.name_th || f.slug}
+                      </span>
+                      <span className="font-body text-body-sm text-grey-800 flex-shrink-0">
+                        {fmtBaht(cartPriceOf(f))}
+                      </span>
+                      <button
+                        onClick={() => removeFromCart(f.id)}
+                        aria-label={`เอา ${f.name || f.slug} ออกจากตะกร้า`}
+                        className="text-grey-600 hover:text-danger-dark bg-transparent border-none cursor-pointer text-[14px] leading-none flex-shrink-0 transition-colors duration-150 ease-base"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {cartCount > 0 && (
+                    <Link
+                      href="/cart/"
+                      className="block font-ui text-ui text-black no-underline px-4 py-2.5 mt-1 hover:bg-mint transition-colors duration-150 ease-base"
+                    >
+                      ชำระเงิน
+                    </Link>
                   )}
                 </div>
               </div>

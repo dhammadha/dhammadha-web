@@ -307,6 +307,26 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      order_items: {
+        // รายการย่อยของคำสั่งซื้อ Retail (ตะกร้าหลายฟอนต์ — migration 0069)
+        // เขียนผ่าน RPC create_checkout_order_multi เท่านั้น
+        Row: {
+          id: string;
+          order_id: string;
+          font_id: string;
+          designer_id: string | null;
+          name: string | null;
+          license_type: string;
+          price: number;
+          platform_rate: number;
+          platform_amount: number;
+          designer_amount: number;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       download_logs: {
         Row: {
           id: number;
@@ -602,6 +622,24 @@ export interface Database {
       checkout_order_status: {
         Args: { p_session_id: string };
         Returns: Json;
+      };
+      // ใบที่ซื้อข้ามร้าน — คืนเฉพาะยอดของ designer ที่เรียก (0070)
+      designer_shared_orders: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          order_no: string;
+          status: string;
+          paid_at: string | null;
+          created_at: string;
+          source: string | null;
+          customer_name: string | null;
+          customer_email: string | null;
+          total_amount: number;
+          platform_amount: number;
+          designer_amount: number;
+          items: Json;
+        }[];
       };
       issue_quote_doc: {
         Args: { p_quote_id: string; p_doc_type: string };

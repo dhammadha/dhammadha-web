@@ -8,80 +8,24 @@
  * รายการ font_id (ดู handleCheckoutRequest)
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import { useCart } from "@/context/CartContext";
-import { mergeShopPromos } from "@/lib/shop-promo";
+import { useCart, type CartFont } from "@/context/CartContext";
 import { effectiveSale } from "@/lib/sale";
-import { fmtBaht } from "@/lib/revenue";
+import { cartPriceOf, fmtBaht } from "@/lib/revenue";
 import Button from "@/components/ui/Button";
 
-type CartFont = {
-  id: string;
-  slug: string;
-  name: string | null;
-  name_th: string | null;
-  price: number | null;
-  sale_price: number | null;
-  sale_end: string | null;
-  is_sale: boolean;
-  is_free: boolean;
-  discount_percent: number | null;
-  sale_label: string | null;
-  cover_image_url: string | null;
-  owner_id: string | null;
-  designer_profiles?: { designer_slug?: string | null; business_name?: string | null } | null;
-  shop_discount_percent?: number | null;
-  shop_sale_end?: string | null;
-};
-
 export default function CartView() {
-  const { items, remove, ready } = useCart();
-  const [fonts, setFonts] = useState<CartFont[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items, fonts, loadingFonts, remove, ready } = useCart();
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!ready) return;
-    if (items.length === 0) {
-      setFonts([]);
-      setLoading(false);
-      return;
-    }
-    let active = true;
-    setLoading(true);
-    supabase
-      .from("fonts")
-      .select(
-        "id, slug, name, name_th, price, sale_price, sale_end, is_sale, is_free, discount_percent, sale_label, cover_image_url, owner_id, designer_profiles!owner_id(designer_slug, business_name)"
-      )
-      .in("id", items)
-      .eq("is_active", true)
-      .not("published_at", "is", null)
-      .then(async ({ data }) => {
-        if (!active) return;
-        const withPromo = await mergeShopPromos((data ?? []) as unknown as CartFont[]);
-        if (!active) return;
-        // เรียงตามลำดับที่หยิบใส่ตะกร้า
-        setFonts(items.map((id) => withPromo.find((f) => f.id === id)).filter((f): f is CartFont => !!f));
-        setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [items, ready]);
-
-  const priceOf = (f: CartFont) => {
-    const eff = effectiveSale(f);
-    return eff.active && eff.salePrice > 0 ? eff.salePrice : f.price ?? 0;
-  };
-  const total = fonts.reduce((sum, f) => sum + priceOf(f), 0);
+  const total = fonts.reduce((sum, f) => sum + cartPriceOf(f), 0);
 
   // ฟอนต์ที่หายไป (ถูกถอดออกจากเว็บ/ปิดขาย) — ยังค้างใน localStorage ต้องบอกผู้ใช้
-  const missing = ready && !loading ? items.length - fonts.length : 0;
+  const missing = ready && !loadingFonts ? items.length - fonts.length : 0;
 
   const { user } = useAuth();
 
@@ -111,7 +55,7 @@ export default function CartView() {
     setPaying(false);
   }, [fonts, paying]);
 
-  if (!ready || loading) {
+  if (!ready || loadingFonts) {
     return <p className="font-body text-body text-grey-600">กำลังโหลด…</p>;
   }
 
