@@ -75,7 +75,12 @@ export default function TypeTester({ font }: { font: Font }) {
   const [weightOpen, setWeightOpen] = useState(false);
 
   const seqRef = useRef(0);
-  const objectUrlRef = useRef<string | null>(null);
+  // client-side cache ต่อ session: cacheKey → image URL (CDN url หรือ objectURL)
+  // สลับน้ำหนัก/ลากสไลเดอร์กลับค่าเดิม/ลบ-พิมพ์ซ้ำ = โชว์ทันที ไม่วิ่ง network
+  const clientCacheRef = useRef<Map<string, string>>(new Map());
+  // objectURL ทุกอันที่สร้าง — เก็บไว้ให้ cache reuse ได้ แล้ว revoke ทีเดียวตอน unmount
+  const objectUrlsRef = useRef<string[]>([]);
+  const prevWeightRef = useRef<string>("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const weightRef = useRef<HTMLDivElement>(null);
 
@@ -124,40 +129,56 @@ export default function TypeTester({ font }: { font: Font }) {
     return () => { cancelled = true; };
   }, [font.id, font.name]);
 
-  // Debounce ~400ms แล้วค่อย render — กันยิง request ถี่เกินไปตอนพิมพ์/ลากสไลเดอร์
+  // เปลี่ยนน้ำหนัก (รวมครั้งแรกที่ weightId ถูกตั้ง = pre-warm ข้อความ default) → render ทันที
+  // พิมพ์/ลากสไลเดอร์ → debounce ~250ms กันยิง request ถี่ (client cache ทำให้ค่าที่เคยเห็นโชว์ทันทีอยู่แล้ว)
   useEffect(() => {
     if (infoError || !weightId) return;
+    const weightChanged = prevWeightRef.current !== weightId;
+    prevWeightRef.current = weightId;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       runRender();
-    }, 400);
+    }, weightChanged ? 0 : 250);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, size, weightId, infoError, font.id]);
 
-  // Revoke object URL ที่ค้างอยู่ตอน unmount เท่านั้น (ระหว่าง render
-  // แต่ละครั้งภาพเก่ายังต้องค้างอยู่จนกว่าภาพใหม่จะมาแทน)
+  // Revoke object URL ทุกอันตอน unmount เท่านั้น — ระหว่าง session ต้องคงไว้ให้
+  // client cache reuse ได้ (revoke ระหว่างทางจะทำให้ภาพที่ cache ไว้เสีย)
   useEffect(() => {
+    const urls = objectUrlsRef.current;
     return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      for (const u of urls) URL.revokeObjectURL(u);
     };
   }, []);
 
   async function runRender() {
     const seq = ++seqRef.current;
+    const normalized = normalizeTesterText(text);
+    const hash = await sha256Hex40(normalized);
+    if (seq !== seqRef.current) return;
+    const key = `v1/${font.id}/${weightId}/${size}/${hash}.png`;
+
+    // ── client cache: เคย render combination นี้แล้วในรอบนี้ → โชว์ทันที ไม่วิ่ง network ──
+    const hit = clientCacheRef.current.get(key);
+    if (hit) {
+      setImgSrc(hit);
+      setError("");
+      setRendering(false);
+      return;
+    }
+
     setRendering(true);
     try {
-      const normalized = normalizeTesterText(text);
-      const hash = await sha256Hex40(normalized);
-      const key = `v1/${font.id}/${weightId}/${size}/${hash}.png`;
       const url = supabase.storage.from("tester-cache").getPublicUrl(key).data.publicUrl;
 
       const cached = await probeImage(url);
       if (seq !== seqRef.current) return;
 
       if (cached) {
+        clientCacheRef.current.set(key, url);
         setImgSrc(url);
         setError("");
         return;
@@ -187,8 +208,8 @@ export default function TypeTester({ font }: { font: Font }) {
         URL.revokeObjectURL(objectUrl);
         return;
       }
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-      objectUrlRef.current = objectUrl;
+      objectUrlsRef.current.push(objectUrl);
+      clientCacheRef.current.set(key, objectUrl);
       setImgSrc(objectUrl);
       setError("");
     } catch {
