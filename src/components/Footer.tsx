@@ -135,7 +135,7 @@ export default function Footer() {
         <Col title="ผลิตภัณฑ์">
           <Link href="/fonts/" className={LINK}>ฟอนต์ทั้งหมด</Link>
           <Link href="/agreement/" className={LINK}>สัญญาอนุญาต</Link>
-          <Link href="/#pricing" className={LINK}>ราคาและแผนบริการ</Link>
+          <Link href="/subscribe/" className={LINK}>สมัครสมาชิกรายเดือน</Link>
         </Col>
 
         <Col title="นโยบาย">

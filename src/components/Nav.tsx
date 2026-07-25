@@ -258,7 +258,7 @@ export default function Nav() {
           </div>
 
           <Link href="/agreement/" className={NAV_LINK}>สัญญาอนุญาต</Link>
-          <Link href="/#pricing" className={NAV_LINK}>ราคาและแผนบริการ</Link>
+          <Link href="/subscribe/" className={NAV_LINK}>สมัครสมาชิกรายเดือน</Link>
         </div>
 
         {/* กลุ่มขวา — ml-auto ดันไปชิดขอบขวา (แทน justify-between เดิมที่ถอดออกตอนล็อกสูง nav)
@@ -483,8 +483,8 @@ export default function Nav() {
           <Link href="/agreement/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             สัญญาอนุญาต
           </Link>
-          <Link href="/#pricing" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
-            ราคาและแผนบริการ
+          <Link href="/subscribe/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+            สมัครสมาชิกรายเดือน
           </Link>
 
           {/* บัญชี — มือถือ */}
