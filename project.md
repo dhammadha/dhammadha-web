@@ -64,6 +64,16 @@ DB apply 0069–0071 ไปก่อนหน้าโค้ด ถ้าเว�
      `SUPABASE_SERVICE_ROLE_KEY` + `RESEND_API_KEY` + Turnstile + `CF_DEPLOY_HOOK`
    · Stripe (โหมด Test) → Webhooks → endpoint `https://<โดเมน>/api/stripe-webhook`
      เลือก 2 events: `checkout.session.completed` + `checkout.session.async_payment_succeeded`
+   · **Terms of service URL → `https://<โดเมน>/agreement/`** (Settings → Public details)
+     ตั้งได้ **ค่าเดียวทั้งบัญชี override ต่อ session ไม่ได้** จึงชี้ไปสัญญาอนุญาต ไม่ใช่ `/terms/`
+     — หน้า `/agreement/` มีย่อหน้า "ร่ม" อ้างถึงข้อกำหนดการใช้งาน + สัญญาฉบับของดีไซน์เนอร์แล้ว
+     (29 ก.ค. 2026) · ต้องตั้ง **ทั้งโหมด test และ live** ไม่งั้นสร้าง session ไม่ได้ = ปุ่มซื้อพัง
+   · **⚠️ ต้องลองตอนนี้: `custom_text[terms_of_service_acceptance][message]`** (เพดาน 1200 ตัวอักษร)
+     ตอนนี้ `checkout-service.ts` **ยังไม่ได้ตั้ง** → หน้าจ่ายเงินโชว์ข้อความ default ของ Stripe
+     ("ยอมรับข้อกำหนดในการให้บริการ" เพราะ `locale: "th"`) ซึ่งอ่านแล้วเหมือนข้อกำหนดเว็บ
+     ทั้งที่ลิงก์ชี้ไปสัญญาอนุญาต → ควรเขียนทับเป็น "ข้าพเจ้าได้อ่านและยอมรับสัญญาอนุญาตใช้งานฟอนต์"
+     **เอกสาร Stripe ไม่ระบุว่ารองรับลิงก์/markdown ในข้อความนี้ไหม — ต้องลองจริงบนหน้าจ่ายเงิน**
+     ถ้าใส่ลิงก์ไม่ได้ ต้องพึ่งลิงก์จากช่องติ๊กมาตรฐานอย่างเดียว
    · ซื้อจริงบนเว็บ PromptPay 1 + บัตร 1 → delivery ต้อง 200 → ตรวจ order/อีเมล/ไฟล์
 3. **Stripe ขั้นที่ 3 — live key** (ทำหลัง DNS cutover จะได้ตั้ง webhook รอบเดียว)
    · webhook ของโหมด live **ต้องสร้างใหม่** ได้ `whsec_` คนละตัว

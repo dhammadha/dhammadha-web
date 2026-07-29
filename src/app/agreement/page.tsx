@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import LegalPage, { LegalSection } from "@/components/LegalPage";
 
 export const metadata: Metadata = {
@@ -13,6 +14,26 @@ export default function AgreementPage() {
       subtitle="ข้อกำหนดและเงื่อนไขของสัญญาอนุญาต (Desktop Font Licensing)"
       effectiveDate="9 กรกฎาคม 2569"
     >
+      {/* หน้า "ร่ม" — Stripe ตั้ง Terms of service URL ได้ค่าเดียวทั้งบัญชี (ต่อ session
+          override ไม่ได้) และช่องติ๊กยอมรับตอนชำระเงินชี้มาที่หน้านี้ ย่อหน้านี้จึงต้องอ้างถึง
+          ข้อกำหนดการใช้งาน + สัญญาฉบับของดีไซน์เนอร์ ให้ URL เดียวครอบได้ครบ
+          ⚠️ ถ้าย้ายหรือเปลี่ยน path หน้านี้ ต้องไปแก้ Stripe Dashboard → Settings → Public
+          details ทั้งโหมด test และ live ด้วย ไม่งั้นสร้าง session ไม่ได้ = ปุ่มซื้อพัง */}
+      <LegalSection title="ขอบเขตของสัญญาอนุญาตนี้">
+        <p>
+          การสั่งซื้อฟอนต์ผ่านเว็บไซต์นี้อยู่ภายใต้{" "}
+          <Link href="/terms/" className="text-mint-text">ข้อกำหนดการใช้งาน</Link>{" "}
+          และสัญญาอนุญาตฉบับนี้ควบคู่กัน การกดยอมรับในขั้นตอนชำระเงินถือว่าผู้ซื้อได้อ่าน
+          และยอมรับเอกสารทั้งสองฉบับแล้ว
+        </p>
+        <p>
+          ฟอนต์บางรายการ ผู้ออกแบบอาจกำหนดสัญญาอนุญาตฉบับของตนเอง
+          ในกรณีนั้นให้ยึดสัญญาอนุญาตฉบับของผู้ออกแบบรายนั้นเป็นหลัก
+          โดยสามารถเปิดอ่านได้จากหน้ารายละเอียดฟอนต์ก่อนสั่งซื้อ และจากหน้า &ldquo;ดาวน์โหลดของฉัน&rdquo;
+          หลังการสั่งซื้อ ส่วนฟอนต์ที่ผู้ออกแบบไม่ได้กำหนดไว้เป็นอย่างอื่น ให้ใช้สัญญาอนุญาตฉบับนี้
+        </p>
+      </LegalSection>
+
       <LegalSection title="1. ผู้ได้รับอนุญาต">
         <p>อนุญาตให้ใช้งานเฉพาะผู้ได้รับอนุญาตตามรายชื่อที่ปรากฏในใบสั่งซื้อ</p>
         <ul className="list-disc pl-5 flex flex-col gap-1 text-grey-800">
