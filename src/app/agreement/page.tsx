@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage, { LegalSection } from "@/components/LegalPage";
+import { NAME as BRAND_NAME, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "สัญญาอนุญาต — DHAMMADHA STUDIO",
-  description: "ข้อกำหนดและเงื่อนไขของสัญญาอนุญาตใช้งานฟอนต์ DHAMMADHA STUDIO",
+  title: pageTitle("สัญญาอนุญาต"),
+  description: `ข้อกำหนดและเงื่อนไขของสัญญาอนุญาตใช้งานฟอนต์ ${BRAND_NAME}`,
 };
 
 export default function AgreementPage() {

@@ -5,9 +5,10 @@ import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import RevenueShareChart from "@/components/become/RevenueShareChart";
+import { NAME as BRAND_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "ร่วมเป็นนักออกแบบ — ขายฟอนต์กับ DHAMMADHA STUDIO",
+  title: `ร่วมเป็นนักออกแบบ — ขายฟอนต์กับ ${BRAND_NAME}`,
   description:
     "วางจำหน่ายฟอนต์ของคุณบนแพลตฟอร์มตลาดฟอนต์ไทย รับส่วนแบ่ง 75% พร้อมระบบใบเสนอราคาฟรี และหน้าร้านของตัวเอง",
 };

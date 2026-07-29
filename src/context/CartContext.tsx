@@ -15,6 +15,9 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { supabase } from "@/lib/supabase";
 import { mergeShopPromos } from "@/lib/shop-promo";
 
+// ⚠️ จงใจ **ไม่** ผูกกับชื่อแบรนด์ใน lib/brand.ts — ถ้าคีย์นี้เปลี่ยนตามชื่อแบรนด์
+// การเปลี่ยนชื่อแพลตฟอร์มจะทำให้ตะกร้าของทุกคนที่ค้างอยู่หายทันทีตอน deploy
+// (localStorage เดิมยังอยู่ แต่โค้ดอ่านคีย์ใหม่ที่ยังว่าง) คีย์นี้ผู้ใช้ไม่เห็น จึงคงไว้
 const STORAGE_KEY = "dhammadha.cart.v1";
 /** ต้องตรงกับ MAX_CART_ITEMS ใน src/lib/checkout-service.ts */
 export const CART_LIMIT = 20;

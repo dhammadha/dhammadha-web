@@ -23,6 +23,7 @@ import { useFavourites } from "@/context/FavouritesContext";
 import { useCart, CART_LIMIT } from "@/context/CartContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
 import { parseLicenseSettings, parseDesignerTiers, type LicenseTier } from "@/lib/license";
+import { SHORT_NAME } from "@/lib/brand";
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -187,7 +188,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     if (!canNativeShare) { setShareMenuOpen((v) => !v); return; }
     try {
       await navigator.share({
-        title: font?.name ?? "DHAMMADHA",
+        title: font?.name ?? SHORT_NAME,
         text: font?.name_th ? `ฟอนต์ "${font.name_th}"` : undefined,
         url: window.location.href,
       });

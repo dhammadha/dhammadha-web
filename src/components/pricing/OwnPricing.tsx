@@ -12,6 +12,7 @@ import {
   type LicenseTier,
 } from "@/lib/license";
 import { todayISO, formatSaleEnd } from "@/lib/sale";
+import { NAME as BRAND_NAME } from "@/lib/brand";
 
 type PromoState = { discount: string; end: string; active: boolean };
 
@@ -192,7 +193,7 @@ export default function OwnPricing() {
           <div>
             <span className="font-ui text-ui text-black">ตั้งค่าสิทธิการใช้งานเอง</span>
             <p className="font-body text-body-sm text-grey-600 mt-0.5 leading-[1.6]">
-              หากไม่เลือก จะใช้ค่า default ของ DHAMMADHA STUDIO (tier และราคามาตรฐาน)
+              หากไม่เลือก จะใช้ค่า default ของ {BRAND_NAME} (tier และราคามาตรฐาน)
             </p>
           </div>
         </label>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage, { LegalSection } from "@/components/LegalPage";
+import { NAME as BRAND_NAME, DOMAIN, CONTACT_EMAIL, LEGAL_ENTITY, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "นโยบายความเป็นส่วนตัว — DHAMMADHA STUDIO",
-  description: "นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA) ของ DHAMMADHA STUDIO",
+  title: pageTitle("นโยบายความเป็นส่วนตัว"),
+  description: `นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA) ของ ${BRAND_NAME}`,
 };
 
 export default function PrivacyPage() {
@@ -16,9 +17,9 @@ export default function PrivacyPage() {
     >
       <LegalSection title="1. ผู้ควบคุมข้อมูล">
         <p>
-          เว็บไซต์ dhammadha.com ("เว็บไซต์") ดำเนินการโดย <strong>ธรรมดาสตูดิโอ</strong> ("เรา")<br />
+          เว็บไซต์ {DOMAIN} ("เว็บไซต์") ดำเนินการโดย <strong>{LEGAL_ENTITY}</strong> ("เรา")<br />
 ติดต่อเรื่องข้อมูลส่วนบุคคลได้ที่อีเมล{" "}
-          <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
         </p>
       </LegalSection>
 
@@ -60,7 +61,7 @@ export default function PrivacyPage() {
       <LegalSection title="6. สิทธิของเจ้าของข้อมูล">
         <p>
           คุณมีสิทธิขอเข้าถึง ขอสำเนา ขอแก้ไข ขอลบข้อมูล ขอให้ระงับการใช้ และถอนความยินยอม
-          โดยแจ้งมาที่ <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>{" "}
+          โดยแจ้งมาที่ <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>{" "}
           เราจะดำเนินการภายใน 30 วัน ทั้งนี้การลบข้อมูลบางส่วนอาจกระทบสิทธิ์การใช้งานฟอนต์ที่ซื้อไว้
         </p>
       </LegalSection>

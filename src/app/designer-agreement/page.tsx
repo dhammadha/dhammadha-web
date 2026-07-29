@@ -1,22 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage, { LegalSection } from "@/components/LegalPage";
+import { NAME as BRAND_NAME, DOMAIN, CONTACT_EMAIL, LEGAL_ENTITY, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "ข้อตกลงสำหรับนักออกแบบ — DHAMMADHA STUDIO",
-  description: "ข้อตกลงการวางจำหน่ายฟอนต์ร่วมกับ DHAMMADHA STUDIO สำหรับนักออกแบบ",
+  title: pageTitle("ข้อตกลงสำหรับนักออกแบบ"),
+  description: `ข้อตกลงการวางจำหน่ายฟอนต์ร่วมกับ ${BRAND_NAME} สำหรับนักออกแบบ`,
 };
 
 export default function DesignerAgreementPage() {
   return (
     <LegalPage
       title="ข้อตกลงสำหรับนักออกแบบ"
-      subtitle="Designer Agreement — เงื่อนไขการวางจำหน่ายฟอนต์บน dhammadha.com"
+      subtitle={`Designer Agreement — เงื่อนไขการวางจำหน่ายฟอนต์บน ${DOMAIN}`}
       effectiveDate="9 กรกฎาคม 2569"
     >
       <LegalSection title="1. คู่สัญญา">
         <p>
-          ข้อตกลงนี้ทำขึ้นระหว่าง <strong>ธรรมดาสตูดิโอ</strong> ("แพลตฟอร์ม") กับนักออกแบบที่สมัครและได้รับอนุมัติให้วางจำหน่ายฟอนต์บนเว็บไซต์ dhammadha.com ("นักออกแบบ") การกดยอมรับข้อตกลงตอนสมัครถือเป็นการตกลงผูกพันตามเงื่อนไขฉบับนี้
+          ข้อตกลงนี้ทำขึ้นระหว่าง <strong>{LEGAL_ENTITY}</strong> ("แพลตฟอร์ม") กับนักออกแบบที่สมัครและได้รับอนุมัติให้วางจำหน่ายฟอนต์บนเว็บไซต์ {DOMAIN} ("นักออกแบบ") การกดยอมรับข้อตกลงตอนสมัครถือเป็นการตกลงผูกพันตามเงื่อนไขฉบับนี้
         </p>
       </LegalSection>
 
@@ -75,7 +76,7 @@ export default function DesignerAgreementPage() {
       <LegalSection title="8. ติดต่อ">
         <p>
           คำถามเกี่ยวกับข้อตกลงฉบับนี้ ติดต่อ{" "}
-          <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
         </p>
       </LegalSection>
     </LegalPage>

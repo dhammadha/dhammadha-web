@@ -1,7 +1,9 @@
 "use client";
 
 // หน้า verify สาธารณะ — URL นี้ถูกประทับใน name table (nameID 14) ของไฟล์ฟอนต์
-// ที่ขายออกไป: dhammadha.com/verify?token=<verify_token สุ่ม 32 hex>
+// ที่ขายออกไป: <โดเมน>/verify?token=<verify_token สุ่ม 32 hex>
+// ⚠️ โดเมนที่ประทับลงไฟล์มาจาก Edge Function `supabase/functions/download-font/`
+// ซึ่งมีค่าคงที่ของตัวเอง (Deno import lib/brand.ts ไม่ได้) — เปลี่ยนชื่อแบรนด์ต้องแก้ที่นั่นด้วย
 // ใครก็ตรวจได้ว่าไฟล์ที่ถืออยู่มาจากคำสั่งซื้อจริงหรือไม่ (ไม่เปิดเผยข้อมูลลูกค้า)
 //
 // เดิมใช้ order_no (?order=OR-2569-0001) แต่ order_no เดินเลขลำดับ เดา/วนลูปได้ง่าย
@@ -15,6 +17,7 @@ import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
+import { DOMAIN, CONTACT_EMAIL } from "@/lib/brand";
 
 type VerifyResult = {
   valid: boolean;
@@ -102,9 +105,9 @@ function VerifyContent() {
               <div className="bg-surface p-6">
                 <div className="font-heading text-h2 text-danger-dark mb-2.5">✕ ไม่พบคำสั่งซื้อนี้</div>
                 <p className="font-body text-body text-grey-800 leading-[1.8]">
-                  รหัสยืนยันไม่ถูกต้อง หรือไฟล์ฟอนต์นี้อาจไม่ได้มาจากการซื้อผ่าน dhammadha.com
+                  รหัสยืนยันไม่ถูกต้อง หรือไฟล์ฟอนต์นี้อาจไม่ได้มาจากการซื้อผ่าน {DOMAIN}
                   — หากคุณเชื่อว่าไฟล์ถูกละเมิดลิขสิทธิ์ แจ้งได้ที่{" "}
-                  <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
                 </p>
               </div>
             )

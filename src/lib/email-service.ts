@@ -4,8 +4,9 @@
 // fetch + plain objects only, no Next.js or Node-specific imports.
 
 import { licenseLabel } from "./license";
+import { NAME as BRAND, DOMAIN, URL as SITE_URL, CONTACT_EMAIL, FROM_EMAIL, LEGAL_ENTITY, SOCIAL } from "./brand";
 
-const FROM = "DHAMMADHA STUDIO <noreply@dhammadha.com>";
+const FROM = FROM_EMAIL;
 
 export interface EmailEnv {
   RESEND_API_KEY?: string;
@@ -146,15 +147,15 @@ async function verifyTurnstile(env: EmailEnv, token: string, ip?: string | null)
 
 // ── Email HTML builders ─────────────────────────────────────────────────────
 
-const STUDIO_CONTACT_EMAIL = "info@dhammadha.com";
+const STUDIO_CONTACT_EMAIL = CONTACT_EMAIL;
 
 const STUDIO_FOOTER = `
 <br>
 <p style="color:#888;font-size:13px;border-top:1px solid #eee;padding-top:12px;margin-top:16px">
-  ธรรมดาสตูดิโอ<br>
-  <a href="https://www.dhammadha.com" style="color:#888">www.dhammadha.com</a><br>
+  ${LEGAL_ENTITY}<br>
+  <a href="${SITE_URL}" style="color:#888">${SITE_URL.replace("https://", "")}</a><br>
   Mobile: 09-2929-9882<br>
-  Line: @dhammadha
+  Line: ${SOCIAL.line}
 </p>
 `;
 
@@ -190,7 +191,7 @@ function quoteNotifyHtml(d: QuoteFields): string {
   ${d.note && d.note !== "—" ? `<tr><td style="padding:6px 0;color:#888">หมายเหตุ</td><td style="padding:6px 0">${escapeHtml(d.note)}</td></tr>` : ""}
 </table>
 <br>
-<p><a href="https://dhammadha.com/designer" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">จัดการใบเสนอราคา →</a></p>
+<p><a href="${SITE_URL}/designer" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">จัดการใบเสนอราคา →</a></p>
 ${STUDIO_FOOTER}
 `;
 }
@@ -223,13 +224,13 @@ function promoteHtml(designerName: string, adminEmail: string): string {
   const contactEmail = adminEmail || STUDIO_CONTACT_EMAIL;
   return `
 <p>สวัสดี คุณ ${escapeHtml(designerName)},</p>
-<p>ทีมงาน DHAMMADHA STUDIO ได้ตรวจสอบผลงานของคุณแล้ว และยินดีต้อนรับคุณเป็นส่วนหนึ่งของครอบครัวนักออกแบบฟอนต์ของเรา</p>
+<p>ทีมงาน ${BRAND} ได้ตรวจสอบผลงานของคุณแล้ว และยินดีต้อนรับคุณเป็นส่วนหนึ่งของครอบครัวนักออกแบบฟอนต์ของเรา</p>
 <p><strong>ขั้นตอนต่อไป:</strong><br>
-• เข้าสู่ระบบที่ <a href="https://dhammadha.com">dhammadha.com</a><br>
+• เข้าสู่ระบบที่ <a href="${SITE_URL}">${DOMAIN}</a><br>
 • ไปที่ Dashboard → อัปโหลดฟอนต์ได้เลย<br>
 • ตั้งราคาและรายละเอียดฟอนต์ของคุณ</p>
 <p>หากมีคำถามสามารถติดต่อทีมงานได้ที่ <a href="mailto:${escapeHtml(contactEmail)}">${escapeHtml(contactEmail)}</a></p>
-<p>ขอบคุณที่เลือก DHAMMADHA STUDIO</p>
+<p>ขอบคุณที่เลือก ${BRAND}</p>
 ${STUDIO_FOOTER}
 `;
 }
@@ -272,14 +273,14 @@ function deliveryHtml(
   <tr><td style="padding:8px 0;border-top:1px solid #eee;font-weight:bold">รวม</td><td style="padding:8px 0;border-top:1px solid #eee;text-align:right;font-weight:bold">฿${Number(order.total_amount).toLocaleString()}</td></tr>
 </table>
 <p><strong>ดาวน์โหลดไฟล์ฟอนต์:</strong><br>
-เข้าสู่ระบบที่ dhammadha.com ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) <br>แล้วไปที่หน้า "บัญชีของฉัน" โดยไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด</p>
+เข้าสู่ระบบที่ ${DOMAIN} ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) <br>แล้วไปที่หน้า "บัญชีของฉัน" โดยไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด</p>
 <p>หากยังไม่มีบัญชี สมัครสมาชิกด้วยอีเมลนี้ ระบบจะผูกสิทธิ์ให้อัตโนมัติ</p>
-<p><br><a href="https://dhammadha.com/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a><br><br></p>
+<p><br><a href="${SITE_URL}/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a><br><br></p>
 ${receiptNo ? `<p style="color:#555;font-size:13px">แนบใบเสร็จรับเงินเลขที่ <strong>${escapeHtml(receiptNo)}</strong> มาพร้อมอีเมลฉบับนี้แล้ว</p>` : ""}
 ${licensePdfUrl ? `<p>เอกสารข้อตกลงสิทธิ์การใช้งาน (License): <a href="${escapeHtml(licensePdfUrl)}">ดาวน์โหลด PDF</a></p>` : ""}
-<p style="color:#888;font-size:13px">ไฟล์ฟอนต์ของคุณถูกประทับข้อมูลการซื้อ (เลขคำสั่งซื้อ) ไว้ในไฟล์ ตรวจสอบได้ที่ dhammadha.com/verify</p>
+<p style="color:#888;font-size:13px">ไฟล์ฟอนต์ของคุณถูกประทับข้อมูลการซื้อ (เลขคำสั่งซื้อ) ไว้ในไฟล์ ตรวจสอบได้ที่ ${DOMAIN}/verify</p>
 <br>
-<p style="color:#888;font-size:13px;border-top:1px solid #eee;padding-top:12px;margin-top:16px">${escapeHtml(designerBrand)}<br>via dhammadha.com</p>
+<p style="color:#888;font-size:13px;border-top:1px solid #eee;padding-top:12px;margin-top:16px">${escapeHtml(designerBrand)}<br>via ${DOMAIN}</p>
 `;
 }
 
@@ -344,7 +345,7 @@ async function handleQuote(
   // ถ้ายิงด้วย anon key จะได้ null เงียบ ๆ แล้วตกไปใช้ ADMIN_EMAIL — designer ไม่ได้รับแจ้ง
   // และไม่มีใครรู้ตัว จึงต้องดังตั้งแต่ตอนไม่ได้ตั้ง key
   const adminEmail = env.ADMIN_EMAIL ?? "";
-  let designer: DesignerInfo = { email: adminEmail, name: "DHAMMADHA STUDIO", brand: "DHAMMADHA STUDIO", phone: "" };
+  let designer: DesignerInfo = { email: adminEmail, name: BRAND, brand: BRAND, phone: "" };
   const designerId = str(raw.designer_id, 40);
   if (designerId && UUID_RE.test(designerId)) {
     if (!env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -374,7 +375,7 @@ async function handleQuote(
     }),
     sendResendEmail(env.RESEND_API_KEY, {
       to: d.email,
-      subject: `ได้รับคำขอใบเสนอราคาของคุณแล้ว — ${d.company_name || "DHAMMADHA STUDIO"}`,
+      subject: `ได้รับคำขอใบเสนอราคาของคุณแล้ว — ${d.company_name || BRAND}`,
       html: quoteConfirmHtml(d, designer),
     }),
   ]);
@@ -513,7 +514,7 @@ async function handleDelivery(
   if (!order?.customer_email) return { status: 404, body: { ok: false, error: "order_not_found" } };
   if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
 
-  let brand = "DHAMMADHA STUDIO";
+  let brand = BRAND;
   let licensePdfUrl: string | null = null;
   if (order.designer_id) {
     const [users, configs] = await Promise.all([
@@ -588,8 +589,8 @@ async function handleDocument(
 
   const subject =
     docType === "quotation"
-      ? `ใบเสนอราคา ${docNo} — DHAMMADHA STUDIO`
-      : `ใบเสร็จรับเงิน ${docNo} — DHAMMADHA STUDIO`;
+      ? `ใบเสนอราคา ${docNo} — ${BRAND}`
+      : `ใบเสร็จรับเงิน ${docNo} — ${BRAND}`;
 
   const ok = await sendResendEmail(env.RESEND_API_KEY, {
     to: quote.email,
@@ -625,7 +626,7 @@ function payoutHtml(d: {
 </table>
 ${d.note ? `<p style="color:#888;font-size:13px">หมายเหตุ: ${escapeHtml(d.note)}</p>` : ""}
 <p>รายละเอียดฉบับเต็มอยู่ในไฟล์ PDF ที่แนบมากับอีเมลนี้ และดูสรุปรายได้ย้อนหลังได้ที่หน้า
-<a href="https://dhammadha.com/designer/revenue">รายได้</a> ใน dashboard ของคุณ</p>
+<a href="${SITE_URL}/designer/revenue">รายได้</a> ใน dashboard ของคุณ</p>
 <p>หากยอดไม่ตรงหรือมีคำถาม ตอบกลับอีเมลนี้ได้เลย</p>
 ${STUDIO_FOOTER}
 `;
@@ -693,7 +694,7 @@ async function handlePayout(
 
   const ok = await sendResendEmail(env.RESEND_API_KEY, {
     to: target.email,
-    subject: `ยืนยันการโอนส่วนแบ่ง ${periodLabel} — DHAMMADHA STUDIO`,
+    subject: `ยืนยันการโอนส่วนแบ่ง ${periodLabel} — ${BRAND}`,
     html: payoutHtml({
       designerName: target.business_name ?? target.name ?? target.email,
       periodLabel,

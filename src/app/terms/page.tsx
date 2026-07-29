@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage, { LegalSection } from "@/components/LegalPage";
+import { DOMAIN, CONTACT_EMAIL, LEGAL_ENTITY, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "ข้อกำหนดการใช้งาน — DHAMMADHA STUDIO",
-  description: "ข้อกำหนดและเงื่อนไขการใช้งานเว็บไซต์ dhammadha.com",
+  title: pageTitle("ข้อกำหนดการใช้งาน"),
+  description: `ข้อกำหนดและเงื่อนไขการใช้งานเว็บไซต์ ${DOMAIN}`,
 };
 
 export default function TermsPage() {
@@ -16,8 +17,8 @@ export default function TermsPage() {
     >
       <LegalSection title="1. ทั่วไป">
         <p>
-          เว็บไซต์ dhammadha.com ดำเนินการโดย <strong>ธรรมดาสตูดิโอ</strong> การใช้งานเว็บไซต์ถือว่าคุณยอมรับข้อกำหนดฉบับนี้ หากไม่เห็นด้วย กรุณายุติการใช้งาน ติดต่อ :{" "}
-          <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>
+          เว็บไซต์ {DOMAIN} ดำเนินการโดย <strong>{LEGAL_ENTITY}</strong> การใช้งานเว็บไซต์ถือว่าคุณยอมรับข้อกำหนดฉบับนี้ หากไม่เห็นด้วย กรุณายุติการใช้งาน ติดต่อ :{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
         </p>
       </LegalSection>
 
@@ -30,7 +31,7 @@ export default function TermsPage() {
 
       <LegalSection title="3. ทรัพย์สินทางปัญญา">
         <p>
-          ฟอนต์ทุกชุดบนเว็บไซต์เป็นลิขสิทธิ์ของนักออกแบบเจ้าของผลงานหรือของธรรมดาสตูดิโอ
+          ฟอนต์ทุกชุดบนเว็บไซต์เป็นลิขสิทธิ์ของนักออกแบบเจ้าของผลงานหรือของ{LEGAL_ENTITY}
           การซื้อฟอนต์เป็นการได้รับ <strong>สิทธิ์การใช้งาน (license)</strong> ตามขอบเขตที่ระบุใน{" "}
           <Link href="/agreement/" className="text-mint-text">สัญญาอนุญาตใช้งานฟอนต์</Link> ไม่ใช่การซื้อขาดลิขสิทธิ์
         </p>

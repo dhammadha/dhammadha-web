@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { cartPriceOf, fmtBaht } from "@/lib/revenue";
 import { cn } from "@/lib/cn";
+import { NAME as BRAND_NAME, SHORT_NAME, WORDMARK_SUB, LOGO_SRC } from "@/lib/brand";
 
 /**
  * Nav — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/nav bar.png + button.png)
@@ -212,13 +213,16 @@ export default function Nav() {
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
           )}
         >
-          <Image src="/logo_DHAMMADHA_192px.png" alt="Dhammadha Studio" width={36} height={36} className="object-cover" />
-          {/* สองบรรทัดตาม moodboard/main page (update - closeup).png — DHAMMADHA เหนือ STUDIO
+          <Image src={LOGO_SRC} alt={BRAND_NAME} width={36} height={36} className="object-cover" />
+          {/* สองบรรทัดตาม moodboard/main page (update - closeup).png — SHORT_NAME เหนือ WORDMARK_SUB
               translate-y-[2px] = ชดเชย optical: กล่องกึ่งกลางเป๊ะทางเรขาคณิต (บน/ล่าง 5.5px เท่ากัน)
-              แต่ DHAMMADHA ตัวหนาเด่นดึงสายตาให้ดูลอยสูง → ขยับบล็อกลง 2px ให้ดูกึ่งกลางจริง */}
-          <div className="hidden sm:flex flex-col justify-center gap-0.5 translate-y-[2px]">
-            <span className="font-heading text-ui text-white tracking-wide leading-none">DHAMMADHA</span>
-            <span className="font-heading text-logo-sub text-grey-400 leading-none">STUDIO</span>
+              แต่บรรทัดบนตัวหนาเด่นดึงสายตาให้ดูลอยสูง → ขยับบล็อกลง 2px ให้ดูกึ่งกลางจริง
+              ถ้า WORDMARK_SUB เป็น "" (ชื่อแบรนด์คำเดียว) จะเหลือบรรทัดเดียวและไม่ต้องชดเชย */}
+          <div className={cn("hidden sm:flex flex-col justify-center gap-0.5", WORDMARK_SUB && "translate-y-[2px]")}>
+            <span className="font-heading text-ui text-white tracking-wide leading-none">{SHORT_NAME}</span>
+            {WORDMARK_SUB && (
+              <span className="font-heading text-logo-sub text-grey-400 leading-none">{WORDMARK_SUB}</span>
+            )}
           </div>
         </Link>
 

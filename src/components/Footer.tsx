@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/ui/Container";
 import { cn } from "@/lib/cn";
+import { NAME as BRAND_NAME, LOGO_SRC, SOCIAL, FOUNDED_YEAR } from "@/lib/brand";
 
 /**
  * Footer — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/footer.png)
@@ -14,7 +15,8 @@ import { cn } from "@/lib/cn";
  * moodboard วาด social เป็นสี่เหลี่ยมขาว 4 อัน = ที่วางไอคอน ไม่ใช่สี่เหลี่ยมจริง
  * → คงไอคอนจริงทั้ง 4 (Facebook/Instagram/TikTok/LINE) ไว้
  *
- * ข้อความลิขสิทธิ์คงของเดิม "© 2012–2026 DHAMMADHA STUDIO" —
+ * ข้อความลิขสิทธิ์: ปีเริ่มต้นและชื่อมาจาก `lib/brand.ts` ปีปลายคิดตอน build
+ * (เดิม hardcode "2026" ไว้ ซึ่งจะค้างผิดปีตั้งแต่ 1 ม.ค. 2027 เป็นต้นไป) —
  * moodboard เขียน "สงวนลิขสิทธิ์ (C) ธรรมดาสตูดิโอ" ซึ่งเป็นการเปลี่ยน "เนื้อหา"
  * ไม่ใช่ดีไซน์ และทิ้งช่วงปีไป → ไม่แตะ ถ้าอยากเปลี่ยนค่อยบอก
  *
@@ -27,7 +29,7 @@ import { cn } from "@/lib/cn";
 const socials = [
   {
     name: "Facebook",
-    url: "https://www.facebook.com/dhammadha",
+    url: SOCIAL.facebook,
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
         <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
@@ -36,7 +38,7 @@ const socials = [
   },
   {
     name: "Instagram",
-    url: "https://www.instagram.com/dhammadha",
+    url: SOCIAL.instagram,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
         <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -47,7 +49,7 @@ const socials = [
   },
   {
     name: "TikTok",
-    url: "https://www.tiktok.com/@dhammadha",
+    url: SOCIAL.tiktok,
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z" />
@@ -103,14 +105,14 @@ export default function Footer() {
             )}
           >
             <Image
-              src="/logo_DHAMMADHA_192px.png"
-              alt="Dhammadha Studio"
+              src={LOGO_SRC}
+              alt={BRAND_NAME}
               width={28}
               height={28}
               className="object-cover"
             />
             <span className="font-heading text-body-sm font-bold text-white tracking-wide">
-              DHAMMADHA STUDIO
+              {BRAND_NAME}
             </span>
           </Link>
           <div className="flex gap-3">
@@ -155,7 +157,7 @@ export default function Footer() {
       {/* แถบล่างพื้นอ่อน ตาม moodboard/footer.png — ใช้ `footnote` (Looped Light 12) */}
       <div className="bg-surface">
         <Container className="py-4 text-center font-body text-footnote text-grey-600">
-          © 2012–2026 DHAMMADHA STUDIO
+          © {FOUNDED_YEAR}–{new Date().getFullYear()} {BRAND_NAME}
         </Container>
       </div>
     </footer>

@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
 import FontDetail from "./FontDetail";
 import type { Font } from "@/components/FontCard";
+import { NAME as BRAND_NAME, pageTitle } from "@/lib/brand";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,11 +59,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .not("published_at", "is", null)
     .single();
 
-  if (!data) return { title: "ฟอนต์ไทย — DHAMMADHA STUDIO" };
+  if (!data) return { title: pageTitle("ฟอนต์ไทย") };
 
   const d = data as { name?: string; name_th?: string; description_th?: string; cover_image_url?: string };
-  const title = `${d.name_th || d.name} — DHAMMADHA STUDIO`;
-  const description = d.description_th || `ฟอนต์ไทยคุณภาพสูง ${d.name_th || d.name} โดย DHAMMADHA STUDIO`;
+  const title = pageTitle(String(d.name_th || d.name));
+  const description = d.description_th || `ฟอนต์ไทยคุณภาพสูง ${d.name_th || d.name} โดย ${BRAND_NAME}`;
 
   return {
     title,

@@ -3,6 +3,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 import CartView from "@/components/cart/CartView";
+import { pageTitle } from "@/lib/brand";
 
 /**
  * /cart — ตะกร้าจริง (หลายฟอนต์ต่อการจ่าย 1 ครั้ง)
@@ -13,7 +14,7 @@ import CartView from "@/components/cart/CartView";
  */
 
 export const metadata: Metadata = {
-  title: "ตะกร้า — DHAMMADHA STUDIO",
+  title: pageTitle("ตะกร้า"),
 };
 
 export default function CartPage() {

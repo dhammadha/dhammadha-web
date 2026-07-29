@@ -14,6 +14,13 @@ import { stampFont } from "./stamp.ts";
 
 const MAX_DOWNLOADS_PER_DAY = 30; // ต่อ entitlement ต่อ 24 ชม.
 
+// ⚠️ สำเนาของ `src/lib/brand.ts` — Deno รันคนละ runtime และ deploy แยกจากเว็บ
+// จึง import ข้ามมาไม่ได้ **เปลี่ยนชื่อ/โดเมนแบรนด์ต้องแก้ทั้งสองที่ แล้ว redeploy
+// function นี้ด้วย** (`supabase functions deploy download-font`) ไม่งั้นไฟล์ฟอนต์
+// ที่ขายออกไปจะยังถูกประทับโดเมนเก่าไว้ในตัวไฟล์ ซึ่งแก้ย้อนหลังไม่ได้
+const BRAND_DOMAIN = "dhammadha.com";
+const BRAND_URL = `https://${BRAND_DOMAIN}`;
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -123,10 +130,10 @@ Deno.serve(async (req: Request) => {
       const buyer = ent.orders.customer_name || ent.orders.customer_email;
       const date = (ent.orders.paid_at ?? new Date().toISOString()).slice(0, 10);
       bytes = stampFont(bytes, {
-        uniqueId: `${orderNo} — dhammadha.com`,
-        license: `Licensed to ${buyer} — Order ${orderNo} — ${date} — via dhammadha.com`,
+        uniqueId: `${orderNo} — ${BRAND_DOMAIN}`,
+        license: `Licensed to ${buyer} — Order ${orderNo} — ${date} — via ${BRAND_DOMAIN}`,
         // verify_token แทน order_no ตั้งแต่ 0055 — order_no เดินเลขลำดับ เดาได้ง่าย
-        licenseUrl: `https://dhammadha.com/verify?token=${encodeURIComponent(ent.orders.verify_token)}`,
+        licenseUrl: `${BRAND_URL}/verify?token=${encodeURIComponent(ent.orders.verify_token)}`,
       });
       stamped = true;
     } catch (e) {

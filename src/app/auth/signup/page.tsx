@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import AuthShell from "@/components/auth/AuthShell";
 import { FIELD, LABEL } from "@/components/form/field";
 import Button from "@/components/ui/Button";
+import { NAME as BRAND_NAME } from "@/lib/brand";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -154,7 +155,7 @@ export default function SignupPage() {
             <div>
               <span className="font-ui text-ui text-black">สมัครเป็น Designer</span>
               <p className="font-body text-body-sm text-grey-600 mt-0.5 leading-[1.8]">
-                หากต้องการร่วมวางจำหน่ายฟอนต์กับ DHAMMADHA STUDIO กรุณาติ๊กตัวเลือกนี้และกรอกลิงก์ผลงาน ทีมงานจะตรวจสอบและติดต่อกลับ
+                หากต้องการร่วมวางจำหน่ายฟอนต์กับ {BRAND_NAME} กรุณาติ๊กตัวเลือกนี้และกรอกลิงก์ผลงาน ทีมงานจะตรวจสอบและติดต่อกลับ
               </p>
             </div>
           </label>

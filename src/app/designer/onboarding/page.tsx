@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
+import { NAME as BRAND_NAME } from "@/lib/brand";
 
 const THAI_BANKS = [
   "ธนาคารกสิกรไทย (KBANK)",
@@ -471,7 +472,7 @@ export default function OnboardingPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="font-heading text-badge tracking-[0.14em] text-grey-600 uppercase mb-2">
-            DHAMMADHA STUDIO
+            {BRAND_NAME}
           </div>
           <h1 className="font-heading text-h2 text-black">ตั้งค่าร้านของคุณ</h1>
           <p className="font-body text-body-sm text-grey-600 mt-1">ทำครั้งเดียว ใช้ได้ตลอด</p>

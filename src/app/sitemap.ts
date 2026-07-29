@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { URL as BASE_URL } from "@/lib/brand";
 
 // Generated at build time (static export) — รายการฟอนต์/designer มาจากข้อมูล
 // ตอน build ซึ่งตรงกับหน้าที่ SSG ไว้พอดี (publish ใหม่ = rebuild = sitemap ใหม่)
-const BASE_URL = "https://www.dhammadha.com";
 
 export const dynamic = "force-static";
 

@@ -11,6 +11,7 @@
 
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
+import { NAME as BRAND_NAME } from "./brand";
 
 export type PayoutDocData = {
   designerName: string;
@@ -90,7 +91,7 @@ export async function generatePayoutPdf(data: PayoutDocData): Promise<Uint8Array
     y -= size * 2;
   };
 
-  line("DHAMMADHA STUDIO", { size: 12, boldText: true, color: COLOR.navy, gap: 26 });
+  line(BRAND_NAME, { size: 12, boldText: true, color: COLOR.navy, gap: 26 });
   line("ใบสรุปการโอนส่วนแบ่งรายได้", { size: 18, boldText: true, color: COLOR.navy, gap: 34 });
 
   row("ผู้รับ", data.designerName);

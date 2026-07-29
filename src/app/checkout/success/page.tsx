@@ -13,6 +13,7 @@ import Button from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { CONTACT_EMAIL } from "@/lib/brand";
 
 const POLL_INTERVAL_MS = 2500;
 const MAX_POLLS = 24; // ~60 วินาที
@@ -84,7 +85,7 @@ function CheckoutSuccess() {
               <Panel title="ไม่พบข้อมูลการชำระเงิน">
                 <p className="font-body text-body text-grey-600 leading-[1.8]">
                   ลิงก์ไม่ถูกต้อง หากคุณชำระเงินแล้ว กรุณาตรวจสอบอีเมลของคุณ
-                  หรือติดต่อ info@dhammadha.com
+                  หรือติดต่อ {CONTACT_EMAIL}
                 </p>
                 <Button as="link" href="/fonts/" className="mt-4">กลับไปหน้าฟอนต์</Button>
               </Panel>
@@ -128,7 +129,7 @@ function CheckoutSuccess() {
                   ระบบกำลังยืนยันคำสั่งซื้อของคุณ ซึ่งอาจใช้เวลาสักครู่
                   เมื่อเสร็จแล้วคุณจะได้รับอีเมลยืนยันพร้อมวิธีดาวน์โหลดอัตโนมัติ
                   <br /><br />
-                  หากไม่ได้รับอีเมลภายใน 30 นาที ติดต่อ info@dhammadha.com
+                  หากไม่ได้รับอีเมลภายใน 30 นาที ติดต่อ {CONTACT_EMAIL}
                 </p>
                 <Button as="link" href="/account/" variant="outline" className="mt-4">
                   ไปที่บัญชีของฉัน

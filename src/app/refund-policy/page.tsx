@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LegalPage, { LegalSection } from "@/components/LegalPage";
+import { NAME as BRAND_NAME, CONTACT_EMAIL, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "นโยบายการคืนเงิน — DHAMMADHA STUDIO",
-  description: "นโยบายการคืนเงินสำหรับสินค้าดิจิทัลของ DHAMMADHA STUDIO",
+  title: pageTitle("นโยบายการคืนเงิน"),
+  description: `นโยบายการคืนเงินสำหรับสินค้าดิจิทัลของ ${BRAND_NAME}`,
 };
 
 export default function RefundPolicyPage() {
@@ -32,7 +33,7 @@ export default function RefundPolicyPage() {
 
       <LegalSection title="3. วิธีแจ้งขอคืนเงิน">
         <p>
-          ส่งอีเมลมาที่ <a href="mailto:info@dhammadha.com" className="text-mint-text">info@dhammadha.com</a>{" "}
+          ส่งอีเมลมาที่ <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>{" "}
           พร้อมหลักฐานการชำระเงินและรายละเอียดปัญหา ภายใน 7 วัน นับจากวันชำระเงิน
           เราจะตอบกลับภายใน 3 วันทำการ และหากอนุมัติ จะคืนเงินผ่านช่องทางเดิมภายใน 14 วัน
         </p>

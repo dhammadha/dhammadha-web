@@ -95,7 +95,7 @@ export interface CheckoutRequestContext {
   body: unknown;
   /** Supabase access token (ลูกค้าที่ login — optional) */
   authToken?: string | null;
-  /** origin ของ request เช่น https://dhammadha.com */
+  /** origin ของ request เช่น https://example.com — มาจาก header จริง ไม่ได้ hardcode โดเมน */
   origin?: string | null;
 }
 
