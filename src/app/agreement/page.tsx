@@ -50,7 +50,7 @@ export default function AgreementPage() {
         </p>
         <ul className="list-disc pl-5 flex flex-col gap-1 text-grey-800">
           <li>สิ่งพิมพ์ทุกประเภท (โปสเตอร์ แผ่นพับ บรรจุภัณฑ์ ฯลฯ)</li>
-          <li>สื่อดิจิทัลคงที่ (แบนเนอร์ รูปภาพ กราฟิก)</li>
+          <li>สื่อดิจิทัล (แบนเนอร์ รูปภาพ กราฟิก)</li>
           <li>งานออกแบบกราฟิกทั่วไป</li>
         </ul>
         <p className="font-body text-body-sm text-grey-600">
