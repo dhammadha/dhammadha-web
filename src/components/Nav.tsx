@@ -501,6 +501,31 @@ export default function Nav() {
           </div>
           </div>
 
+          {/* ตะกร้า — มือถือ · ไม่มี submenu (ไม่มี hover จริงบนทัช) กดแล้วไป /cart เลย
+              จงใจซ้ำกับตัวเดสก์ท็อปตามธรรมเนียมของไฟล์นี้ (เหมือนช่องค้นหา/เมนูบัญชี) */}
+          <Link
+            href="/cart/"
+            aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
+            className={cn(
+              "md:hidden relative flex items-center justify-center w-8 h-8 mr-1 text-white",
+              "hover:text-mint transition-colors duration-150 ease-base",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint",
+              cartAnimating && "cart-bounce"
+            )}
+          >
+            <CartIcon />
+            {cartReady && cartCount > 0 && (
+              <span
+                className={cn(
+                  "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center",
+                  cartAnimating && "cart-badge-pop"
+                )}
+              >
+                {cartCount}
+              </span>
+            )}
+          </Link>
+
           {/* Mobile hamburger */}
           <button
             className="md:hidden flex flex-col gap-1.5 p-1 bg-transparent border-none cursor-pointer"
