@@ -203,7 +203,8 @@ export default function Nav() {
       )}
     >
       {/* สูง 70 ตายตัวตามสเปก — เดิมเป็น py-3 แล้วปล่อยความสูงลอยตามของข้างใน */}
-      <Container className="flex items-center h-[70px]">
+      {/* relative = จุดอ้างอิงของไอคอนตะกร้ามือถือที่ absolute อยู่กึ่งกลางแถบ */}
+      <Container className="relative flex items-center h-[70px]">
         <Link
           href="/"
           className={cn(
@@ -220,6 +221,37 @@ export default function Nav() {
             <span className="font-heading text-logo-sub text-grey-400 leading-none">STUDIO</span>
           </div>
         </Link>
+
+        {/* ตะกร้า — มือถือ · absolute กึ่งกลางแถบจริง ๆ ไม่ใช่กึ่งกลางที่ว่างระหว่างโลโก้กับ
+            ปุ่มสามขีด (สองอันนั้นกว้างไม่เท่ากัน วางในสายจะเบี้ยวไปข้างละหลายพิกเซล)
+            · ไม่มี submenu เพราะทัชไม่มี hover จริง กดแล้วไป /cart เลย
+            · จงใจซ้ำกับตัวเดสก์ท็อปตามธรรมเนียมของไฟล์นี้ (เหมือนช่องค้นหา/เมนูบัญชี) */}
+        {/* กล่องนอกถือ -translate-x-1/2 ไว้ ส่วน animation อยู่ที่ตัวลิงก์ — ถ้ารวมไว้ก้อนเดียว
+            keyframe translateY จะทับ transform ที่จัดกึ่งกลาง ไอคอนจะกระเด็นขวา 16px ตอนเด้ง */}
+        <div className="md:hidden absolute left-1/2 -translate-x-1/2">
+          <Link
+            href="/cart/"
+            aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
+            className={cn(
+              "relative flex items-center justify-center w-8 h-8 text-white",
+              "hover:text-mint transition-colors duration-150 ease-base",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint",
+              cartAnimating && "cart-bounce"
+            )}
+          >
+            <CartIcon />
+            {cartReady && cartCount > 0 && (
+              <span
+                className={cn(
+                  "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center",
+                  cartAnimating && "cart-badge-pop"
+                )}
+              >
+                {cartCount}
+              </span>
+            )}
+          </Link>
+        </div>
 
         {/* ลิงก์เดสก์ท็อป — flex-1 justify-center = กึ่งกลางระหว่างโลโก้กับแถบค้นหา */}
         <div className="hidden md:flex flex-1 items-center justify-center">
@@ -500,31 +532,6 @@ export default function Nav() {
             )}
           </div>
           </div>
-
-          {/* ตะกร้า — มือถือ · ไม่มี submenu (ไม่มี hover จริงบนทัช) กดแล้วไป /cart เลย
-              จงใจซ้ำกับตัวเดสก์ท็อปตามธรรมเนียมของไฟล์นี้ (เหมือนช่องค้นหา/เมนูบัญชี) */}
-          <Link
-            href="/cart/"
-            aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
-            className={cn(
-              "md:hidden relative flex items-center justify-center w-8 h-8 mr-1 text-white",
-              "hover:text-mint transition-colors duration-150 ease-base",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint",
-              cartAnimating && "cart-bounce"
-            )}
-          >
-            <CartIcon />
-            {cartReady && cartCount > 0 && (
-              <span
-                className={cn(
-                  "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center",
-                  cartAnimating && "cart-badge-pop"
-                )}
-              >
-                {cartCount}
-              </span>
-            )}
-          </Link>
 
           {/* Mobile hamburger */}
           <button
