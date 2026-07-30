@@ -46,6 +46,60 @@ export function useDesignerSetup(): DesignerSetup {
   return setup;
 }
 
+/**
+ * designer เปิดใช้ระบบใบเสนอราคาไว้หรือยัง
+ * ไม่มีแถว config = ยังไม่เคยเปิด = ปิด (ตรงกับค่า default ของคอลัมน์ใน DB)
+ */
+export function useQuoteSystem(): { loading: boolean; enabled: boolean } {
+  const { user } = useAuth();
+  const [state, setState] = useState({ loading: true, enabled: false });
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    supabase
+      .from("designer_license_config")
+      .select("quote_enabled")
+      .eq("designer_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (active) setState({ loading: false, enabled: !!data?.quote_enabled });
+      });
+    return () => { active = false; };
+  }, [user]);
+
+  return state;
+}
+
+/** Gate หน้าใบเสนอราคา — ยังไม่เปิดระบบให้ไปเปิดที่หน้าราคาก่อน */
+export function QuoteSystemGate({ children }: { children: React.ReactNode }) {
+  const { loading, enabled } = useQuoteSystem();
+
+  if (loading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center font-body text-body-sm text-grey-600">กำลังโหลด…</div>
+    );
+  }
+
+  if (!enabled) {
+    return (
+      <div className="p-6 max-w-[560px]">
+        <div className="bg-surface p-8 text-center">
+          <div className="text-[32px] mb-3">📄</div>
+          <h1 className="font-heading text-h2 text-black mb-2">ยังไม่ได้เปิดใช้งานระบบใบเสนอราคา</h1>
+          <p className="font-body text-body-sm text-grey-600 leading-[1.7] mb-6 max-w-[400px] mx-auto">
+            ระบบใบเสนอราคาใช้สำหรับขายสิทธิให้ห้างร้าน องค์กร และบริษัท
+            เปิดใช้งานได้ที่หน้าราคาและโปรโมชั่น
+          </p>
+          <Button as="link" href="/designer/pricing">เปิดการใช้งานระบบใบเสนอราคา →</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 /** Gate หน้าเพิ่มฟอนต์ — ยังไม่ตั้ง slug ให้ไปตั้งก่อน */
 export function AddFontGate({ children }: { children: React.ReactNode }) {
   const setup = useDesignerSetup();

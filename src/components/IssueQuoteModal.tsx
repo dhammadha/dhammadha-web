@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { licenseLabel, licenseDocLines, type LicenseTier } from "@/lib/license";
+import { licenseLabel, licenseDocLines, fontDocName, type LicenseTier } from "@/lib/license";
 import Button from "@/components/ui/Button";
 
 export type IssueQuote = {
@@ -88,17 +88,24 @@ export default function IssueQuoteModal({ quote, initialItems, tiers, onClose, o
     if (!ready || saving) return;
     setSaving(true);
     setError("");
-    // ⚠️ ตรึงข้อความสิทธิ์ลงไปกับ item ตั้งแต่ตอนออกใบ (license_label/license_lines)
+    // ⚠️ ตรึงข้อความที่จะพิมพ์ลงไปกับ item ตั้งแต่ตอนออกใบ (name_display/license_*)
     // เอกสารเป็นหลักฐานทางบัญชี พิมพ์ซ้ำเมื่อไหร่ต้องได้ข้อความเดิม — ถ้าเก็บแต่ id
-    // แล้วไปแปลตอนพิมพ์ ใบเก่าจะเปลี่ยนตามทันทีที่ designer แก้ชื่อ/ลบ tier
-    const items = rows.map((r) => ({
-      font_id: r.font_id,
-      name: r.quoteName,
-      license_type: r.license_type,
-      license_label: licenseLabel(r.license_type, tiers),
-      license_lines: licenseDocLines(r.license_type, tiers),
-      price: Number(r.price) || 0,
-    }));
+    // แล้วไปแปลตอนพิมพ์ ใบเก่าจะเปลี่ยนตามทันทีที่ designer แก้ชื่อฟอนต์/ชื่อ tier
+    //
+    // `name` ต้องคงเป็นชื่อดิบจาก quotes.fonts เหมือนเดิม — ใช้จับคู่ initialItems
+    // ตอนกดแก้ราคาซ้ำ (ดู useEffect ด้านบน) ชื่อสำหรับพิมพ์อยู่ที่ name_display
+    const items = rows.map((r) => {
+      const font = fonts.find((f) => f.id === r.font_id);
+      return {
+        font_id: r.font_id,
+        name: r.quoteName,
+        name_display: fontDocName(font?.name, font?.name_th, r.quoteName),
+        license_type: r.license_type,
+        license_label: licenseLabel(r.license_type, tiers),
+        license_lines: licenseDocLines(r.license_type, tiers),
+        price: Number(r.price) || 0,
+      };
+    });
     const { data, error: rpcError } = await supabase.rpc("issue_quotation_priced", {
       p_quote_id: quote.id,
       p_items: items,

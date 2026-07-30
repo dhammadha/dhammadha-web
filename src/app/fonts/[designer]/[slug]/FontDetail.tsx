@@ -127,11 +127,15 @@ function getFormats(urls: string[]): string {
 // แถบเมนู 3 หัวข้อ (moodboard: font detail alt.png) — สลับเนื้อหาในที่เดิม ไม่เปลี่ยน route
 // แท็บ "สั่งซื้อ" เปลี่ยนคำตามฟอนต์: ฟอนต์ฟรีไม่มีอะไรให้ "สั่งซื้อ" (ปุ่มในแท็บคือดาวน์โหลด)
 type Tab = "detail" | "tester" | "buy";
-function tabsFor(isFree?: boolean): { id: Tab; label: string }[] {
+function tabsFor(isFree: boolean | undefined, quoteEnabled: boolean): { id: Tab; label: string }[] {
   return [
     { id: "detail", label: "รายละเอียด" },
     { id: "tester", label: "พิมพ์ทดสอบ" },
-    { id: "buy", label: isFree ? "ดาวน์โหลดฟอนต์ / ขอใบเสนอราคา" : "สั่งซื้อฟอนต์ / ขอใบเสนอราคา" },
+    {
+      id: "buy",
+      // ตัดท่อน "/ ขอใบเสนอราคา" ออกเมื่อดีไซน์เนอร์ปิดระบบ — แท็บจะได้ไม่โฆษณาสิ่งที่กดไม่ได้
+      label: `${isFree ? "ดาวน์โหลดฟอนต์" : "สั่งซื้อฟอนต์"}${quoteEnabled ? " / ขอใบเสนอราคา" : ""}`,
+    },
   ];
 }
 
@@ -147,6 +151,8 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [loading, setLoading] = useState(!initialFont);
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [customLicenseTiers, setCustomLicenseTiers] = useState<LicenseTier[] | null>(null);
+  // ดีไซน์เนอร์เปิดระบบใบเสนอราคาไว้หรือไม่ — ไม่มีแถว config = ยังไม่เคยเปิด = ปิด
+  const [quoteEnabled, setQuoteEnabled] = useState(false);
   // สัญญาอนุญาตฉบับของดีไซน์เนอร์เอง (ถ้ามี) — แสดงแทนฉบับกลาง /agreement เหมือนหน้า /quote
   const [customLicensePdf, setCustomLicensePdf] = useState<string | null>(null);
   const [licensePdfOpen, setLicensePdfOpen] = useState(false);
@@ -234,9 +240,10 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
         if (ownerId) {
           const { data: licConfig } = await supabase
             .from("designer_license_config")
-            .select("use_default, tiers, license_pdf_url")
+            .select("use_default, tiers, license_pdf_url, quote_enabled")
             .eq("designer_id", ownerId)
             .single();
+          setQuoteEnabled(!!licConfig?.quote_enabled);
           if (licConfig && !licConfig.use_default) {
             const parsed = parseDesignerTiers(licConfig.tiers);
             if (parsed.length > 0) setCustomLicenseTiers(parsed);
@@ -500,7 +507,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
               หัวข้อที่ 3 ("สั่งซื้อฟอนต์ / ขอใบเสนอราคา") ยาวเกินช่อง 114px ที่จอ 375
               ตอน 3 คอลัมน์ → ตัด 3 บรรทัด สูง 96px ทั้งแถว · เรียงตั้งได้บรรทัดเดียวต่อหัวข้อ */}
           <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white mb-8">
-            {tabsFor(font.is_free).map((t) => (
+            {tabsFor(font.is_free, quoteEnabled).map((t) => (
               <button
                 key={t.id}
                 role="tab"
@@ -652,6 +659,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 {/* Org tiers */}
                 <div>
                   <h3 className="font-heading text-h2 text-black mb-3">ห้างร้าน องค์กร บริษัท</h3>
+                  {!quoteEnabled ? (
+                    <div className="bg-surface px-4 py-6 font-body text-body-sm text-grey-600 leading-[1.7]">
+                      ฟอนต์นี้ยังไม่รองรับระบบใบเสนอราคา
+                    </div>
+                  ) : (
+                  <>
                   <div className="flex flex-col gap-px mb-3">
                     {orgTiers.map((tier) => (
                       <div key={tier.id} className="bg-surface px-4 py-3">
@@ -693,6 +706,8 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                     </svg>
                     ขอใบเสนอราคา
                   </Button>
+                  </>
+                  )}
                 </div>
 
               </div>

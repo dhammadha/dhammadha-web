@@ -76,6 +76,8 @@ function QuoteForm() {
   const [fonts, setFonts] = useState<FontItem[]>([]);
   const [designer, setDesigner] = useState<DesignerInfo | null>(null);
   const [licenseConfig, setLicenseConfig] = useState<LicenseConfig | null>(null);
+  // ดีไซน์เนอร์รายนี้เปิดรับใบเสนอราคาหรือไม่ (null = ยังไม่เจาะจงดีไซน์เนอร์)
+  const [quotesClosed, setQuotesClosed] = useState(false);
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [selectedFonts, setSelectedFonts] = useState<string[]>([preselectedFont || ""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -149,9 +151,11 @@ function QuoteForm() {
 
         const { data: licData } = await supabase
           .from("designer_license_config")
-          .select("use_default, license_pdf_url, tiers")
+          .select("use_default, license_pdf_url, tiers, quote_enabled")
           .eq("designer_id", dData!.id)
           .single();
+        // ไม่มีแถว config = ยังไม่เคยเปิด = ปิด (ตรงกับค่า default ของคอลัมน์ใน DB)
+        setQuotesClosed(!licData?.quote_enabled);
         setLicenseConfig(
           licData
             ? {
@@ -166,7 +170,7 @@ function QuoteForm() {
 
       let query = supabase
         .from("fonts")
-        .select("id, name, slug")
+        .select("id, name, slug, owner_id")
         .eq("is_active", true)
         .order("name");
 
@@ -177,7 +181,19 @@ function QuoteForm() {
       }
 
       const { data } = await query;
-      const list = (data ?? []) as FontItem[];
+      let list = (data ?? []) as FontItem[];
+
+      // dropdown รวมทุกฟอนต์ (ไม่มี designer_slug) ต้องไม่โชว์ฟอนต์ของดีไซน์เนอร์ที่ปิดระบบ
+      // ไม่งั้นลูกค้ากรอกจนจบแล้วค่อยโดน RPC ปฏิเสธ
+      if (!designerInfo) {
+        const { data: enabled } = await supabase
+          .from("designer_license_config")
+          .select("designer_id")
+          .eq("quote_enabled", true);
+        const allowed = new Set((enabled ?? []).map((r) => r.designer_id));
+        const withOwner = (data ?? []) as Array<FontItem & { owner_id?: string | null }>;
+        list = withOwner.filter((f) => f.owner_id && allowed.has(f.owner_id));
+      }
       setFonts(list);
 
       if (preselectedFont) {
@@ -350,6 +366,23 @@ function QuoteForm() {
               )}
             </div>
 
+            {/* ดีไซน์เนอร์ปิดระบบไว้ — ไม่ต้องให้กรอกจนจบแล้วค่อยโดน RPC ปฏิเสธ */}
+            {quotesClosed ? (
+              <div className="bg-surface px-6 py-10 text-center">
+                <p className="font-body text-body text-black mb-2">
+                  ดีไซน์เนอร์รายนี้ยังไม่เปิดรับใบเสนอราคา
+                </p>
+                <p className="font-body text-body-sm text-grey-600 leading-[1.7] mb-6 max-w-[420px] mx-auto">
+                  ฟอนต์ชุดนี้ยังไม่รองรับการขอใบเสนอราคาสำหรับองค์กร
+                  หากต้องการใช้งานเชิงพาณิชย์ สามารถสั่งซื้อสิทธิรายชุดได้จากหน้าฟอนต์
+                </p>
+                {preselectedFont && designerSlug && (
+                  <Button as="link" href={`/fonts/${designerSlug}/${preselectedFont}`}>
+                    ← กลับไปหน้าฟอนต์
+                  </Button>
+                )}
+              </div>
+            ) : (
             <form onSubmit={submit} className="flex flex-col gap-10">
               {/* Contact & Company */}
               <div className="flex flex-col gap-4">
@@ -587,6 +620,7 @@ function QuoteForm() {
                 </Button>
               </div>
             </form>
+            )}
           </div>
         </Container>
       </section>

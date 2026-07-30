@@ -134,6 +134,7 @@ export interface Database {
           designer_id: string;
           use_default: boolean;
           license_pdf_url: string | null;
+          quote_enabled: boolean;
           tiers: Json | null;
           updated_at: string;
         };
@@ -142,6 +143,7 @@ export interface Database {
           designer_id: string;
           use_default?: boolean;
           license_pdf_url?: string | null;
+          quote_enabled?: boolean;
           tiers?: Json | null;
           updated_at?: string;
         };
@@ -150,6 +152,7 @@ export interface Database {
           designer_id?: string;
           use_default?: boolean;
           license_pdf_url?: string | null;
+          quote_enabled?: boolean;
           tiers?: Json | null;
           updated_at?: string;
         };

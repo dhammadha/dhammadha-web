@@ -30,6 +30,7 @@ type QuoteRow = {
   // "ตรึง" ไว้ตอนออกใบ ใช้ค่านี้ก่อนเสมอ (ดู buildPrintData)
   fonts_detail: Array<{
     name: string;
+    name_display?: string | null;
     price: number;
     license_type: string;
     license_label?: string | null;
@@ -164,7 +165,7 @@ export default function OwnQuotes() {
     let items: PrintData["items"];
     if (q.fonts_detail && q.fonts_detail.length > 0) {
       items = q.fonts_detail.map((d) => ({
-        name: d.name,
+        name: d.name_display ?? d.name,
         license_type: d.license_label ?? licenseLabel(d.license_type, allTiers),
         license_lines: resolveDocLines(d.license_lines, d.license_type),
         price: d.price,
@@ -450,6 +451,7 @@ export default function OwnQuotes() {
       {confirming && (
         <ConfirmPaidModal
           quote={confirming as ConfirmQuote}
+          tiers={allTiers}
           onClose={() => setConfirming(null)}
           onConfirmed={async ({ orderId, orderNo, receiptNo }) => {
             const q = confirming;

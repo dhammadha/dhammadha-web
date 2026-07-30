@@ -162,6 +162,23 @@ export function licenseLabel(
 
 /* ── ข้อความสิทธิ์บนเอกสาร (ใบเสนอราคา/ใบแจ้งหนี้/ใบเสร็จ) ──────────────────── */
 
+/**
+ * ชื่อฟอนต์ที่จะพิมพ์ลงเอกสาร — `"ชื่อไทย | ชื่ออังกฤษ"`
+ * ฟอนต์ที่ยังไม่มีชื่อไทย (name_th ว่างได้) ให้ขึ้นชื่ออังกฤษเดี่ยว ไม่มีขีดคั่นค้าง
+ *
+ * ⚠️ ผลลัพธ์ถูกตรึงลง quotes.fonts_detail ตอนออกใบ เช่นเดียวกับ licenseDocLines()
+ */
+export function fontDocName(
+  nameEn: string | null | undefined,
+  nameTh: string | null | undefined,
+  fallback = ""
+): string {
+  const en = nameEn?.trim() || fallback.trim();
+  const th = nameTh?.trim();
+  if (th && en && th !== en) return `${th} | ${en}`;
+  return th || en;
+}
+
 /** บรรทัดแรกของทุกรายการ — คงที่ ไม่ขึ้นกับ tier */
 const DOC_LICENSE_HEADLINE = "สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท";
 

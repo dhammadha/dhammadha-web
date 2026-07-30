@@ -28,6 +28,8 @@ export default function OwnPricing() {
   const [toast, setToast] = useState("");
   const [promo, setPromo] = useState<PromoState>({ discount: "", end: "", active: false });
   const [promoSaving, setPromoSaving] = useState(false);
+  const [quoteEnabled, setQuoteEnabled] = useState(false);
+  const [quoteSaving, setQuoteSaving] = useState(false);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
@@ -51,6 +53,7 @@ export default function OwnPricing() {
     if (data) {
       setUseDefault(data.use_default);
       setPdfUrl(data.license_pdf_url ?? null);
+      setQuoteEnabled(data.quote_enabled);
       if (!data.use_default && data.tiers) {
         // mintMissingIds: หน้านี้เป็น editor — tier เก่าที่ยังไม่มี id จะได้ id ถาวร
         // แล้วเขียนลง DB ตอนกดบันทึก
@@ -125,6 +128,18 @@ export default function OwnPricing() {
   const addTier = () => setTiers((prev) => [...prev, { id: newTierId(), name: "", desc: "", price: 0 }]);
   const removeTier = (i: number) => setTiers((prev) => prev.filter((_, idx) => idx !== i));
 
+  // section นี้บันทึกแยกจาก save() ที่คุมสิทธิ/ราคา/ไฟล์ PDF — เปิด/ปิดระบบเป็นคนละเรื่องกัน
+  const saveQuoteEnabled = async () => {
+    if (!user) return;
+    setQuoteSaving(true);
+    const { error } = await supabase.from("designer_license_config").upsert({
+      designer_id: user.id,
+      quote_enabled: quoteEnabled,
+    }, { onConflict: "designer_id" });
+    showToast(error ? "เกิดข้อผิดพลาด กรุณาลองใหม่" : "✓ บันทึกแล้ว");
+    setQuoteSaving(false);
+  };
+
   const save = async () => {
     if (!user) return;
     setSaving(true);
@@ -149,6 +164,7 @@ export default function OwnPricing() {
         use_default: useDefault,
         tiers: useDefault ? null : tiers,
         license_pdf_url: uploadedPdfUrl,
+        quote_enabled: quoteEnabled,
       }, { onConflict: "designer_id" });
 
       setPdfUrl(uploadedPdfUrl);
@@ -168,7 +184,7 @@ export default function OwnPricing() {
     <div className="p-6 max-w-[720px]">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-heading text-h2 text-black">ราคาและโปรโมชั่น</h1>
-        {!useDefault && (
+        {quoteEnabled && !useDefault && (
           <button
             onClick={resetToDefault}
             className="font-body text-body-sm text-grey-600 hover:text-black bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base p-0"
@@ -178,6 +194,33 @@ export default function OwnPricing() {
         )}
       </div>
 
+      {/* ระบบใบเสนอราคา — เปิดก่อน ส่วนสิทธิ/ราคาถึงจะโผล่ */}
+      <div className="bg-surface p-5 mb-4">
+        <h2 className="font-ui text-ui text-black mb-3">ระบบใบเสนอราคา</h2>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={quoteEnabled}
+            onChange={(e) => setQuoteEnabled(e.target.checked)}
+            className="mt-0.5 accent-black shrink-0"
+          />
+          <div>
+            <span className="font-ui text-ui text-black">ใช้งานระบบใบเสนอราคา</span>
+            <p className="font-body text-body-sm text-grey-600 mt-0.5 leading-[1.6]">
+              เปิดให้ลูกค้าองค์กรขอใบเสนอราคาฟอนต์ของคุณได้ และเปิดใช้หน้า “ใบเสนอราคา”
+              พร้อมการตั้งค่าสิทธิและราคาด้านล่าง
+            </p>
+          </div>
+        </label>
+        <div className="mt-4">
+          <Button onClick={saveQuoteEnabled} disabled={quoteSaving}>
+            {quoteSaving ? "กำลังบันทึก…" : "บันทึก"}
+          </Button>
+        </div>
+      </div>
+
+      {quoteEnabled && (
+      <>
       {/* License section */}
       <div className="bg-surface p-5 mb-4">
         <label className="flex items-start gap-3 cursor-pointer">
@@ -331,8 +374,10 @@ export default function OwnPricing() {
           {saving ? "กำลังบันทึก…" : "บันทึก"}
         </Button>
       </div>
+      </>
+      )}
 
-      {/* Promotion section */}
+      {/* Promotion section — แสดงเสมอ ไม่ขึ้นกับระบบใบเสนอราคา */}
       <div className="bg-surface p-5 mb-4">
         <h2 className="font-ui text-ui text-black mb-1">โปรโมชั่น</h2>
         <p className="font-body text-body-sm text-grey-600 mb-4">ส่วนลดทั้งร้าน — มีผลกับฟอนต์ทุกตัวที่ไม่ใช่ฟรี โดยไม่ลบ/ทับส่วนลดรายฟอนต์ที่ตั้งแยกไว้</p>

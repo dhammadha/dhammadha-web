@@ -11,12 +11,11 @@
  */
 
 import {
-  CONTENT_RIGHT,
+  CONTENT_W,
   COLOR,
   DocWriter,
-  LINE,
-  MARGIN_X,
-  SZ,
+  LEAD,
+  M,
   drawIssuerHeader,
   drawLabelValue,
   drawSignature,
@@ -57,8 +56,6 @@ const PLATFORM_ISSUER = {
   email: LEGAL_ENTITY_EMAIL,
 };
 
-const COL_PAD = 12;
-
 export async function generatePayoutPdf(
   data: PayoutDocData,
   fonts?: DocFontBytes,
@@ -78,8 +75,8 @@ export async function generatePayoutPdf(
   ]);
 
   /* ── ผู้รับเงิน ────────────────────────────────────────────────────────── */
-  w.text(data.designerName, { size: SZ.body, bold: true, color: COLOR.black });
-  w.space(14);
+  w.y = M.recipientFirst;
+  w.text(data.designerName, { font: "sans", maxWidth: CONTENT_W });
 
   /* ── ตารางรายการ ──────────────────────────────────────────────────────── */
   const rows: Array<[string, number]> = [
@@ -87,36 +84,24 @@ export async function generatePayoutPdf(
     ["ส่วนแบ่ง Subscription", data.subscriptionAmount],
   ];
 
-  const headerH = SZ.body * 2.4;
-  const padTop = (headerH - SZ.body * 1.2) / 2;
-  const top = w.bar(headerH, COLOR.navy, padTop);
-  w.textAt("รายละเอียด", top, { x: MARGIN_X + COL_PAD, size: SZ.body, bold: true, color: COLOR.white });
-  w.textAt("จำนวนเงิน", top, {
-    align: "right",
-    right: CONTENT_RIGHT - COL_PAD,
-    size: SZ.body,
-    bold: true,
-    color: COLOR.white,
-  });
-  w.space(12);
+  w.y = w.blockBottom + M.recipientToTable;
+  const barTop = w.y;
+  w.bar(barTop, M.barH);
+  const headBase = barTop + M.barTextOffset;
+  w.drawAt("รายละเอียด", headBase, { x: M.colNameX, font: "sans", color: COLOR.white });
+  w.drawAt("จำนวนเงิน", headBase, { right: M.priceRight, font: "sans", color: COLOR.white });
+  w.y = barTop + M.barH + M.tableToFirstItem;
 
-  const rowH = SZ.itemName * LINE + 6;
   for (const [label, amount] of rows) {
-    w.ensureSpace(rowH);
-    const rowTop = w.y;
-    w.textAt(label, rowTop, { x: MARGIN_X + COL_PAD, size: SZ.itemName, color: COLOR.black });
-    w.textAt(money(amount), rowTop, {
-      align: "right",
-      right: CONTENT_RIGHT - COL_PAD,
-      size: SZ.itemName,
-      color: COLOR.black,
-    });
-    w.y -= rowH;
+    w.ensureSpace();
+    w.drawAt(label, w.y, { x: M.colNameX, font: "sans", color: COLOR.navy });
+    w.drawAt(money(amount), w.y, { right: M.priceRight, font: "sans", color: COLOR.navy });
+    w.blockBottom = w.y;
+    w.y += LEAD;
   }
 
-  w.space(4);
-  w.rule(0.8, COLOR.gray555);
-  w.space(10);
+  w.rule(w.blockBottom + M.itemsToRule);
+  w.y = w.blockBottom + M.totalsToBar;
   drawTotalBar(w, "ยอดโอนรวม", money(data.totalAmount), bahtText(data.totalAmount));
 
   /* ── บัญชีที่รับโอน ────────────────────────────────────────────────────── */
@@ -127,19 +112,15 @@ export async function generatePayoutPdf(
     if (bank.account_name) bankRows.push(["ชื่อบัญชี", bank.account_name]);
     if (bank.account_number) bankRows.push(["เลขที่บัญชี", bank.account_number]);
 
-    w.space(20);
-    w.text("บัญชีที่รับโอน", { size: SZ.bodyLabel, bold: true, color: COLOR.black });
-    const labelW = Math.max(...bankRows.map(([l]) => w.widthOf(l, SZ.body, true))) + 16;
-    for (const [label, value] of bankRows) drawLabelValue(w, label, value, labelW);
+    w.y = w.blockBottom + M.barToBank;
+    w.ensureSpace(LEAD * (bankRows.length + 1));
+    w.text("บัญชีที่รับโอน", { font: "sans" });
+    for (const [label, value] of bankRows) drawLabelValue(w, label, value, M.bankValueX);
   }
 
   if (data.note) {
-    w.space(14);
-    w.text(`หมายเหตุ: ${data.note}`, {
-      size: SZ.itemSub,
-      color: COLOR.gray555,
-      maxWidth: CONTENT_RIGHT - MARGIN_X,
-    });
+    w.y = w.blockBottom + LEAD;
+    w.text(`หมายเหตุ: ${data.note}`, { font: "looped", color: COLOR.grey, maxWidth: CONTENT_W });
   }
 
   drawSignature(w, LEGAL_ENTITY_OPERATOR, "ผู้จ่ายเงิน");

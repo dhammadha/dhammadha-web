@@ -12,7 +12,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { licenseLabel } from "@/lib/license";
+import { licenseLabel, licenseDocLines, fontDocName, type LicenseTier } from "@/lib/license";
 import Button from "@/components/ui/Button";
 
 type DetailItem = { name: string; price: number; license_type: string; font_id?: string | null };
@@ -42,6 +42,8 @@ type ItemRow = {
 
 interface Props {
   quote: ConfirmQuote;
+  /** tier ทั้งหมดที่ใช้ได้ — ใช้ตรึงข้อความสิทธิ์ตอนออกใบเสร็จเส้นทาง legacy */
+  tiers: LicenseTier[];
   onClose: () => void;
   /** เรียกหลังยืนยันสำเร็จ — ส่ง order/receipt กลับให้หน้าแม่จัดการ PDF + อีเมล */
   onConfirmed: (result: ConfirmResult) => void;
@@ -63,7 +65,7 @@ function isPriced(quote: ConfirmQuote): boolean {
   return !!d && d.length > 0 && d.every((it) => !!it.font_id && Number(it.price) >= 0);
 }
 
-export default function ConfirmPaidModal({ quote, onClose, onConfirmed }: Props) {
+export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }: Props) {
   const priced = isPriced(quote);
   const [fonts, setFonts] = useState<FontOption[]>([]);
   const [rows, setRows] = useState<ItemRow[]>([]);
@@ -114,12 +116,21 @@ export default function ConfirmPaidModal({ quote, onClose, onConfirmed }: Props)
     if (!ready || saving) return;
     setSaving(true);
     setError("");
-    const items = rows.map((r) => ({
-      font_id: r.font_id,
-      name: r.quoteName,
-      license_type: r.license_type,
-      price: Number(r.price) || 0,
-    }));
+    // เส้นทาง legacy (quote ที่ไม่เคยออกใบเสนอราคาแบบมีราคา) เป็นทางเดียวที่เขียน
+    // fonts_detail เอง จึงต้องตรึงข้อความที่จะพิมพ์ให้ครบเหมือน IssueQuoteModal
+    // ไม่งั้นใบเสร็จจะได้ชื่อฟอนต์/ข้อความสิทธิ์คนละแบบกับใบที่ออกตามปกติ
+    const items = rows.map((r) => {
+      const font = fonts.find((f) => f.id === r.font_id);
+      return {
+        font_id: r.font_id,
+        name: r.quoteName,
+        name_display: fontDocName(font?.name, font?.name_th, r.quoteName),
+        license_type: r.license_type,
+        license_label: licenseLabel(r.license_type, tiers),
+        license_lines: licenseDocLines(r.license_type, tiers),
+        price: Number(r.price) || 0,
+      };
+    });
     const { data, error: rpcError } = await supabase.rpc("confirm_quote_paid", {
       p_quote_id: quote.id,
       p_items: items,
@@ -167,7 +178,7 @@ export default function ConfirmPaidModal({ quote, onClose, onConfirmed }: Props)
             <div key={i} className="bg-surface p-3">
               <div className="font-ui text-ui text-black mb-2">
                 {row.quoteName}
-                <span className="font-body text-body-sm text-grey-600"> · {licenseLabel(row.license_type)}</span>
+                <span className="font-body text-body-sm text-grey-600"> · {licenseLabel(row.license_type, tiers)}</span>
               </div>
               {priced ? (
                 <div className="flex items-center justify-between">
