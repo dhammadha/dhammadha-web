@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { licenseLabel } from "@/lib/license";
+import { licenseLabel, licenseDocLines, type LicenseTier } from "@/lib/license";
 import Button from "@/components/ui/Button";
 
 export type IssueQuote = {
@@ -34,6 +34,8 @@ interface Props {
   quote: IssueQuote;
   /** รายการราคาตั้งต้น (จาก getLicenseItems/fonts_detail) — ชื่อ/ประเภทสิทธิ์/ราคา */
   initialItems: InitialItem[];
+  /** tier ทั้งหมดที่ใช้ได้ (custom ของ designer มาก่อน default ของเว็บ) */
+  tiers: LicenseTier[];
   onClose: () => void;
   /** เรียกหลังออกใบเสนอราคาสำเร็จ — เลขที่เอกสาร + already_issued */
   onIssued: (docNo: string, alreadyIssued: boolean) => void;
@@ -49,7 +51,7 @@ function matchFont(quoteName: string, fonts: FontOption[]): string {
   return partial?.id ?? "";
 }
 
-export default function IssueQuoteModal({ quote, initialItems, onClose, onIssued }: Props) {
+export default function IssueQuoteModal({ quote, initialItems, tiers, onClose, onIssued }: Props) {
   const [fonts, setFonts] = useState<FontOption[]>([]);
   const [rows, setRows] = useState<ItemRow[]>([]);
   const [discount, setDiscount] = useState<string>(String(quote.discount ?? 0));
@@ -86,10 +88,15 @@ export default function IssueQuoteModal({ quote, initialItems, onClose, onIssued
     if (!ready || saving) return;
     setSaving(true);
     setError("");
+    // ⚠️ ตรึงข้อความสิทธิ์ลงไปกับ item ตั้งแต่ตอนออกใบ (license_label/license_lines)
+    // เอกสารเป็นหลักฐานทางบัญชี พิมพ์ซ้ำเมื่อไหร่ต้องได้ข้อความเดิม — ถ้าเก็บแต่ id
+    // แล้วไปแปลตอนพิมพ์ ใบเก่าจะเปลี่ยนตามทันทีที่ designer แก้ชื่อ/ลบ tier
     const items = rows.map((r) => ({
       font_id: r.font_id,
       name: r.quoteName,
       license_type: r.license_type,
+      license_label: licenseLabel(r.license_type, tiers),
+      license_lines: licenseDocLines(r.license_type, tiers),
       price: Number(r.price) || 0,
     }));
     const { data, error: rpcError } = await supabase.rpc("issue_quotation_priced", {
@@ -133,7 +140,7 @@ export default function IssueQuoteModal({ quote, initialItems, onClose, onIssued
             <div key={i} className="bg-surface p-3">
               <div className="font-ui text-ui text-black mb-2">
                 {row.quoteName}
-                <span className="font-body text-body-sm text-grey-600"> · {licenseLabel(row.license_type)}</span>
+                <span className="font-body text-body-sm text-grey-600"> · {licenseLabel(row.license_type, tiers)}</span>
               </div>
               <div className="flex gap-2">
                 <select

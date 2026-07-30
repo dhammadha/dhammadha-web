@@ -5,11 +5,13 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import {
   licenseLabel,
+  licenseDocLines,
   parseLicenseSettings,
   parseDesignerTiers,
   findTier,
   type LicenseTier,
 } from "@/lib/license";
+import { uint8ToBase64 } from "@/lib/doc-layout";
 import PrintLightbox, { type PrintData } from "@/components/admin/PrintLightbox";
 import ConfirmPaidModal, { type ConfirmQuote } from "@/components/ConfirmPaidModal";
 import IssueQuoteModal, { type IssueQuote, type InitialItem } from "@/components/IssueQuoteModal";
@@ -24,7 +26,16 @@ type QuoteRow = {
   email: string;
   license_type: string;
   fonts: string[];
-  fonts_detail: Array<{ name: string; price: number; license_type: string; font_id?: string | null }> | null;
+  // license_label/license_lines มีเฉพาะใบที่ออกหลัง 31 ก.ค. 2569 — เป็นข้อความที่
+  // "ตรึง" ไว้ตอนออกใบ ใช้ค่านี้ก่อนเสมอ (ดู buildPrintData)
+  fonts_detail: Array<{
+    name: string;
+    price: number;
+    license_type: string;
+    license_label?: string | null;
+    license_lines?: string[] | null;
+    font_id?: string | null;
+  }> | null;
   discount: number;
   note: string | null;
   quote_no: string | null;
@@ -49,16 +60,6 @@ function fmtDate(s: string) {
 }
 
 const SELLER_FIELDS = "name, business_name, entity_type, tax_id, address, phone, email, bank";
-
-// chunk-safe Uint8Array → base64
-function uint8ToBase64(bytes: Uint8Array): string {
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-  }
-  return btoa(binary);
-}
 
 export default function OwnQuotes() {
   const { user } = useAuth();
@@ -143,6 +144,13 @@ export default function OwnQuotes() {
     return fontNames.map((name) => ({ name, license_type: label, price }));
   }, [allTiers]);
 
+  // บรรทัดย่อยของสิทธิ์บนเอกสาร — ใช้ค่าที่ตรึงไว้ตอนออกใบก่อนเสมอ
+  // fallback ไปคำนวณสดเฉพาะใบเก่าที่ออกก่อนมีการตรึงค่า (ค่าอาจเปลี่ยนถ้า tier ถูกแก้)
+  const resolveDocLines = useCallback((
+    stored: string[] | null | undefined,
+    licenseType: string,
+  ): string[] => (stored?.length ? stored : licenseDocLines(licenseType, allTiers)), [allTiers]);
+
   // สร้าง PrintData สำหรับใบเสนอราคา/ใบเสร็จ — ใช้ราคาที่บันทึกไว้ (fonts_detail) ถ้ามี
   const buildPrintData = useCallback(async (
     q: QuoteRow,
@@ -153,15 +161,20 @@ export default function OwnQuotes() {
     const sellerInfo = await getSeller();
     if (!sellerInfo) { showToast("กรุณาเพิ่มข้อมูลบัญชีใน Settings ก่อน"); return null; }
 
-    let items: Array<{ name: string; license_type: string; price: number }>;
+    let items: PrintData["items"];
     if (q.fonts_detail && q.fonts_detail.length > 0) {
       items = q.fonts_detail.map((d) => ({
         name: d.name,
-        license_type: licenseLabel(d.license_type, allTiers),
+        license_type: d.license_label ?? licenseLabel(d.license_type, allTiers),
+        license_lines: resolveDocLines(d.license_lines, d.license_type),
         price: d.price,
       }));
     } else {
-      items = await getLicenseItems(q.license_type, q.fonts);
+      const legacy = await getLicenseItems(q.license_type, q.fonts);
+      items = legacy.map((it) => ({
+        ...it,
+        license_lines: licenseDocLines(q.license_type, allTiers),
+      }));
     }
 
     const issuedAt = type === "quotation" ? q.quote_issued_at : q.receipt_issued_at;
@@ -179,7 +192,7 @@ export default function OwnQuotes() {
       discount: q.discount ?? 0,
       seller: sellerInfo,
     };
-  }, [getSeller, getLicenseItems, allTiers]);
+  }, [getSeller, getLicenseItems, resolveDocLines, allTiers]);
 
   const openPrint = useCallback(async (q: QuoteRow, type: "quotation" | "receipt") => {
     const data = await buildPrintData(q, type);
@@ -255,10 +268,10 @@ export default function OwnQuotes() {
     loadQuotes();
   };
 
-  const handleSendEmail = useCallback(async () => {
+  // รับ bytes ที่ lightbox สร้างและโชว์อยู่ — ไม่สร้างใหม่ ไฟล์ที่ลูกค้าได้จึงเป็น
+  // ไฟล์เดียวกับที่เพิ่งเห็นบนจอแบบ byte ต่อ byte
+  const handleSendEmail = useCallback(async (bytes: Uint8Array) => {
     if (!printData || !printQuoteId) return;
-    const { generateQuotePdf } = await import("@/lib/quote-doc");
-    const bytes = await generateQuotePdf(printData);
     const base64 = uint8ToBase64(bytes);
     const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch("/api/send-email", {
@@ -419,6 +432,7 @@ export default function OwnQuotes() {
         <IssueQuoteModal
           quote={issuing as IssueQuote}
           initialItems={issuingItems}
+          tiers={allTiers}
           onClose={() => setIssuing(null)}
           onIssued={async (docNo) => {
             const q = issuing;

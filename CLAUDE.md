@@ -50,9 +50,22 @@ When `!complete`, `src/app/designer/(dashboard)/layout.tsx` redirects to `/desig
 
 ### Database
 
-Types live in `src/lib/database.types.ts`. Migrations in `supabase/migrations/` (numbered `0001_` … `0049_` currently). Apply via `supabase db push` or Supabase MCP `apply_migration`.
+Types live in `src/lib/database.types.ts`. Migrations in `supabase/migrations/` (numbered `0001_` … `0071_` currently). Apply via `supabase db push` or Supabase MCP `apply_migration`.
 
 Key tables: `fonts`, `users` (extended with `designer_slug`, `bank` jsonb, `entity_type`, `tax_id`, `address`, `phone`, `business_name`), `quotes`, `licenses`.
+
+### Documents (quotation / invoice / receipt / payout)
+
+All PDFs come from **one renderer**. `src/lib/doc-layout.ts` owns geometry, Thai line
+breaking, and the top-edge→baseline conversion; `quote-doc.ts` and `payout-doc.ts` only
+describe *what* to draw. `PrintLightbox.tsx` previews the actual PDF in an `<iframe>` and
+hands the same bytes to the email sender — never re-render a document in HTML.
+
+Never call `page.drawText()` outside `doc-layout.ts`: pdf-lib positions text by baseline,
+and treating that as a box top is what previously made emailed documents overlap.
+
+License wording is **frozen into `quotes.fonts_detail` at issue time** (`license_lines`).
+Documents already sent must not change when a designer later edits tier names or prices.
 
 ### Font pipeline
 

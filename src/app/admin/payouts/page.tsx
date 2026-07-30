@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import Button from "@/components/ui/Button";
 import { fetchAllRows } from "@/lib/fetch-all";
+import { uint8ToBase64 } from "@/lib/doc-layout";
 import SubscriptionRevenue from "@/components/revenue/SubscriptionRevenue";
 import { buildSubMonthStatement, type MonthData } from "@/lib/subscription-revenue";
 import {
@@ -698,16 +699,6 @@ export default function AdminPayoutsPage() {
       )}
     </div>
   );
-}
-
-// chunk-safe Uint8Array → base64 (เลี่ยง String.fromCharCode(...bigArray) spread overflow)
-function uint8ToBase64(bytes: Uint8Array): string {
-  let binary = "";
-  const CHUNK = 0x8000;
-  for (let i = 0; i < bytes.length; i += CHUNK) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
-  }
-  return btoa(binary);
 }
 
 // สถานะการโอน (rollup ต่อ designer) — เขียวอ่อน/เหลือง/แดง/เทา

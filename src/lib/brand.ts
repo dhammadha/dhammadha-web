@@ -54,6 +54,23 @@ export const LOGO_SRC = "/logo_DHAMMADHA_192px.png";
  */
 export const LEGAL_ENTITY = "ธรรมดาสตูดิโอ";
 
+/**
+ * ข้อมูลบนหัวเอกสารที่ **แพลตฟอร์มเป็นผู้ออก** (ตอนนี้มีใบสรุปการโอนส่วนแบ่งรายได้)
+ *
+ * ทำไมเป็นค่าคงที่ ไม่ใช่ตาราง users: ฝั่ง admin ไม่มีหน้าตั้งค่าข้อมูลธุรกิจ
+ * (หน้า settings ที่มีอยู่เป็นของ designer) เอกสารที่ออกในนามแพลตฟอร์มจึงต้อง
+ * อ่านจากที่นี่ — ส่วนใบเสนอราคา/ใบแจ้งหนี้/ใบเสร็จออกในนาม designer เจ้าของฟอนต์
+ * และยังอ่านจากแถว users ของคนนั้นเหมือนเดิม
+ *
+ * ⚠️ วันจดนิติบุคคล: แก้ค่าในบล็อกนี้ที่เดียว เอกสารทุกใบเปลี่ยนตามทันที
+ */
+export const LEGAL_ENTITY_OPERATOR = "มณทล ธนาโรจน์";
+export const LEGAL_ENTITY_TAX_ID = "1849900005733";
+export const LEGAL_ENTITY_ADDRESS =
+  "96/9 การุณราษฎร์ 27 ต.ตลาด อ.เมืองสุราษฎร์ธานี จ.สุราษฎร์ธานี 84000";
+export const LEGAL_ENTITY_PHONE = "09-2929-9882";
+export const LEGAL_ENTITY_EMAIL = "dhammadha@outlook.com";
+
 /** ปีที่เริ่มดำเนินการ — ใช้ในบรรทัดลิขสิทธิ์ท้ายเว็บ */
 export const FOUNDED_YEAR = 2012;
 

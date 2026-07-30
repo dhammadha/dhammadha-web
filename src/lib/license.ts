@@ -160,6 +160,68 @@ export function licenseLabel(
   return LICENSE_LABEL[value] ?? value;
 }
 
+/* ── ข้อความสิทธิ์บนเอกสาร (ใบเสนอราคา/ใบแจ้งหนี้/ใบเสร็จ) ──────────────────── */
+
+/** บรรทัดแรกของทุกรายการ — คงที่ ไม่ขึ้นกับ tier */
+const DOC_LICENSE_HEADLINE = "สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท";
+
+/** บรรทัดปิดท้ายของ tier "สิทธิการใช้งานเพิ่มเติม" — อ้างข้อ 3 ในหน้า /agreement */
+const DOC_EXTENDED_CLAUSE = "พร้อมสิทธิการใช้งานเพิ่มเติม ตาม ข้อ (3) ในสัญญาอนุญาต";
+
+/**
+ * tier นี้ "เหมือน default ทุกอย่าง เปลี่ยนแค่ราคา" หรือไม่
+ *
+ * ใช้ตัดสินว่าจะพิมพ์ข้อความอ้างอิงข้อสัญญาลงเอกสารได้หรือเปล่า — อ้างได้เฉพาะ
+ * สิทธิ์ที่เว็บนิยามเอง ห้ามอ้างแทนสิทธิ์ที่ designer ตั้งชื่อ/เขียนคำอธิบายเอง
+ *
+ * เทียบทั้ง id + name + desc เพราะตอน designer ปิด use_default ตัวแก้ไขราคา
+ * seed จาก DEFAULT_LICENSE_TIERS ทั้งชุดโดยคง id เดิมไว้ (ดู OwnPricing.tsx)
+ * id อย่างเดียวจึงไม่พอ — แก้ชื่อแล้ว id ยังเป็น extended อยู่
+ */
+export function isDefaultTier(tier: LicenseTier | undefined | null): boolean {
+  if (!tier) return false;
+  const base = DEFAULT_LICENSE_TIERS.find((d) => d.id === tier.id);
+  if (!base) return false;
+  return base.name === tier.name && (base.desc ?? "") === (tier.desc ?? "");
+}
+
+/** "ชื่อ (คำอธิบาย)" — ไม่มีคำอธิบายก็เหลือแค่ชื่อ */
+function tierLine(tier: LicenseTier): string {
+  return tier.desc ? `${tier.name} (${tier.desc})` : tier.name;
+}
+
+/**
+ * บรรทัดย่อยใต้ชื่อฟอนต์บนเอกสาร
+ *
+ * ปกติ 2 บรรทัด (หัวข้อ + ชื่อ tier) แต่ "สิทธิการใช้งานเพิ่มเติม" แบบ default
+ * เป็นส่วนต่อยอดจากสิทธิบริษัทขนาดใหญ่ จึงได้ 3 บรรทัด: หัวข้อ + สิทธิ์ large_agency
+ * + ข้อความอ้างข้อสัญญา
+ *
+ * ⚠️ ผลลัพธ์ของฟังก์ชันนี้ถูก "ตรึง" ลง quotes.fonts_detail ตอนออกใบเสนอราคา
+ * (ดู IssueQuoteModal) เอกสารที่ออกไปแล้วจึงไม่เปลี่ยนตามการแก้ราคา/ชื่อสิทธิ์
+ * ภายหลัง — ห้ามเปลี่ยนไปคำนวณสดตอนพิมพ์เด็ดขาด
+ */
+export function licenseDocLines(
+  value: string | null | undefined,
+  tiers?: LicenseTier[] | null
+): string[] {
+  const tier = findTier(value, tiers);
+  if (!tier) {
+    const label = licenseLabel(value, tiers);
+    return label ? [DOC_LICENSE_HEADLINE, label] : [DOC_LICENSE_HEADLINE];
+  }
+
+  if (tier.id === "extended" && isDefaultTier(tier)) {
+    const large = (tiers ?? []).find((t) => t.id === "large_agency");
+    const largeLine = large && isDefaultTier(large)
+      ? tierLine(large)
+      : tierLine(DEFAULT_LICENSE_TIERS.find((d) => d.id === "large_agency")!);
+    return [DOC_LICENSE_HEADLINE, largeLine, DOC_EXTENDED_CLAUSE];
+  }
+
+  return [DOC_LICENSE_HEADLINE, tierLine(tier)];
+}
+
 /**
  * สร้าง id ใหม่สำหรับ tier ที่ admin เพิ่มเอง
  * id ต้องนิ่งถาวร และห้ามอิงจากชื่อ — เปลี่ยนชื่อ tier แล้วแถวเก่าต้องไม่พัง
