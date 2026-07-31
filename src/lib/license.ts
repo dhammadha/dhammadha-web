@@ -7,6 +7,10 @@
 import { EFFECTIVE_DATE } from "./legal";
 
 export const LICENSE_LABEL: Record<string, string> = {
+  // `personal` = สิทธิ์ที่ได้จากการซื้อรายฟอนต์บนเว็บ (checkout-service ตั้งค่านี้)
+  // ใช้ถ้อยคำเดียวกับ /agreement ข้อ "สิทธิการใช้งานส่วนบุคคล ใช้งานได้เพียงคนเดียว"
+  // — ถ้าไม่มีบรรทัดนี้ อีเมลยืนยันคำสั่งซื้อจะโชว์ค่าดิบว่า "personal"
+  personal: "สิทธิการใช้งานส่วนบุคคล",
   small_medium: "บริษัทขนาดเล็ก / กลาง",
   large_agency: "บริษัทขนาดใหญ่ / Ad Agency",
   extended: "สิทธิการใช้งานเพิ่มเติม",

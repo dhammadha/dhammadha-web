@@ -47,6 +47,18 @@ function escapeHtml(value: unknown): string {
     .replaceAll("'", "&#39;");
 }
 
+/**
+ * บรรทัดทักทายหัวอีเมล — กันเคส "เรียน คุณ " ห้อยลอยเมื่อไม่รู้ชื่อผู้รับ
+ *
+ * ⚠️ ไม่ใช่เคสหายาก: **PromptPay ไม่เก็บชื่อผู้จ่าย** (`customer_details.name` ของ
+ * Stripe เป็น null) ลูกค้าที่จ่ายด้วย PromptPay ทุกคนจึงเข้าทางนี้
+ * — ใบบัตรถึงจะมีชื่อ เพราะกรอกชื่อบนบัตร (เจอจริงตอนทดสอบขั้นที่ 2, 1 ส.ค. 2026)
+ */
+function greetingLine(name: string | null | undefined): string {
+  const n = typeof name === "string" ? name.trim() : "";
+  return n ? `เรียน คุณ ${escapeHtml(n)}` : "สวัสดีครับ";
+}
+
 function str(value: unknown, maxLen = 500): string {
   return typeof value === "string" ? value.trim().slice(0, maxLen) : "";
 }
@@ -340,7 +352,7 @@ function deliveryHtml(
       ? `<tr><td style="padding:6px 0;color:#888">ส่วนลด</td><td style="padding:6px 0;text-align:right;white-space:nowrap;color:#c0392b">-฿${Number(order.discount).toLocaleString()}</td></tr>`
       : "";
   return `
-<p>เรียน คุณ ${escapeHtml(order.customer_name ?? "")}</p>
+<p>${greetingLine(order.customer_name)}</p>
 <p>ขอบคุณสำหรับการสั่งซื้อ — เราได้รับการยืนยันการชำระเงินของคุณแล้ว (เลขที่คำสั่งซื้อ <strong>${escapeHtml(order.order_no)}</strong>)</p>
 <table style="border-collapse:collapse;width:100%;max-width:480px">
   ${rows}
@@ -365,7 +377,7 @@ interface DocumentQuoteFields {
 }
 
 function documentHtml(d: DocumentQuoteFields, docType: "quotation" | "receipt", docNo: string): string {
-  const greetingName = d.contact_name || d.company_name || "";
+  const greetingName = d.contact_name || d.company_name;
   const body =
     docType === "quotation"
       ? `<p>แนบใบเสนอราคาเลขที่ <strong>${escapeHtml(docNo)}</strong> ตามที่ท่านสอบถามเข้ามา กรุณาตรวจสอบรายละเอียดในไฟล์ที่แนบมาพร้อมนี้</p>
@@ -373,7 +385,7 @@ function documentHtml(d: DocumentQuoteFields, docType: "quotation" | "receipt", 
       : `<p>ขอบคุณสำหรับการชำระเงิน แนบใบเสร็จรับเงินเลขที่ <strong>${escapeHtml(docNo)}</strong> ตามไฟล์ที่แนบมาพร้อมนี้</p>
 <p>หากมีข้อสงสัยเกี่ยวกับใบเสร็จ ติดต่อได้ที่ <a href="mailto:${escapeHtml(STUDIO_CONTACT_EMAIL)}">${escapeHtml(STUDIO_CONTACT_EMAIL)}</a></p>`;
   return `
-<p>เรียน คุณ ${escapeHtml(greetingName)}</p>
+<p>${greetingLine(greetingName)}</p>
 ${body}
 <p>ขอบคุณมากครับ</p>
 ${STUDIO_FOOTER}
