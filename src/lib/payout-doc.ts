@@ -69,14 +69,16 @@ export async function generatePayoutPdf(
   });
 
   drawIssuerHeader(w, PLATFORM_ISSUER);
-  drawTitleRow(w, "ใบสรุปการโอนส่วนแบ่งรายได้", [
-    ["งวด", data.periodLabel],
-    ["วันที่โอน", paidDate],
-  ]);
+  // ไม่มีบล็อกเลขที่/วันที่ทางขวาแบบใบเสนอราคา — ใบนี้ยังไม่มีเลขที่เอกสาร
+  // และงวด/วันที่โอนอยู่ใต้ชื่อผู้รับแทน (ดูบล็อกถัดไป)
+  drawTitleRow(w, "ใบสรุปการโอนส่วนแบ่งรายได้", []);
 
-  /* ── ผู้รับเงิน ────────────────────────────────────────────────────────── */
+  /* ── ผู้รับเงิน + งวด ──────────────────────────────────────────────────── */
+  // ค่าของงวด/วันที่โอนกั้นหน้าตรงกับหัวข้อ "รายละเอียด" ในแถบตารางด้านล่าง
   w.y = M.recipientFirst;
   w.text(data.designerName, { font: "sans", maxWidth: CONTENT_W });
+  drawLabelValue(w, "งวด", data.periodLabel, M.colNameX);
+  drawLabelValue(w, "วันที่โอน", paidDate, M.colNameX);
 
   /* ── ตารางรายการ ──────────────────────────────────────────────────────── */
   const rows: Array<[string, number]> = [

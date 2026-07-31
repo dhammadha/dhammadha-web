@@ -437,9 +437,12 @@ export function drawTitleRow(w: DocWriter, title: string, rows: Array<[string, s
   }
 }
 
-/** แถวป้าย/ค่า สองคอลัมน์ (บล็อกรายละเอียดการชำระเงิน) */
+/**
+ * แถวป้าย/ค่า สองคอลัมน์ (บล็อกรายละเอียดการชำระเงิน, งวดในใบสรุปโอนส่วนแบ่ง)
+ * ป้ายเป็นสีเดียวกับเนื้อความ ไม่ใช่ navy — วัดจากต้นแบบแล้วเป็น #1A1919
+ */
 export function drawLabelValue(w: DocWriter, label: string, value: string, valueX: number): void {
-  w.drawAt(label, w.y, { font: "sans", color: COLOR.navy });
+  w.drawAt(label, w.y, { font: "sans", color: COLOR.text });
   w.drawAt(value, w.y, { x: valueX, font: "looped" });
   w.blockBottom = w.y;
   w.y += LEAD;

@@ -369,7 +369,7 @@ export default function OwnPricing() {
       <div className="flex justify-end mb-8">
         <Button
           onClick={save}
-          disabled={saving || (!useDefault && !pdfUrl && !pdfFile)}/Users/montonn/Desktop/dhammadha-web/src/lib/doc-layout.ts
+          disabled={saving || (!useDefault && !pdfUrl && !pdfFile)}
         >
           {saving ? "กำลังบันทึก…" : "บันทึก"}
         </Button>
