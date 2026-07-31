@@ -2,6 +2,9 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 
+// re-export เพื่อให้หน้าเอกสารทุกหน้า import จากที่เดียวกับ LegalPage ได้ (ดู src/lib/legal.ts)
+export { EFFECTIVE_DATE } from "@/lib/legal";
+
 // เลย์เอาต์กลางของหน้าเอกสาร (Privacy / Terms / Refund / Designer Agreement / Agreement)
 export default function LegalPage({
   title,

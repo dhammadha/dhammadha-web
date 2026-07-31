@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import LegalPage, { LegalSection } from "@/components/LegalPage";
+import LegalPage, { LegalSection, EFFECTIVE_DATE } from "@/components/LegalPage";
 import { NAME as BRAND_NAME, CONTACT_EMAIL, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function RefundPolicyPage() {
     <LegalPage
       title="นโยบายการคืนเงิน"
       subtitle="Refund Policy"
-      effectiveDate="9 กรกฎาคม 2569"
+      effectiveDate={EFFECTIVE_DATE}
     >
       <LegalSection title="1. หลักการทั่วไป">
         <p>
@@ -44,6 +44,14 @@ export default function RefundPolicyPage() {
           กรณีซื้อผ่านใบเสนอราคาที่ชำระเงินตรงกับนักออกแบบ การคืนเงินเป็นข้อตกลงระหว่างคุณกับนักออกแบบรายนั้น
           โดยเรายินดีช่วยประสานงานให้ ดูเพิ่มเติม :{" "}
           <Link href="/terms/" className="text-mint-text">ข้อกำหนดการใช้งาน</Link>
+        </p>
+      </LegalSection>
+
+      <LegalSection title="5. ลำดับความสำคัญของเอกสาร">
+        <p>
+          นโยบายฉบับนี้เป็นเงื่อนไขการคืนเงินที่มีผลบังคับ
+          หากมีข้อความในเอกสารอื่นของเว็บไซต์ขัดหรือแย้งกับนโยบายฉบับนี้
+          ให้ยึดถือนโยบายฉบับนี้เป็นสำคัญ
         </p>
       </LegalSection>
     </LegalPage>

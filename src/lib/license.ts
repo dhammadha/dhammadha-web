@@ -4,6 +4,8 @@
 // - custom tier ที่เก็บชื่อเป็นข้อความอยู่แล้ว → คืนค่าเดิม (pass-through)
 // ใช้แทนการ render license_type ดิบทุกจุด (ตาราง/รายละเอียด/modal/อีเมล/เอกสาร)
 
+import { EFFECTIVE_DATE } from "./legal";
+
 export const LICENSE_LABEL: Record<string, string> = {
   small_medium: "บริษัทขนาดเล็ก / กลาง",
   large_agency: "บริษัทขนาดใหญ่ / Ad Agency",
@@ -182,8 +184,18 @@ export function fontDocName(
 /** บรรทัดแรกของทุกรายการ — คงที่ ไม่ขึ้นกับ tier */
 const DOC_LICENSE_HEADLINE = "สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท";
 
-/** บรรทัดปิดท้ายของ tier "สิทธิการใช้งานเพิ่มเติม" — อ้างข้อ 3 ในหน้า /agreement */
-const DOC_EXTENDED_CLAUSE = "พร้อมสิทธิการใช้งานเพิ่มเติม ตาม ข้อ (3) ในสัญญาอนุญาต";
+/**
+ * บรรทัดปิดท้ายของ tier "สิทธิการใช้งานเพิ่มเติม" — อ้าง **ข้อ 5** ในหน้า /agreement
+ *
+ * ⚠️ ผูกกับเลขข้อในหน้า `/agreement` โดยตรง ถ้าเรียงข้อใหม่ต้องแก้ที่นี่คู่กันเสมอ
+ * (เดิมอ้าง "ข้อ (3)" — ฉบับ 1 ส.ค. 2569 เพิ่มข้อนิยาม/ผู้รับจ้างช่วงเข้ามาข้างหน้า
+ * ทำให้เลื่อนเป็นข้อ 5) เอกสารเก่าที่ตรึงคำว่า "ข้อ (3)" ไว้แล้วจะยังอ้างข้อ 3 ต่อไป
+ * ซึ่งถูกต้อง เพราะมันชี้ไปสัญญาฉบับที่มีผลตอนออกใบนั้น
+ */
+const DOC_EXTENDED_CLAUSE = "พร้อมสิทธิการใช้งานเพิ่มเติม ตาม ข้อ (5) ในสัญญาอนุญาต";
+
+/** บรรทัดสุดท้ายของทุกรายการ — ตรึงว่าใบนี้อยู่ใต้สัญญาอนุญาตฉบับไหน */
+const DOC_VERSION_LINE = `ตามสัญญาอนุญาตฉบับ ${EFFECTIVE_DATE}`;
 
 /**
  * tier นี้ "เหมือน default ทุกอย่าง เปลี่ยนแค่ราคา" หรือไม่
@@ -214,6 +226,10 @@ function tierLine(tier: LicenseTier): string {
  * เป็นส่วนต่อยอดจากสิทธิบริษัทขนาดใหญ่ จึงได้ 3 บรรทัด: หัวข้อ + สิทธิ์ large_agency
  * + ข้อความอ้างข้อสัญญา
  *
+ * ปิดท้ายทุกกรณีด้วยบรรทัดเวอร์ชันสัญญา เพราะข้อความอย่าง "ตาม ข้อ (5) ในสัญญาอนุญาต"
+ * ชี้ไปหน้าเว็บที่แก้ได้ — ถ้าไม่ตรึงว่าเป็นฉบับไหน ใบเก่าจะกลายเป็นชี้ไปสัญญาฉบับใหม่
+ * ที่ผู้ซื้อไม่เคยตกลงด้วย (ดู /agreement ข้อ 14)
+ *
  * ⚠️ ผลลัพธ์ของฟังก์ชันนี้ถูก "ตรึง" ลง quotes.fonts_detail ตอนออกใบเสนอราคา
  * (ดู IssueQuoteModal) เอกสารที่ออกไปแล้วจึงไม่เปลี่ยนตามการแก้ราคา/ชื่อสิทธิ์
  * ภายหลัง — ห้ามเปลี่ยนไปคำนวณสดตอนพิมพ์เด็ดขาด
@@ -225,7 +241,9 @@ export function licenseDocLines(
   const tier = findTier(value, tiers);
   if (!tier) {
     const label = licenseLabel(value, tiers);
-    return label ? [DOC_LICENSE_HEADLINE, label] : [DOC_LICENSE_HEADLINE];
+    return label
+      ? [DOC_LICENSE_HEADLINE, label, DOC_VERSION_LINE]
+      : [DOC_LICENSE_HEADLINE, DOC_VERSION_LINE];
   }
 
   if (tier.id === "extended" && isDefaultTier(tier)) {
@@ -233,10 +251,10 @@ export function licenseDocLines(
     const largeLine = large && isDefaultTier(large)
       ? tierLine(large)
       : tierLine(DEFAULT_LICENSE_TIERS.find((d) => d.id === "large_agency")!);
-    return [DOC_LICENSE_HEADLINE, largeLine, DOC_EXTENDED_CLAUSE];
+    return [DOC_LICENSE_HEADLINE, largeLine, DOC_EXTENDED_CLAUSE, DOC_VERSION_LINE];
   }
 
-  return [DOC_LICENSE_HEADLINE, tierLine(tier)];
+  return [DOC_LICENSE_HEADLINE, tierLine(tier), DOC_VERSION_LINE];
 }
 
 /**

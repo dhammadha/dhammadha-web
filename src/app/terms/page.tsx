@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import LegalPage, { LegalSection } from "@/components/LegalPage";
+import LegalPage, { LegalSection, EFFECTIVE_DATE } from "@/components/LegalPage";
 import { DOMAIN, CONTACT_EMAIL, LEGAL_ENTITY, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function TermsPage() {
     <LegalPage
       title="ข้อกำหนดการใช้งาน"
       subtitle="Terms of Service"
-      effectiveDate="9 กรกฎาคม 2569"
+      effectiveDate={EFFECTIVE_DATE}
     >
       <LegalSection title="1. ทั่วไป">
         <p>
@@ -37,15 +37,22 @@ export default function TermsPage() {
         </p>
         <p>
           ห้ามแจกจ่าย แชร์ ขายต่อ หรือดัดแปลงไฟล์ฟอนต์เพื่อเผยแพร่ต่อโดยไม่ได้รับอนุญาต
-          ไฟล์ทดลอง (Demo) ใช้เพื่อการทดสอบก่อนตัดสินใจซื้อและใช้งานส่วนบุคคลเท่านั้น ไม่อนุญาตให้ใช้งานในเชิงพาณิชย์ทุกกรณี
+          รายละเอียดขอบเขตสิทธิ์ ข้อห้าม และเงื่อนไขของไฟล์ทดลอง (Demo) และฟอนต์แจกฟรี
+          ให้เป็นไปตาม{" "}
+          <Link href="/agreement/" className="text-mint-text">สัญญาอนุญาตใช้งานฟอนต์</Link>
         </p>
       </LegalSection>
 
       <LegalSection title="4. การสั่งซื้อและใบเสนอราคา">
         <p>
-          ราคาบนเว็บไซต์อาจเปลี่ยนแปลงได้โดยไม่ต้องแจ้งล่วงหน้า สำหรับสิทธิ์การใช้งานองค์กร
-          ระบบใบเสนอราคาจะส่งคำขอของคุณถึงนักออกแบบเจ้าของฟอนต์โดยตรง
-          การชำระเงินและการออกเอกสารสำหรับฟอนต์ของนักออกแบบแต่ละราย เป็นธุรกรรมระหว่างคุณกับนักออกแบบรายนั้น
+          ราคาบนเว็บไซต์อาจเปลี่ยนแปลงได้โดยไม่ต้องแจ้งล่วงหน้า
+          การสั่งซื้อฟอนต์รายชุดผ่านระบบชำระเงินของเว็บไซต์ เป็นธุรกรรมระหว่างคุณกับ{" "}
+          {LEGAL_ENTITY} ซึ่งได้รับสิทธิให้อนุญาตช่วงจากนักออกแบบเจ้าของผลงาน
+        </p>
+        <p>
+          ส่วนคำขอใบเสนอราคาสำหรับสิทธิ์การใช้งานองค์กร
+          ระบบจะส่งคำขอของคุณถึงนักออกแบบเจ้าของฟอนต์โดยตรง การเจรจา การชำระเงิน
+          และการออกเอกสารในส่วนนั้น เป็นธุรกรรมระหว่างคุณกับนักออกแบบรายนั้น
         </p>
       </LegalSection>
 

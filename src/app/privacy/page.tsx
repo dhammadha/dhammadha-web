@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import LegalPage, { LegalSection } from "@/components/LegalPage";
+import LegalPage, { LegalSection, EFFECTIVE_DATE } from "@/components/LegalPage";
 import { NAME as BRAND_NAME, DOMAIN, CONTACT_EMAIL, LEGAL_ENTITY, pageTitle } from "@/lib/brand";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="นโยบายความเป็นส่วนตัว"
       subtitle="Privacy Policy — ตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)"
-      effectiveDate="9 กรกฎาคม 2569"
+      effectiveDate={EFFECTIVE_DATE}
     >
       <LegalSection title="1. ผู้ควบคุมข้อมูล">
         <p>
@@ -45,7 +45,8 @@ export default function PrivacyPage() {
 
       <LegalSection title="4. การเปิดเผยข้อมูลต่อบุคคลที่สาม">
         <p>
-          เราไม่มีนโยบายจำหน่ายข้อมูลส่วนบุคคลของคุณ ข้อมูลอาจถูกประมวลผลโดยผู้ให้บริการที่เราใช้เพื่อให้ระบบทำงาน ได้แก่ Supabase (ฐานข้อมูลและระบบสมาชิก), Cloudflare (โครงสร้างพื้นฐานเว็บไซต์),
+          เราไม่มีนโยบายจำหน่ายข้อมูลส่วนบุคคลของคุณ ข้อมูลอาจถูกประมวลผลโดยผู้ให้บริการที่เราใช้เพื่อให้ระบบทำงาน ได้แก่ Supabase (ฐานข้อมูลและระบบสมาชิก), Cloudflare (โครงสร้างพื้นฐานเว็บไซต์),{" "}
+          <strong>Stripe</strong> (ระบบรับชำระเงิน — ข้อมูลบัตรและการชำระเงินถูกประมวลผลโดย Stripe โดยตรง เราไม่จัดเก็บเลขบัตรของคุณ),
           Resend (ระบบส่งอีเมล) และ Google AdSense (โฆษณา ซึ่งอาจใช้คุกกี้ตามนโยบายของ Google)<br />
 กรณีขอใบเสนอราคาฟอนต์ของนักออกแบบรายใด ข้อมูลคำขอจะถูกส่งถึงนักออกแบบรายนั้นเพื่อติดต่อกลับ
         </p>
