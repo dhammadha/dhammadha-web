@@ -128,15 +128,25 @@ DB apply 0069–0071 ไปก่อนหน้าโค้ด ถ้าเว�
    · `users.vat_registered` เก็บแล้วแต่ยังไม่ถูกใช้คำนวณ (UI เขียนเองว่า "ยังไม่มีผลต่อ
      การคำนวณ") — ต้องเคาะพร้อมข้อ 0b.2
 2. **Stripe ขั้นที่ 2 — ทดสอบบน production ด้วย test key** (ขั้นที่ 1 ที่เครื่องผ่านแล้ว)
-   · push + deploy โค้ดล่าสุดก่อน
-   · Cloudflare Pages env ให้ครบ: `STRIPE_SECRET_KEY` (มีแล้ว) + **`STRIPE_WEBHOOK_SECRET`** +
-     `SUPABASE_SERVICE_ROLE_KEY` + `RESEND_API_KEY` + Turnstile + `CF_DEPLOY_HOOK`
-   · Stripe (โหมด Test) → Webhooks → endpoint `https://<โดเมน>/api/stripe-webhook`
-     เลือก 2 events: `checkout.session.completed` + `checkout.session.async_payment_succeeded`
+   · **ทำได้เลยไม่ต้องรอข้อ 0/0b** — ขั้นนี้เป็น test key บน `pages.dev` ซึ่งเป็นของทิ้ง
+     webhook โหมด test/live เป็นคนละตัวต้องสร้างใหม่ตอน go-live อยู่แล้ว · ที่ต้องรอ DNS คือขั้นที่ 3
+   · ~~push + deploy โค้ดล่าสุดก่อน~~ ✅ ขึ้นแล้ว (`e7463bb`, 1 ส.ค. 2026)
+   · ~~Stripe (โหมด Test) → Webhooks → endpoint~~ ✅ **สร้างแล้ว (1 ส.ค. 2026)** ผ่าน Stripe API
+     `we_1TzN0NDWIHX6MqtE4CSqrwI8` → `https://dhammadha-web.pages.dev/api/stripe-webhook`
+     `livemode:false` · events ครบ 2 ตัว (`checkout.session.completed` +
+     `checkout.session.async_payment_succeeded`) · **`whsec_` ไม่เก็บใน repo** — อยู่ใน Pages env
+     · ⚠️ ค่าใน `.env.local` เป็นคนละตัว (ของ `stripe listen` สำหรับ dev) **ห้ามทับกัน**
+   · **🔴 ค้างอยู่: Cloudflare Pages env** — `STRIPE_SECRET_KEY` ✅ / Turnstile ✅ (probe แล้วเจอ)
+     แต่ `/api/stripe-webhook` ยังคืน `not_configured` = ขาด **`STRIPE_WEBHOOK_SECRET`**
+     และ/หรือ `SUPABASE_SERVICE_ROLE_KEY` · ต้องมี `RESEND_API_KEY` + `ADMIN_EMAIL` ด้วย
+     **แล้ว redeploy — env ใหม่ของ Pages ไม่มีผลกับ deployment เดิม ต้อง build ใหม่**
+     · เช็คว่าสำเร็จ: `curl -X POST <โดเมน>/api/stripe-webhook -d '{}'` ต้องเปลี่ยนจาก
+       `not_configured` (500) เป็น **`bad_signature` (400)**
    · **Terms of service URL → `https://<โดเมน>/agreement/`** (Settings → Public details)
      ตั้งได้ **ค่าเดียวทั้งบัญชี override ต่อ session ไม่ได้** จึงชี้ไปสัญญาอนุญาต ไม่ใช่ `/terms/`
      — หน้า `/agreement/` มีย่อหน้า "ร่ม" อ้างถึงข้อกำหนดการใช้งาน + สัญญาฉบับของดีไซน์เนอร์แล้ว
      (29 ก.ค. 2026) · ต้องตั้ง **ทั้งโหมด test และ live** ไม่งั้นสร้าง session ไม่ได้ = ปุ่มซื้อพัง
+     · **โหมด test ตั้งไว้แล้ว** (ยืนยัน 1 ส.ค. 2026 — สร้าง session ผ่าน ถ้าไม่ตั้งจะ error ตั้งแต่แรก)
    · ~~⚠️ ต้องลองตอนนี้: `custom_text[terms_of_service_acceptance][message]`~~ ✅ **เสร็จแล้ว
      (1 ส.ค. 2026)** — ตั้งใน `checkout-service.ts` (`tosAcceptanceMessage(site)`) ทดสอบบน
      หน้าจ่ายเงินจริงด้วย test key แล้ว ได้ข้อสรุปสองข้อที่**เอกสาร Stripe ไม่ได้เขียนไว้**:
