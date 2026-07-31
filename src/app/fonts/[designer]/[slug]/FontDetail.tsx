@@ -271,7 +271,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const inCart = !!font && hasInCart(font.id);
 
   /**
-   * ซื้อฟอนต์ (สิทธิ์บุคคลทั่วไป) — **ทุกการซื้อผ่านตะกร้าทางเดียว** ไม่ยิง
+   * ซื้อฟอนต์ (สิทธิการใช้งานส่วนบุคคล) — **ทุกการซื้อผ่านตะกร้าทางเดียว** ไม่ยิง
    * /api/checkout จากหน้านี้แล้ว (ราคาคิดฝั่ง server ตอนกดชำระเงินที่ตะกร้า)
    *
    * กดครั้งแรก = ใส่ตะกร้าเฉย ๆ **ไม่พาไปไหน** ลูกค้าจะได้เลือกตัวอื่นต่อได้
@@ -557,13 +557,13 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
           {tab === "buy" && (
             <div role="tabpanel" id="panel-buy" aria-labelledby="tab-buy">
-              {/* 2 คอลัมน์: ซ้าย = บุคคลทั่วไป · ขวา = ห้างร้าน องค์กร บริษัท
+              {/* 2 คอลัมน์: ซ้าย = บุคคลธรรมดา · ขวา = ห้างร้าน องค์กร บริษัท
                   มือถือซ้อนกันคอลัมน์เดียว (items-start กันคอลัมน์สั้นถูกยืดตามคอลัมน์ยาว) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
                 {/* Personal tier */}
                 <div>
-                  <h3 className="font-heading text-h2 text-black mb-3">บุคคลทั่วไป</h3>
+                  <h3 className="font-heading text-h2 text-black mb-3">บุคคลธรรมดา</h3>
                   <div className="bg-surface px-4 py-3 mb-3">
                     <div className="flex justify-between items-center gap-3">
                       <span className="font-body text-body text-black">
@@ -641,7 +641,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                     </Button>
                   )}
 
-                  {/* Subscription อยู่ในคอลัมน์ซ้าย — เป็นทางเลือกแทนการซื้อรายตัวของ "บุคคลทั่วไป"
+                  {/* Subscription อยู่ในคอลัมน์ซ้าย — เป็นทางเลือกแทนการซื้อรายตัวของ "บุคคลธรรมดา"
                       ไม่เกี่ยวกับสิทธิ์องค์กร ถ้าปล่อยเป็นพี่น้องของ grid จะตกไปคอลัมน์ขวา */}
                   {font.is_subscription && (
                     <div className="bg-surface px-4 py-4 flex flex-wrap items-center justify-between gap-3 mt-3">

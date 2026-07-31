@@ -96,7 +96,7 @@ export default function CartView() {
                   <span className="font-body text-body text-black truncate block">{name}</span>
                 )}
                 <span className="font-body text-footnote text-grey-600">
-                  โดย {f.designer_profiles?.business_name || "—"} · สิทธิ์บุคคลทั่วไป
+                  โดย {f.designer_profiles?.business_name || "—"} · สิทธิการใช้งานส่วนบุคคล
                 </span>
               </div>
               <div className="text-right flex-shrink-0">

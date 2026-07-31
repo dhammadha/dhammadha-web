@@ -225,7 +225,12 @@ export async function handleCheckoutRequest(
     form.set(`line_items[${i}][quantity]`, "1");
     form.set(`line_items[${i}][price_data][currency]`, "thb");
     form.set(`line_items[${i}][price_data][unit_amount]`, String(Math.round(price * 100)));
-    form.set(`line_items[${i}][price_data][product_data][name]`, `ฟอนต์ ${fontName} — สิทธิ์บุคคลทั่วไป`);
+    // ใช้ถ้อยคำเดียวกับ LICENSE_LABEL.personal / /agreement — ลูกค้าเห็นคำเดียวกัน
+    // ตลอดเส้นทาง ตะกร้า → หน้าจ่ายเงิน → อีเมล → เอกสาร
+    form.set(
+      `line_items[${i}][price_data][product_data][name]`,
+      `ฟอนต์ ${fontName} — สิทธิการใช้งานส่วนบุคคล`
+    );
     form.set(`line_items[${i}][price_data][product_data][metadata][font_id]`, font.id);
   });
   // ซื้อฟอนต์เดียว: คง metadata[font_id] ไว้เป็นทางถอยของ webhook (session เก่า
