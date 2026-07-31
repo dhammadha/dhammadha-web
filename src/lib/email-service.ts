@@ -130,14 +130,32 @@ async function supabaseSelect<T>(
       diag.detail = `env_missing: url=${env.SUPABASE_URL ? "ok" : "MISSING"} anon=${env.SUPABASE_ANON_KEY ? "ok" : "MISSING"} token=${accessToken ? "ok" : "MISSING"}`;
     return null;
   }
+  // 🔴 เลือก header ตาม**ชนิดของ token** ไม่ใช่ใส่ anon ใน apikey ตายตัว
+  //
+  // Supabase มี key สองรูปแบบ:
+  //  - JWT (3 ส่วนคั่นด้วยจุด) = token ของผู้ใช้จริง → apikey=anon + Bearer=<jwt>
+  //    ต้องเป็นแบบนี้เท่านั้น RLS จึงบังคับตามสิทธิ์ของผู้ใช้คนนั้น
+  //  - ไม่ใช่ JWT = secret key แบบใหม่ (`sb_secret_...`) → ใส่ key ลง**ทั้งสอง** header
+  //    เหมือนที่ `create_checkout_order_multi` ทำใน checkout-service.ts
+  //
+  // ⚠️ ห้ามใส่ secret key แบบใหม่ไว้ใน Bearer ขณะที่ apikey เป็น anon —
+  //    gateway จะยึด role จาก apikey (=anon) แล้วส่ง Bearer ต่อให้ PostgREST
+  //    ซึ่ง parse เป็น JWT ไม่ได้ → `PGRST301 Expected 3 parts in JWT; got 1`
+  // ⚠️ และห้ามส่ง apikey อย่างเดียวเป็นสูตรกลาง — ใช้ได้กับ key แบบใหม่ แต่ key
+  //    แบบเก่าจะตกไปเป็น role anon แล้วได้ `42501 permission denied`
+  //
+  // กับดักนี้ซ่อนตัวได้นานเพราะ `.env.local` เป็น key แบบเก่า แต่ Cloudflare Pages
+  // เป็นแบบใหม่ → ทำงานได้ที่เครื่อง พังเฉพาะบน production (เจอจริง 1 ส.ค. 2026
+  // ตอนอีเมล delivery ไม่ออก · RPC รอดเพราะบังเอิญใส่ key ไว้ทั้งสอง header อยู่แล้ว)
+  const isJwt = !!accessToken && accessToken.split(".").length === 3;
+  const headers: Record<string, string> =
+    accessToken && !isJwt
+      ? { apikey: accessToken, Authorization: `Bearer ${accessToken}` }
+      : { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${accessToken ?? env.SUPABASE_ANON_KEY}` };
+
   let res: Response;
   try {
-    res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
-      headers: {
-        apikey: env.SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${accessToken ?? env.SUPABASE_ANON_KEY}`,
-      },
-    });
+    res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, { headers });
   } catch (e) {
     if (diag) diag.detail = `fetch_failed: ${e instanceof Error ? e.message : String(e)}`;
     return null;
