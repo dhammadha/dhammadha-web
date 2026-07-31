@@ -136,12 +136,25 @@ DB apply 0069–0071 ไปก่อนหน้าโค้ด ถ้าเว�
      `livemode:false` · events ครบ 2 ตัว (`checkout.session.completed` +
      `checkout.session.async_payment_succeeded`) · **`whsec_` ไม่เก็บใน repo** — อยู่ใน Pages env
      · ⚠️ ค่าใน `.env.local` เป็นคนละตัว (ของ `stripe listen` สำหรับ dev) **ห้ามทับกัน**
-   · **🔴 ค้างอยู่: Cloudflare Pages env** — `STRIPE_SECRET_KEY` ✅ / Turnstile ✅ (probe แล้วเจอ)
-     แต่ `/api/stripe-webhook` ยังคืน `not_configured` = ขาด **`STRIPE_WEBHOOK_SECRET`**
-     และ/หรือ `SUPABASE_SERVICE_ROLE_KEY` · ต้องมี `RESEND_API_KEY` + `ADMIN_EMAIL` ด้วย
-     **แล้ว redeploy — env ใหม่ของ Pages ไม่มีผลกับ deployment เดิม ต้อง build ใหม่**
-     · เช็คว่าสำเร็จ: `curl -X POST <โดเมน>/api/stripe-webhook -d '{}'` ต้องเปลี่ยนจาก
-       `not_configured` (500) เป็น **`bad_signature` (400)**
+   · ~~Cloudflare Pages env~~ ✅ ตั้งครบ + redeploy แล้ว (1 ส.ค. 2026)
+     **กับดัก: env ใหม่ของ Pages ไม่มีผลกับ deployment เดิม ต้อง build ใหม่เสมอ**
+     · วิธีเช็ค: `curl -X POST <โดเมน>/api/stripe-webhook -d '{}'` ต้องได้ **`bad_signature` (400)**
+       ถ้าได้ `not_configured` (500) แปลว่า env ยังไม่เข้า
+   · **ผลซื้อจริงบน production ด้วย test key (1 ส.ค. 2026): เงิน→order→สิทธิ์ ผ่านหมด**
+     `OR-2569-0009` ฿1,300 (บัตร) · `OR-2569-0010` ฿1,100 (PromptPay) · ส่วนแบ่ง 75/25 ตรงทั้งสองใบ
+     · `order_items` 4 แถว + `entitlements` 4 สิทธิ์ครบ · เลขที่เอกสารเดินต่อไม่ข้าม
+     · **ตะกร้าข้ามร้านผ่านบน production แล้ว** (`OR-2569-0010` `designer_id=null`,
+       `order_items` มี designer 2 คน) — เส้นทางที่เคยพังตอนทำ 0069
+   · **🔴 ค้าง: อีเมล delivery ไม่ออก** — Stripe คืน `pending_webhooks=1` ทั้งสอง event
+     = endpoint ตอบไม่ใช่ 2xx และ retry วนอยู่ ตรงกับโค้ด (order สร้างแล้ว อีเมลพัง → 500 `email_failed`)
+     · ตัดออกแล้ว: **ไม่ใช่ Supabase** (ยิง query เดียวกับ `handleDelivery` ด้วย service role ได้ 200)
+       · **ไม่ใช่โดเมนผู้ส่ง** (ยิง Resend จากเครื่องด้วย `noreply@dhammadha.com` ได้ 200 = verified)
+       · **ไม่ใช่ Turnstile** (เส้นทาง `delivery` ไม่ผ่านด่าน มีแค่ `quote`/`contact`)
+       · **ไม่ใช่ Cloudflare บล็อก Stripe** (ถ้าบล็อก order คงไม่ถูกสร้าง)
+     · **🔴 หนี้ที่ทำให้หาสาเหตุไม่ได้: `sendResendEmail` ที่ `email-service.ts` เขียน `return res.ok`
+       ทิ้ง error body ของ Resend ทั้งก้อน** → ไม่มีใครรู้ว่าพังเพราะอะไร ควรแก้ให้ส่งสาเหตุ
+       ออกมาใน response body (จะได้เห็นใน delivery log ของ Stripe)
+     · ที่ต้องดูต่อ: **Stripe Dashboard → Webhooks → endpoint → delivery ล่าสุด** มี response body จริง
    · **Terms of service URL → `https://<โดเมน>/agreement/`** (Settings → Public details)
      ตั้งได้ **ค่าเดียวทั้งบัญชี override ต่อ session ไม่ได้** จึงชี้ไปสัญญาอนุญาต ไม่ใช่ `/terms/`
      — หน้า `/agreement/` มีย่อหน้า "ร่ม" อ้างถึงข้อกำหนดการใช้งาน + สัญญาฉบับของดีไซน์เนอร์แล้ว
