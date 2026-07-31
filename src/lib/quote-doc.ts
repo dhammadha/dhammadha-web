@@ -24,12 +24,14 @@ import {
   drawSignature,
   drawTitleRow,
   drawTotalBar,
+  drawTotalRow,
   loadDocFonts,
   money,
   type DocFontBytes,
   type DocIssuer,
 } from "./doc-layout";
 import { bahtText } from "./baht-text";
+import { QUOTE_WHT_RATE } from "./revenue";
 
 export { bahtText } from "./baht-text";
 
@@ -88,8 +90,8 @@ const DOC_SPEC: Record<
 const QUOTE_SUBJECT = "เสนอราคาสิทธิการใช้งานโปรแกรมคอมพิวเตอร์ฟอนต์";
 const QUOTE_VALIDITY = "ใบเสนอราคานี้มีอายุ 15 วัน นับจากวันที่เสนอราคา";
 
-/** อัตราภาษีหัก ณ ที่จ่าย — ใบเสนอราคาออกให้นิติบุคคลเท่านั้นจึงหักทุกใบ */
-const WHT_RATE = 0.03;
+// อัตราหัก ณ ที่จ่ายของฝั่งนี้ = "ลูกค้าองค์กรหักจาก designer" ย้ายไปอยู่ `revenue.ts`
+// รวมกับอัตราของฝั่ง payout เพื่อให้เห็นพร้อมกันว่าเป็นคนละธุรกรรม (ดูคอมเมนต์ที่นั่น)
 
 /* ------------------------------------------------------------------------ */
 /* Main                                                                      */
@@ -105,7 +107,7 @@ export async function generateQuotePdf(
   const subtotal = data.items.reduce((s, i) => s + i.price, 0);
   const discount = data.discount ?? 0;
   const discountedSubtotal = subtotal - discount;
-  const wht = discountedSubtotal * WHT_RATE;
+  const wht = discountedSubtotal * QUOTE_WHT_RATE;
   const total = discountedSubtotal - wht;
 
   drawIssuerHeader(w, data.seller);
@@ -121,7 +123,7 @@ export async function generateQuotePdf(
   w.y = w.blockBottom + M.ruleToTotals;
   drawTotalRow(w, "รวมจำนวนเงิน", money(subtotal));
   if (discount > 0) drawTotalRow(w, "ส่วนลด", money(discount), COLOR.red);
-  drawTotalRow(w, `หักภาษี ณ ที่จ่าย ${WHT_RATE * 100}%`, money(wht));
+  drawTotalRow(w, `หักภาษี ณ ที่จ่าย ${QUOTE_WHT_RATE * 100}%`, money(wht));
 
   w.y = w.blockBottom + M.totalsToBar;
   drawTotalBar(w, "ยอดชำระ", money(total), bahtText(total));
@@ -221,14 +223,6 @@ function drawItemsTable(w: DocWriter, items: QuoteDocItem[]): void {
 function itemSubLines(item: QuoteDocItem): string[] {
   if (item.license_lines?.length) return item.license_lines;
   return item.license_type ? [`สิทธิการใช้งาน: ${item.license_type}`] : [];
-}
-
-function drawTotalRow(w: DocWriter, label: string, value: string, color = COLOR.text): void {
-  w.ensureSpace();
-  w.drawAt(label, w.y, { right: M.totalLabelRight, font: "sans", color: COLOR.text });
-  w.drawAt(value, w.y, { right: M.priceRight, font: "sans", color });
-  w.blockBottom = w.y;
-  w.y += M.totalRowGap;
 }
 
 function drawBankBlock(w: DocWriter, bank: QuoteDocSellerBank): void {

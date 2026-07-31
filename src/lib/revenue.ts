@@ -11,6 +11,48 @@
  */
 
 import { effectiveSale } from "./sale";
+import { LEGAL_ENTITY_IS_JURISTIC } from "./brand";
+
+/* ── ภาษีหัก ณ ที่จ่าย — สองธุรกรรมที่คนละเรื่องกัน ────────────────────────────
+ *
+ * ⚠️ **ห้ามรวมสองค่านี้เป็นตัวเดียวกัน แม้ตัวเลขจะบังเอิญเท่ากัน**
+ * ถ้าวันหนึ่งอัตราใดอัตราหนึ่งเปลี่ยน แล้วมันถูก reuse อยู่ อีกฝั่งจะเปลี่ยนตามเงียบ ๆ
+ *
+ * 1. `QUOTE_WHT_RATE` — **ลูกค้าองค์กรหักจาก designer** ตอนจ่ายค่าใบเสนอราคา
+ *    แพลตฟอร์มไม่แตะเงินก้อนนี้เลย (เงินเข้าบัญชี designer ตรง) เราแค่พิมพ์บรรทัด
+ *    หักภาษีลงใบเสนอราคา/ใบแจ้งหนี้ให้ตามธรรมเนียม — ใช้เสมอ ไม่ขึ้นกับสถานะของเรา
+ *
+ * 2. `PAYOUT_WHT_RATE` — **แพลตฟอร์มหักจาก designer** ตอนจ่ายส่วนแบ่งรายไตรมาส
+ *    เกิดขึ้นต่อเมื่อแพลตฟอร์มเป็นนิติบุคคลแล้วเท่านั้น (ดู `LEGAL_ENTITY_IS_JURISTIC`)
+ *    และต้องออกใบ 50 ทวิคู่กันทุกครั้ง
+ */
+
+/** ลูกค้าองค์กรหักจาก designer ในใบเสนอราคา — ออกให้นิติบุคคลเท่านั้นจึงหักทุกใบ */
+export const QUOTE_WHT_RATE = 0.03;
+
+/** แพลตฟอร์มหักจากส่วนแบ่งของ designer ตอนโอนรายไตรมาส */
+export const PAYOUT_WHT_RATE = 0.03;
+
+export type PayoutBreakdown = {
+  /** 0 เมื่อแพลตฟอร์มยังไม่เป็นนิติบุคคล — ตัวเรียกใช้ค่านี้ตัดสินใจว่าจะพิมพ์บรรทัดภาษีไหม */
+  whtRate: number;
+  whtAmount: number;
+  netAmount: number;
+};
+
+/**
+ * แตกยอดส่วนแบ่งก้อนหนึ่งเป็น ภาษีหัก ณ ที่จ่าย + ยอดโอนสุทธิ
+ *
+ * จุดเดียวที่รู้สูตรนี้ — หน้า admin, ใบสรุปโอน และใบ 50 ทวิ ต้องเรียกตัวนี้ทั้งหมด
+ * ไม่งั้นตัวเลขบนเอกสารสามใบจะไม่ตรงกัน (`round2` คนละจังหวะก็เพี้ยนได้แล้ว)
+ *
+ * `gross` = ยอดเต็มที่ designer ควรได้ = ค่าที่เก็บใน `payouts.amount`
+ */
+export function payoutBreakdown(gross: number): PayoutBreakdown {
+  const whtRate = LEGAL_ENTITY_IS_JURISTIC ? PAYOUT_WHT_RATE : 0;
+  const whtAmount = round2(gross * whtRate);
+  return { whtRate, whtAmount, netAmount: round2(gross - whtAmount) };
+}
 
 /**
  * รายการย่อยในคำสั่งซื้อ (ตาราง order_items — migration 0069)
@@ -52,9 +94,17 @@ export type PayoutRow = {
   designer_id: string;
   period_year: number;
   period_quarter: number; // 1-4 (ตั้งแต่ 0064 — เดิมเป็น period_month)
+  /** ยอดเต็มก่อนหักภาษี — **ไม่ใช่**เงินที่โอนเข้าบัญชี (ดู `net_amount` และ 0073) */
   amount: number;
   note: string | null;
   paid_at: string;
+  // ── เพิ่มใน 0073 · แถวที่บันทึกก่อนหน้านั้นได้ค่า default (0 / เท่ากับ amount) ──
+  doc_no?: string | null; // PO-2569-0001
+  wht_cert_no?: string | null; // WT-2569-0001 — null เมื่อไม่ได้หักภาษี
+  wht_rate?: number;
+  wht_amount?: number;
+  /** เงินที่โอนเข้าบัญชี designer จริง */
+  net_amount?: number;
 };
 
 type Totals = {

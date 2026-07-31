@@ -449,6 +449,26 @@ export function drawLabelValue(w: DocWriter, label: string, value: string, value
 }
 
 /**
+ * แถวยอดรวมเหนือแถบ navy (รวมจำนวนเงิน / ส่วนลด / หักภาษี ณ ที่จ่าย)
+ * ป้ายชิดขวาที่แกน `totalLabelRight` ตัวเลขชิดขวาแกนเดียวกับคอลัมน์ราคา
+ *
+ * ใช้ร่วมกันระหว่างใบเสนอราคาและใบสรุปโอนส่วนแบ่ง — ทั้งสองใบต้องเรียงยอด
+ * หน้าตาเหมือนกัน ถ้าแยกกันเขียนจะเพี้ยนคนละแบบเหมือนที่เคยเกิดกับตัวเรนเดอร์เอกสาร
+ */
+export function drawTotalRow(
+  w: DocWriter,
+  label: string,
+  value: string,
+  color = COLOR.text,
+): void {
+  w.ensureSpace();
+  w.drawAt(label, w.y, { right: M.totalLabelRight, font: "sans", color: COLOR.text });
+  w.drawAt(value, w.y, { right: M.priceRight, font: "sans", color });
+  w.blockBottom = w.y;
+  w.y += M.totalRowGap;
+}
+
+/**
  * แถบยอดชำระพื้น navy — ป้ายชิดขวาแกนเดียวกับป้ายยอดรวม, ยอดชิดขวาแกนเดียวกับ
  * ตัวเลข, ตัวหนังสือจำนวนเงินจัดกึ่งกลางระหว่างขอบซ้ายแถบกับป้าย
  */

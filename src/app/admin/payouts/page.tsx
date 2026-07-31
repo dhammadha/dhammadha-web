@@ -21,6 +21,7 @@ import {
   periodLabel,
   fmtBaht,
   designerShareOf,
+  payoutBreakdown,
   type OrderLite,
   type PayoutRow,
   type Period,
@@ -37,6 +38,10 @@ type DesignerInfo = {
   business_name: string | null;
   designer_slug: string | null;
   bank: BankInfo | null;
+  // ใช้ออกใบ 50 ทวิ — entity_type ตัดสินว่าติ๊ก ภ.ง.ด.3 หรือ ภ.ง.ด.53
+  tax_id: string | null;
+  address: string | null;
+  entity_type: "individual" | "juristic" | null;
 };
 
 function fmtDateFull(s: string | null) {
@@ -48,6 +53,17 @@ function displayName(d: DesignerInfo | undefined, fallbackId: string) {
   if (fallbackId === STUDIO_KEY) return "สตูดิโอ (ไม่ระบุ designer)";
   if (!d) return fallbackId;
   return d.business_name ?? d.name ?? fallbackId;
+}
+
+/**
+ * ชื่อสำหรับใบสรุปโอน — ส่งทั้งชื่อร้านและชื่อคน เอกสารพิมพ์สองบรรทัด
+ * (`displayName` คืนได้ตัวเดียว คนมีชื่อร้านจะเสียชื่อตัวไป และกลับกัน)
+ */
+function designerNames(d: DesignerInfo | undefined, fallbackId: string) {
+  return {
+    designerBusinessName: d?.business_name ?? null,
+    designerName: d?.name ?? displayName(d, fallbackId),
+  };
 }
 
 // order ที่ designer_id เป็น null (เช่น quote ที่ admin สร้างเองโดยไม่ผูก designer
@@ -100,7 +116,7 @@ export default function AdminPayoutsPage() {
       fetchAllRows<PayoutRow>((from, to) =>
         supabase.from("payouts").select("*").order("created_at").range(from, to)
       ),
-      supabase.from("users").select("id, name, business_name, designer_slug, bank").eq("role", "designer"),
+      supabase.from("users").select("id, name, business_name, designer_slug, bank, tax_id, address, entity_type").eq("role", "designer"),
     ]);
 
     if (orderRes.error || payoutRes.error) {
@@ -129,7 +145,7 @@ export default function AdminPayoutsPage() {
     if (missingIds.length > 0) {
       const { data: fallbackUsers } = await supabase
         .from("users")
-        .select("id, name, business_name, designer_slug, bank")
+        .select("id, name, business_name, designer_slug, bank, tax_id, address, entity_type")
         .in("id", missingIds);
       for (const d of (fallbackUsers as unknown as DesignerInfo[]) ?? []) {
         designerMap[d.id] = { ...d, bank: (d.bank as unknown as BankInfo) ?? null };
@@ -386,13 +402,19 @@ export default function AdminPayoutsPage() {
     if (!amount || amount <= 0) { showToast("กรุณาระบุจำนวนเงิน"); return; }
     setSaving(true);
 
-    const { error } = await supabase.from("payouts").insert({
-      designer_id: selectedRow.designerId,
-      period_year: selectedQuarter.year,
-      period_quarter: selectedQuarter.quarter,
-      amount,
-      note: payNote || null,
-    } as never);
+    // ยอดที่กรอก = ยอดเต็มก่อนหักภาษี · RPC คำนวณภาษี/ยอดสุทธิเองแล้วออกเลขที่เอกสาร
+    // (เรียก next_doc_no ตรง ๆ จาก client ไม่ได้ — ถูก revoke ใน 0032)
+    const { whtRate } = payoutBreakdown(amount);
+    const { data: saved, error } = await supabase
+      .rpc("record_payout", {
+        p_designer_id: selectedRow.designerId,
+        p_period_year: selectedQuarter.year,
+        p_period_quarter: selectedQuarter.quarter,
+        p_amount: amount,
+        p_wht_rate: whtRate,
+        p_note: payNote || null,
+      } as never)
+      .single();
 
     if (error) {
       setSaving(false);
@@ -400,6 +422,9 @@ export default function AdminPayoutsPage() {
       loadAll();
       return;
     }
+
+    // ตัวเลขบนเอกสาร/อีเมล ต้องมาจากแถวที่บันทึกจริง ไม่ใช่คำนวณซ้ำฝั่ง client
+    const row = saved as unknown as PayoutRow;
 
     // บันทึกสำเร็จแล้ว — ตั้งแต่จุดนี้ห้ามให้ข้อความบอกว่า "ไม่สำเร็จ" ลอย ๆ
     // เพราะเงินถูก mark ว่าจ่ายแล้วจริง อีเมลที่ล้มเป็นคนละเรื่องกัน
@@ -413,13 +438,16 @@ export default function AdminPayoutsPage() {
       try {
         const { generatePayoutPdf } = await import("@/lib/payout-doc");
         const bytes = await generatePayoutPdf({
-          designerName: displayName(designers[selectedRow.designerId], selectedRow.designerId),
+          docNo: row.doc_no,
+          ...designerNames(designers[selectedRow.designerId], selectedRow.designerId),
           periodLabel,
-          paidAt: new Date().toISOString(),
+          paidAt: row.paid_at,
           b2cAmount,
           subscriptionAmount: selectedRow.subAmount,
-          totalAmount: amount,
-          note: payNote || null,
+          totalAmount: row.amount,
+          whtRate: row.wht_rate,
+          whtAmount: row.wht_amount,
+          netAmount: row.net_amount ?? row.amount,
           bank: designers[selectedRow.designerId]?.bank ?? null,
         });
         pdf_base64 = uint8ToBase64(bytes);
@@ -440,7 +468,8 @@ export default function AdminPayoutsPage() {
           payload: {
             designer_id: selectedRow.designerId,
             period_label: periodLabel,
-            total_amount: fmtBaht(amount),
+            // ยอดที่ designer เห็นในอีเมล = เงินที่เข้าบัญชีจริง (หลังหักภาษี ณ ที่จ่าย)
+            total_amount: fmtBaht(row.net_amount ?? row.amount),
             b2c_amount: fmtBaht(b2cAmount),
             subscription_amount: fmtBaht(selectedRow.subAmount),
             note: payNote || "",
@@ -462,6 +491,74 @@ export default function AdminPayoutsPage() {
         : `✓ บันทึกการโอนแล้ว แต่ส่งอีเมลไม่สำเร็จ (${emailErr}) — แจ้ง designer เองอีกทาง`
     );
     loadAll();
+  };
+
+  /** เปิด PDF ในแท็บใหม่ — ใช้กับทั้งใบสรุปโอนและใบ 50 ทวิ */
+  const openPdf = (bytes: Uint8Array) => {
+    const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/pdf" }));
+    window.open(url, "_blank");
+    // ปล่อย URL ทีหลัง — revoke ทันทีจะทำให้แท็บที่เพิ่งเปิดโหลดไม่ทัน
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  const openPayoutDoc = async (payout: PayoutRow, designerId: string) => {
+    try {
+      const stmt = statementsByDesigner
+        .get(designerId)
+        ?.find((s) => s.year === payout.period_year && s.quarter === payout.period_quarter);
+      const { generatePayoutPdf } = await import("@/lib/payout-doc");
+      openPdf(
+        await generatePayoutPdf({
+          docNo: payout.doc_no,
+          ...designerNames(designers[designerId], designerId),
+          periodLabel: quarterLabel(payout.period_year, payout.period_quarter),
+          paidAt: payout.paid_at,
+          b2cAmount: stmt?.designerAmount ?? 0,
+          subscriptionAmount: subForQuarter(designerId, payout.period_quarter),
+          totalAmount: payout.amount,
+          whtRate: payout.wht_rate,
+          whtAmount: payout.wht_amount,
+          netAmount: payout.net_amount ?? payout.amount,
+          bank: designers[designerId]?.bank ?? null,
+        })
+      );
+    } catch (e) {
+      showToast("สร้างเอกสารไม่สำเร็จ: " + (e instanceof Error ? e.message : String(e)));
+    }
+  };
+
+  const openWhtCert = async (payout: PayoutRow, designerId: string) => {
+    const d = designers[designerId];
+    if (!payout.wht_cert_no) return;
+    if (!d?.tax_id) {
+      showToast("designer รายนี้ยังไม่ได้กรอกเลขประจำตัวผู้เสียภาษี — ออกใบ 50 ทวิไม่ได้");
+      return;
+    }
+    try {
+      const { generateWhtCertPdf } = await import("@/lib/wht-cert-doc");
+      const brand = await import("@/lib/brand");
+      openPdf(
+        await generateWhtCertPdf({
+          certNo: payout.wht_cert_no,
+          payer: {
+            name: brand.LEGAL_ENTITY,
+            taxId: brand.LEGAL_ENTITY_TAX_ID,
+            address: brand.LEGAL_ENTITY_ADDRESS,
+          },
+          payee: {
+            name: displayName(d, designerId),
+            taxId: d.tax_id,
+            address: d.address,
+            isJuristic: d.entity_type === "juristic",
+          },
+          paidAt: payout.paid_at,
+          amount: payout.amount,
+          whtAmount: payout.wht_amount ?? 0,
+        })
+      );
+    } catch (e) {
+      showToast("สร้างใบ 50 ทวิไม่สำเร็จ: " + (e instanceof Error ? e.message : String(e)));
+    }
   };
 
   const unmarkPaid = async () => {
@@ -644,9 +741,31 @@ export default function AdminPayoutsPage() {
                             ) : r.payout ? (
                               <>
                                 <div className="font-body text-body-sm text-white bg-success px-3 py-2 flex flex-col gap-0.5">
-                                  <span>✓ จ่ายแล้ว {fmtBaht(r.payout.amount)}</span>
+                                  <span>✓ โอนแล้ว {fmtBaht(r.payout.net_amount ?? r.payout.amount)}</span>
+                                  {(r.payout.wht_amount ?? 0) > 0 && (
+                                    <span className="font-body text-footnote">
+                                      ส่วนแบ่ง {fmtBaht(r.payout.amount)} · หักภาษี {fmtBaht(r.payout.wht_amount ?? 0)}
+                                    </span>
+                                  )}
                                   <span className="font-body text-footnote">{fmtDateFull(r.payout.paid_at)}</span>
+                                  {r.payout.doc_no && <span className="font-body text-footnote">เลขที่ {r.payout.doc_no}</span>}
                                   {r.payout.note && <span className="font-body text-footnote">โน้ต: {r.payout.note}</span>}
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                  <button
+                                    onClick={() => openPayoutDoc(r.payout!, r.designerId)}
+                                    className="font-body text-footnote text-grey-600 hover:text-black bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base"
+                                  >
+                                    ดูใบสรุปโอน
+                                  </button>
+                                  {r.payout.wht_cert_no && (
+                                    <button
+                                      onClick={() => openWhtCert(r.payout!, r.designerId)}
+                                      className="font-body text-footnote text-grey-600 hover:text-black bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base"
+                                    >
+                                      ดูใบ 50 ทวิ
+                                    </button>
+                                  )}
                                 </div>
                                 <button onClick={unmarkPaid} className="font-body text-footnote text-grey-600 hover:text-danger-dark bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base self-start">
                                   ยกเลิกการบันทึก
@@ -654,13 +773,14 @@ export default function AdminPayoutsPage() {
                               </>
                             ) : r.pending > 0 ? (
                               <>
-                                <label className="font-body font-bold text-body-sm text-grey-600">จำนวนเงินที่โอน</label>
+                                <label className="font-body font-bold text-body-sm text-grey-600">ส่วนแบ่งก่อนหักภาษี</label>
                                 <input
                                   type="number"
                                   value={payAmount}
                                   onChange={(e) => setPayAmount(e.target.value)}
                                   className="w-full px-3 py-2 h-[38px] bg-surface font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base"
                                 />
+                                <TransferBreakdown amount={Number(payAmount)} />
                                 <label className="font-body font-bold text-body-sm text-grey-600">โน้ต / เลขอ้างอิง (ถ้ามี)</label>
                                 <input
                                   value={payNote}
@@ -710,6 +830,24 @@ function PayoutStatusBadge({ status }: { status: PayoutStatus }) {
 }
 
 // เซลล์ตัวเลขในรายละเอียด (วางแนวนอน)
+/**
+ * แยกยอดใต้ช่องกรอก — ช่องกรอกเป็น "ส่วนแบ่งก่อนหักภาษี" แต่เงินที่ต้องกดโอน
+ * ในแอปธนาคารคือยอดสุทธิ ถ้าไม่โชว์ตรงนี้จะโอนเกินได้ง่ายมาก
+ * ตอนยังไม่เป็นนิติบุคคล `whtRate = 0` → ไม่แสดงอะไรเลย (พฤติกรรมเดิม)
+ */
+function TransferBreakdown({ amount }: { amount: number }) {
+  if (!amount || amount <= 0) return null;
+  const { whtRate, whtAmount, netAmount } = payoutBreakdown(amount);
+  if (whtRate === 0) return null;
+  return (
+    <div className="bg-surface px-3 py-2 flex flex-col gap-0.5 font-body text-footnote text-grey-600">
+      <div className="flex justify-between"><span>ส่วนแบ่งก่อนหักภาษี</span><span>{fmtBaht(amount)}</span></div>
+      <div className="flex justify-between"><span>หักภาษี ณ ที่จ่าย {whtRate * 100}%</span><span>−{fmtBaht(whtAmount)}</span></div>
+      <div className="flex justify-between font-bold text-black"><span>ยอดที่ต้องโอนจริง</span><span>{fmtBaht(netAmount)}</span></div>
+    </div>
+  );
+}
+
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-surface p-3">

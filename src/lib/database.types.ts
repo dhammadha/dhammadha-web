@@ -448,6 +448,11 @@ export interface Database {
           paid_at: string;
           created_by: string | null;
           created_at: string;
+          doc_no: string | null;
+          wht_cert_no: string | null;
+          wht_rate: number;
+          wht_amount: number;
+          net_amount: number;
         };
         Insert: {
           id?: string;
@@ -459,6 +464,11 @@ export interface Database {
           paid_at?: string;
           created_by?: string | null;
           created_at?: string;
+          doc_no?: string | null;
+          wht_cert_no?: string | null;
+          wht_rate?: number;
+          wht_amount?: number;
+          net_amount: number;
         };
         Update: {
           id?: string;
@@ -470,6 +480,11 @@ export interface Database {
           paid_at?: string;
           created_by?: string | null;
           created_at?: string;
+          doc_no?: string | null;
+          wht_cert_no?: string | null;
+          wht_rate?: number;
+          wht_amount?: number;
+          net_amount?: number;
         };
         Relationships: [];
       };
@@ -663,6 +678,18 @@ export interface Database {
       pending_payout_designer_count: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      /** บันทึกการโอนส่วนแบ่ง + ออกเลขที่เอกสาร + คำนวณภาษีหัก ณ ที่จ่าย (0073) */
+      record_payout: {
+        Args: {
+          p_designer_id: string;
+          p_period_year: number;
+          p_period_quarter: number;
+          p_amount: number;
+          p_wht_rate?: number;
+          p_note?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["payouts"]["Row"];
       };
       submit_public_quote: {
         Args: {
