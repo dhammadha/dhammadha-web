@@ -444,7 +444,19 @@ export async function handleStripeWebhookRequest(
   if (emailResult.status !== 200) {
     // order สร้างแล้วแต่อีเมลไม่ออก → ให้ Stripe retry (RPC จะคืน order เดิม
     // แล้วมาลองส่งอีเมลใหม่) — ลูกค้าที่ login ยังเห็นไฟล์ใน "ดาวน์โหลดของฉัน" ทันที
-    return { status: 500, body: { ok: false, error: "email_failed" } };
+    //
+    // ⚠️ ต้องพ่วงสาเหตุชั้นในออกไปด้วยเสมอ — เดิมคืนแค่ `email_failed` ทำให้
+    // delivery log ของ Stripe (ที่เดียวที่เห็น response ของ production) บอกอะไรไม่ได้เลย
+    return {
+      status: 500,
+      body: {
+        ok: false,
+        error: "email_failed",
+        email_status: emailResult.status,
+        email_error: (emailResult.body as { error?: string }).error,
+        email_detail: (emailResult.body as { detail?: string }).detail,
+      },
+    };
   }
 
   return { status: 200, body: { received: true, order_id: order.id } };

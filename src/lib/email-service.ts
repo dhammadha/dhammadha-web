@@ -32,7 +32,8 @@ export interface EmailRequestContext {
 
 export interface EmailResult {
   status: number;
-  body: { ok: boolean; error?: string };
+  /** `detail` = สาเหตุดิบจากปลายทาง (เช่น body ที่ Resend ตอบกลับ) มีเฉพาะตอนพัง */
+  body: { ok: boolean; error?: string; detail?: string };
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -59,6 +60,18 @@ const BASE64_RE = /^[A-Za-z0-9+/]+={0,2}$/;
 // ~4,000,000 ตัวอักษร base64 ≈ 3MB ไฟล์จริง — เผื่อ headroom ใต้ลิมิตของ Resend
 const PDF_BASE64_MAX_LEN = 4_000_000;
 
+/**
+ * ส่งอีเมลผ่าน Resend — คืน `null` เมื่อสำเร็จ, คืน**ข้อความสาเหตุ**เมื่อพัง
+ *
+ * ⚠️ เดิมฟังก์ชันนี้คืนแค่ `res.ok` แล้วทิ้ง error body ของ Resend ทั้งก้อน
+ * ผลคือตอนอีเมลไม่ออกบน production ไม่มีใครรู้สาเหตุเลย (เจอจริงตอนทดสอบ
+ * Stripe ขั้นที่ 2 — 1 ส.ค. 2026: delivery log ของ Stripe โชว์แค่ `email_failed`
+ * ซึ่งเป็น error ชั้นนอก ไล่ต่อไม่ได้) จึงต้องส่งสาเหตุกลับขึ้นไปให้ถึง response
+ *
+ * สาเหตุจาก Resend เป็นข้อความอธิบายปัญหา config (เช่น "domain is not verified",
+ * "API key is invalid") ไม่มีการสะท้อนค่า key กลับมา จึงใส่ใน response ได้
+ * — endpoint ที่เรียกเส้นทางนี้ต้องผ่านลายเซ็น Stripe หรือ token อยู่แล้ว
+ */
 async function sendResendEmail(
   apiKey: string,
   msg: {
@@ -67,21 +80,35 @@ async function sendResendEmail(
     html: string;
     attachments?: { filename: string; content: string }[];
   }
-): Promise<boolean> {
+): Promise<string | null> {
   const { attachments, ...rest } = msg;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: FROM,
-      ...rest,
-      ...(attachments && attachments.length ? { attachments } : {}),
-    }),
-  });
-  return res.ok;
+  let res: Response;
+  try {
+    res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: FROM,
+        ...rest,
+        ...(attachments && attachments.length ? { attachments } : {}),
+      }),
+    });
+  } catch (e) {
+    // fetch พังเอง (เครือข่าย/DNS) — ไม่มี response ให้อ่าน
+    return `fetch_failed: ${e instanceof Error ? e.message : String(e)}`;
+  }
+  if (res.ok) return null;
+  // อ่าน body ให้ได้เท่าที่อ่านได้ แล้วตัดความยาวกัน response บวม
+  let detail = "";
+  try {
+    detail = (await res.text()).slice(0, 500);
+  } catch {
+    /* อ่านไม่ได้ก็ปล่อยว่าง — อย่างน้อยยังได้ status */
+  }
+  return `resend_${res.status}: ${detail}`;
 }
 
 async function supabaseSelect<T>(
@@ -379,7 +406,8 @@ async function handleQuote(
       html: quoteConfirmHtml(d, designer),
     }),
   ]);
-  if (results.some((ok) => !ok)) return { status: 502, body: { ok: false, error: "send_failed" } };
+  const firstErr = results.find((e) => e !== null);
+  if (firstErr) return { status: 502, body: { ok: false, error: "send_failed", detail: firstErr } };
   return { status: 200, body: { ok: true } };
 }
 
@@ -427,12 +455,12 @@ async function handleContact(
   if (!adminEmail) return { status: 500, body: { ok: false, error: "no_recipient" } };
   if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
 
-  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+  const sendErr = await sendResendEmail(env.RESEND_API_KEY, {
     to: adminEmail,
     subject: `ติดต่อสอบถาม — ${d.subject || d.name}`,
     html: contactHtml(d),
   });
-  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  if (sendErr) return { status: 502, body: { ok: false, error: "send_failed", detail: sendErr } };
   return { status: 200, body: { ok: true } };
 }
 
@@ -468,12 +496,12 @@ async function handlePromote(
   if (!target?.email) return { status: 404, body: { ok: false, error: "user_not_found" } };
   if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
 
-  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+  const sendErr = await sendResendEmail(env.RESEND_API_KEY, {
     to: target.email,
     subject: "ยินดีด้วย! บัญชี Designer ของคุณได้รับการอนุมัติแล้ว",
     html: promoteHtml(target.name ?? target.email, env.ADMIN_EMAIL ?? ""),
   });
-  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  if (sendErr) return { status: 502, body: { ok: false, error: "send_failed", detail: sendErr } };
   return { status: 200, body: { ok: true } };
 }
 
@@ -530,13 +558,13 @@ async function handleDelivery(
     licensePdfUrl = configs?.[0]?.license_pdf_url ?? null;
   }
 
-  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+  const sendErr = await sendResendEmail(env.RESEND_API_KEY, {
     to: order.customer_email,
     subject: `คำสั่งซื้อ ${order.order_no} สำเร็จ — ดาวน์โหลดฟอนต์ของคุณได้แล้ว`,
     html: deliveryHtml(order, brand, licensePdfUrl, receiptNo || null),
     ...(attachments ? { attachments } : {}),
   });
-  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  if (sendErr) return { status: 502, body: { ok: false, error: "send_failed", detail: sendErr } };
   return { status: 200, body: { ok: true } };
 }
 
@@ -592,7 +620,7 @@ async function handleDocument(
       ? `ใบเสนอราคา ${docNo} — ${BRAND}`
       : `ใบเสร็จรับเงิน ${docNo} — ${BRAND}`;
 
-  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+  const sendErr = await sendResendEmail(env.RESEND_API_KEY, {
     to: quote.email,
     subject,
     html: documentHtml(
@@ -602,7 +630,7 @@ async function handleDocument(
     ),
     attachments: [{ filename, content: pdfBase64 }],
   });
-  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  if (sendErr) return { status: 502, body: { ok: false, error: "send_failed", detail: sendErr } };
   return { status: 200, body: { ok: true } };
 }
 
@@ -692,7 +720,7 @@ async function handlePayout(
   if (!target?.email) return { status: 404, body: { ok: false, error: "designer_not_found" } };
   if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
 
-  const ok = await sendResendEmail(env.RESEND_API_KEY, {
+  const sendErr = await sendResendEmail(env.RESEND_API_KEY, {
     to: target.email,
     subject: `ยืนยันการโอนส่วนแบ่ง ${periodLabel} — ${BRAND}`,
     html: payoutHtml({
@@ -705,7 +733,7 @@ async function handlePayout(
     }),
     attachments,
   });
-  if (!ok) return { status: 502, body: { ok: false, error: "send_failed" } };
+  if (sendErr) return { status: 502, body: { ok: false, error: "send_failed", detail: sendErr } };
   return { status: 200, body: { ok: true } };
 }
 
