@@ -207,7 +207,7 @@ export default function OwnPricing() {
           <div>
             <span className="font-ui text-ui text-black">ใช้งานระบบใบเสนอราคา</span>
             <p className="font-body text-body-sm text-grey-600 mt-0.5 leading-[1.6]">
-              เปิดให้ลูกค้าองค์กรขอใบเสนอราคาฟอนต์ของคุณได้ และเปิดใช้หน้า “ใบเสนอราคา”
+              เปิดให้ลูกค้าองค์กรขอใบเสนอราคาฟอนต์ของคุณได้<br/>และเปิดใช้หน้า “ใบเสนอราคา”
               พร้อมการตั้งค่าสิทธิและราคาด้านล่าง
             </p>
           </div>
@@ -369,7 +369,7 @@ export default function OwnPricing() {
       <div className="flex justify-end mb-8">
         <Button
           onClick={save}
-          disabled={saving || (!useDefault && !pdfUrl && !pdfFile)}
+          disabled={saving || (!useDefault && !pdfUrl && !pdfFile)}/Users/montonn/Desktop/dhammadha-web/src/lib/doc-layout.ts
         >
           {saving ? "กำลังบันทึก…" : "บันทึก"}
         </Button>
@@ -395,7 +395,7 @@ export default function OwnPricing() {
             <input type="number" value={promo.discount} onChange={(e) => setPromo((p) => ({ ...p, discount: e.target.value }))} placeholder="เช่น 20" min="1" max="100" className={iCls} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-body font-bold text-body-sm text-grey-600">วันสิ้นสุด *</label>
+            <label className="font-body font-bold text-body-sm text-grey-600">วันสิ้นสุด</label>
             <input type="date" value={promo.end} min={todayISO()} onChange={(e) => setPromo((p) => ({ ...p, end: e.target.value }))} className={iCls} />
           </div>
         </div>
