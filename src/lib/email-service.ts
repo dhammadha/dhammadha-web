@@ -111,19 +111,49 @@ async function sendResendEmail(
   return `resend_${res.status}: ${detail}`;
 }
 
+/**
+ * อ่านผ่าน PostgREST — คืน `null` เมื่ออ่านไม่ได้ (env ไม่ครบ / HTTP ไม่ ok / throw)
+ *
+ * ⚠️ `null` กลืนสาเหตุทิ้งเหมือนที่ `sendResendEmail` เคยทำ ผู้เรียกจึงแยกไม่ออกว่า
+ * "ไม่มีสิทธิ์" กับ "ไม่มีข้อมูล" ต่างกันยังไง — ส่ง `diag` เข้ามาเพื่อรับสาเหตุกลับไปได้
+ * (ใช้ตอนไล่บั๊กอีเมล delivery ไม่ออกบน production — 1 ส.ค. 2026)
+ */
 async function supabaseSelect<T>(
   env: EmailEnv,
   pathAndQuery: string,
-  accessToken?: string
+  accessToken?: string,
+  diag?: { detail?: string }
 ): Promise<T[] | null> {
-  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return null;
-  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
-    headers: {
-      apikey: env.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${accessToken ?? env.SUPABASE_ANON_KEY}`,
-    },
-  });
-  if (!res.ok) return null;
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+    // ระบุให้ชัดว่าตัวไหนหาย — บน Cloudflare Pages ทั้งคู่มาจาก NEXT_PUBLIC_*
+    if (diag)
+      diag.detail = `env_missing: url=${env.SUPABASE_URL ? "ok" : "MISSING"} anon=${env.SUPABASE_ANON_KEY ? "ok" : "MISSING"} token=${accessToken ? "ok" : "MISSING"}`;
+    return null;
+  }
+  let res: Response;
+  try {
+    res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
+      headers: {
+        apikey: env.SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${accessToken ?? env.SUPABASE_ANON_KEY}`,
+      },
+    });
+  } catch (e) {
+    if (diag) diag.detail = `fetch_failed: ${e instanceof Error ? e.message : String(e)}`;
+    return null;
+  }
+  if (!res.ok) {
+    if (diag) {
+      let body = "";
+      try {
+        body = (await res.text()).slice(0, 300);
+      } catch {
+        /* อ่านไม่ได้ก็ยังได้ status */
+      }
+      diag.detail = `pgrst_${res.status}: ${body}`;
+    }
+    return null;
+  }
   return (await res.json()) as T[];
 }
 
@@ -533,13 +563,25 @@ async function handleDelivery(
 
   // อ่าน order ด้วย token ของผู้เรียก — RLS บังคับให้เห็นเฉพาะ order ของตัวเอง
   // (designer เจ้าของ / admin) จึงยิงอีเมลแทน order คนอื่นไม่ได้
+  const diag: { detail?: string } = {};
   const orders = await supabaseSelect<OrderRow>(
     env,
     `orders?id=eq.${orderId}&select=order_no,customer_email,customer_name,designer_id,items,total_amount,discount,paid_at`,
-    authToken
+    authToken,
+    diag
   );
   const order = orders?.[0];
-  if (!order?.customer_email) return { status: 404, body: { ok: false, error: "order_not_found" } };
+  if (!order?.customer_email) {
+    // แยกให้ออกว่าอ่านไม่ได้ (diag.detail) / อ่านได้แต่ไม่เจอแถว / เจอแถวแต่ไม่มีอีเมล
+    const detail =
+      diag.detail ??
+      (orders === null
+        ? "select_returned_null"
+        : orders.length === 0
+          ? `no_row_for_id=${orderId}`
+          : "row_found_but_customer_email_empty");
+    return { status: 404, body: { ok: false, error: "order_not_found", detail } };
+  }
   if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
 
   let brand = BRAND;
