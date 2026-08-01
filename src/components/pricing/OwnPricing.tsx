@@ -54,13 +54,13 @@ export default function OwnPricing() {
       setUseDefault(data.use_default);
       setPdfUrl(data.license_pdf_url ?? null);
       setQuoteEnabled(data.quote_enabled);
-      if (!data.use_default && data.tiers) {
-        // mintMissingIds: หน้านี้เป็น editor — tier เก่าที่ยังไม่มี id จะได้ id ถาวร
-        // แล้วเขียนลง DB ตอนกดบันทึก
-        setTiers(parseDesignerTiers(data.tiers, { mintMissingIds: true }));
-      } else {
-        setTiers(parsedDefaults);
-      }
+      // อ่าน tiers ที่เก็บไว้**ไม่ว่าจะ use_default หรือไม่** — ดีไซน์เนอร์ที่เคยตั้งเอง
+      // แล้วกดกลับไปใช้ฉบับกลาง ต้องได้ค่าเดิมคืนตอนติ๊กกลับมา ไม่ต้องกรอกใหม่ทั้งชุด
+      // (ค่าที่เก็บไว้ไม่ถูกใช้กับลูกค้าเลยระหว่าง use_default=true — ดูคอมเมนต์ใน save())
+      const stored = parseDesignerTiers(data.tiers, { mintMissingIds: true });
+      // mintMissingIds: หน้านี้เป็น editor — tier เก่าที่ยังไม่มี id จะได้ id ถาวร
+      // แล้วเขียนลง DB ตอนกดบันทึก
+      setTiers(stored.length > 0 ? stored : parsedDefaults);
     } else {
       setTiers(parsedDefaults);
     }
@@ -147,31 +147,45 @@ export default function OwnPricing() {
       let uploadedPdfUrl = pdfUrl;
 
       if (!useDefault && pdfFile) {
-        const ext = pdfFile.name.split(".").pop();
-        const path = `license-pdf/${user.id}.${ext}`;
+        // 🔴 ชื่อไฟล์ต้องเป็น `<user_id>.pdf` ที่ราก bucket **ห้ามมีโฟลเดอร์นำหน้า**
+        //
+        // policy "designer manage own license pdf" (0052) ตรวจด้วย
+        // `split_part(name, '.', 1) = auth.uid()` ซึ่งเทียบกับ key ทั้งเส้น
+        // เดิมโค้ดอัปไปที่ `license-pdf/<uuid>.pdf` (ชื่อ bucket ซ้ำเป็นโฟลเดอร์)
+        // → split_part ได้ `license-pdf/<uuid>` ไม่มีวันเท่ากับ uid
+        // → **อัปไฟล์สัญญาไม่ผ่าน RLS เลยตั้งแต่ 0052 เป็นต้นมา ทุกดีไซน์เนอร์**
+        // (ไฟล์เดียวที่มีใน bucket ตอนนี้อัปไว้ก่อน 0052 สมัยที่ policy เช็คแค่ว่า login)
+        const path = `${user.id}.pdf`;
         const { error: uploadError } = await supabase.storage
           .from("license-pdf")
           .upload(path, pdfFile, { upsert: true, contentType: "application/pdf" });
         if (uploadError) throw uploadError;
         const { data: urlData } = supabase.storage.from("license-pdf").getPublicUrl(path);
-        uploadedPdfUrl = urlData.publicUrl;
+        // ?v= กัน CDN/เบราว์เซอร์คา PDF ฉบับเก่าไว้ — key เป็นชื่อเดิมทุกครั้งที่อัปทับ
+        uploadedPdfUrl = `${urlData.publicUrl}?v=${Date.now()}`;
       }
 
-      if (useDefault) uploadedPdfUrl = null;
-
-      await supabase.from("designer_license_config").upsert({
+      // กลับไปใช้ฉบับกลาง = **ไม่ล้าง** tiers/PDF ทิ้ง เก็บไว้เป็นของเดิมให้ดึงกลับมาได้
+      // ทุกที่ที่อ่านค่าเหล่านี้กรองด้วย `use_default` อยู่แล้ว (`designerLicensePdf()`
+      // ใน lib/license.ts + เงื่อนไข tiers ใน FontDetail/quote/OwnQuotes) การเก็บค่าไว้
+      // จึงไม่ทำให้ลูกค้าเห็นสัญญา/ราคาของดีไซน์เนอร์ทั้งที่ปิดไปแล้ว
+      const { error: saveError } = await supabase.from("designer_license_config").upsert({
         designer_id: user.id,
         use_default: useDefault,
-        tiers: useDefault ? null : tiers,
+        tiers: tiers,
         license_pdf_url: uploadedPdfUrl,
         quote_enabled: quoteEnabled,
       }, { onConflict: "designer_id" });
+      if (saveError) throw saveError;
 
       setPdfUrl(uploadedPdfUrl);
       setPdfFile(null);
       showToast("✓ บันทึกแล้ว");
-    } catch {
-      showToast("เกิดข้อผิดพลาด กรุณาลองใหม่");
+    } catch (e) {
+      // บอกสาเหตุจริง — toast เดิมพูดแต่ "เกิดข้อผิดพลาด" ทำให้ตอนอัป PDF ไม่ผ่าน RLS
+      // เดากันไปว่าไฟล์ชนกัน ทั้งที่เป็นเรื่อง path ไม่ตรง policy
+      const detail = e instanceof Error ? e.message : String(e);
+      showToast(`เกิดข้อผิดพลาด: ${detail}`);
     }
     setSaving(false);
   };
@@ -221,16 +235,16 @@ export default function OwnPricing() {
 
       {quoteEnabled && (
       <>
-      {/* License section */}
+      {/* License section
+          ติ๊กออก = กลับไปใช้ฉบับกลาง แต่ **ไม่ล้างค่าที่กรอกไว้** ติ๊กกลับมาแล้วได้ของเดิม
+          ทันที (ส่วนนี้ถูกซ่อนอยู่แล้วตอน useDefault) · อยากล้างจริง ๆ ใช้ปุ่ม
+          "คืนค่า default ของเว็บ" ซึ่งเป็นการสั่งล้างอย่างชัดเจน */}
       <div className="bg-surface p-5 mb-4">
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={!useDefault}
-            onChange={(e) => {
-              setUseDefault(!e.target.checked);
-              if (!e.target.checked) setTiers(defaultTiers);
-            }}
+            onChange={(e) => setUseDefault(!e.target.checked)}
             className="mt-0.5 accent-black shrink-0"
           />
           <div>

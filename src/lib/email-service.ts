@@ -3,7 +3,7 @@
 // (src/app/api/send-email/route.ts, dev only). Must stay framework-free:
 // fetch + plain objects only, no Next.js or Node-specific imports.
 
-import { licenseLabel } from "./license";
+import { licenseLabel, designerLicensePdf } from "./license";
 import { NAME as BRAND, DOMAIN, URL as SITE_URL, CONTACT_EMAIL, FROM_EMAIL, LEGAL_ENTITY, SOCIAL } from "./brand";
 
 const FROM = FROM_EMAIL;
@@ -663,15 +663,18 @@ async function handleDelivery(
   if (order.designer_id) {
     const [users, configs] = await Promise.all([
       supabaseSelect<UserRow>(env, `users?id=eq.${order.designer_id}&select=email,name,business_name,phone`, authToken),
-      supabaseSelect<{ license_pdf_url: string | null }>(
+      // ต้องดึง use_default มาด้วย — ดีไซน์เนอร์ที่เคยตั้งสัญญาเองแล้วกลับไปใช้ฉบับกลาง
+      // ยังมี license_pdf_url ค้างอยู่ในแถว (เก็บไว้ให้ดึงกลับมาได้ ดู OwnPricing.save)
+      // อ่านคอลัมน์เดียวจะส่งลิงก์ฉบับที่เลิกใช้แล้วไปให้ลูกค้า
+      supabaseSelect<{ use_default: boolean; license_pdf_url: string | null }>(
         env,
-        `designer_license_config?designer_id=eq.${order.designer_id}&select=license_pdf_url`,
+        `designer_license_config?designer_id=eq.${order.designer_id}&select=use_default,license_pdf_url`,
         authToken
       ),
     ]);
     const u = users?.[0];
     if (u) brand = u.business_name ?? u.name ?? brand;
-    licensePdfUrl = configs?.[0]?.license_pdf_url ?? null;
+    licensePdfUrl = designerLicensePdf(configs?.[0]);
   }
 
   const sendErr = await sendResendEmail(env.RESEND_API_KEY, {

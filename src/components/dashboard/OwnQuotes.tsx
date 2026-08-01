@@ -312,7 +312,7 @@ export default function OwnQuotes() {
 
       <div className="flex gap-4 items-start">
         <div className="flex-1 bg-surface overflow-hidden">
-          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px_80px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
             <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท/องค์กร</div><div>รูปแบบสิทธิ์</div><div>ใบเสนอราคา</div><div>ใบเสร็จ</div>
           </div>
 
@@ -324,7 +324,7 @@ export default function OwnQuotes() {
             <div
               key={q.id}
               onClick={() => setSelected(selected?.id === q.id ? null : q)}
-              className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_80px_80px] gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${
+              className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${
                 selected?.id === q.id ? "bg-mint" : "hover:bg-grey-200"
               }`}
             >
@@ -332,14 +332,16 @@ export default function OwnQuotes() {
               <div className="font-body text-body-sm text-black truncate">{q.contact_name}</div>
               <div className="font-body text-footnote text-grey-600 truncate">{q.company_name}</div>
               <div className="font-body text-footnote text-grey-600 truncate">{licenseLabel(q.license_type, allTiers)}</div>
+              {/* whitespace-nowrap: เลขเอกสาร (QT-2569-0005) ยาวกว่าช่องเดิม 80px
+                  จนตัดขึ้นบรรทัดใหม่กลางป้าย — คอลัมน์กว้าง 120px + ห้ามตัดคำ */}
               <div>
                 {q.quote_no
-                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white">{q.quote_no}</span>
-                  : <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอดำเนินการ</span>}
+                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.quote_no}</span>
+                  : <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black whitespace-nowrap">รอดำเนินการ</span>}
               </div>
               <div>
                 {q.receipt_no
-                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white">{q.receipt_no}</span>
+                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.receipt_no}</span>
                   : <span className="font-body text-footnote text-grey-600">—</span>}
               </div>
             </div>
