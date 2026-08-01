@@ -192,23 +192,54 @@ async function supabaseSelect<T>(
  * ใช้ได้เฉพาะฝั่ง server และเฉพาะกรณีที่ไม่มี JWT ของผู้ใช้ให้ยืมสิทธิ์
  * (ตอนนี้มีที่เดียวคือค้นอีเมล designer จากฟอร์ม quote สาธารณะ)
  * คืน null ถ้าไม่ได้ตั้ง key ไว้ — ผู้เรียกต้องจัดการกรณีนี้เอง ห้ามเงียบ
+ *
+ * ⚠️ เหมือน `supabaseSelect` — `null` กลืนสาเหตุทิ้ง ส่ง `diag` เข้ามาเพื่อรับสาเหตุจริงกลับไป
  */
 async function supabaseSelectAsService<T>(
   env: EmailEnv,
-  pathAndQuery: string
+  pathAndQuery: string,
+  diag?: { detail?: string }
 ): Promise<T[] | null> {
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return null;
-  // ส่งเฉพาะ header apikey — ห้ามส่ง Authorization: Bearer
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (diag)
+      diag.detail = `env_missing: url=${env.SUPABASE_URL ? "ok" : "MISSING"} service_key=${env.SUPABASE_SERVICE_ROLE_KEY ? "ok" : "MISSING"}`;
+    return null;
+  }
+  // 🔴 ใส่ key ลง**ทั้งสอง** header — สูตรเดียวกับ `supabaseSelect` (กรณี non-JWT) และ
+  //    `create_checkout_order_multi` ใน checkout-service.ts · ใช้ได้กับ key ทั้งสองแบบ
   //
-  // รองรับ key ได้ทั้ง 2 รูปแบบ:
-  //  - service_role แบบเดิม (JWT `eyJ...`) → gateway อ่าน apikey แล้วผ่านลง PostgREST ปกติ
-  //  - secret key แบบใหม่ (`sb_secret_...`) → ไม่ใช่ JWT ถ้าใส่ใน Authorization
-  //    PostgREST จะปฏิเสธเพราะถอดรหัสไม่ได้ แต่ถ้าไม่ส่ง Authorization มาเลย
-  //    gateway จะ synthesize ให้เองจาก apikey (ดู docs "New API keys" → Authorization synthesis)
-  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
-    headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY },
-  });
-  if (!res.ok) return null;
+  // เดิมส่งเฉพาะ `apikey` โดยอ้างว่า gateway จะ synthesize Authorization ให้เอง —
+  // **ผลทดสอบจริง (1 ส.ค. 2026) บอกว่าใช้ได้เฉพาะ secret key แบบใหม่ (`sb_secret_...`)**
+  // ส่วน service_role แบบเดิมที่เป็น JWT จะตกไปเป็น role anon → `42501 permission denied`
+  // ซึ่งแปลว่าเส้นทางนี้พังเงียบ ๆ ที่เครื่อง (`.env.local` เป็น key แบบเก่า) มาตลอด
+  //
+  // กติกาของ header: `apikey` → gateway อ่าน รับได้ทั้งสองแบบ ·
+  //                  `Authorization: Bearer` → PostgREST อ่าน **รับ JWT เท่านั้น**
+  // จึงต้องใส่ key เดียวกันทั้งคู่ ไม่ใช่ปน anon กับ service key คนละ header
+  let res: Response;
+  try {
+    res = await fetch(`${env.SUPABASE_URL}/rest/v1/${pathAndQuery}`, {
+      headers: {
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+    });
+  } catch (e) {
+    if (diag) diag.detail = `fetch_failed: ${e instanceof Error ? e.message : String(e)}`;
+    return null;
+  }
+  if (!res.ok) {
+    if (diag) {
+      let body = "";
+      try {
+        body = (await res.text()).slice(0, 300);
+      } catch {
+        /* อ่านไม่ได้ก็ยังได้ status */
+      }
+      diag.detail = `pgrst_${res.status}: ${body}`;
+    }
+    return null;
+  }
   return (await res.json()) as T[];
 }
 
@@ -438,12 +469,25 @@ async function handleQuote(
     if (!env.SUPABASE_SERVICE_ROLE_KEY) {
       return { status: 500, body: { ok: false, error: "service_role_not_configured" } };
     }
+    const diag: { detail?: string } = {};
     const rows = await supabaseSelectAsService<UserRow>(
       env,
-      `users?id=eq.${designerId}&select=email,name,business_name,phone`
+      `users?id=eq.${designerId}&select=email,name,business_name,phone`,
+      diag
     );
     const row = rows?.[0];
-    if (!row?.email) return { status: 500, body: { ok: false, error: "designer_not_found" } };
+    if (!row?.email) {
+      // แยกให้ออกว่าอ่านไม่ได้ (สิทธิ์/env) กับ "ไม่มี designer คนนี้จริง ๆ" —
+      // เดิมยุบเป็น designer_not_found เหมือนกันหมด ไล่บั๊กไม่ได้
+      const detail =
+        diag.detail ??
+        (rows === null
+          ? "select_returned_null"
+          : rows.length === 0
+            ? `no_row_for_id=${designerId}`
+            : "row_found_but_email_empty");
+      return { status: 500, body: { ok: false, error: "designer_not_found", detail } };
+    }
     designer = {
       email: row.email,
       name: row.name ?? row.business_name ?? "",

@@ -8,8 +8,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/Button";
-import PdfLightbox from "@/components/PdfLightbox";
-import { licenseLabel } from "@/lib/license";
+import LicenseLink from "@/components/LicenseLink";
+import { licenseLabel, designerLicensePdfMap } from "@/lib/license";
 
 type Entitlement = {
   id: string;
@@ -62,7 +62,6 @@ export default function MyDownloads() {
   const [openExt, setOpenExt] = useState<Record<string, boolean>>({});
   /** designer_id → URL สัญญาฉบับของดีไซน์เนอร์เอง (เฉพาะคนที่ไม่ใช้ฉบับกลางของเว็บ) */
   const [licensePdfs, setLicensePdfs] = useState<Record<string, string>>({});
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -85,11 +84,7 @@ export default function MyDownloads() {
       .from("designer_license_config")
       .select("designer_id, use_default, license_pdf_url")
       .in("designer_id", ownerIds);
-    const map: Record<string, string> = {};
-    for (const c of configs ?? []) {
-      if (!c.use_default && c.license_pdf_url) map[c.designer_id] = c.license_pdf_url;
-    }
-    setLicensePdfs(map);
+    setLicensePdfs(designerLicensePdfMap(configs));
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
@@ -193,13 +188,10 @@ export default function MyDownloads() {
                   {ent.fonts?.owner_id && licensePdfs[ent.fonts.owner_id] && (
                     <p className="font-body text-footnote text-grey-600 mb-2">
                       ฟอนต์นี้ใช้สัญญาอนุญาตของผู้ออกแบบ —{" "}
-                      <button
-                        type="button"
-                        onClick={() => setPdfUrl(licensePdfs[ent.fonts!.owner_id!])}
-                        className="text-mint-text bg-transparent border-none cursor-pointer p-0 font-body text-footnote hover:underline"
-                      >
-                        สัญญาอนุญาต
-                      </button>
+                      <LicenseLink
+                        pdfUrl={licensePdfs[ent.fonts.owner_id]}
+                        className="text-mint-text font-body text-footnote hover:underline"
+                      />
                     </p>
                   )}
                   {!files[ent.id] ? (
@@ -247,8 +239,6 @@ export default function MyDownloads() {
       )}
 
       {error && <p className="font-body text-body-sm text-danger-dark mt-3">{error}</p>}
-
-      {pdfUrl && <PdfLightbox open url={pdfUrl} onClose={() => setPdfUrl(null)} />}
     </section>
   );
 }

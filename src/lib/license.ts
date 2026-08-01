@@ -126,6 +126,51 @@ export function parseDesignerTiers(
   }, []);
 }
 
+// ── สัญญาอนุญาต: ฉบับกลางของเว็บ vs ฉบับของดีไซน์เนอร์ ────────────────────
+
+/** สัญญาอนุญาตฉบับกลางของเว็บ — ปลายทางเมื่อดีไซน์เนอร์ไม่ได้ใช้ฉบับของตัวเอง */
+export const DEFAULT_LICENSE_HREF = "/agreement/";
+
+/** เท่าที่ต้องใช้ตัดสินใจ — รับแถว designer_license_config ที่ select คนละชุดกันได้ */
+export type DesignerLicenseConfigRow = {
+  use_default?: boolean | null;
+  license_pdf_url?: string | null;
+} | null | undefined;
+
+/**
+ * สัญญาอนุญาตที่ต้องแสดงสำหรับฟอนต์ของดีไซน์เนอร์คนนี้
+ * คืน URL ของ PDF ฉบับของเขา · คืน `null` = ให้ใช้ฉบับกลาง `DEFAULT_LICENSE_HREF`
+ *
+ * **นี่คือจุดตัดสินใจจุดเดียวของทั้งเว็บ** — เดิมเงื่อนไข `!use_default && license_pdf_url`
+ * ถูกคัดลอกไว้ 4 ที่ (หน้าฟอนต์ / หน้าร้าน / ดาวน์โหลดของฉัน / ขอใบเสนอราคา)
+ * พลาดที่ใดที่หนึ่ง = ลูกค้าเห็นสัญญาผิดฉบับ ซึ่งเป็นเรื่องที่ผูกพันตามกฎหมาย
+ *
+ * ต้องเช็ค `use_default` ด้วย ไม่ใช่ดูแค่ว่ามี url ไหม — ดีไซน์เนอร์ที่เคยอัป PDF
+ * แล้วกลับมาเลือก "ใช้ฉบับกลาง" ต้องได้ฉบับกลางจริง ๆ
+ */
+export function designerLicensePdf(config: DesignerLicenseConfigRow): string | null {
+  if (!config || config.use_default) return null;
+  return config.license_pdf_url?.trim() || null;
+}
+
+/**
+ * เวอร์ชันหลายดีไซน์เนอร์พร้อมกัน → map `designer_id` → url
+ * มีเฉพาะคนที่ใช้สัญญาฉบับของตัวเอง (คนที่ใช้ฉบับกลางไม่มีคีย์ = lookup ได้ undefined)
+ *
+ * ใช้กับหน้าที่มีของหลายร้านในจอเดียว (ตะกร้า, ดาวน์โหลดของฉัน) ซึ่งต้องยิง
+ * `.in("designer_id", ids)` ทีเดียว ไม่ใช่ยิงต่อฟอนต์
+ */
+export function designerLicensePdfMap(
+  rows: ({ designer_id: string } & NonNullable<DesignerLicenseConfigRow>)[] | null | undefined
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const row of rows ?? []) {
+    const url = designerLicensePdf(row);
+    if (url) map[row.designer_id] = url;
+  }
+  return map;
+}
+
 /**
  * หา tier ที่ตรงกับค่า license_type ที่เก็บไว้ในแถว quotes/orders/entitlements
  *

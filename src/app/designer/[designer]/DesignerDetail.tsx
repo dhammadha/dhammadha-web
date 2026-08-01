@@ -12,7 +12,8 @@ import Container from "@/components/ui/Container";
 import { supabase } from "@/lib/supabase";
 import { effectiveSale } from "@/lib/sale";
 import { mergeShopPromos } from "@/lib/shop-promo";
-import PdfLightbox from "@/components/PdfLightbox";
+import LicenseLink from "@/components/LicenseLink";
+import { designerLicensePdf } from "@/lib/license";
 
 // pool สไลด์ = 4 ฟอนต์ (เจ้าของกำหนด 2026-07-18 · เดิม 3)
 // logic สไลด์ทั้งหมดอยู่ใน CoverCarousel — หน้านี้แค่คัด pool ส่งเข้าไป (เหมือนหน้าแรก)
@@ -37,8 +38,8 @@ export default function DesignerDetail() {
   const [fonts, setFonts] = useState<Font[]>([]);
   const [sliderPool, setSliderPool] = useState<Font[]>([]);
   const [loading, setLoading] = useState(true);
-  const [licenseConfig, setLicenseConfig] = useState<{ use_default: boolean; license_pdf_url: string | null } | null>(null);
-  const [pdfOpen, setPdfOpen] = useState(false);
+  /** สัญญาฉบับของดีไซน์เนอร์คนนี้ — null = ใช้ฉบับกลาง (เกณฑ์อยู่ที่ designerLicensePdf) */
+  const [licensePdf, setLicensePdf] = useState<string | null>(null);
 
   useEffect(() => {
     if (!designerSlug) return;
@@ -60,7 +61,7 @@ export default function DesignerDetail() {
         .select("use_default, license_pdf_url")
         .eq("designer_id", userData.id)
         .single();
-      setLicenseConfig(licenseData ?? null);
+      setLicensePdf(designerLicensePdf(licenseData));
 
       const { data: fontData } = await supabase
         .from("fonts")
@@ -120,18 +121,12 @@ export default function DesignerDetail() {
           <h1 className="font-heading text-h1 text-black">{designerName}</h1>
           <div className="flex items-center gap-4 mt-1">
             <p className="font-body text-body-sm text-grey-600">{fonts.length} ฟอนต์</p>
-            {licenseConfig && !licenseConfig.use_default && licenseConfig.license_pdf_url ? (
-              <button
-                onClick={() => setPdfOpen(true)}
-                className="font-body text-body-sm text-mint-text bg-transparent border-none cursor-pointer p-0 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-              >
-                สัญญาอนุญาต →
-              </button>
-            ) : (
-              <Link href="/agreement/" className="font-body text-body-sm text-mint-text no-underline hover:underline">
-                สัญญาอนุญาต →
-              </Link>
-            )}
+            <LicenseLink
+              pdfUrl={licensePdf}
+              className="font-body text-body-sm text-mint-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            >
+              สัญญาอนุญาต →
+            </LicenseLink>
           </div>
         </Container>
 
@@ -144,13 +139,6 @@ export default function DesignerDetail() {
         </Container>
       </div>
       <Footer />
-      {licenseConfig?.license_pdf_url && (
-        <PdfLightbox
-          open={pdfOpen}
-          url={licenseConfig.license_pdf_url}
-          onClose={() => setPdfOpen(false)}
-        />
-      )}
     </>
   );
 }

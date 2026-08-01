@@ -15,14 +15,19 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import Container from "@/components/ui/Container";
 import Modal from "@/components/ui/Modal";
-import PdfLightbox from "@/components/PdfLightbox";
+import LicenseLink from "@/components/LicenseLink";
 import TypeTester from "./TypeTester";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
 import { useCart, CART_LIMIT } from "@/context/CartContext";
 import { trackFontView, trackFreeDownload } from "@/lib/track";
-import { parseLicenseSettings, parseDesignerTiers, type LicenseTier } from "@/lib/license";
+import {
+  parseLicenseSettings,
+  parseDesignerTiers,
+  designerLicensePdf,
+  type LicenseTier,
+} from "@/lib/license";
 import { SHORT_NAME } from "@/lib/brand";
 
 function shuffle<T>(arr: T[]): T[] {
@@ -155,7 +160,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   const [quoteEnabled, setQuoteEnabled] = useState(false);
   // สัญญาอนุญาตฉบับของดีไซน์เนอร์เอง (ถ้ามี) — แสดงแทนฉบับกลาง /agreement เหมือนหน้า /quote
   const [customLicensePdf, setCustomLicensePdf] = useState<string | null>(null);
-  const [licensePdfOpen, setLicensePdfOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("detail");
   // เคยเปิดแท็บ "พิมพ์ทดสอบ" แล้วหรือยัง — ดูคอมเมนต์ตรงตัว panel ว่าทำไมต้องจำ
   const [testerOpened, setTesterOpened] = useState(false);
@@ -247,9 +251,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
           if (licConfig && !licConfig.use_default) {
             const parsed = parseDesignerTiers(licConfig.tiers);
             if (parsed.length > 0) setCustomLicenseTiers(parsed);
-            // แยกจาก tiers — ดีไซน์เนอร์ที่อัป PDF แล้วแต่ยังไม่ได้ตั้ง tier ก็ต้องเห็นสัญญาของตัวเอง
-            if (licConfig.license_pdf_url) setCustomLicensePdf(licConfig.license_pdf_url);
           }
+          // แยกจาก tiers — ดีไซน์เนอร์ที่อัป PDF แล้วแต่ยังไม่ได้ตั้ง tier ก็ต้องเห็นสัญญาของตัวเอง
+          setCustomLicensePdf(designerLicensePdf(licConfig));
         }
       } catch {
         // โหลดข้อมูลเสริมไม่สำเร็จ — หน้าเพจยังแสดงจาก initialFont ได้
@@ -682,17 +686,11 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       (แพตเทิร์นเดียวกับหน้า /quote และหน้าร้านดีไซน์เนอร์) */}
                   <p className="font-body text-body-sm text-grey-600 mb-3">
                     ดูรายละเอียด{" "}
-                    {customLicensePdf ? (
-                      <button
-                        type="button"
-                        onClick={() => setLicensePdfOpen(true)}
-                        className="text-mint-text bg-transparent border-none cursor-pointer p-0 font-body text-body-sm hover:underline"
-                      >
-                        สัญญาอนุญาต
-                      </button>
-                    ) : (
-                      <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text no-underline hover:underline">สัญญาอนุญาต</Link>
-                    )}
+                    <LicenseLink
+                      pdfUrl={customLicensePdf}
+                      newTab
+                      className="text-mint-text font-body text-body-sm hover:underline"
+                    />
                   </p>
                   <Button
                     as="link"
@@ -725,11 +723,6 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
         </Container>
       </div>
-
-      {/* สัญญาอนุญาตฉบับของดีไซน์เนอร์ */}
-      {customLicensePdf && (
-        <PdfLightbox open={licensePdfOpen} url={customLicensePdf} onClose={() => setLicensePdfOpen(false)} />
-      )}
 
       {/* SPECIMEN LIGHTBOX */}
       <Modal

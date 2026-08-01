@@ -11,6 +11,7 @@
 
 import { handleEmailRequest } from "./email-service";
 import { effectiveSale } from "./sale";
+import { designerLicensePdfMap } from "./license";
 
 export interface CheckoutEnv {
   STRIPE_SECRET_KEY?: string;
@@ -50,14 +51,37 @@ const SAFE_PATH_RE = /^\/(?!\/)[\w\-./%?=&]*$/;
  *
  * ⚠️ ห้ามใส่ชื่อแบรนด์/โดเมนตายตัว — ใช้ `site` ที่มาจาก origin ของ request
  *    จะได้ไม่ต้องกลับมาแก้ตอนเปลี่ยนชื่อแพลตฟอร์ม/ย้ายโดเมน
- * ⚠️ ห้ามเขียนว่า "สัญญาของดีไซน์เนอร์รายนี้" — 1 ใบซื้อข้ามร้านได้ (ตะกร้าหลายฟอนต์)
- *    และ ToS URL เป็นค่าเดียวทั้งบัญชี ถ้อยคำจึงต้องเป็นกลางระหว่างดีไซน์เนอร์
+ * ⚠️ ห้ามเขียนว่า "สัญญาของดีไซน์เนอร์รายนี้" (เอกพจน์ลอย ๆ) — 1 ใบซื้อข้ามร้านได้
+ *    ต้องระบุ **ชื่อร้าน** กำกับทุกลิงก์เสมอ ลูกค้าจึงจะรู้ว่าฉบับไหนครอบฟอนต์ตัวไหน
+ *
+ * ดีไซน์เนอร์ที่ใช้สัญญาฉบับของตัวเองจะถูกต่อท้ายเป็นลิงก์รายร้าน — จุดนี้คือที่ที่
+ * การยอมรับมีผลตามกฎหมายจริง (Stripe เก็บผลไว้ที่ `session.consent`) ถ้าอ้างแต่ฉบับกลาง
+ * หลักฐานการยอมรับจะไม่ตรงกับสัญญาที่บังคับใช้กับฟอนต์ที่ซื้อไป
  */
-function tosAcceptanceMessage(site: string): string {
-  return (
+/** จำนวนลิงก์รายร้านสูงสุด — ตะกร้าซื้อได้ 20 ฟอนต์ ใส่หมดข้อความจะทะลุเพดาน Stripe */
+const MAX_TOS_SHOP_LINKS = 5;
+/** เผื่อขอบจากเพดานจริง 1200 — ทะลุเมื่อไรคือสร้าง session ไม่ได้ = ปุ่มจ่ายเงินพัง */
+const TOS_MESSAGE_MAX = 1000;
+
+/** ชื่อร้านอยู่ในข้อความ markdown — วงเล็บ/วงเล็บเหลี่ยมจะทำให้ลิงก์เพี้ยน */
+function safeShopName(name: string): string {
+  return name.replace(/[[\]()]/g, "").trim().slice(0, 60);
+}
+
+function tosAcceptanceMessage(site: string, shops: { name: string; url: string }[] = []): string {
+  const base =
     `ข้าพเจ้าได้อ่านและยอมรับ [สัญญาอนุญาตใช้งานฟอนต์](${site}/agreement/) ` +
-    "และเข้าใจว่าการซื้อครั้งนี้เป็นการได้รับสิทธิ์การใช้งาน มิใช่การโอนลิขสิทธิ์ในฟอนต์"
-  );
+    "และเข้าใจว่าการซื้อครั้งนี้เป็นการได้รับสิทธิ์การใช้งาน มิใช่การโอนลิขสิทธิ์ในฟอนต์";
+  if (!shops.length) return base;
+
+  const message =
+    base +
+    shops
+      .slice(0, MAX_TOS_SHOP_LINKS)
+      .map((s) => ` · ฟอนต์ของ ${safeShopName(s.name)} อยู่ใต้ [สัญญาอนุญาตของผู้ออกแบบ](${s.url})`)
+      .join("");
+  // ยาวเกิน = ถอยไปใช้ข้อความเดิม ดีกว่าปล่อยให้ Stripe ปฏิเสธแล้วซื้อไม่ได้เลย
+  return message.length <= TOS_MESSAGE_MAX ? message : base;
 }
 
 // ── Price — ต้องให้ผลตรงกับที่ FontDetail แสดง ─────────────────────────────
@@ -189,6 +213,34 @@ export async function handleCheckoutRequest(
 
   // เรียงตามลำดับที่ client ส่งมา เพื่อให้รายการบนหน้าจ่ายเงินตรงกับตะกร้า
   const ordered = fontIds.map((id) => fonts.find((f) => f.id === id)!);
+
+  // ร้านที่ใช้สัญญาอนุญาตฉบับของตัวเอง → ต่อท้ายข้อความยอมรับบนหน้าจ่ายเงิน
+  // เกณฑ์ตัดสินอยู่ที่ `designerLicensePdf()` ตัวเดียวกับที่หน้าเว็บใช้
+  // อ่านไม่ได้/ไม่มีชื่อร้าน = ข้ามไป ใช้ข้อความเดิม **ห้ามให้ checkout ล้มเพราะเรื่องนี้**
+  const licenseShops: { name: string; url: string }[] = [];
+  if (ownerIds.length) {
+    const [configs, profiles] = await Promise.all([
+      supabaseGet<{ designer_id: string; use_default: boolean; license_pdf_url: string | null }>(
+        env,
+        `designer_license_config?designer_id=in.(${ownerIds.join(",")})&select=designer_id,use_default,license_pdf_url`
+      ),
+      supabaseGet<{ id: string; business_name: string | null; name: string | null }>(
+        env,
+        `designer_profiles?id=in.(${ownerIds.join(",")})&select=id,business_name,name`
+      ),
+    ]);
+    const pdfByDesigner = designerLicensePdfMap(configs);
+    const seen = new Set<string>();
+    // เรียงตามลำดับฟอนต์ในตะกร้า ให้ตรงกับที่ลูกค้าเพิ่งเห็นในหน้า /cart
+    for (const font of ordered) {
+      const url = font.owner_id ? pdfByDesigner[font.owner_id] : undefined;
+      if (!font.owner_id || !url || seen.has(font.owner_id)) continue;
+      seen.add(font.owner_id);
+      const profile = profiles?.find((p) => p.id === font.owner_id);
+      licenseShops.push({ name: profile?.business_name || profile?.name || "ผู้ออกแบบ", url });
+    }
+  }
+
   const priced: { font: PurchasableFont; price: number }[] = [];
   for (const font of ordered) {
     const price = computePersonalPrice(font);
@@ -213,7 +265,7 @@ export async function handleCheckoutRequest(
     "consent_collection[terms_of_service]": "required",
     // เขียนทับข้อความ default ของ Stripe ให้ตรงกับปลายทางของลิงก์ (สัญญาอนุญาต
     // ไม่ใช่ข้อกำหนดการใช้เว็บ) — เหตุผลเต็ม + ผลทดสอบ ดู tosAcceptanceMessage()
-    "custom_text[terms_of_service_acceptance][message]": tosAcceptanceMessage(site),
+    "custom_text[terms_of_service_acceptance][message]": tosAcceptanceMessage(site, licenseShops),
     "metadata[license_type]": "personal",
   });
 

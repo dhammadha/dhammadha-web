@@ -7,12 +7,13 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Container from "@/components/ui/Container";
 import { supabase } from "@/lib/supabase";
-import PdfLightbox from "@/components/PdfLightbox";
+import LicenseLink from "@/components/LicenseLink";
 import Button from "@/components/ui/Button";
 import { FIELD, Field } from "@/components/form/field";
 import {
   parseLicenseSettings,
   parseDesignerTiers,
+  designerLicensePdf,
   licenseLabel as getLicenseLabel,
   type LicenseTier,
 } from "@/lib/license";
@@ -82,7 +83,6 @@ function QuoteForm() {
   const [selectedFonts, setSelectedFonts] = useState<string[]>([preselectedFont || ""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const [pdfOpen, setPdfOpen] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
@@ -509,19 +509,11 @@ function QuoteForm() {
 
                 <p className="font-body text-body-sm text-grey-600 mt-1">
                   รายละเอียด{" "}
-                  {licenseConfig && !licenseConfig.use_default && licenseConfig.license_pdf_url ? (
-                    <button
-                      type="button"
-                      onClick={() => setPdfOpen(true)}
-                      className="text-mint-text bg-transparent border-none cursor-pointer p-0 font-body text-body-sm hover:underline"
-                    >
-                      สัญญาอนุญาต
-                    </button>
-                  ) : (
-                    <Link href="/agreement/" target="_blank" className="text-mint-text no-underline hover:underline">
-                      สัญญาอนุญาต
-                    </Link>
-                  )}
+                  <LicenseLink
+                    pdfUrl={designerLicensePdf(licenseConfig)}
+                    newTab
+                    className="text-mint-text font-body text-body-sm hover:underline"
+                  />
                 </p>
               </div>
 
@@ -625,13 +617,6 @@ function QuoteForm() {
         </Container>
       </section>
       <Footer />
-      {licenseConfig?.license_pdf_url && (
-        <PdfLightbox
-          open={pdfOpen}
-          url={licenseConfig.license_pdf_url}
-          onClose={() => setPdfOpen(false)}
-        />
-      )}
     </>
   );
 }

@@ -8,19 +8,23 @@
  * รายการ font_id (ดู handleCheckoutRequest)
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useCart, type CartFont } from "@/context/CartContext";
 import { effectiveSale } from "@/lib/sale";
 import { cartPriceOf, fmtBaht } from "@/lib/revenue";
+import { designerLicensePdfMap } from "@/lib/license";
 import Button from "@/components/ui/Button";
+import LicenseLink from "@/components/LicenseLink";
 
 export default function CartView() {
   const { items, fonts, loadingFonts, remove, ready } = useCart();
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  /** designer_id → URL สัญญาฉบับของเขา (เฉพาะคนที่ไม่ได้ใช้ฉบับกลาง) */
+  const [licensePdfs, setLicensePdfs] = useState<Record<string, string>>({});
 
   const total = fonts.reduce((sum, f) => sum + cartPriceOf(f), 0);
 
@@ -28,6 +32,29 @@ export default function CartView() {
   const missing = ready && !loadingFonts ? items.length - fonts.length : 0;
 
   const { user } = useAuth();
+
+  // สัญญาอนุญาตของแต่ละร้านในตะกร้า — ยิงรวมทีเดียวด้วย .in() ไม่ยิงต่อฟอนต์
+  // (แพตเทิร์นเดียวกับ MyDownloads) · ใบเดียวมีได้หลายร้าน จึงชี้ฉบับกลางอย่างเดียวไม่ได้
+  // ลูกค้าต้องเห็นฉบับที่ผูกพันกับฟอนต์ที่ตัวเองกำลังจะซื้อจริง
+  useEffect(() => {
+    const ownerIds = [...new Set(fonts.map((f) => f.owner_id).filter((v): v is string => !!v))];
+    if (ownerIds.length === 0) {
+      setLicensePdfs({});
+      return;
+    }
+    let active = true;
+    supabase
+      .from("designer_license_config")
+      .select("designer_id, use_default, license_pdf_url")
+      .in("designer_id", ownerIds)
+      .then(({ data }) => {
+        // อ่านไม่ได้ = ถือว่าทุกร้านใช้ฉบับกลาง (ลิงก์ฉบับกลางยังอยู่เสมอ)
+        if (active) setLicensePdfs(designerLicensePdfMap(data));
+      });
+    return () => {
+      active = false;
+    };
+  }, [fonts]);
 
   const checkout = useCallback(async () => {
     if (!fonts.length || paying) return;
@@ -70,6 +97,26 @@ export default function CartView() {
         </div>
       </div>
     );
+  }
+
+  // แยกฟอนต์ในตะกร้าเป็นสองพวก: ร้านที่ใช้สัญญาฉบับของตัวเอง (โชว์ทีละร้าน ไม่ซ้ำ
+  // เรียงตามลำดับในตะกร้า) กับที่เหลือซึ่งอยู่ใต้ฉบับกลางของเว็บ
+  const customLicenseShops: { id: string; name: string; url: string }[] = [];
+  const seenShops = new Set<string>();
+  let hasDefaultLicenseFont = false;
+  for (const f of fonts) {
+    const url = f.owner_id ? licensePdfs[f.owner_id] : undefined;
+    if (!f.owner_id || !url) {
+      hasDefaultLicenseFont = true;
+      continue;
+    }
+    if (seenShops.has(f.owner_id)) continue;
+    seenShops.add(f.owner_id);
+    customLicenseShops.push({
+      id: f.owner_id,
+      name: f.designer_profiles?.business_name || "ผู้ออกแบบ",
+      url,
+    });
   }
 
   return (
@@ -134,13 +181,27 @@ export default function CartView() {
 
       {/* เปิดแท็บใหม่ — คนกำลังจะจ่ายเงิน ไม่ควรถูกพาออกจากตะกร้าไปอ่านสัญญา */}
       <p className="font-body text-footnote text-grey-600 mt-2">
-        กรุณาศึกษา{" "}
-        <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text">
-          สัญญาอนุญาต
-        </Link>{" "}
-        ก่อนสั่งซื้อฟอนต์
+        {hasDefaultLicenseFont ? (
+          <>
+            กรุณาศึกษา{" "}
+            <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text">
+              สัญญาอนุญาต
+            </Link>{" "}
+            ก่อนสั่งซื้อฟอนต์
+          </>
+        ) : (
+          // ทุกฟอนต์ในตะกร้าอยู่ใต้สัญญาของผู้ออกแบบ — ลิงก์ฉบับกลางจะทำให้เข้าใจผิด
+          "กรุณาศึกษาสัญญาอนุญาตของผู้ออกแบบด้านล่างก่อนสั่งซื้อฟอนต์"
+        )}
         {!user && " · ซื้อโดยไม่ต้องสมัครสมาชิกได้ ลิงก์ดาวน์โหลดจะส่งไปทางอีเมล"}
       </p>
+
+      {customLicenseShops.map((shop) => (
+        <p key={shop.id} className="font-body text-footnote text-grey-600 mt-1">
+          ฟอนต์ของ {shop.name} ใช้สัญญาอนุญาตของผู้ออกแบบ —{" "}
+          <LicenseLink pdfUrl={shop.url} className="text-mint-text font-body text-footnote hover:underline" />
+        </p>
+      ))}
 
       <div className="mt-5">
         <Button onClick={checkout} disabled={paying} size="lg" className="w-full">
