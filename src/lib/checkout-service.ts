@@ -74,12 +74,20 @@ function tosAcceptanceMessage(site: string, shops: { name: string; url: string }
     "และเข้าใจว่าการซื้อครั้งนี้เป็นการได้รับสิทธิ์การใช้งาน มิใช่การโอนลิขสิทธิ์ในฟอนต์";
   if (!shops.length) return base;
 
-  const message =
-    base +
-    shops
+  // 🔴 **ขึ้นบรรทัดใหม่ในข้อความนี้ทำไม่ได้** — ทดสอบบนหน้าจ่ายเงินจริงแล้ว
+  // (1 ส.ค. 2569) Stripe ยัดข้อความทั้งก้อนลง `<p>` เดียวที่เป็น `white-space: normal`
+  // และ parse เฉพาะลิงก์ markdown เท่านั้น:
+  //   `<br>` → ถูก escape เป็นข้อความ `&lt;br&gt;` · `- ` (markdown list) → ไม่ทำงาน
+  //   `\n` / `\n\n` / two-space hard break → ตกถึง DOM จริงแต่ CSS ยุบเป็นช่องว่าง
+  //   U+2028 / U+2029 → ไม่ break เช่นกัน (วัดด้วย Range.getClientRects แล้ว)
+  // จึงต้องพึ่งตัวคั่นที่ "มองเห็น" อย่างเดียว — • อ่านออกกว่า · ตอนข้อความยาว ๆ
+  // ⚠️ ห้ามเปลี่ยนกลับไปใช้ \n โดยหวังว่าจะได้บรรทัดใหม่ จะได้ข้อความติดกันหมดเงียบ ๆ
+  const message = [
+    base,
+    ...shops
       .slice(0, MAX_TOS_SHOP_LINKS)
-      .map((s) => ` · ฟอนต์ของ ${safeShopName(s.name)} อยู่ใต้ [สัญญาอนุญาตของผู้ออกแบบ](${s.url})`)
-      .join("");
+      .map((s) => `ฟอนต์ของ ${safeShopName(s.name)} อยู่ใต้ [สัญญาอนุญาตของผู้ออกแบบ](${s.url})`),
+  ].join(" • ");
   // ยาวเกิน = ถอยไปใช้ข้อความเดิม ดีกว่าปล่อยให้ Stripe ปฏิเสธแล้วซื้อไม่ได้เลย
   return message.length <= TOS_MESSAGE_MAX ? message : base;
 }
