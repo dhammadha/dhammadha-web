@@ -102,7 +102,7 @@ export async function generatePayoutPdf(
     person && brand && person !== brand ? `${person} (${brand})` : person || brand || "";
   // ทั้งสี่แถวใช้ drawLabelValue ตัวเดียวกัน ค่าจึงกั้นหน้าตรงกันที่ `M.colNameX`
   // ซึ่งตรงกับหัวข้อ "รายละเอียด" ในแถบตารางด้านล่างด้วย
-  drawLabelValue(w, "บัญชี", recipient, M.colNameX);
+  drawLabelValue(w, "ผู้รับเงิน", recipient, M.colNameX);
   if (data.docNo) drawLabelValue(w, "เลขที่", data.docNo, M.colNameX);
   drawLabelValue(w, "งวด", data.periodLabel, M.colNameX);
   drawLabelValue(w, "วันที่โอน", paidDate, M.colNameX);
