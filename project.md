@@ -304,10 +304,16 @@ CSP · เผื่อ 1 รอบงานสำหรับสิ่งที�
 (`/code-review` กับ `/security-review` ตรวจ **diff** เท่านั้น ตอนไม่มีของค้างจะได้ผลว่าง
 ใช้ตรวจทั้งระบบไม่ได้ — อย่าเข้าใจผิดซ้ำ)
 
-**🔴 เจ้าของต้องทำเอง (Claude ทำแทนไม่ได้):**
-1. **เช็คว่า `TURNSTILE_SECRET_KEY` ตั้งบน Cloudflare Pages แล้วจริง** —
-   [email-service.ts:254](src/lib/email-service.ts:254) เขียนว่า `if (!env.TURNSTILE_SECRET_KEY) return true;`
-   **ไม่ตั้ง = Turnstile ถูกข้ามทั้งระบบ** ฟอร์ม quote/contact กลายเป็นช่องส่งสแปมฟรี
+**เจ้าของต้องทำเอง (Claude ทำแทนไม่ได้):**
+1. ✅ **`TURNSTILE_SECRET_KEY` — ตั้งบน Pages (Production) แล้ว + พิสูจน์จากของจริงแล้ว
+   (1 ส.ค. 2569)** ยิง `/api/send-email` บน production ด้วย token ปลอม / ไม่ส่ง token เลย /
+   เส้นทาง contact → ได้ **`403 turnstile_failed` ทั้งสามแบบ** = เส้น fail-closed ทำงานจริง
+   · **วิธีเช็คซ้ำวันหลัง (ไม่ส่งอีเมลจริงถ้าตั้งถูก):**
+     `curl -X POST <โดเมน>/api/send-email -H 'Content-Type: application/json' -d '{"type":"contact","turnstile_token":"x","payload":{}}'`
+     ต้องได้ 403 · ถ้าได้อย่างอื่น = env หลุด และคำขอนั้นจะกลายเป็นอีเมลจริง
+   · เหตุผลที่ต้องเฝ้า: [email-service.ts:254](src/lib/email-service.ts:254) เขียนว่า
+     `if (!env.TURNSTILE_SECRET_KEY) return true;` **ไม่ตั้ง = Turnstile ถูกข้ามทั้งระบบ**
+     · ⚠️ Pages แยก env **Production / Preview** คนละชุด ตั้งผิดฝั่ง = production ไม่มีผล
 2. เปิด **Leaked Password Protection** (เช็ครหัสผ่านกับ HaveIBeenPwned)
    · **🔴 เปิดตอนนี้ไม่ได้ — เป็นฟีเจอร์ของแผน Pro ขึ้นไป และ org ยังเป็น `free`**
      (ยืนยันจาก API: org `DHAMMADHA STUDIO` plan = free) นี่คือเหตุผลที่หาเมนูไม่เจอ
