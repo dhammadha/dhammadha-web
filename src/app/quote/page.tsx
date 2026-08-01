@@ -312,9 +312,20 @@ function QuoteForm() {
       setForm(EMPTY_FORM);
       setSelectedFonts([""]);
       resetTurnstile();
-    } catch {
+    } catch (err) {
       setStatus("error");
-      setErrorMsg("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+      // `rate_limited` มาจาก submit_public_quote (0074) — อีเมลเดียวกันส่งเกิน 5 ครั้ง/ชั่วโมง
+      // ต้องบอกให้ตรงสาเหตุ ไม่งั้นคนที่กรอกถูกทุกอย่างจะนึกว่าฟอร์มพัง แล้วกดซ้ำอีก
+      // ⚠️ PostgrestError เป็น plain object ไม่ใช่ Error — `instanceof Error` จับไม่ได้
+      const raw =
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : String(err);
+      setErrorMsg(
+        raw.includes("rate_limited")
+          ? "คุณส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่อีกครั้ง"
+          : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+      );
       // token ของ Turnstile ใช้ได้ครั้งเดียว — รีเซ็ต widget ให้ผู้ใช้ยืนยันใหม่ก่อน retry
       resetTurnstile();
     }

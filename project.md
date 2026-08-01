@@ -297,6 +297,40 @@ CSP · เผื่อ 1 รอบงานสำหรับสิ่งที�
 ยังมีเวลา) · จด VAT (สัญญาเขียนรองรับทั้งก่อน/หลังแล้ว) · Phase 4.1 Subscription (ข้อ 8 เดิม) ·
 เว็บสตูดิโอ dhammadha.com · `users.vat_registered` ที่ยังไม่ถูกใช้คำนวณ
 
+## เช็คลิสต์ความปลอดภัยก่อน go-live (ตรวจ 1 ส.ค. 2569)
+
+รันจาก Supabase advisors + ไล่พิสูจน์ทีละข้อด้วย SQL — **ไม่พบช่องโหว่ที่ทำให้ข้อมูลลูกค้า
+หรือเงินรั่ว** ฐาน RLS แน่นตามที่ออกแบบไว้ · ที่พบเป็นเรื่อง enumeration กับสแปม
+(`/code-review` กับ `/security-review` ตรวจ **diff** เท่านั้น ตอนไม่มีของค้างจะได้ผลว่าง
+ใช้ตรวจทั้งระบบไม่ได้ — อย่าเข้าใจผิดซ้ำ)
+
+**🔴 เจ้าของต้องทำเอง (Claude ทำแทนไม่ได้):**
+1. **เช็คว่า `TURNSTILE_SECRET_KEY` ตั้งบน Cloudflare Pages แล้วจริง** —
+   [email-service.ts:254](src/lib/email-service.ts:254) เขียนว่า `if (!env.TURNSTILE_SECRET_KEY) return true;`
+   **ไม่ตั้ง = Turnstile ถูกข้ามทั้งระบบ** ฟอร์ม quote/contact กลายเป็นช่องส่งสแปมฟรี
+2. เปิด **Leaked Password Protection** ใน Supabase Auth (เช็ครหัสผ่านกับ HaveIBeenPwned · ฟรี)
+
+**งานโค้ด:** `0074_security_hardening.sql` — ปิด list ไฟล์ใน public bucket 7 อัน ·
+`set_updated_at` ตรึง search_path · `submit_public_quote` จำกัด 5 คำขอ/อีเมล/ชั่วโมง
+(หน้า `/quote` แปล `rate_limited` เป็นข้อความไทยแล้ว)
+
+**⚠️ ตรวจแล้วปลอดภัย — ห้ามแก้ตาม linter** (advisor รายงานเป็น ERROR/WARN แล้วชวนให้แก้ผิดทาง):
+- **`designer_profiles` (ระดับ ERROR)** — เปิดแค่ `id, name, business_name, designer_slug,
+  portfolio_url` ของคนที่มี slug **ไม่มีอีเมล/เบอร์/บัญชีธนาคาร/เลขผู้เสียภาษี** ·
+  แก้ตาม linter = ต้องเปิด RLS ของ `users` ให้ anon = **แย่กว่าเดิม**
+- `handle_new_user` / `rls_auto_enable` — เป็น trigger กับ event_trigger function
+  Postgres ไม่ยอมให้เรียกตรง เรียกผ่าน REST ไม่ได้
+- `record_payout` — มี `get_my_role() <> 'admin' → 42501` + ตรวจช่วงค่าครบ
+- `verify_order` — ปิดบังชื่อผู้ซื้อเป็น `X***`
+- `subscription_waitlist` — table grant ให้ `authenticated` แต่ policy กั้นที่ admin (RLS ยังกั้น)
+- `doc_counters` RLS เปิดแต่ไม่มี policy = **ปฏิเสธทุกคนโดยตั้งใจ** ตั้งแต่ revoke `next_doc_no()` ใน `0032`
+
+**Performance advisor: 163 รายการ (154 WARN / 9 INFO) — จงใจยังไม่แก้ทั้งหมด**
+`multiple_permissive_policies` 132 ตัวคือก้อนใหญ่สุด **ห้ามแตะก่อน launch** เพราะ permissive
+policy ถูก OR กัน การยุบรวมเปลี่ยนความหมายของสิทธิ์ · `auth_rls_initplan` 22 ตัว
+(`auth.uid()` เรียกทุกแถว → `(select auth.uid())`) คุ้มที่สุดแต่ทำหลัง launch ·
+`unindexed_foreign_keys` 7 + `unused_index` 2 ตารางยังเล็กเกินกว่าจะวัดผลได้
+
 ## แผนที่เอกสาร — ไปอ่านที่ไหนต่อ
 
 | ต้องการอะไร | ไปที่ |
