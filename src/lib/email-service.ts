@@ -355,6 +355,8 @@ ${STUDIO_FOOTER}
 
 interface OrderRow {
   order_no: string;
+  /** เลขที่ใบเสร็จของการขายรายชุด — ออกอัตโนมัติด้วยทริกเกอร์ใน 0075 · null สำหรับออเดอร์ที่มาจากใบเสนอราคา (เลขอยู่บน quotes) */
+  receipt_no: string | null;
   customer_email: string;
   customer_name: string | null;
   designer_id: string | null;
@@ -384,7 +386,13 @@ function deliveryHtml(
       : "";
   return `
 <p>${greetingLine(order.customer_name)}</p>
-<p>ขอบคุณสำหรับการสั่งซื้อ — เราได้รับการยืนยันการชำระเงินของคุณแล้ว (เลขที่คำสั่งซื้อ <strong>${escapeHtml(order.order_no)}</strong>)</p>
+<p>ขอบคุณสำหรับการสั่งซื้อ — เราได้รับการยืนยันการชำระเงินของคุณแล้ว<br>
+เลขที่คำสั่งซื้อ <strong>${escapeHtml(order.order_no)}</strong>${
+    // ขายรายชุดอ่านจาก orders.receipt_no · เส้นทางใบเสนอราคาเลขอยู่บน quotes จึงส่งมาทาง argument
+    order.receipt_no || receiptNo
+      ? `<br>เลขที่ใบเสร็จรับเงิน <strong>${escapeHtml(order.receipt_no || receiptNo || "")}</strong>`
+      : ""
+  }</p>
 <table style="border-collapse:collapse;width:100%;max-width:480px">
   ${rows}
   ${discountRow}
@@ -640,7 +648,7 @@ async function handleDelivery(
   const diag: { detail?: string } = {};
   const orders = await supabaseSelect<OrderRow>(
     env,
-    `orders?id=eq.${orderId}&select=order_no,customer_email,customer_name,designer_id,items,total_amount,discount,paid_at`,
+    `orders?id=eq.${orderId}&select=order_no,receipt_no,customer_email,customer_name,designer_id,items,total_amount,discount,paid_at`,
     authToken,
     diag
   );

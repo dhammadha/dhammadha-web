@@ -124,6 +124,13 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   // ตัวเลขที่ designer แก้ไขได้ — เติมค่าอัตโนมัติให้ก่อน แล้วแก้ทับได้เสมอ
   const [weightOverride, setWeightOverride] = useState("");
   const [styleOverride, setStyleOverride] = useState("");
+  // true = ค่าในช่องมาจาก "คน" แล้ว (ค่าที่บันทึกไว้ใน DB หรือที่เพิ่งพิมพ์เอง)
+  // ห้ามให้ผลอ่านจากไฟล์เขียนทับ — ไม่งั้นค่าที่แก้มือไว้จะถูกย้อนกลับทุกครั้งที่เปิดแก้ไข
+  // และถ้ากดบันทึกต่อ ค่าที่ถูกต้องใน DB จะถูกทับด้วยค่าที่อ่านผิดโดยไม่มีใครรู้
+  const overrideFromHumanRef = useRef(false);
+
+  const changeWeightOverride = (v: string) => { overrideFromHumanRef.current = true; setWeightOverride(v); };
+  const changeStyleOverride = (v: string) => { overrideFromHumanRef.current = true; setStyleOverride(v); };
 
   const showToast = (msg: string, error = false) => {
     setToast({ msg, error });
@@ -138,6 +145,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setCoverFile(null); setCoverUrl(""); setPreviewItems([]);
     setFullFonts([]); setDemoFonts([]); setFreeFonts([]); setSpecimens([]);
     setMetaSummary(null); setMetaLoading(false); setWeightOverride(""); setStyleOverride("");
+    overrideFromHumanRef.current = false;
   }, []);
 
   // Load designer name from user's business_name when adding new font
@@ -161,9 +169,11 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setDiscount(f.discount_percent?.toString() ?? "");
     setSaleLabel(f.sale_label ?? ""); setSaleEnd(f.sale_end ?? "");
     setIsActive(f.is_active); setIsFree(f.is_free); setIsSub(f.is_subscription);
-    // เติมค่าเดิมจาก DB ไว้ก่อน — พออ่านไฟล์จริงเสร็จ (effect ด้านล่าง) จะเขียนทับด้วยค่าที่ถูกต้อง
+    // ค่าที่บันทึกไว้ใน DB ถือว่ามาจากคน (อาจถูกแก้มือมาแล้ว) จึงมีสิทธิ์เหนือผลอ่านจากไฟล์
+    // ฟอนต์ที่ยังไม่มีค่าใน DB ปล่อยให้ effect ด้านล่างเติมให้อัตโนมัติได้ตามเดิม
     setWeightOverride(f.weight_count != null ? String(f.weight_count) : "");
     setStyleOverride(f.style_count != null ? String(f.style_count) : "");
+    overrideFromHumanRef.current = f.weight_count != null || f.style_count != null;
     setMetaSummary(null);
     setCoverFile(null); setCoverUrl(f.cover_image_url ?? "");
     setPreviewItems((f.preview_images ?? []).map((url) => ({ type: "ex", url })));
@@ -206,9 +216,12 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     return () => { cancelled = true; };
   }, [open, isFree, fullFonts, freeFonts, fullFontsLoading]);
 
-  // เติมช่องแก้ไขได้ให้ตรงกับผลอ่านอัตโนมัติล่าสุดเสมอ (designer แก้ทับเองได้หลังจากนี้)
+  // เติมช่องแก้ไขได้ให้ตรงกับผลอ่านอัตโนมัติ — เฉพาะตอนที่ยังไม่มีค่าจากคน
+  // (ตัวอ่านไฟล์นับพลาดได้ เช่นตระกูลที่ตั้งชื่อ style ไม่ตรงมาตรฐาน) ผลอ่านล่าสุด
+  // ยังโชว์เป็นข้อความสรุปเหนือช่องอยู่เสมอ จึงเทียบเองได้ว่าจะแก้ตามไหม
   useEffect(() => {
     if (!metaSummary) return;
+    if (overrideFromHumanRef.current) return;
     setWeightOverride(String(metaSummary.weightCount));
     setStyleOverride(String(metaSummary.styleCount));
   }, [metaSummary]);
@@ -633,8 +646,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
               summary={metaSummary}
               weightOverride={weightOverride}
               styleOverride={styleOverride}
-              onWeightChange={setWeightOverride}
-              onStyleChange={setStyleOverride}
+              onWeightChange={changeWeightOverride}
+              onStyleChange={changeStyleOverride}
             />
 
             {/* Auto-generate demo จากไฟล์เต็ม (ประมวลผลในเบราว์เซอร์) */}
@@ -670,8 +683,8 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
               summary={metaSummary}
               weightOverride={weightOverride}
               styleOverride={styleOverride}
-              onWeightChange={setWeightOverride}
-              onStyleChange={setStyleOverride}
+              onWeightChange={changeWeightOverride}
+              onStyleChange={changeStyleOverride}
             />
           </>
         )}

@@ -17,7 +17,18 @@ type Entitlement = {
   license_type: string;
   created_at: string;
   fonts: { name: string | null; name_th: string | null; slug: string; cover_image_url: string | null; owner_id: string | null } | null;
-  orders: { order_no: string } | null;
+  // ฟิลด์ชุดหลังใช้ออกใบเสร็จรับเงินของการขายรายชุด (ดู lib/retail-receipt.ts)
+  // ใบเสร็จเป็นของ "ทั้งคำสั่งซื้อ" ไม่ใช่ของฟอนต์ตัวเดียว — ตะกร้าหลายตัวจึงได้ใบเดียวกัน
+  orders: {
+    order_no: string;
+    receipt_no: string | null;
+    customer_name: string | null;
+    customer_email: string | null;
+    company_name: string | null;
+    items: Array<{ name?: string | null; license_type?: string | null; price?: number | null }> | null;
+    discount: number | null;
+    paid_at: string | null;
+  } | null;
 };
 
 type FileEntry = { index: number; name: string };
@@ -62,6 +73,31 @@ export default function MyDownloads() {
   const [openExt, setOpenExt] = useState<Record<string, boolean>>({});
   /** designer_id → URL สัญญาฉบับของดีไซน์เนอร์เอง (เฉพาะคนที่ไม่ใช้ฉบับกลางของเว็บ) */
   const [licensePdfs, setLicensePdfs] = useState<Record<string, string>>({});
+  const [receiptBusy, setReceiptBusy] = useState<string | null>(null);
+
+  // เรนเดอร์ใบเสร็จในเบราว์เซอร์แล้วเปิดแท็บใหม่ — ไม่ต้องเก็บไฟล์ไว้ที่ไหน
+  // (webhook สร้าง PDF เองไม่ได้ ตัวเรนเดอร์ pdf-lib ทำงานฝั่ง client เท่านั้น)
+  const openReceipt = useCallback(async (ent: Entitlement) => {
+    const order = ent.orders;
+    if (!order?.receipt_no) return;
+    setReceiptBusy(ent.id);
+    setError("");
+    try {
+      const { buildRetailReceiptData } = await import("@/lib/retail-receipt");
+      const data = buildRetailReceiptData(order);
+      if (!data) return;
+      const { generateQuotePdf } = await import("@/lib/quote-doc");
+      const bytes = await generateQuotePdf(data);
+      const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: "application/pdf" }));
+      window.open(url, "_blank");
+      // ปล่อย object URL ทีหลัง — revoke ทันทีแท็บใหม่จะโหลดไม่ทัน
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      setError("สร้างใบเสร็จไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setReceiptBusy(null);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -69,7 +105,7 @@ export default function MyDownloads() {
     await supabase.rpc("claim_my_entitlements");
     const { data } = await supabase
       .from("entitlements")
-      .select("id, font_id, license_type, created_at, fonts(name, name_th, slug, cover_image_url, owner_id), orders(order_no)")
+      .select("id, font_id, license_type, created_at, fonts(name, name_th, slug, cover_image_url, owner_id), orders(order_no, receipt_no, customer_name, customer_email, company_name, items, discount, paid_at)")
       .eq("user_id", user.id)
       .is("revoked_at", null)
       .order("created_at", { ascending: false });
@@ -192,6 +228,20 @@ export default function MyDownloads() {
                         pdfUrl={licensePdfs[ent.fonts.owner_id]}
                         className="text-mint-text font-body text-footnote hover:underline"
                       />
+                    </p>
+                  )}
+                  {/* ใบเสร็จเป็นของทั้งคำสั่งซื้อ — ตะกร้าหลายฟอนต์จะเห็นเลขเดียวกันทุกแถว
+                      ซึ่งถูกต้องแล้ว ไม่ใช่ใบซ้ำ */}
+                  {ent.orders?.receipt_no && (
+                    <p className="font-body text-footnote text-grey-600 mb-2">
+                      <button
+                        onClick={() => openReceipt(ent)}
+                        disabled={receiptBusy === ent.id}
+                        className="bg-transparent border-none p-0 cursor-pointer font-body text-footnote text-mint-text hover:underline disabled:opacity-50"
+                      >
+                        {receiptBusy === ent.id ? "กำลังสร้างใบเสร็จ…" : `ใบเสร็จรับเงิน ${ent.orders.receipt_no}`}
+                      </button>
+                      <span className="text-grey-600"> · ของทั้งคำสั่งซื้อ {ent.orders.order_no}</span>
                     </p>
                   )}
                   {!files[ent.id] ? (

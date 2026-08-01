@@ -289,6 +289,8 @@ export interface Database {
           platform_amount: number | null;
           designer_amount: number | null;
           verify_token: string;
+          /** เลขที่ใบเสร็จของการขายรายชุด — ทริกเกอร์ใน 0075 ออกให้เอง · null สำหรับออเดอร์ที่มาจากใบเสนอราคา */
+          receipt_no: string | null;
           created_at: string;
         };
         Insert: never;
