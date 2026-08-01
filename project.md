@@ -310,9 +310,20 @@ CSP · เผื่อ 1 รอบงานสำหรับสิ่งที�
    **ไม่ตั้ง = Turnstile ถูกข้ามทั้งระบบ** ฟอร์ม quote/contact กลายเป็นช่องส่งสแปมฟรี
 2. เปิด **Leaked Password Protection** ใน Supabase Auth (เช็ครหัสผ่านกับ HaveIBeenPwned · ฟรี)
 
-**งานโค้ด:** `0074_security_hardening.sql` — ปิด list ไฟล์ใน public bucket 7 อัน ·
-`set_updated_at` ตรึง search_path · `submit_public_quote` จำกัด 5 คำขอ/อีเมล/ชั่วโมง
-(หน้า `/quote` แปล `rate_limited` เป็นข้อความไทยแล้ว)
+**งานโค้ด:** ✅ `0074_security_hardening.sql` **apply แล้ว + พิสูจน์แล้วบน production** —
+ปิด list ไฟล์ใน public bucket 7 อัน · `set_updated_at` ตรึง search_path ·
+`submit_public_quote` จำกัด 5 คำขอ/อีเมล/ชั่วโมง (หน้า `/quote` แปล `rate_limited` เป็นไทยแล้ว)
+· ผลตรวจ: `list` ทั้ง 7 bucket คืน `[]` แต่ไฟล์จริงทุก bucket ยังได้ `200`
+(covers/previews/tester-cache/fonts-demo/fonts-free/specimens/license-pdf) · เปิดเว็บจริงแล้ว
+หน้าแรก/`/fonts`/หน้าฟอนต์ขึ้นครบ ไม่มี error ใน console · ยิง RPC ครั้งที่ 6 ได้ `rate_limited`
+จริง **และเลี่ยงด้วยการสลับตัวพิมพ์/เว้นวรรคไม่ได้** (`lower(trim())`) · ลบแถวทดสอบทิ้งแล้ว
+
+**🔴 `supabase db push` ใช้กับโปรเจกต์นี้ไม่ได้ — ต้อง apply ผ่าน MCP `apply_migration` เท่านั้น**
+remote เก็บเวอร์ชันเป็น timestamp (`20260731174441` = `payout_wht`) ส่วนไฟล์ในรีโปตั้งชื่อ
+`0073_payout_wht.sql` → CLI จับคู่ไม่ได้แล้วขอให้รัน `migration repair --status reverted`
+ซึ่ง**ห้ามทำเด็ดขาด** (จะ replay `0001` ทับของจริง เช่น `0072` จะ re-run
+`update designer_license_config set quote_enabled = true` = เปิดใบเสนอราคาให้คนที่ปิดไว้เอง)
+· เหตุผลเต็มอยู่ใน [CLAUDE.md](CLAUDE.md) §Database
 
 **⚠️ ตรวจแล้วปลอดภัย — ห้ามแก้ตาม linter** (advisor รายงานเป็น ERROR/WARN แล้วชวนให้แก้ผิดทาง):
 - **`designer_profiles` (ระดับ ERROR)** — เปิดแค่ `id, name, business_name, designer_slug,

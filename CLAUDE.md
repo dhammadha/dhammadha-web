@@ -50,7 +50,20 @@ When `!complete`, `src/app/designer/(dashboard)/layout.tsx` redirects to `/desig
 
 ### Database
 
-Types live in `src/lib/database.types.ts`. Migrations in `supabase/migrations/` (numbered `0001_` … `0071_` currently). Apply via `supabase db push` or Supabase MCP `apply_migration`.
+Types live in `src/lib/database.types.ts`. Migrations in `supabase/migrations/` (numbered `0001_` … `0074_` currently).
+
+**Apply with Supabase MCP `apply_migration` only — never `supabase db push`.** The remote
+`schema_migrations` table records versions as timestamps (`20260731174441` = `payout_wht`),
+while the repo names files by sequence (`0073_payout_wht.sql`). They are the same migrations,
+but the CLI matches on version, sees ~45 remote entries with no local match, and refuses.
+
+Do **not** follow the CLI's suggested fixes when that happens:
+- `migration repair --status reverted …` marks migrations that are live in production as
+  reverted, so the next push replays `0001_` onward over an existing schema — e.g. `0072`
+  would re-run `update designer_license_config set quote_enabled = true`, silently
+  re-enabling quotes for every designer who turned them off.
+- `db pull` overwrites the curated migration folder with a single schema snapshot, losing
+  the per-migration comments that document the traps behind each change.
 
 Key tables: `fonts`, `users` (extended with `designer_slug`, `bank` jsonb, `entity_type`, `tax_id`, `address`, `phone`, `business_name`), `quotes`, `licenses`.
 
