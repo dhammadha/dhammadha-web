@@ -179,29 +179,30 @@ export default function CartView() {
         <span className="font-heading text-h3 text-black">{fmtBaht(total)}</span>
       </div>
 
-      {/* เปิดแท็บใหม่ — คนกำลังจะจ่ายเงิน ไม่ควรถูกพาออกจากตะกร้าไปอ่านสัญญา */}
-      <p className="font-body text-footnote text-grey-600 mt-2">
-        {hasDefaultLicenseFont ? (
-          <>
+      {/* บรรทัดละเรื่อง เรียงจากเรื่องของผู้ซื้อ → สัญญาฉบับกลาง → สัญญารายร้าน
+          แต่ละบรรทัดขึ้นเฉพาะเมื่อเกี่ยวข้อง gap-1 คุมระยะแทน mt- รายบรรทัด
+          จะได้ไม่ต้องรู้ว่าบรรทัดไหนโผล่เป็นตัวแรก
+          · ลิงก์เปิดแท็บใหม่ — คนกำลังจะจ่ายเงิน ไม่ควรถูกพาออกจากตะกร้าไปอ่านสัญญา */}
+      <div className="flex flex-col gap-1 mt-2 font-body text-footnote text-grey-600">
+        {!user && <p>ซื้อโดยไม่ต้องสมัครสมาชิกได้ ลิงก์ดาวน์โหลดจะส่งไปทางอีเมล</p>}
+
+        {hasDefaultLicenseFont && (
+          <p>
             กรุณาศึกษา{" "}
             <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text">
               สัญญาอนุญาต
             </Link>{" "}
             ก่อนสั่งซื้อฟอนต์
-          </>
-        ) : (
-          // ทุกฟอนต์ในตะกร้าอยู่ใต้สัญญาของผู้ออกแบบ — ลิงก์ฉบับกลางจะทำให้เข้าใจผิด
-          "กรุณาศึกษาสัญญาอนุญาตของผู้ออกแบบด้านล่างก่อนสั่งซื้อฟอนต์"
+          </p>
         )}
-        {!user && " · ซื้อโดยไม่ต้องสมัครสมาชิกได้ ลิงก์ดาวน์โหลดจะส่งไปทางอีเมล"}
-      </p>
 
-      {customLicenseShops.map((shop) => (
-        <p key={shop.id} className="font-body text-footnote text-grey-600 mt-1">
-          ฟอนต์ของ {shop.name} ใช้สัญญาอนุญาตของผู้ออกแบบ —{" "}
-          <LicenseLink pdfUrl={shop.url} className="text-mint-text font-body text-footnote hover:underline" />
-        </p>
-      ))}
+        {customLicenseShops.map((shop) => (
+          <p key={shop.id}>
+            ฟอนต์ของ {shop.name} ใช้สัญญาอนุญาตของผู้ออกแบบ —{" "}
+            <LicenseLink pdfUrl={shop.url} className="text-mint-text font-body text-footnote hover:underline" />
+          </p>
+        ))}
+      </div>
 
       <div className="mt-5">
         <Button onClick={checkout} disabled={paying} size="lg" className="w-full">
