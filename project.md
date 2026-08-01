@@ -308,7 +308,13 @@ CSP · เผื่อ 1 รอบงานสำหรับสิ่งที�
 1. **เช็คว่า `TURNSTILE_SECRET_KEY` ตั้งบน Cloudflare Pages แล้วจริง** —
    [email-service.ts:254](src/lib/email-service.ts:254) เขียนว่า `if (!env.TURNSTILE_SECRET_KEY) return true;`
    **ไม่ตั้ง = Turnstile ถูกข้ามทั้งระบบ** ฟอร์ม quote/contact กลายเป็นช่องส่งสแปมฟรี
-2. เปิด **Leaked Password Protection** ใน Supabase Auth (เช็ครหัสผ่านกับ HaveIBeenPwned · ฟรี)
+2. เปิด **Leaked Password Protection** (เช็ครหัสผ่านกับ HaveIBeenPwned)
+   · **🔴 เปิดตอนนี้ไม่ได้ — เป็นฟีเจอร์ของแผน Pro ขึ้นไป และ org ยังเป็น `free`**
+     (ยืนยันจาก API: org `DHAMMADHA STUDIO` plan = free) นี่คือเหตุผลที่หาเมนูไม่เจอ
+     ไม่ใช่หาไม่พบ · **ผูกข้อนี้ไว้กับตอนอัป Supabase Pro ในสัปดาห์ go-live** ทำก่อนไม่ได้
+   · ที่อยู่เมนูตอนอัปแล้ว: **Authentication → Sign In / Providers → Email →
+     "Prevent use of leaked passwords"**
+     ลิงก์ตรง: `https://supabase.com/dashboard/project/skyuqpshxsskjwkbnrmd/auth/providers?provider=Email`
 
 **งานโค้ด:** ✅ `0074_security_hardening.sql` **apply แล้ว + พิสูจน์แล้วบน production** —
 ปิด list ไฟล์ใน public bucket 7 อัน · `set_updated_at` ตรึง search_path ·
