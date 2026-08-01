@@ -342,7 +342,7 @@ function deliveryHtml(
   const rows = order.items
     .map(
       (i) => `<tr>
-  <td style="padding:6px 0">${escapeHtml(i.name ?? "")}<br><span style="color:#888;font-size:12px">สิทธิ์ใช้งาน: ${escapeHtml(licenseLabel(i.license_type))}</span></td>
+  <td style="padding:6px 0">${escapeHtml(i.name ?? "")}<br><span style="color:#888;font-size:12px">สิทธิการใช้งาน : ${escapeHtml(licenseLabel(i.license_type))}</span></td>
   <td style="padding:6px 0;text-align:right;white-space:nowrap">฿${Number(i.price ?? 0).toLocaleString()}</td>
 </tr>`
     )
