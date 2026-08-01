@@ -19,7 +19,6 @@
  */
 
 import {
-  CONTENT_W,
   COLOR,
   DocWriter,
   LEAD,
@@ -101,9 +100,9 @@ export async function generatePayoutPdf(
   const person = data.designerName?.trim();
   const recipient =
     person && brand && person !== brand ? `${person} (${brand})` : person || brand || "";
-  w.text(recipient, { font: "sans", maxWidth: CONTENT_W });
-
-  // ค่าของเลขที่/งวด/วันที่โอนกั้นหน้าตรงกับหัวข้อ "รายละเอียด" ในแถบตารางด้านล่าง
+  // ทั้งสี่แถวใช้ drawLabelValue ตัวเดียวกัน ค่าจึงกั้นหน้าตรงกันที่ `M.colNameX`
+  // ซึ่งตรงกับหัวข้อ "รายละเอียด" ในแถบตารางด้านล่างด้วย
+  drawLabelValue(w, "นักออกแบบ", recipient, M.colNameX);
   if (data.docNo) drawLabelValue(w, "เลขที่", data.docNo, M.colNameX);
   drawLabelValue(w, "งวด", data.periodLabel, M.colNameX);
   drawLabelValue(w, "วันที่โอน", paidDate, M.colNameX);

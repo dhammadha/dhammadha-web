@@ -64,8 +64,10 @@ const PersonIcon = () => (
   </svg>
 );
 
-const CartIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+// size รับค่าได้เพราะมือถือต้องใหญ่กว่าเดสก์ท็อป — บนมือถือไอคอนนี้เป็นทางเข้าตะกร้า
+// ทางเดียว (ไม่มี submenu เพราะทัชไม่มี hover) เล็กไปแล้วกดยาก
+const CartIcon = ({ size = 18 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="9" cy="20" r="1.4" />
     <circle cx="18" cy="20" r="1.4" />
     <path d="M2 3h2.5l2.4 12.4a1.6 1.6 0 0 0 1.6 1.3h9a1.6 1.6 0 0 0 1.6-1.3L22 7H5.6" />
@@ -237,23 +239,27 @@ export default function Nav() {
             href="/cart/"
             aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
             className={cn(
-              "relative flex items-center justify-center w-8 h-8 text-white",
+              // 44×44 = ขนาดเป้าสัมผัสขั้นต่ำที่กดไม่พลาด (เดิม 32 เล็กไป)
+              // กล่องใหญ่แต่ไอคอนอยู่กลาง จึงต้องยึด badge กับตัวไอคอนไม่ใช่กับกล่อง
+              "relative flex items-center justify-center w-11 h-11 text-white",
               "hover:text-mint transition-colors duration-150 ease-base",
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint",
               cartAnimating && "cart-bounce"
             )}
           >
-            <CartIcon />
-            {cartReady && cartCount > 0 && (
-              <span
-                className={cn(
-                  "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center",
-                  cartAnimating && "cart-badge-pop"
-                )}
-              >
-                {cartCount}
-              </span>
-            )}
+            <span className="relative flex items-center justify-center">
+              <CartIcon size={24} />
+              {cartReady && cartCount > 0 && (
+                <span
+                  className={cn(
+                    "absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 bg-mint text-black font-heading text-[10px] leading-[16px] text-center",
+                    cartAnimating && "cart-badge-pop"
+                  )}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </span>
           </Link>
         </div>
 

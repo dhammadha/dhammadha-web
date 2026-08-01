@@ -472,7 +472,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     onClose();
   };
 
-  const leftCol = (
+  // สามคอลัมน์ตามลำดับที่เจ้าของกำหนด: ข้อมูลพื้นฐาน / ตั้งค่า+รูปภาพ / ไฟล์ฟอนต์
+  // ลำดับ section ที่ต่อกันยังเหมือนเดิมเป๊ะ โหมด modal (ที่เรียงลงมาเป็นแถวเดียว)
+  // จึงไม่เปลี่ยนหน้าตาเลย เปลี่ยนเฉพาะ mode="page" ที่จัดเป็นกริด
+  const colBasics = (
     <div className="flex flex-col gap-6">
       {/* ข้อมูลพื้นฐาน */}
       <section>
@@ -515,7 +518,11 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
           </div>
         </div>
       </section>
+    </div>
+  );
 
+  const colSettings = (
+    <div className="flex flex-col gap-6">
       {/* ราคาและโปรโมชั่น */}
       <section>
         <h3 className="font-ui text-ui text-black mb-3">ราคาและโปรโมชั่น</h3>
@@ -557,11 +564,6 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
       </section>
 
-    </div>
-  );
-
-  const rightCol = (
-    <div className="flex flex-col gap-6">
       {/* รูปภาพ */}
       <section>
         <h3 className="font-ui text-ui text-black mb-3">รูปภาพ</h3>
@@ -614,6 +616,11 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
       </section>
 
+    </div>
+  );
+
+  const colFiles = (
+    <div className="flex flex-col gap-6">
       {/* ไฟล์ฟอนต์ */}
       <section>
         <h3 className="font-ui text-ui text-black mb-3">ไฟล์ฟอนต์</h3>
@@ -675,8 +682,9 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
   const formSections = (
     <>
-      {leftCol}
-      {rightCol}
+      {colBasics}
+      {colSettings}
+      {colFiles}
     </>
   );
 
@@ -685,12 +693,15 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       <div className="flex flex-col min-h-screen bg-white">
         <div className="flex-1 overflow-y-auto p-6 w-full">
           <h1 className="font-heading text-h2 text-black mb-6">{editingFont ? "แก้ไขฟอนต์" : "เพิ่มฟอนต์"}</h1>
-          <div className="grid grid-cols-2 gap-8 max-w-[1200px]">
-            {leftCol}
-            {rightCol}
+          {/* 3 คอลัมน์เฉพาะจอ xl (1280+) — ที่ lg ยังแคบไป เพราะแต่ละคอลัมน์
+              มีกริด 2 ช่องซ้อนอยู่ข้างใน บีบแล้วช่องกรอกจะสั้นจนอ่านค่าไม่ออก */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 max-w-[1600px]">
+            {colBasics}
+            {colSettings}
+            {colFiles}
           </div>
         </div>
-        <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-2 max-w-[1200px] w-full">
+        <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-2 max-w-[1600px] w-full">
           {saving && <span className="font-body text-body-sm text-grey-600 mr-auto self-center">⏳ กำลังบันทึก…</span>}
           <button onClick={handleCancel} disabled={saving} className="font-ui text-ui px-4 py-2 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
             ยกเลิก
