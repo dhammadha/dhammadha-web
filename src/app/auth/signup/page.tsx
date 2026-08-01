@@ -150,7 +150,11 @@ export default function SignupPage() {
               type="checkbox"
               checked={applyDesigner}
               onChange={(e) => setApplyDesigner(e.target.checked)}
-              className="mt-0.5 accent-black shrink-0"
+              // กล่องติ๊กต้องอยู่กึ่งกลางของ "บรรทัดแรก" ไม่ใช่ชิดขอบบนของกล่องข้อความ
+              // ป้ายเป็นข้อความหลายบรรทัด leading 1.5–1.8 กล่องบรรทัดจึงสูงกว่าตัวอักษรมาก
+              // ถ้าไม่เผื่อระยะ กล่องติ๊กจะลอยสูงกว่าตัวหนังสือจนดูไม่เข้าคู่กัน
+              // w-4 h-4 (16px) ตรึงขนาดไว้ ไม่งั้นแต่ละเบราว์เซอร์ให้ขนาด default ไม่เท่ากัน
+              className="w-4 h-4 mt-1 accent-black shrink-0"
             />
             <div>
               <span className="font-ui text-ui text-black">สมัครเป็น Designer</span>
@@ -182,7 +186,11 @@ export default function SignupPage() {
                   type="checkbox"
                   checked={agreementAccepted}
                   onChange={(e) => setAgreementAccepted(e.target.checked)}
-                  className="mt-0.5 accent-black shrink-0"
+                  // กล่องติ๊กต้องอยู่กึ่งกลางของ "บรรทัดแรก" ไม่ใช่ชิดขอบบนของกล่องข้อความ
+              // ป้ายเป็นข้อความหลายบรรทัด leading 1.5–1.8 กล่องบรรทัดจึงสูงกว่าตัวอักษรมาก
+              // ถ้าไม่เผื่อระยะ กล่องติ๊กจะลอยสูงกว่าตัวหนังสือจนดูไม่เข้าคู่กัน
+              // w-4 h-4 (16px) ตรึงขนาดไว้ ไม่งั้นแต่ละเบราว์เซอร์ให้ขนาด default ไม่เท่ากัน
+              className="w-4 h-4 mt-1 accent-black shrink-0"
                 />
                 <span className="font-body text-body-sm text-grey-800 leading-[1.8]">
                   ฉันได้อ่านและยอมรับ{" "}
@@ -199,7 +207,11 @@ export default function SignupPage() {
               type="checkbox"
               checked={marketingConsent}
               onChange={(e) => setMarketingConsent(e.target.checked)}
-              className="mt-0.5 accent-black shrink-0"
+              // กล่องติ๊กต้องอยู่กึ่งกลางของ "บรรทัดแรก" ไม่ใช่ชิดขอบบนของกล่องข้อความ
+              // ป้ายเป็นข้อความหลายบรรทัด leading 1.5–1.8 กล่องบรรทัดจึงสูงกว่าตัวอักษรมาก
+              // ถ้าไม่เผื่อระยะ กล่องติ๊กจะลอยสูงกว่าตัวหนังสือจนดูไม่เข้าคู่กัน
+              // w-4 h-4 (16px) ตรึงขนาดไว้ ไม่งั้นแต่ละเบราว์เซอร์ให้ขนาด default ไม่เท่ากัน
+              className="w-4 h-4 mt-1 accent-black shrink-0"
             />
             <span className="font-body text-body-sm text-grey-600 leading-[1.8]">
               ยินยอมรับข่าวสาร ฟอนต์ใหม่ และโปรโมชั่นทางอีเมล (ยกเลิกได้ทุกเมื่อ — ดู{" "}
