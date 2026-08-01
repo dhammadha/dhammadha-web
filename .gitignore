@@ -77,8 +77,8 @@ supabase/.temp
 .DS_Store
 src/.DS_Store
 supabase/.DS_Store
-.claude/agents/builder.md
-.claude/agents/researcher.md
-.claude/agents/verifier.md
-.claude/subagents.md
+# .claude/agents/*.md + subagents.md เคยถูก ignore ไว้ — เอาออกแล้ว (1 ส.ค. 2569)
+# เพื่อให้ทีม subagent ตามไปด้วยเวลาย้ายเครื่อง/clone ใหม่
+# (ตอน ignore อยู่ ไฟล์ขาด frontmatter จน agent ไม่โหลดเป็นเวลา ~2 สัปดาห์
+#  โดยไม่มีใครรู้ เพราะไม่มีอะไรใน repo ให้ตรวจเจอ)
 next-env.d.ts
