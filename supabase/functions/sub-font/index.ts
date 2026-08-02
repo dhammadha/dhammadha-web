@@ -1,9 +1,19 @@
-// Supabase Edge Function: sub-font — ทางเดียวที่ desktop app ได้ไฟล์ฟอนต์ subscription
+// Supabase Edge Function: sub-font — ท่อส่งไฟล์ฟอนต์เข้า vault ของ desktop app
 //
 // POST { action: "status" }                        → สิทธิ์ปัจจุบันของผู้เรียก
 // POST { action: "list" }                          → ฟอนต์ที่ opt-in + ไฟล์ + favourites (round-trip เดียว)
-// POST { action: "download", font_id, file_index } → ไฟล์ที่ stamp แล้ว (binary)
+// POST { action: "download", font_id, file_index } → bytes ที่ stamp แล้ว ส่งเข้า vault
 // POST { action: "heartbeat", font_ids: [...] }    → บันทึก font-days ของวันนี้
+//
+// **โมเดล: สมาชิกไม่ได้ "ไฟล์ฟอนต์" — ได้สิทธิ์ให้เครื่องเรียกใช้ระหว่างเป็นสมาชิกเท่านั้น**
+// แอปรับ bytes จาก action `download` แล้วเก็บเข้า vault ที่เข้ารหัสไว้ ถอดรหัสเฉพาะตอน
+// activate เพื่อลงทะเบียนกับระบบฟอนต์ของ OS และลบทิ้งตอน deactivate/ปิดแอป/หมดอายุ
+// ปลายทางจึงไม่ใช่ไฟล์ที่สมาชิกถือครอง — เงื่อนไขที่ผูกพันสมาชิกอยู่ใน `/agreement`
+// หัวข้อ "การใช้งานผ่านสมาชิก (Subscription)" (ห้ามสกัดไฟล์ออกจากแอป / ห้ามหลบเลี่ยง
+// มาตรการทางเทคนิค / สิทธิ์สิ้นสุดพร้อมความเป็นสมาชิก) — อ้างชื่อหัวข้อไม่ใช่เลขข้อ เลขเลื่อนได้
+// ⚠️ endpoint นี้คืน bytes ดิบให้ผู้ถือ JWT ที่มี subscription active — vault กันการคัดลอก
+// โดยผู้ใช้ทั่วไป ไม่ได้กันคนที่ยิง API ตรง (ข้อจำกัดเดียวกับบริการลักษณะนี้ทั่วไป)
+// แนวป้องกันที่แท้จริงของกรณีนั้นคือสัญญา + stamp ที่ระบุตัวสมาชิกไว้ในไฟล์
 //
 // ทุก request ต้องมี Authorization: Bearer <supabase access token> (verify_jwt เปิด)
 // เกณฑ์สิทธิ์ต่างจาก download-font: อันนั้นดู entitlements ของการซื้อรายฟอนต์
@@ -28,6 +38,9 @@ const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  // ต้องประกาศ expose ไม่งั้น JS ใน webview อ่าน header ชุด X-* ไม่เห็นเลย (CORS ซ่อนให้)
+  // — แอปต้องอ่าน `X-Font-File` เพื่อตั้งชื่อไฟล์ใน vault
+  "Access-Control-Expose-Headers": "X-Font-Type, X-Font-File, X-Stamped",
 };
 
 function json(body: unknown, status = 200): Response {
@@ -205,6 +218,11 @@ Deno.serve(async (req: Request) => {
       ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
     });
 
+    // **ไม่มี `Content-Disposition: attachment` โดยตั้งใจ** — ต่างจาก `download-font`
+    // ที่ปลายทางคือผู้ซื้อกดโหลดไฟล์เก็บไว้จริง ๆ · ปลายทางของ subscription คือ vault
+    // ที่เข้ารหัสไว้ในแอป ไม่ใช่ไฟล์ที่สมาชิกถือครอง การใส่ header นี้เป็น affordance
+    // ของการ "บันทึกไฟล์" ซึ่งขัดกับโมเดลตรง ๆ · ชื่อไฟล์จริงส่งไปทาง `X-Font-File`
+    // ให้แอปใช้ตั้งชื่อภายใน vault เอง
     return new Response(bytes, {
       headers: {
         ...CORS,
@@ -212,7 +230,7 @@ Deno.serve(async (req: Request) => {
         // เฉพาะ application/octet-stream กับ application/pdf นอกนั้นถอดเป็น text
         "Content-Type": "application/octet-stream",
         "X-Font-Type": ext === "otf" ? "font/otf" : "font/ttf",
-        "Content-Disposition": `attachment; filename="${filename.replace(/[^\w.\-]/g, "_")}"`,
+        "X-Font-File": filename.replace(/[^\w.\-]/g, "_"),
         "X-Stamped": stamped ? "1" : "0",
       },
     });

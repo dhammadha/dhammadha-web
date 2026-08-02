@@ -70,6 +70,16 @@
 - [x] เทสด้วย JWT จริง: subscriber 200 / customer เปล่า 403 / admin 200 · heartbeat ยิงซ้ำไม่เพิ่มแถว
       · RPC `subscription_month_data` เห็น font_days และ normalize ถูก (1 คน 2 ฟอนต์ → share 0.5/0.5)
 
+**โมเดลที่ต้องยึด: สมาชิกไม่ได้ "ไฟล์ฟอนต์"** — ได้สิทธิ์ให้เครื่องเรียกใช้ระหว่างเป็นสมาชิก
+แอปรับ bytes เข้า vault ที่เข้ารหัส ถอดเฉพาะตอน activate แล้วลบตอน deactivate/ปิดแอป/หมดอายุ
+
+- **`sub-font` ไม่ส่ง `Content-Disposition: attachment` โดยตั้งใจ** (ต่างจาก `download-font`)
+  header นั้นเป็น affordance ของการ "บันทึกไฟล์" ซึ่งขัดกับโมเดล · ชื่อไฟล์ส่งทาง `X-Font-File`
+  พร้อม `Access-Control-Expose-Headers` **ซึ่งจำเป็น ไม่งั้น JS ใน webview อ่าน header `X-*` ไม่เห็น**
+- **⚠️ endpoint คืน bytes ดิบให้ผู้ถือ JWT ที่มี subscription active** — vault กันการคัดลอก
+  โดยผู้ใช้ทั่วไป **ไม่ได้กันคนที่ยิง API ตรง** (ข้อจำกัดเดียวกับ Adobe Fonts) แนวป้องกันจริง
+  ของกรณีนั้นคือ **สัญญา + stamp ที่ระบุตัวสมาชิก** ไม่ใช่มาตรการทางเทคนิค
+
 **จุดที่ต้องรู้**
 
 - **`BRAND_DOMAIN` มีสำเนาใน `sub-font` อีกชุด** (นอกจาก `download-font`) — เปลี่ยนชื่อแบรนด์
@@ -120,6 +130,8 @@
 - Pages: `src/app/subscribe/page.tsx`, `src/app/admin/{pricing,subscriptions,revenue}/page.tsx`, `src/app/designer/(dashboard)/revenue/page.tsx`
 - Edge Functions: `supabase/functions/sub-font/index.ts`, `supabase/functions/_shared/stamp.ts` (ใช้ร่วมกับ `download-font`)
 - สัญญา: `/designer-agreement` **ข้อ 4** = เงื่อนไข Subscription (opt-out รายชุด + สูตร 50/12/38)
+  · `/agreement` **ข้อ 7** = เงื่อนไขที่ผูกพันสมาชิก (ไม่ได้ไฟล์ · ห้ามสกัดออกจากแอป ·
+  ห้ามหลบเลี่ยงมาตรการทางเทคนิค · ห้ามใช้บัญชีร่วม) + **ข้อ 8 จำกัดสิทธิ์ตลอดชีพให้เฉพาะการซื้อรายชุด**
 - รอทำ (C2): `desktop/`
 
 ## ความเสี่ยง/หมายเหตุ
