@@ -122,7 +122,7 @@ delete from fonts where slug like 'test-%';
 -- ส่วนที่ 5 — รีเซ็ตเลขที่เอกสาร ให้ใบจริงใบแรกเริ่มที่ 0001
 --
 -- prefix ที่ใช้อยู่จริง (เช็คจาก doc_counters แล้ว):
---   OR = คำสั่งซื้อ · QT = ใบเสนอราคา · RC = ใบเสร็จรับเงิน
+--   OR = คำสั่งซื้อ · QT = ใบเสนอราคา · IV = ใบแจ้งหนี้ (0076) · RC = ใบเสร็จรับเงิน
 --   PO = ใบสรุปการโอนส่วนแบ่ง (0073) · WT = ใบ 50 ทวิ (0073 — ยังไม่มีแถวจนกว่า
 --        `LEGAL_ENTITY_IS_JURISTIC = true` แต่ใส่ไว้ให้ครบกันลืมวันจดบริษัท)
 -- ⚠️ เพิ่ม prefix ใหม่ในระบบเมื่อไร ต้องมาเติมในบรรทัดนี้ด้วย
@@ -132,10 +132,10 @@ delete from fonts where slug like 'test-%';
 -- ═════════════════════════════════════════════════════════════════════════════
 
 -- ทางเลือก ก: ลบแถวตัวนับทิ้ง — next_doc_no() จะสร้างใหม่เริ่มที่ 1 เอง
--- delete from doc_counters where prefix in ('OR','QT','RC','PO','WT');
+-- delete from doc_counters where prefix in ('OR','QT','IV','RC','PO','WT');
 
 -- ทางเลือก ข: เซ็ตกลับเป็น 0 (เก็บแถวไว้ ผลเท่ากัน)
-update doc_counters set last_no = 0 where prefix in ('OR','QT','RC','PO','WT');
+update doc_counters set last_no = 0 where prefix in ('OR','QT','IV','RC','PO','WT');
 
 
 -- ═════════════════════════════════════════════════════════════════════════════

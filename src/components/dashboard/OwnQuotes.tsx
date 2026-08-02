@@ -41,8 +41,12 @@ type QuoteRow = {
   note: string | null;
   quote_no: string | null;
   receipt_no: string | null;
+  // null = ลูกค้าไม่ได้ขอใบแจ้งหนี้ — ตัวชี้ขาดตัวเดียวของทั้งฟีเจอร์
+  // (ไม่แนบไฟล์ ไม่เอ่ยในอีเมล ไม่ขึ้นปุ่มพิมพ์)
+  invoice_no: string | null;
   quote_issued_at: string | null;
   receipt_issued_at: string | null;
+  invoice_issued_at: string | null;
   designer_id: string | null;
   created_at: string;
 };
@@ -75,6 +79,7 @@ export default function OwnQuotes() {
   const [printQuoteId, setPrintQuoteId] = useState<string | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const [invoicing, setInvoicing] = useState(false);
   const [defaultTiers, setDefaultTiers] = useState<LicenseTier[]>(() => parseLicenseSettings(null));
   const [customTiers, setCustomTiers] = useState<LicenseTier[]>([]);
   const sellerCache = useRef<SellerInfo | null>(null);
@@ -152,12 +157,13 @@ export default function OwnQuotes() {
     licenseType: string,
   ): string[] => (stored?.length ? stored : licenseDocLines(licenseType, allTiers)), [allTiers]);
 
-  // สร้าง PrintData สำหรับใบเสนอราคา/ใบเสร็จ — ใช้ราคาที่บันทึกไว้ (fonts_detail) ถ้ามี
+  // สร้าง PrintData สำหรับใบเสนอราคา/ใบแจ้งหนี้/ใบเสร็จ — ใช้ราคาที่บันทึกไว้ (fonts_detail) ถ้ามี
   const buildPrintData = useCallback(async (
     q: QuoteRow,
-    type: "quotation" | "receipt",
+    type: PrintData["type"],
   ): Promise<PrintData | null> => {
-    const docNo = type === "quotation" ? q.quote_no : q.receipt_no;
+    const docNo =
+      type === "quotation" ? q.quote_no : type === "invoice" ? q.invoice_no : q.receipt_no;
     if (!docNo) return null;
     const sellerInfo = await getSeller();
     if (!sellerInfo) { showToast("กรุณาเพิ่มข้อมูลบัญชีใน Settings ก่อน"); return null; }
@@ -178,7 +184,12 @@ export default function OwnQuotes() {
       }));
     }
 
-    const issuedAt = type === "quotation" ? q.quote_issued_at : q.receipt_issued_at;
+    const issuedAt =
+      type === "quotation"
+        ? q.quote_issued_at
+        : type === "invoice"
+        ? q.invoice_issued_at
+        : q.receipt_issued_at;
     return {
       type,
       doc_no: docNo,
@@ -195,7 +206,7 @@ export default function OwnQuotes() {
     };
   }, [getSeller, getLicenseItems, resolveDocLines, allTiers]);
 
-  const openPrint = useCallback(async (q: QuoteRow, type: "quotation" | "receipt") => {
+  const openPrint = useCallback(async (q: QuoteRow, type: PrintData["type"]) => {
     const data = await buildPrintData(q, type);
     if (!data) return;
     setPrintData(data);
@@ -215,27 +226,39 @@ export default function OwnQuotes() {
     setIssuing(q);
   };
 
-  // หลังยืนยันรับชำระ: สร้าง PDF ใบเสร็จ + ส่งอีเมล delivery พร้อมแนบไฟล์ให้ลูกค้า
+  // หลังยืนยันรับชำระ: สร้าง PDF เอกสารที่ออกจริง + ส่งอีเมล delivery พร้อมแนบไฟล์ให้ลูกค้า
+  // ใบแจ้งหนี้สร้างก็ต่อเมื่อ `invoiceNo` ไม่ null เท่านั้น (designer ติ๊กขอตอนยืนยัน)
   const sendReceiptEmail = useCallback(async (
     q: QuoteRow,
     orderId: string,
     receiptNo: string | null,
+    invoiceNo: string | null,
   ): Promise<boolean> => {
     if (!orderId) return false;
-    let pdf_base64: string | undefined;
-    let filename: string | undefined;
-    if (receiptNo) {
-      const data = await buildPrintData(
-        { ...q, receipt_no: receiptNo, receipt_issued_at: new Date().toISOString() },
-        "receipt",
-      );
-      if (data) {
-        const { generateQuotePdf } = await import("@/lib/quote-doc");
-        const bytes = await generateQuotePdf(data);
-        pdf_base64 = uint8ToBase64(bytes);
-        filename = `${receiptNo}.pdf`;
-      }
+    const issuedAt = new Date().toISOString();
+    const withDocs: QuoteRow = {
+      ...q,
+      receipt_no: receiptNo,
+      receipt_issued_at: issuedAt,
+      invoice_no: invoiceNo,
+      invoice_issued_at: issuedAt,
+    };
+
+    const attachments: Array<{ filename: string; pdf_base64: string }> = [];
+    // ใบแจ้งหนี้มาก่อนใบเสร็จตามลำดับในอีเมล (วางบิลก่อน รับเงินทีหลัง)
+    const wanted: Array<[PrintData["type"], string | null]> = [
+      ["invoice", invoiceNo],
+      ["receipt", receiptNo],
+    ];
+    for (const [type, docNo] of wanted) {
+      if (!docNo) continue;
+      const data = await buildPrintData(withDocs, type);
+      if (!data) continue;
+      const { generateQuotePdf } = await import("@/lib/quote-doc");
+      const bytes = await generateQuotePdf(data);
+      attachments.push({ filename: `${docNo}.pdf`, pdf_base64: uint8ToBase64(bytes) });
     }
+
     const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch("/api/send-email", {
       method: "POST",
@@ -247,12 +270,35 @@ export default function OwnQuotes() {
         type: "delivery",
         payload: {
           order_id: orderId,
-          ...(pdf_base64 ? { pdf_base64, filename, receipt_no: receiptNo } : {}),
+          ...(attachments.length
+            ? { attachments, receipt_no: receiptNo, invoice_no: invoiceNo }
+            : {}),
         },
       }),
     }).catch(() => null);
     return !!res?.ok;
   }, [buildPrintData]);
+
+  // ออกเลขใบแจ้งหนี้ย้อนหลังให้ใบที่ยืนยันรับชำระไปแล้ว
+  // RPC เป็น idempotent — กดซ้ำได้เลขเดิม ไม่กินเลขจาก counter
+  const issueInvoice = async (q: QuoteRow) => {
+    if (invoicing) return;
+    setInvoicing(true);
+    const { data, error } = await supabase.rpc("issue_quote_doc", {
+      p_quote_id: q.id,
+      p_doc_type: "invoice",
+    });
+    setInvoicing(false);
+    if (error) { showToast(`ออกใบแจ้งหนี้ไม่สำเร็จ: ${error.message}`); return; }
+    const docNo = (data as { doc_no?: string } | null)?.doc_no ?? "";
+    showToast(`✓ ออกใบแจ้งหนี้ ${docNo} เรียบร้อย`);
+    await loadQuotes();
+    const { data: fresh } = await supabase.from("quotes").select("*").eq("id", q.id).single();
+    if (fresh) {
+      setSelected(fresh as QuoteRow);
+      await openPrint(fresh as QuoteRow, "invoice");
+    }
+  };
 
   const deleteQuote = async (q: QuoteRow) => {
     if (!confirm(`ลบใบเสนอราคาของ "${q.company_name}"?`)) return;
@@ -339,10 +385,15 @@ export default function OwnQuotes() {
                   ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.quote_no}</span>
                   : <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black whitespace-nowrap">รอดำเนินการ</span>}
               </div>
-              <div>
+              {/* ใบแจ้งหนี้ใช้คอลัมน์เดียวกับใบเสร็จ (ป้ายที่สองใต้ป้ายแรก)
+                  — ตารางกว้างเต็มแล้ว เพิ่มคอลัมน์จะเบียดชื่อบริษัท */}
+              <div className="flex flex-col gap-1 items-start">
                 {q.receipt_no
                   ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.receipt_no}</span>
                   : <span className="font-body text-footnote text-grey-600">—</span>}
+                {q.invoice_no && (
+                  <span className="text-badge font-heading px-2 py-0.5 bg-navy text-white whitespace-nowrap">{q.invoice_no}</span>
+                )}
               </div>
             </div>
           ))}
@@ -414,6 +465,28 @@ export default function OwnQuotes() {
                   พิมพ์ใบเสร็จ ({selected.receipt_no})
                 </Button>
               )}
+              {selected.invoice_no && (
+                <Button variant="outline" onClick={() => openPrint(selected, "invoice")} className="w-full">
+                  พิมพ์ใบแจ้งหนี้ ({selected.invoice_no})
+                </Button>
+              )}
+              {/* ออกใบแจ้งหนี้ย้อนหลัง — ลูกค้าเพิ่งขอหลังยืนยันรับชำระไปแล้ว
+                  กดแล้วเปิดพรีวิวให้ตรวจและกดส่งอีเมลเอง (ไม่ส่งอัตโนมัติ) */}
+              {orders[selected.id] && !selected.invoice_no && (
+                <div>
+                  <Button
+                    variant="outline"
+                    onClick={() => issueInvoice(selected)}
+                    disabled={invoicing}
+                    className="w-full"
+                  >
+                    {invoicing ? "กำลังออกเลขที่…" : "สร้างใบแจ้งหนี้"}
+                  </Button>
+                  <p className="mt-1 font-body text-footnote text-grey-600 text-center leading-relaxed px-2">
+                    ออกเพิ่มได้ภายหลัง — กดเฉพาะเมื่อลูกค้าต้องการ
+                  </p>
+                </div>
+              )}
               {selected.receipt_no ? (
                 <p className="mt-1 font-body text-footnote text-grey-600 text-center leading-relaxed px-2">
                   ออกใบเสร็จ {selected.receipt_no} แล้ว — ลบไม่ได้เพื่อเก็บหลักฐานทางบัญชี
@@ -455,15 +528,22 @@ export default function OwnQuotes() {
           quote={confirming as ConfirmQuote}
           tiers={allTiers}
           onClose={() => setConfirming(null)}
-          onConfirmed={async ({ orderId, orderNo, receiptNo }) => {
+          onConfirmed={async ({ orderId, orderNo, receiptNo, invoiceNo }) => {
             const q = confirming;
             setConfirming(null);
             setSelected(null);
             let emailOk = false;
-            try { emailOk = q ? await sendReceiptEmail(q, orderId, receiptNo) : false; } catch { emailOk = false; }
+            try {
+              emailOk = q ? await sendReceiptEmail(q, orderId, receiptNo, invoiceNo) : false;
+            } catch { emailOk = false; }
+            // รายงานเฉพาะเลขที่ออกจริง — ไม่ติ๊กใบแจ้งหนี้ = ไม่เอ่ยถึงเลย
+            const issued = [
+              receiptNo ? `ใบเสร็จ ${receiptNo}` : "",
+              invoiceNo ? `ใบแจ้งหนี้ ${invoiceNo}` : "",
+            ].filter(Boolean).join(" + ");
             showToast(
               emailOk
-                ? `✓ ยืนยันรับชำระ ${orderNo}${receiptNo ? ` + ออกใบเสร็จ ${receiptNo}` : ""} แล้ว — ส่งอีเมล + ใบเสร็จให้ลูกค้าเรียบร้อย`
+                ? `✓ ยืนยันรับชำระ ${orderNo}${issued ? ` + ออก${issued}` : ""} แล้ว — ส่งอีเมล + เอกสารให้ลูกค้าเรียบร้อย`
                 : `✓ ยืนยันรับชำระ ${orderNo} แล้ว แต่ส่งอีเมลไม่สำเร็จ — แจ้งลูกค้าเองอีกทาง`
             );
             loadQuotes();

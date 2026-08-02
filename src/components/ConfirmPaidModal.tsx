@@ -29,7 +29,13 @@ export type ConfirmQuote = {
   designer_id: string | null;
 };
 
-export type ConfirmResult = { orderId: string; orderNo: string; receiptNo: string | null };
+export type ConfirmResult = {
+  orderId: string;
+  orderNo: string;
+  receiptNo: string | null;
+  /** null = ไม่ได้ติ๊กขอใบแจ้งหนี้ → หน้าแม่ต้องไม่สร้าง/ไม่แนบ/ไม่เอ่ยถึงใบนี้ */
+  invoiceNo: string | null;
+};
 
 type FontOption = { id: string; name: string | null; name_th: string | null; price: number | null };
 
@@ -71,6 +77,8 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
   const [rows, setRows] = useState<ItemRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // ใบแจ้งหนี้เป็นของเสริม — ไม่ติ๊กไว้ให้ ต้องกดเลือกเองเมื่อลูกค้าขอ
+  const [issueInvoice, setIssueInvoice] = useState(false);
 
   useEffect(() => {
     // priced: สร้างแถวจาก fonts_detail ที่บันทึกไว้ (อ่านอย่างเดียว) — ไม่ต้องโหลดฟอนต์
@@ -134,6 +142,7 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
     const { data, error: rpcError } = await supabase.rpc("confirm_quote_paid", {
       p_quote_id: quote.id,
       p_items: items,
+      p_issue_invoice: issueInvoice,
     });
     if (rpcError) {
       const msg = rpcError.message.includes("already_confirmed")
@@ -146,12 +155,15 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
       return;
     }
 
-    const order = data as { id?: string; order_no?: string; receipt_no?: string } | null;
+    const order = data as
+      | { id?: string; order_no?: string; receipt_no?: string; invoice_no?: string | null }
+      | null;
     setSaving(false);
     onConfirmed({
       orderId: order?.id ?? "",
       orderNo: order?.order_no ?? "",
       receiptNo: order?.receipt_no ?? null,
+      invoiceNo: order?.invoice_no ?? null,
     });
   };
 
@@ -169,8 +181,9 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
           {quote.company_name || quote.contact_name} · {quote.email}
         </p>
         <div className="font-body text-footnote text-grey-600 bg-surface p-3 mb-4">
-          ยืนยันเมื่อได้รับเงินโอนเข้าบัญชีของคุณแล้วเท่านั้น — ระบบจะออกใบเสร็จ เปิดสิทธิ์ดาวน์โหลด
-          และส่งอีเมลแจ้งลูกค้าพร้อมไฟล์ใบเสร็จทันที (ไฟล์ถูกประทับข้อมูลการซื้อ ยกเลิกภายหลังไม่ได้)
+          ยืนยันเมื่อได้รับเงินโอนเข้าบัญชีของคุณแล้วเท่านั้น — ระบบจะออกเอกสารตามที่เลือกด้านล่าง
+          เปิดสิทธิ์ดาวน์โหลด และส่งอีเมลแจ้งลูกค้าพร้อมไฟล์เอกสารทันที
+          (ไฟล์ถูกประทับข้อมูลการซื้อ ยกเลิกภายหลังไม่ได้)
         </div>
 
         <div className="flex flex-col gap-3 mb-4">
@@ -230,6 +243,38 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
             <span className="font-body text-body-sm text-grey-600">ยอดรวม</span>
             <span className="font-heading text-h2 text-black">฿{net.toLocaleString()}</span>
           </div>
+        </div>
+
+        {/* เอกสารที่จะออก — ใบเสร็จออกทุกครั้ง (ปิดไม่ได้) ส่วนใบแจ้งหนี้เป็นของเสริม
+            ที่ออกเฉพาะเมื่อลูกค้าขอ · ไม่ติ๊ก = ไม่มีเลข = ไม่แนบไฟล์ ไม่เอ่ยถึงในอีเมล */}
+        <div className="bg-surface p-3 mb-4 flex flex-col gap-3">
+          <div className="font-heading text-badge text-grey-600 tracking-[0.04em]">
+            เอกสารที่จะออกและส่งให้ลูกค้า
+          </div>
+          <label className="flex items-start gap-3">
+            <input type="checkbox" checked disabled className="mt-0.5 accent-black shrink-0" />
+            <div>
+              <span className="font-ui text-ui text-black">ใบเสร็จรับเงิน</span>
+              <p className="font-body text-footnote text-grey-600 mt-0.5 leading-[1.6]">
+                ออกทุกครั้งที่ยืนยันรับชำระ
+              </p>
+            </div>
+          </label>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={issueInvoice}
+              onChange={(e) => setIssueInvoice(e.target.checked)}
+              className="mt-0.5 accent-black shrink-0"
+            />
+            <div>
+              <span className="font-ui text-ui text-black">ใบแจ้งหนี้</span>
+              <p className="font-body text-footnote text-grey-600 mt-0.5 leading-[1.6]">
+                ปกติออกใบแจ้งหนี้เมื่อลูกค้าส่งใบ PO มาแล้ว และขอใบแจ้งหนี้เพื่อรอรับเงินตามรอบ
+                - กดเลือกถ้าต้องการ
+              </p>
+            </div>
+          </label>
         </div>
 
         {error && <p className="font-body text-body-sm text-danger-dark mb-3">{error}</p>}

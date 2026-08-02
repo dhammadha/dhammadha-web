@@ -71,6 +71,8 @@ const PDF_FILENAME_RE = /^[A-Za-z0-9._-]{1,150}\.pdf$/i;
 const BASE64_RE = /^[A-Za-z0-9+/]+={0,2}$/;
 // ~4,000,000 ตัวอักษร base64 ≈ 3MB ไฟล์จริง — เผื่อ headroom ใต้ลิมิตของ Resend
 const PDF_BASE64_MAX_LEN = 4_000_000;
+/** อีเมล delivery แนบได้มากสุด 2 ใบ = ใบเสร็จ + ใบแจ้งหนี้ */
+const MAX_ATTACHMENTS = 2;
 
 /**
  * ส่งอีเมลผ่าน Resend — คืน `null` เมื่อสำเร็จ, คืน**ข้อความสาเหตุ**เมื่อพัง
@@ -370,7 +372,9 @@ function deliveryHtml(
   order: OrderRow,
   designerBrand: string,
   licensePdfUrl: string | null,
-  receiptNo: string | null = null
+  receiptNo: string | null = null,
+  /** null = ลูกค้าไม่ได้ขอใบแจ้งหนี้ → ห้ามเอ่ยถึงเลยทั้งฉบับ */
+  invoiceNo: string | null = null
 ): string {
   const rows = order.items
     .map(
@@ -392,7 +396,7 @@ function deliveryHtml(
     order.receipt_no || receiptNo
       ? `<br>เลขที่ใบเสร็จรับเงิน <strong>${escapeHtml(order.receipt_no || receiptNo || "")}</strong>`
       : ""
-  }</p>
+  }${invoiceNo ? `<br>เลขที่ใบแจ้งหนี้ <strong>${escapeHtml(invoiceNo)}</strong>` : ""}</p>
 <table style="border-collapse:collapse;width:100%;max-width:480px">
   ${rows}
   ${discountRow}
@@ -402,7 +406,15 @@ function deliveryHtml(
 เข้าสู่ระบบที่ ${DOMAIN} ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) <br>แล้วไปที่หน้า "บัญชีของฉัน" โดยไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด</p>
 <p>หากยังไม่มีบัญชี สมัครสมาชิกด้วยอีเมลนี้ ระบบจะผูกสิทธิ์ให้อัตโนมัติ</p>
 <p><br><a href="${SITE_URL}/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a><br><br></p>
-${receiptNo ? `<p style="color:#555;font-size:13px">แนบใบเสร็จรับเงินเลขที่ <strong>${escapeHtml(receiptNo)}</strong> มาพร้อมอีเมลฉบับนี้แล้ว</p>` : ""}
+${
+  receiptNo
+    ? `<p style="color:#555;font-size:13px">แนบ${
+        invoiceNo
+          ? `ใบแจ้งหนี้เลขที่ <strong>${escapeHtml(invoiceNo)}</strong> และ`
+          : ""
+      }ใบเสร็จรับเงินเลขที่ <strong>${escapeHtml(receiptNo)}</strong> มาพร้อมอีเมลฉบับนี้แล้ว</p>`
+    : ""
+}
 ${licensePdfUrl ? `<p>เอกสารข้อตกลงสิทธิ์การใช้งาน (License): <a href="${escapeHtml(licensePdfUrl)}">ดาวน์โหลด PDF</a></p>` : ""}
 <p style="color:#888;font-size:13px">ไฟล์ฟอนต์ของคุณถูกประทับข้อมูลการซื้อ (เลขคำสั่งซื้อ) ไว้ในไฟล์ ตรวจสอบได้ที่ ${DOMAIN}/verify</p>
 <br>
@@ -415,14 +427,21 @@ interface DocumentQuoteFields {
   company_name: string;
 }
 
-function documentHtml(d: DocumentQuoteFields, docType: "quotation" | "receipt", docNo: string): string {
+/** เอกสารที่ส่งทางอีเมลได้ — ตรงกับ `QuoteDocType` ใน `quote-doc.ts` */
+type DocEmailType = "quotation" | "invoice" | "receipt";
+
+function documentHtml(d: DocumentQuoteFields, docType: DocEmailType, docNo: string): string {
   const greetingName = d.contact_name || d.company_name;
+  const contact = `<a href="mailto:${escapeHtml(STUDIO_CONTACT_EMAIL)}">${escapeHtml(STUDIO_CONTACT_EMAIL)}</a>`;
   const body =
     docType === "quotation"
       ? `<p>แนบใบเสนอราคาเลขที่ <strong>${escapeHtml(docNo)}</strong> ตามที่ท่านสอบถามเข้ามา กรุณาตรวจสอบรายละเอียดในไฟล์ที่แนบมาพร้อมนี้</p>
-<p>หากมีข้อสงสัยหรือต้องการแก้ไขรายการ ติดต่อได้ที่ <a href="mailto:${escapeHtml(STUDIO_CONTACT_EMAIL)}">${escapeHtml(STUDIO_CONTACT_EMAIL)}</a></p>`
+<p>หากมีข้อสงสัยหรือต้องการแก้ไขรายการ ติดต่อได้ที่ ${contact}</p>`
+      : docType === "invoice"
+      ? `<p>แนบใบแจ้งหนี้เลขที่ <strong>${escapeHtml(docNo)}</strong> ตามไฟล์ที่แนบมาพร้อมนี้ กรุณาตรวจสอบรายละเอียดและรายการบัญชีสำหรับการชำระเงิน</p>
+<p>หากมีข้อสงสัยเกี่ยวกับใบแจ้งหนี้ ติดต่อได้ที่ ${contact}</p>`
       : `<p>ขอบคุณสำหรับการชำระเงิน แนบใบเสร็จรับเงินเลขที่ <strong>${escapeHtml(docNo)}</strong> ตามไฟล์ที่แนบมาพร้อมนี้</p>
-<p>หากมีข้อสงสัยเกี่ยวกับใบเสร็จ ติดต่อได้ที่ <a href="mailto:${escapeHtml(STUDIO_CONTACT_EMAIL)}">${escapeHtml(STUDIO_CONTACT_EMAIL)}</a></p>`;
+<p>หากมีข้อสงสัยเกี่ยวกับใบเสร็จ ติดต่อได้ที่ ${contact}</p>`;
   return `
 <p>${greetingLine(greetingName)}</p>
 ${body}
@@ -626,21 +645,34 @@ async function handleDelivery(
   const orderId = str(raw.order_id, 40);
   if (!UUID_RE.test(orderId)) return { status: 400, body: { ok: false, error: "invalid_payload" } };
 
-  // ไฟล์แนบใบเสร็จ (ถ้ามี) — ออปชันนัล ไม่มีก็ยังส่งอีเมลได้ตามปกติ
-  const pdfBase64 = typeof raw.pdf_base64 === "string" ? raw.pdf_base64.trim() : "";
-  const filename = str(raw.filename, 200);
+  // ไฟล์แนบ (ใบเสร็จ + ใบแจ้งหนี้ถ้าลูกค้าขอ) — ออปชันนัล ไม่มีก็ยังส่งอีเมลได้ตามปกติ
+  // เส้นทางซื้อรายชุดผ่าน Stripe (checkout-service) ส่งมาแค่ order_id ไม่มีไฟล์แนบ
   const receiptNo = str(raw.receipt_no, 40);
+  const invoiceNo = str(raw.invoice_no, 40);
 
+  const rawAttachments = Array.isArray(raw.attachments) ? raw.attachments : [];
   let attachments: { filename: string; content: string }[] | undefined;
-  if (pdfBase64) {
-    if (
-      !PDF_FILENAME_RE.test(filename) ||
-      pdfBase64.length > PDF_BASE64_MAX_LEN ||
-      !BASE64_RE.test(pdfBase64)
-    ) {
+  if (rawAttachments.length > 0) {
+    // ⚠️ เพดานขนาดต้องนับ "รวมทุกไฟล์" — เช็คทีละไฟล์แล้วสองไฟล์จะทะลุได้เท่าตัว
+    if (rawAttachments.length > MAX_ATTACHMENTS) {
       return { status: 400, body: { ok: false, error: "invalid_attachment" } };
     }
-    attachments = [{ filename, content: pdfBase64 }];
+    const list: { filename: string; content: string }[] = [];
+    let totalLen = 0;
+    for (const item of rawAttachments) {
+      const a = (item ?? {}) as Record<string, unknown>;
+      const name = str(a.filename, 200);
+      const content = typeof a.pdf_base64 === "string" ? a.pdf_base64.trim() : "";
+      totalLen += content.length;
+      if (!content || !PDF_FILENAME_RE.test(name) || !BASE64_RE.test(content)) {
+        return { status: 400, body: { ok: false, error: "invalid_attachment" } };
+      }
+      list.push({ filename: name, content });
+    }
+    if (totalLen > PDF_BASE64_MAX_LEN) {
+      return { status: 400, body: { ok: false, error: "invalid_attachment" } };
+    }
+    attachments = list;
   }
 
   // อ่าน order ด้วย token ของผู้เรียก — RLS บังคับให้เห็นเฉพาะ order ของตัวเอง
@@ -688,7 +720,7 @@ async function handleDelivery(
   const sendErr = await sendResendEmail(env.RESEND_API_KEY, {
     to: order.customer_email,
     subject: `คำสั่งซื้อ ${order.order_no} สำเร็จ — ดาวน์โหลดฟอนต์ของคุณได้แล้ว`,
-    html: deliveryHtml(order, brand, licensePdfUrl, receiptNo || null),
+    html: deliveryHtml(order, brand, licensePdfUrl, receiptNo || null, invoiceNo || null),
     ...(attachments ? { attachments } : {}),
   });
   if (sendErr) return { status: 502, body: { ok: false, error: "send_failed", detail: sendErr } };
@@ -701,6 +733,7 @@ type QuoteRow = {
   company_name: string | null;
   quote_no: string | null;
   receipt_no: string | null;
+  invoice_no: string | null;
 };
 
 async function handleDocument(
@@ -716,10 +749,10 @@ async function handleDocument(
   const pdfBase64 = typeof raw.pdf_base64 === "string" ? raw.pdf_base64.trim() : "";
 
   if (!UUID_RE.test(quoteId)) return { status: 400, body: { ok: false, error: "invalid_payload" } };
-  if (docTypeRaw !== "quotation" && docTypeRaw !== "receipt") {
+  if (docTypeRaw !== "quotation" && docTypeRaw !== "invoice" && docTypeRaw !== "receipt") {
     return { status: 400, body: { ok: false, error: "invalid_payload" } };
   }
-  const docType = docTypeRaw as "quotation" | "receipt";
+  const docType = docTypeRaw as DocEmailType;
   if (!PDF_FILENAME_RE.test(filename)) return { status: 400, body: { ok: false, error: "invalid_filename" } };
   if (!pdfBase64) return { status: 400, body: { ok: false, error: "invalid_payload" } };
   if (pdfBase64.length > PDF_BASE64_MAX_LEN) return { status: 400, body: { ok: false, error: "file_too_large" } };
@@ -730,22 +763,29 @@ async function handleDocument(
   // ต้องรับ designer ด้วย เพราะ 0039 ให้ designer เจ้าของออกเอกสารเองได้ (เหมือน handleDelivery)
   const quotes = await supabaseSelect<QuoteRow>(
     env,
-    `quotes?id=eq.${quoteId}&select=email,contact_name,company_name,quote_no,receipt_no`,
+    `quotes?id=eq.${quoteId}&select=email,contact_name,company_name,quote_no,receipt_no,invoice_no`,
     authToken
   );
   const quote = quotes?.[0];
   if (!quote?.email) return { status: 404, body: { ok: false, error: "quote_not_found" } };
 
   // เอกสารต้องออกเลขที่แล้วก่อนถึงจะส่งได้
-  const docNo = docType === "quotation" ? quote.quote_no : quote.receipt_no;
+  const docNo =
+    docType === "quotation"
+      ? quote.quote_no
+      : docType === "invoice"
+      ? quote.invoice_no
+      : quote.receipt_no;
   if (!docNo) return { status: 400, body: { ok: false, error: "doc_not_issued" } };
 
   if (!env.RESEND_API_KEY) return { status: 500, body: { ok: false, error: "email_not_configured" } };
 
-  const subject =
-    docType === "quotation"
-      ? `ใบเสนอราคา ${docNo} — ${BRAND}`
-      : `ใบเสร็จรับเงิน ${docNo} — ${BRAND}`;
+  const DOC_SUBJECT: Record<DocEmailType, string> = {
+    quotation: "ใบเสนอราคา",
+    invoice: "ใบแจ้งหนี้",
+    receipt: "ใบเสร็จรับเงิน",
+  };
+  const subject = `${DOC_SUBJECT[docType]} ${docNo} — ${BRAND}`;
 
   const sendErr = await sendResendEmail(env.RESEND_API_KEY, {
     to: quote.email,

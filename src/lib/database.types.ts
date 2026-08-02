@@ -214,8 +214,10 @@ export interface Database {
           designer_id: string | null;
           quote_no: string | null;
           receipt_no: string | null;
+          invoice_no: string | null;
           quote_issued_at: string | null;
           receipt_issued_at: string | null;
+          invoice_issued_at: string | null;
           total_amount: number | null;
           discount: number;
           fonts_detail: Json | null;
@@ -235,8 +237,10 @@ export interface Database {
           designer_id?: string | null;
           quote_no?: string | null;
           receipt_no?: string | null;
+          invoice_no?: string | null;
           quote_issued_at?: string | null;
           receipt_issued_at?: string | null;
+          invoice_issued_at?: string | null;
           total_amount?: number | null;
           discount?: number;
           fonts_detail?: Json | null;
@@ -256,8 +260,10 @@ export interface Database {
           designer_id?: string | null;
           quote_no?: string | null;
           receipt_no?: string | null;
+          invoice_no?: string | null;
           quote_issued_at?: string | null;
           receipt_issued_at?: string | null;
+          invoice_issued_at?: string | null;
           total_amount?: number | null;
           discount?: number;
           fonts_detail?: Json | null;
@@ -628,7 +634,7 @@ export interface Database {
         Returns: string;
       };
       confirm_quote_paid: {
-        Args: { p_quote_id: string; p_items: Json };
+        Args: { p_quote_id: string; p_items: Json; p_issue_invoice?: boolean };
         Returns: Json;
       };
       claim_my_entitlements: {
