@@ -24,7 +24,9 @@ Publish ฟอนต์ = rebuild ทั้งเว็บ (~2 นาที เ�
 |---|---|
 | Backend Phase 0–3 (ซ่อมช่องโหว่ / go-live / quote-to-cash manual / Stripe checkout) | ✅ โค้ดเสร็จ + apply DB จริงแล้ว |
 | Backend Phase 4.2–4.3 (Revenue & Payout / Analytics + Search) | ✅ โค้ดเสร็จ + apply DB จริงแล้ว |
-| Backend Phase 4.1 (Subscription) | ⏸ รอข้อมูลยอดขายจริง + waitlist ก่อนเคาะราคา/กติกา — Milestone A+B เสร็จ, C (`sub-font` Edge Fn + Tauri app) และ D (เปิด trial) ยกไปหลัง go-live |
+| Backend Phase 4.1 (Subscription) | Milestone **A+B+C1 เสร็จ** · เหลือ **C2 (Tauri desktop app)** และ **D (เปิด trial)** — ราคา/กติกายังรอข้อมูลยอดขายจริงก่อนเคาะ |
+| **Subscription C1 — Edge Function `sub-font`** | ✅ โค้ดเสร็จ + deploy จริงแล้ว (3 ส.ค. 2569, **ไม่แตะ DB**) — 4 actions: `status`/`list`/`download`/`heartbeat` · **ทำได้ระหว่างรอ go-live เพราะช่วงทดสอบเป็น ฿0 สมัครตรงผ่าน RPC ไม่แตะ payment gateway** · ย้าย `stamp.ts` → `supabase/functions/_shared/` ใช้ร่วมกับ `download-font` (redeploy ทั้งคู่แล้ว เทียบ byte ก่อน/หลังเหมือนเดิมทุกอย่าง) · **🔴 `sub-font` มีสำเนา `BRAND_DOMAIN` ของตัวเองอีกชุด — เปลี่ยนชื่อแบรนด์ต้อง redeploy สอง function ไม่ใช่หนึ่ง** · **admin ใช้แอปได้ไม่ต้องสมัคร แต่ font-days ไม่นับเงิน** — การกรองอยู่ที่ RPC `subscription_month_data` ไม่ใช่ที่ Edge Function (พิสูจน์แล้ว: heartbeat ของ admin → `contributing_users: 0` ส่วน subscriber จริง → นับเข้า 2 ฟอนต์ share 0.5/0.5) · **วันของ `stream_days` ต้องเป็น Asia/Bangkok ไม่ใช่ UTC** ไม่งั้นช่วง 00:00–07:00 น. ไทยถูกนับเป็นเมื่อวาน · stamp ของ subscription ไม่มี `order_no`/`verify_token` ใช้ user id แทน = audit trail ไม่ใช่ DRM · ทดสอบด้วย JWT จริงครบทุก action แล้วล้างข้อมูลทดสอบทิ้ง |
+| **สัญญา designer: เพิ่มข้อ Subscription** | ✅ โค้ดเสร็จ (3 ส.ค. 2569, ไม่แตะ DB) — **ช่องว่างที่เจอ: `/designer-agreement` 12 ข้อที่เพิ่งเขียนใหม่ 31 ก.ค. ไม่มีคำว่า subscription เลยสักคำ ทั้งที่ `fonts.is_subscription` default = เปิด** → designer ที่เซ็นตอน go-live จะถูกดึงฟอนต์เข้า pool โดยสัญญาไม่ได้พูดถึง · เพิ่มเป็น**ข้อ 4** (เลื่อน 4–12 เป็น 5–13 + แก้ cross-ref "ข้อ 10" → "ข้อ 11" สองจุด): สิทธิ์ opt-out รายชุด · สูตร 50/12/38 · pool ที่แบ่งไม่หมดตกเป็นของแพลตฟอร์ม · จ่ายรวมรอบไตรมาสเดียวกัน · **ระบุตรง ๆ ว่า stamp เป็นการตรวจสอบย้อนหลัง ไม่ใช่การป้องกันสำเนา** · ข้อ 5 (sub-license) ครอบคลุมสมาชิกด้วยแล้ว · **ยังไม่มี designer ภายนอกเซ็น จึงไม่ต้อง `npm run legal:freeze`** |
 | Redesign หน้าสาธารณะ Phase 0–10 (หน้าแรก, /fonts, FontDetail, เอกสาร, become-a-designer, contact, verify, auth, account, quote, subscribe, checkout) | ✅ เสร็จหมด — merge เข้า `main` แล้ว |
 | Redesign dashboard admin/designer | ✅ restyle ครบทุกหน้า (Phase D1–D4) — ดู [docs/design/DESIGN.md](docs/design/DESIGN.md) §18 · ยังไม่ตรวจสดหลัง login |
 | Dashboard: รวม designer section ของ admin + ปุ่มลบฟอนต์ + share มือถือ | ✅ โค้ดเสร็จ (24 ก.ค. 2026) — `/admin/*` designer section เป็น wrapper ครอบ `src/components/dashboard/Own*.tsx` ชุดเดียวกับ `/designer/*` แล้ว (ไม่มีปุ่มลบ) · ปุ่มลบย้ายไป `/admin/font-review` พร้อม modal พิมพ์ชื่อยืนยัน |
@@ -58,7 +60,10 @@ Publish ฟอนต์ = rebuild ทั้งเว็บ (~2 นาที เ�
 | **ใบแจ้งหนี้ (Invoice) ต่อเข้า flow ยืนยันรับชำระ** | ✅ โค้ดเสร็จ + apply DB (`0076`, 2 ส.ค. 2569, `fc65b6d`) — ตัวเอกสารมีอยู่แล้วใน `quote-doc.ts` (`DOC_SPEC.invoice`) รอบนี้ต่อท่ออย่างเดียว **ไม่แตะไฟล์เอกสารเลย** · **ใบแจ้งหนี้เป็นของเสริม ออกเฉพาะเมื่อลูกค้าขอ** (ลูกค้าส่งใบ PO มาแล้วขอเพื่อรอรับเงินตามรอบ) — ตอนกด "ยืนยันรับชำระ" มีบล็อกเลือกเอกสาร ใบเสร็จติ๊กค้างปิดไม่ได้ ใบแจ้งหนี้ **default ไม่ติ๊ก** · **กติกาตัวชี้ขาดเดียว = `quotes.invoice_no is null`** ไม่มีเลข = ไม่แนบไฟล์ ไม่เอ่ยในอีเมล ไม่ขึ้นปุ่มพิมพ์ (ไม่มีธงตัวที่สองให้ค่าเพี้ยนกันเอง) · สองเส้นทางออกเลข: `confirm_quote_paid(…, p_issue_invoice)` ตอนยืนยัน · `issue_quote_doc(id,'invoice')` สำหรับออกย้อนหลังผ่านปุ่ม "สร้างใบแจ้งหนี้" ทั้งคู่ idempotent · **🔴 กับดักที่เจอ: เพิ่มพารามิเตอร์ให้ RPC ด้วย `create or replace` = ได้ overload ตัวที่สอง ของเดิมไม่หาย แล้ว PostgREST ที่เรียกด้วยชื่ออาร์กิวเมนต์ชุดเดิมจะเข้าได้ทั้งคู่ → `function is not unique` ต้อง `drop function` ก่อนเสมอ (drop แล้ว grant หายด้วย ต้อง grant ใหม่)** · `handleDelivery` รับ `attachments` เป็น array แล้ว — **นับขนาด base64 รวมทุกไฟล์เทียบเพดาน ไม่ใช่ทีละไฟล์** ไม่งั้นสองไฟล์ทะลุได้เท่าตัว · `handleDocument` ต้องรองรับ `doc_type: "invoice"` ด้วย ไม่งั้นปุ่มส่งอีเมลใน `PrintLightbox` ถูกปฏิเสธ · ทดสอบเส้นทาง DB ครบใน DO block ที่ rollback ทั้งก้อน (ติ๊ก → RC+IV · ออกซ้ำได้เลขเดิม · ไม่ติ๊ก → null · ย้อนหลังได้เลขถัดไป) **ยังไม่ได้กดจริงบนหน้าจอหลัง login** |
 | Go-live จริง (ย้ายฟอนต์ 35 ตัว, Stripe, Zoho, DNS cutover) | ⏳ ยังไม่ทำ — **ต้องเคาะชื่อ+โดเมน (ข้อ 0) และจดบริษัท (ข้อ 0b) ก่อน** เพราะงานข้อ 2/3/5/6 ผูกกับทั้งโดเมนและนิติบุคคล (บัญชี Stripe ต้องตรงกับนิติบุคคลที่รับเงิน) ทำก่อนแล้วเปลี่ยนทีหลัง = รื้อใหม่หมด ดูด้านล่าง |
 
-**Branch:** ทำงานบน `main` สายเดียว — งานถึง `fc65b6d` commit แล้วครบ
+**Branch:** ทำงานบน `main` สายเดียว — งาน Subscription C1 (3 ส.ค.) **ยังไม่ commit**
+· `sub-font` + `download-font` **deploy ขึ้น Supabase จริงไปแล้ว** (Edge Function deploy แยกจาก
+Cloudflare ไม่ต้องรอ push) ส่วนหน้า `/designer-agreement` ต้อง push + deploy ถึงจะเห็นข้อ 4
+· งานก่อนหน้าถึง `fc65b6d` commit แล้วครบ
 (เจ้าของ push เองผ่าน GitHub Desktop)
 · **`0076` apply ลง DB จริงไปแล้ว แต่โค้ดยังไม่ deploy** — ไม่พังเพราะเว็บเวอร์ชันเก่า
 ไม่ได้อ่านคอลัมน์ใหม่ แต่ปุ่มใบแจ้งหนี้จะยังไม่โผล่จนกว่าจะ deploy
@@ -73,8 +78,10 @@ DB apply 0069–0071 ไปก่อนหน้าโค้ด ถ้าเว�
    · ตอนนี้แพลตฟอร์มมีลูกค้า 0 คน designer 0 คน = จังหวะที่ถูกที่สุดเท่าที่จะเป็นไปได้
    · **จดโดเมนก่อนพูดชื่อในที่สาธารณะ** + ค้นเครื่องหมายการค้าที่กรมทรัพย์สินฯ (จำพวก 9/35/42)
    · โค้ดพร้อมแล้ว — เคาะชื่อเมื่อไร แก้ `src/lib/brand.ts` ไฟล์เดียว แล้วเหลืองานที่ **ยังไม่ได้ทำ**:
-     (ก) `supabase/functions/download-font/index.ts` มี `BRAND_DOMAIN` สำเนาของตัวเอง (Deno import
-         `lib/brand.ts` ไม่ได้) แก้แล้ว **ต้อง redeploy** ไม่งั้นไฟล์ที่ขายออกไปถูกประทับโดเมนเก่า
+     (ก) **Edge Function สองตัวมี `BRAND_DOMAIN` สำเนาของตัวเองคนละชุด** (Deno import
+         `lib/brand.ts` ไม่ได้) — `supabase/functions/download-font/index.ts` **และ**
+         `supabase/functions/sub-font/index.ts` แก้แล้ว **ต้อง redeploy ทั้งคู่**
+         ไม่งั้นไฟล์ที่ขาย/ที่ส่งให้สมาชิกถูกประทับโดเมนเก่าไว้ในตัวไฟล์ แก้ย้อนหลังไม่ได้
      (ข) โลโก้/wordmark ใหม่ใน `/public` (`LOGO_SRC`) — ตอนนี้ยังเป็นโลโก้ Dhammadha
      (ค) ทบทวน**ถ้อยคำ**หน้ากฎหมาย (terms/privacy/refund/agreement/designer-agreement) ว่าประโยคไหน
          ควรพูดถึงแพลตฟอร์ม ประโยคไหนพูดถึงนิติบุคคล — โค้ดแยกตัวแปรให้แล้ว แต่ถ้อยคำยังไม่ได้ทบทวน
@@ -278,7 +285,18 @@ DB apply 0069–0071 ไปก่อนหน้าโค้ด ถ้าเว�
    (ตอนนี้เป็น outlook ชั่วคราว ลูกค้าเห็นอีเมลนี้บนหน้าจ่ายเงิน/ใบเสร็จของ Stripe)
 6. DNS cutover → dhammadha.com (ต้อง proxied/เมฆส้ม) + **อัป Supabase Auth Site URL/Redirect URLs**
 7. เปิดตัว + เริ่มชวน designer ผ่าน `/become-a-designer`
-8. (รอข้อมูลขาย) Phase 4.1 Subscription ต่อ
+8. **Phase 4.1 Subscription — C2 (Tauri desktop app) แล้วต่อ D (เปิด trial)**
+   · **ทำขนานได้ระหว่างรอ go-live** — ช่วงทดสอบเป็น ฿0 สมัครตรงผ่าน RPC ไม่แตะ payment gateway
+   · C1 (`sub-font` Edge Function) เสร็จแล้ว → API ที่แอปต้องใช้พร้อมและพิสูจน์ด้วย JWT จริงแล้ว
+   · **ก่อนเริ่ม C2:** ติดตั้ง Rust toolchain (ยังไม่มีบนเครื่อง) · **ควรเคาะชื่อแบรนด์ก่อน scaffold**
+     เพราะ bundle identifier (`com.<brand>.app`) ฝังลง code signing + การลงทะเบียนระดับ OS
+     เปลี่ยนทีหลัง = ผู้ใช้ต้องติดตั้งใหม่
+   · Apple Developer ID ($99/ปี) + Windows code-signing cert — ไม่บล็อกการทดสอบวงปิด
+9. **Milestone E (ที่แผนเดิมไม่มี) — recurring billing จริง** ยังไม่มีโค้ด `mode:"subscription"`
+   ที่ไหนเลย (`checkout-service.ts` เป็น `mode:"payment"` อย่างเดียว) · **บล็อกโดยการจดบริษัท**
+   (บัญชี Stripe ต้องตรงนิติบุคคล) · **ตอนถึงจุดนั้นต้องทบทวน Payso อีกครั้ง** — บันทึก 29 ก.ค.
+   ระบุว่า ฿290/ด. Payso 3.2% vs Stripe 7.6% (฿10 คงที่ทำร้ายยอดเล็ก) ถ้าอยู่กับ Stripe
+   ให้ดันรายปี ฿2,900 เป็นตัวหลัก (4.3%)
 
 รายละเอียด/เหตุผลของแต่ละข้อ (Stripe/ย้ายฟอนต์/DNS ฯลฯ) → [docs/ROADMAP.md](docs/ROADMAP.md) แต่ละ Phase ·
 Phase D dashboard → [docs/design/DESIGN.md](docs/design/DESIGN.md) §18

@@ -10,7 +10,7 @@
 // Deploy: supabase functions deploy download-font (หรือ Supabase MCP deploy_edge_function)
 
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { stampFont } from "./stamp.ts";
+import { stampFont } from "../_shared/stamp.ts";
 
 const MAX_DOWNLOADS_PER_DAY = 30; // ต่อ entitlement ต่อ 24 ชม.
 

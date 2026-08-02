@@ -1,7 +1,10 @@
 # Phase 4.1 — Subscription + Desktop App (เอกสารติดตามงาน)
 
-> อัปเดตล่าสุด: 2026-07-12 · แผนเต็ม: `~/.claude/plans/subscription-spicy-wozniak.md`
-> สถานะ: **A + B เสร็จ (commit 39fdfde)** → กำลังทดสอบ authed → รอต่อ **C**
+> อัปเดตล่าสุด: 2569-08-03 · แผนเต็ม: `~/.claude/plans/subscription-spicy-wozniak.md`
+> สถานะ: **A + B + C1 เสร็จ** → รอต่อ **C2 (desktop app)**
+>
+> ⚠️ **สัดส่วนที่ถูกต้องคือ 50 / 12 / 38** (`SPLIT` ใน `src/lib/subscription-revenue.ts`)
+> แผนเต็มฉบับเก่ายังเขียน 15/35 ซึ่งเป็นค่าก่อนปรับใน Phase 4.2b — **ยึดโค้ดเป็นหลัก**
 
 ## ภาพรวมโมเดล (ยืนยันกับ user แล้ว)
 
@@ -57,18 +60,36 @@
 
 ---
 
-## 🔲 Milestone C — Edge Function + Desktop app (~2-3 สัปดาห์)
+## ✅ Milestone C1 — Edge Function `sub-font` (เสร็จ 3 ส.ค. 2569, ไม่แตะ DB)
 
-### C1 — Edge Function `supabase/functions/sub-font/` (ทำก่อน, เทสด้วย curl+JWT)
-- [ ] ย้าย `stamp.ts` → `supabase/functions/_shared/stamp.ts` + แก้ import ใน `download-font` + redeploy ทั้งคู่
-- [ ] action `status` → `{active, role, provider, current_period_end}`
-- [ ] action `list` → ฟอนต์ opt-in + ไฟล์ (font_files_private) + favourites ของ user
-- [ ] action `download {font_id, file_index}` → rate limit 300/24ชม → อ่าน fonts-full → stamp → log
-- [ ] action `heartbeat {font_ids[]}` → cap 500 → upsert stream_days วันนี้ (เวลาไทย) → admin ไม่นับเงิน
-- [ ] เทส: subscriber 200 / customer เฉย ๆ 403 / admin 200, stream_days เกิดจริง
+- [x] ย้าย `stamp.ts` → `supabase/functions/_shared/stamp.ts` + แก้ import ใน `download-font` + redeploy ทั้งคู่
+- [x] action `status` → `{active, role, provider, current_period_end}`
+- [x] action `list` → ฟอนต์ opt-in + ไฟล์ (font_files_private) + favourites ของ user
+- [x] action `download {font_id, file_index}` → rate limit 300/24ชม → อ่าน fonts-full → stamp → log
+- [x] action `heartbeat {font_ids[]}` → cap 500 → upsert stream_days วันนี้ (เวลาไทย)
+- [x] เทสด้วย JWT จริง: subscriber 200 / customer เปล่า 403 / admin 200 · heartbeat ยิงซ้ำไม่เพิ่มแถว
+      · RPC `subscription_month_data` เห็น font_days และ normalize ถูก (1 คน 2 ฟอนต์ → share 0.5/0.5)
 
-### C2 — Desktop app `desktop/` (Tauri v2 + Vite + React + TS + Tailwind)
-- [ ] scaffold Tauri v2 (ต้องมี **Rust toolchain** บนเครื่อง user)
+**จุดที่ต้องรู้**
+
+- **`BRAND_DOMAIN` มีสำเนาใน `sub-font` อีกชุด** (นอกจาก `download-font`) — เปลี่ยนชื่อแบรนด์
+  ต้อง **redeploy ทั้งสอง function** ไม่งั้นไฟล์ที่ส่งออกไปถูกประทับโดเมนเก่า แก้ย้อนหลังไม่ได้
+- **admin ใช้แอปได้โดยไม่ต้องสมัคร** — Edge Function ปล่อยผ่าน แต่การกรองไม่ให้นับเงิน
+  อยู่ที่ RPC `subscription_month_data` (พิสูจน์แล้ว: heartbeat ของ admin → `contributing_users: 0`)
+- **stamp ต่างจากการซื้อขาด** — ไม่มี `order_no`/`verify_token` ใช้ user id + ชื่อสมาชิกแทน
+  เป็น audit trail ไม่ใช่ DRM
+- **วันของ `stream_days` คำนวณเป็น Asia/Bangkok** (`bangkokToday()`) ไม่ใช่ UTC —
+  ถ้าใช้ UTC ช่วง 00:00–07:00 น. ไทยจะถูกนับเป็นเมื่อวาน
+- `download-font` เทียบ byte-for-byte ก่อน/หลัง redeploy แล้ว ผลเหมือนเดิมทุกอย่าง
+
+## 🔲 Milestone C2 — Desktop app (~2-3 สัปดาห์)
+
+**ก่อนเริ่ม:** ติดตั้ง Rust toolchain (`rustup`) — ยังไม่มีบนเครื่อง ·
+ควรเคาะชื่อแบรนด์ก่อน scaffold เพราะ **bundle identifier** (`com.<brand>.app`)
+ฝังลง code signing + การลงทะเบียนระดับ OS เปลี่ยนทีหลัง = ผู้ใช้ต้องติดตั้งใหม่
+
+`desktop/` (Tauri v2 + Vite + React + TS + Tailwind) — API ฝั่ง server พร้อมใช้แล้วจาก C1
+- [ ] scaffold Tauri v2
 - [ ] Auth: supabase-js + custom storage adapter → Rust `keyring` (auto-login, refresh token ไม่แตะ disk)
 - [ ] Vault (`src-tauri/src/vault.rs`): ไฟล์ฟอนต์ AES-256-GCM, ถอดตอน activate, ลบตอน deactivate/exit + sweep
 - [ ] Font registration: Windows `AddFontResourceExW(path,0)`+WM_FONTCHANGE / macOS `CTFontManagerRegisterFontsForURL` session
@@ -97,10 +118,14 @@
 - Context: `src/context/FavouritesContext.tsx`
 - Components: `src/components/account/{MyFavourites,SubscriptionCard}.tsx`, `src/components/SubscriptionPricingCard.tsx`, `src/components/revenue/SubscriptionRevenue.tsx`
 - Pages: `src/app/subscribe/page.tsx`, `src/app/admin/{pricing,subscriptions,revenue}/page.tsx`, `src/app/designer/(dashboard)/revenue/page.tsx`
-- รอทำ (C): `supabase/functions/sub-font/`, `supabase/functions/_shared/stamp.ts`, `desktop/`
+- Edge Functions: `supabase/functions/sub-font/index.ts`, `supabase/functions/_shared/stamp.ts` (ใช้ร่วมกับ `download-font`)
+- สัญญา: `/designer-agreement` **ข้อ 4** = เงื่อนไข Subscription (opt-out รายชุด + สูตร 50/12/38)
+- รอทำ (C2): `desktop/`
 
 ## ความเสี่ยง/หมายเหตุ
-- `is_subscription` default เปิดทุกฟอนต์ (opt-out) — โอเคตอนนี้ (ฟอนต์ทั้งหมดของสตูดิโอ) ควรระบุใน designer agreement เมื่อรับ designer นอก
+- ~~`is_subscription` default เปิดทุกฟอนต์ (opt-out) — ควรระบุใน designer agreement~~
+  ✅ **ปิดแล้ว 3 ส.ค. 2569** — `/designer-agreement` ข้อ 4 ระบุ opt-out รายชุด + สูตรแบ่ง +
+  ข้อจำกัดเรื่อง stamp เป็น audit trail ไม่ใช่ DRM · ยังไม่มี designer ภายนอกเซ็น จึงไม่ต้อง `legal:freeze`
 - ไฟล์ถอดรหัสชั่วคราวระหว่าง active ถูก copy ได้ (เหมือน Adobe Fonts) — stamp ระบุตัว subscriber เป็น audit trail
 - subscriber จริง script heartbeat เชียร์ตัวเองได้ แต่ user-centric จำกัดความเสียหาย = น้ำหนัก 1 คน
 - stream 38% + font-days จะเป็น ฿0/ว่าง จนกว่า desktop app (C) ส่ง heartbeat
