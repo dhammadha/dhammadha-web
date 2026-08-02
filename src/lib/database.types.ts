@@ -599,6 +599,7 @@ export interface Database {
         Row: {
           id: number;
           user_id: string;
+          device_id: string | null;
           font_id: string;
           file_path: string;
           ip: string | null;
@@ -607,11 +608,53 @@ export interface Database {
         Insert: {
           id?: number;
           user_id: string;
+          device_id?: string | null;
           font_id: string;
           file_path: string;
           ip?: string | null;
           created_at?: string;
         };
+        Update: never;
+        Relationships: [];
+      };
+      // ทะเบียนอุปกรณ์ของสมาชิก (0077) — client เขียนตรงไม่ได้ ผ่าน Edge Function `sub-font`
+      // เท่านั้น · admin แก้ `revoked_at` ได้ผ่าน policy ใน 0078
+      sub_devices: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string | null;
+          platform: string | null;
+          last_seen_at: string | null;
+          revoked_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name?: string | null;
+          platform?: string | null;
+          last_seen_at?: string | null;
+          revoked_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          name?: string | null;
+          platform?: string | null;
+          last_seen_at?: string | null;
+          revoked_at?: string | null;
+        };
+        Relationships: [];
+      };
+      // ⚠️ ตารางนี้ **ไม่มี policy ใด ๆ** — service_role (Edge Function) เท่านั้นที่แตะได้
+      // ประกาศ type ไว้เพื่อความครบถ้วนของสคีมา **ห้ามเรียกจากโค้ดฝั่ง client**
+      sub_device_keys: {
+        Row: {
+          device_id: string;
+          device_key: string;
+          created_at: string;
+        };
+        Insert: never;
         Update: never;
         Relationships: [];
       };

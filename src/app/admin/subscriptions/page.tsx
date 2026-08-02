@@ -11,6 +11,28 @@ import { fetchAllRows } from "@/lib/fetch-all";
 
 type Row = SubscriptionRow & { users: { email: string | null; name: string | null } | null };
 
+type DeviceRow = {
+  id: string;
+  user_id: string;
+  name: string | null;
+  platform: string | null;
+  last_seen_at: string | null;
+  created_at: string;
+  users: { email: string | null; name: string | null } | null;
+};
+
+/** สรุปการใช้งาน 7 วันล่าสุดต่อผู้ใช้ — ใช้จับคนดูดคลัง */
+type UsageRow = {
+  userId: string;
+  files: number;        // จำนวนไฟล์ที่โหลด
+  fontsDownloaded: number; // ฟอนต์ที่ต่างกันที่โหลด
+  fontsStreamed: number;   // ฟอนต์ที่ต่างกันที่มี heartbeat จริง
+};
+
+const USAGE_DAYS = 7;
+/** โหลดตั้งแต่กี่ฟอนต์ขึ้นไปถึงจะเริ่มสนใจ (ต่ำกว่านี้คือใช้งานปกติ) */
+const SUSPICIOUS_MIN_FONTS = 5;
+
 const PROVIDER_LABEL: Record<string, string> = {
   trial: "ทดสอบ", stripe: "Stripe", payso: "Payso", admin: "Comp",
 };
@@ -37,6 +59,9 @@ export default function AdminSubscriptionsPage() {
   const [subDownWin, setSubDownWin] = useState("");
   const [subDownMac, setSubDownMac] = useState("");
 
+  const [devices, setDevices] = useState<DeviceRow[]>([]);
+  const [usage, setUsage] = useState<UsageRow[]>([]);
+
   const showToast = (msg: string, error = false) => {
     setToast({ msg, error });
     setTimeout(() => setToast(null), 3500);
@@ -55,6 +80,74 @@ export default function AdminSubscriptionsPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // ── อุปกรณ์ + สัญญาณการใช้งานผิดปกติ ──
+  // โหลดแยกจากตารางสมาชิกและไม่บล็อกกัน (แพตเทิร์นเดียวกับประวัติดาวน์โหลดใน /admin/orders)
+  const loadDevices = useCallback(async () => {
+    const since = new Date(Date.now() - USAGE_DAYS * 24 * 3600 * 1000).toISOString();
+    const sinceDay = since.slice(0, 10);
+    const [devRes, dlRes, sdRes] = await Promise.all([
+      fetchAllRows<DeviceRow>((from, to) =>
+        supabase
+          .from("sub_devices")
+          .select("id, user_id, name, platform, last_seen_at, created_at, users(email, name)")
+          .is("revoked_at", null)
+          .order("created_at", { ascending: false })
+          .range(from, to) as unknown as PromiseLike<{ data: DeviceRow[] | null; error: unknown }>
+      ),
+      fetchAllRows<{ user_id: string; font_id: string }>((from, to) =>
+        supabase
+          .from("sub_download_logs")
+          .select("user_id, font_id")
+          .gte("created_at", since)
+          .range(from, to) as unknown as PromiseLike<{ data: { user_id: string; font_id: string }[] | null; error: unknown }>
+      ),
+      fetchAllRows<{ user_id: string; font_id: string }>((from, to) =>
+        supabase
+          .from("stream_days")
+          .select("user_id, font_id")
+          .gte("day", sinceDay)
+          .range(from, to) as unknown as PromiseLike<{ data: { user_id: string; font_id: string }[] | null; error: unknown }>
+      ),
+    ]);
+
+    setDevices(devRes.rows);
+
+    // สัญญาณหลัก: โหลดฟอนต์ไปเยอะแต่ไม่มี heartbeat = ดึงไฟล์ไปเก็บ ไม่ได้เอาไปใช้จริง
+    // ผู้ใช้จริง activate → แอปส่ง heartbeat ของฟอนต์นั้น สองตัวเลขจึงควรใกล้กัน
+    const byUser = new Map<string, UsageRow>();
+    const get = (id: string) => {
+      let u = byUser.get(id);
+      if (!u) { u = { userId: id, files: 0, fontsDownloaded: 0, fontsStreamed: 0 }; byUser.set(id, u); }
+      return u;
+    };
+    const dlFonts = new Map<string, Set<string>>();
+    for (const r of dlRes.rows) {
+      get(r.user_id).files++;
+      if (!dlFonts.has(r.user_id)) dlFonts.set(r.user_id, new Set());
+      dlFonts.get(r.user_id)!.add(r.font_id);
+    }
+    const sdFonts = new Map<string, Set<string>>();
+    for (const r of sdRes.rows) {
+      if (!sdFonts.has(r.user_id)) sdFonts.set(r.user_id, new Set());
+      sdFonts.get(r.user_id)!.add(r.font_id);
+    }
+    for (const [id, set] of dlFonts) get(id).fontsDownloaded = set.size;
+    for (const [id, set] of sdFonts) get(id).fontsStreamed = set.size;
+    setUsage([...byUser.values()].sort((a, b) => b.fontsDownloaded - a.fontsDownloaded));
+  }, []);
+
+  useEffect(() => { loadDevices(); }, [loadDevices]);
+
+  const revokeDevice = async (d: DeviceRow) => {
+    if (!confirm(`ถอนการลงทะเบียน "${d.name || "ไม่ระบุชื่อ"}" ของ ${d.users?.email ?? d.user_id.slice(0, 8)}?\n\nเครื่องนี้จะเรียกใช้ฟอนต์ไม่ได้ทันที`)) return;
+    const { error } = await supabase
+      .from("sub_devices")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("id", d.id);
+    if (error) showToast("ผิดพลาด: " + error.message, true);
+    else { showToast("✓ ถอนอุปกรณ์แล้ว"); loadDevices(); }
+  };
 
   useEffect(() => {
     supabase.from("settings").select("value").eq("key", "subscription").maybeSingle().then(({ data }) => {
@@ -255,6 +348,106 @@ export default function AdminSubscriptionsPage() {
             </table>
           </div>
         )}
+        </div>
+      </div>
+
+      {/* อุปกรณ์ที่ลงทะเบียน */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="font-ui text-ui text-black">อุปกรณ์ที่ลงทะเบียน</h2>
+          <span className="font-body text-body-sm text-grey-600">{devices.length} เครื่อง (สูงสุด 2 ต่อบัญชี)</span>
+        </div>
+        <p className="font-body text-footnote text-grey-600">
+          เครื่องที่ถูกถอนจะเรียกใช้ฟอนต์ไม่ได้ทันที และสล็อตจะว่างให้ลงทะเบียนเครื่องใหม่
+        </p>
+        <div className="bg-surface overflow-hidden">
+          {devices.length === 0 ? (
+            <p className="font-body text-body-sm text-grey-600 p-6">ยังไม่มีอุปกรณ์ลงทะเบียน</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full font-body text-body-sm">
+                <thead>
+                  <tr className="text-left bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+                    <th className="px-4 py-3 font-heading">ผู้ใช้</th>
+                    <th className="px-4 py-3 font-heading">เครื่อง</th>
+                    <th className="px-4 py-3 font-heading">ใช้ล่าสุด</th>
+                    <th className="px-4 py-3 font-heading text-right">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {devices.map((d) => (
+                    <tr key={d.id} className="hover:bg-grey-200 transition-colors duration-150 ease-base">
+                      <td className="px-4 py-3">
+                        <div className="text-black">{d.users?.name || "—"}</div>
+                        <div className="font-body text-footnote text-grey-600">{d.users?.email ?? d.user_id.slice(0, 8)}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-black">{d.name || "ไม่ระบุชื่อ"}</div>
+                        <div className="font-body text-footnote text-grey-600">{d.platform ?? "—"} · ลงทะเบียน {fmtDate(d.created_at)}</div>
+                      </td>
+                      <td className="px-4 py-3 text-grey-600">{d.last_seen_at ? fmtDate(d.last_seen_at) : "ยังไม่เคยใช้"}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => revokeDevice(d)} className="font-body text-footnote text-danger-dark hover:underline bg-transparent border-none cursor-pointer p-0">ถอน</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* สัญญาณการใช้งานผิดปกติ */}
+      <div className="flex flex-col gap-4">
+        <h2 className="font-ui text-ui text-black">การใช้งาน {USAGE_DAYS} วันล่าสุด</h2>
+        <p className="font-body text-footnote text-grey-600">
+          ผู้ใช้จริงกด activate แล้วแอปจะส่งสัญญาณการใช้งานของฟอนต์นั้น{" "}
+          <strong>สองตัวเลขจึงควรใกล้กัน</strong> — ถ้าโหลดไปเยอะแต่แทบไม่มีการใช้งานจริง
+          แปลว่าดึงไฟล์ไปเก็บ ไม่ได้เอาไปใช้ · ตรวจแล้วผิดปกติให้ถอนอุปกรณ์ด้านบน
+          หรือยกเลิกสมาชิกในตารางแรก
+        </p>
+        <div className="bg-surface overflow-hidden">
+          {usage.length === 0 ? (
+            <p className="font-body text-body-sm text-grey-600 p-6">ยังไม่มีการใช้งานในช่วงนี้</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full font-body text-body-sm">
+                <thead>
+                  <tr className="text-left bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+                    <th className="px-4 py-3 font-heading">ผู้ใช้</th>
+                    <th className="px-4 py-3 font-heading text-right">ไฟล์ที่โหลด</th>
+                    <th className="px-4 py-3 font-heading text-right">ฟอนต์ที่โหลด</th>
+                    <th className="px-4 py-3 font-heading text-right">ฟอนต์ที่ใช้จริง</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usage.map((u) => {
+                    const dev = devices.find((d) => d.user_id === u.userId);
+                    // น่าสงสัยเมื่อโหลดฟอนต์ไปหลายตัวแต่ใช้จริงไม่ถึงครึ่ง
+                    const suspicious =
+                      u.fontsDownloaded >= SUSPICIOUS_MIN_FONTS &&
+                      u.fontsStreamed * 2 < u.fontsDownloaded;
+                    return (
+                      <tr key={u.userId} className={suspicious ? "bg-danger/10" : ""}>
+                        <td className="px-4 py-3">
+                          <div className="text-black">{dev?.users?.email ?? u.userId.slice(0, 8)}</div>
+                          {suspicious && (
+                            <div className="font-heading text-badge text-danger-dark tracking-[0.04em] mt-0.5">
+                              ⚠ โหลดมากแต่ใช้จริงน้อย
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right text-grey-600">{u.files}</td>
+                        <td className="px-4 py-3 text-right text-grey-600">{u.fontsDownloaded}</td>
+                        <td className="px-4 py-3 text-right text-grey-600">{u.fontsStreamed}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

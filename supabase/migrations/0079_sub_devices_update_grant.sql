@@ -1,0 +1,21 @@
+-- เติม grant UPDATE ให้ sub_devices (3 ส.ค. 2569)
+--
+-- 🔴 **กับดักที่เจอตอนทดสอบเส้นทางจริง — policy อย่างเดียวไม่พอ**
+-- `0078` สร้าง policy `admin manage sub devices` แบบ `for all` ไปแล้ว ซึ่งดูเหมือนครบ
+-- แต่ `0077` grant ให้ `authenticated` ไว้แค่ `select` → PostgREST คืน **403 42501
+-- "permission denied for table sub_devices"** ตอน admin กดปุ่มถอนอุปกรณ์
+--
+-- เหตุผล: **RLS policy กับ table grant เป็นสองชั้นที่ต้องผ่านทั้งคู่**
+-- policy ไม่ได้ให้สิทธิ์ มันแค่ *จำกัด* สิทธิ์ที่ grant ให้ไว้แล้ว
+-- ไม่มี grant = ถูกปฏิเสธตั้งแต่ก่อนถึง policy
+--
+-- ตรวจเจอเพราะยิง PATCH ผ่าน REST ด้วย JWT ของ admin จริง ไม่ได้ดูแค่ว่า policy มีอยู่ —
+-- ถ้าไม่ทดสอบเส้นทางจริง ปุ่มนี้จะพังตอนที่ต้องใช้มันจริง ๆ (ตอนไล่คนดูดคลัง)
+--
+-- ให้เฉพาะ update — insert/delete ยังปิด เพราะการสร้างอุปกรณ์ต้องผ่าน Edge Function
+-- (ที่ออก device_key คู่กัน) และการลบทิ้งจะทำให้เสียร่องรอยการสอบย้อนหลัง
+-- การ "ถอน" ที่ถูกต้องคือเซ็ต revoked_at ไม่ใช่ลบแถว
+--
+-- ย้อนกลับ: revoke update on public.sub_devices from authenticated;
+
+grant update on public.sub_devices to authenticated;  -- policy 0078 จำกัดเหลือ admin

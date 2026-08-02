@@ -1,46 +1,66 @@
 // Supabase Edge Function: sub-font — ท่อส่งไฟล์ฟอนต์เข้า vault ของ desktop app
 //
 // POST { action: "status" }                        → สิทธิ์ปัจจุบันของผู้เรียก
-// POST { action: "list" }                          → ฟอนต์ที่ opt-in + ไฟล์ + favourites (round-trip เดียว)
-// POST { action: "download", font_id, file_index } → bytes ที่ stamp แล้ว ส่งเข้า vault
+// POST { action: "register_device", name, platform } → ลงทะเบียนเครื่อง คืน device_key ครั้งเดียว
+// POST { action: "devices" }                       → รายการเครื่องของผู้ใช้ (ไม่มี key)
+// POST { action: "revoke_device", device_id }      → ถอนเครื่อง (ใช้ต่อไม่ได้ทันที)
+// POST { action: "list" }                          → ฟอนต์ที่ opt-in + ไฟล์ + favourites
+// POST { action: "download", font_id, file_index } → bytes ที่ stamp แล้ว **เข้ารหัสถึงเครื่อง**
 // POST { action: "heartbeat", font_ids: [...] }    → บันทึก font-days ของวันนี้
 //
 // **โมเดล: สมาชิกไม่ได้ "ไฟล์ฟอนต์" — ได้สิทธิ์ให้เครื่องเรียกใช้ระหว่างเป็นสมาชิกเท่านั้น**
-// แอปรับ bytes จาก action `download` แล้วเก็บเข้า vault ที่เข้ารหัสไว้ ถอดรหัสเฉพาะตอน
-// activate เพื่อลงทะเบียนกับระบบฟอนต์ของ OS และลบทิ้งตอน deactivate/ปิดแอป/หมดอายุ
-// ปลายทางจึงไม่ใช่ไฟล์ที่สมาชิกถือครอง — เงื่อนไขที่ผูกพันสมาชิกอยู่ใน `/agreement`
-// หัวข้อ "การใช้งานผ่านสมาชิก (Subscription)" (ห้ามสกัดไฟล์ออกจากแอป / ห้ามหลบเลี่ยง
-// มาตรการทางเทคนิค / สิทธิ์สิ้นสุดพร้อมความเป็นสมาชิก) — อ้างชื่อหัวข้อไม่ใช่เลขข้อ เลขเลื่อนได้
-// ⚠️ endpoint นี้คืน bytes ดิบให้ผู้ถือ JWT ที่มี subscription active — vault กันการคัดลอก
-// โดยผู้ใช้ทั่วไป ไม่ได้กันคนที่ยิง API ตรง (ข้อจำกัดเดียวกับบริการลักษณะนี้ทั่วไป)
-// แนวป้องกันที่แท้จริงของกรณีนั้นคือสัญญา + stamp ที่ระบุตัวสมาชิกไว้ในไฟล์
+// แอปรับ bytes จาก `download` แล้วเก็บเข้า vault ที่เข้ารหัส ถอดเฉพาะตอน activate เพื่อ
+// ลงทะเบียนกับระบบฟอนต์ของ OS และลบทิ้งตอน deactivate/ปิดแอป/หมดอายุ
+// เงื่อนไขที่ผูกพันสมาชิกอยู่ใน `/agreement` หัวข้อ "การใช้งานผ่านสมาชิก (Subscription)"
+// (อ้างชื่อหัวข้อไม่ใช่เลขข้อ เลขเลื่อนได้)
 //
-// ทุก request ต้องมี Authorization: Bearer <supabase access token> (verify_jwt เปิด)
-// เกณฑ์สิทธิ์ต่างจาก download-font: อันนั้นดู entitlements ของการซื้อรายฟอนต์
-// อันนี้ดู subscription ที่ active — "active" คำนวณสดเสมอ ไม่มี cron คอย flip status
+// ── ชั้นสิทธิ์ (C1b, 3 ส.ค. 2569) ───────────────────────────────────────────
+// JWT อย่างเดียว **ไม่พอ** สำหรับ action ที่แตะไฟล์ เพราะ `src/lib/supabase.ts` เก็บ
+// session ลง localStorage → ก๊อป access token จาก devtools แล้วยิงตรงได้ทันที
+// action `list`/`download`/`heartbeat` จึงต้องมีลายเซ็น HMAC จาก device key ที่อยู่ใน
+// OS keychain ของเครื่องที่ลงทะเบียนไว้ และ body ของ `download` ถูกเข้ารหัสถึงเครื่องนั้น
+//
+// ⚠️ ยังไม่ได้ทำให้เป็นไปไม่ได้ — เจ้าของเครื่องงัด key ออกจาก keychain ได้เสมอ
+// ที่ได้คือยกระดับจาก "ใครก็ได้ที่มีบัญชี 5 นาที" เป็น "ต้องตั้งใจงัด" + **ระบุตัวได้
+// และตัดสิทธิ์เป็นรายเครื่องได้** · แนวป้องกันจริงยังเป็นสัญญา + stamp ในไฟล์
 //
 // Deploy: supabase functions deploy sub-font (หรือ Supabase MCP deploy_edge_function)
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { stampFont } from "../_shared/stamp.ts";
+import { pickStreamFiles } from "../_shared/font-files.ts";
+import {
+  ENC_VERSION,
+  encryptForDevice,
+  newDeviceKey,
+  verifyDeviceSignature,
+} from "../_shared/device-crypto.ts";
 
-const MAX_DOWNLOADS_PER_DAY = 300; // ต่อ user ต่อ 24 ชม. (แอปโหลดทีละหลายน้ำหนัก)
+const MAX_DEVICES_PER_USER = 2; // เจ้าของเคาะ 3 ส.ค. 2569 — ต้องตรงกับ /agreement
 const MAX_HEARTBEAT_IDS = 500;
+
+// เพดานรายเครื่องสามชั้น — คิดบนฐาน 144 ไฟล์ (หลังกติกา OTF) ไม่ใช่ 284
+// ฟอนต์หนักสุดหลังกรองเหลือ 14 ไฟล์ → 60/วัน = activate เต็ม ๆ ได้ 4 ตัว
+// ตัวที่กันการดูดคลังจริงคือ MAX_FONTS_PER_DAY: ดูดครบ 22 ตัวต้องใช้ 3 วัน
+// นานพอให้สัญญาณ "โหลดแต่ไม่มี heartbeat" จับได้ก่อน
+// **ทบทวนตัวเลขอีกครั้งตอน C2 เห็นพฤติกรรม fetch จริง**
+const MAX_FILES_PER_DAY = 60;
+const MAX_FONTS_PER_DAY = 10;
+const MAX_REFETCH_PER_FILE = 3; // ต่อ 30 วัน — แอปเก็บ vault ไว้ ไม่ควรดึงไฟล์เดิมซ้ำ
 
 // ⚠️ สำเนาของ `src/lib/brand.ts` — Deno รันคนละ runtime และ deploy แยกจากเว็บ
 // จึง import ข้ามมาไม่ได้ **เปลี่ยนชื่อ/โดเมนแบรนด์ต้องแก้ทั้งสองที่ แล้ว redeploy
-// function นี้ด้วย** (`supabase functions deploy sub-font`) ไม่งั้นไฟล์ฟอนต์ที่ส่งให้
-// สมาชิกจะยังถูกประทับโดเมนเก่าไว้ในตัวไฟล์ ซึ่งแก้ย้อนหลังไม่ได้
-// **`download-font` มีสำเนาชุดของตัวเองอีกชุด — ต้อง redeploy ทั้งคู่**
+// function นี้ด้วย** ไม่งั้นไฟล์ฟอนต์ที่ส่งให้สมาชิกจะยังถูกประทับโดเมนเก่าไว้ในตัวไฟล์
+// ซึ่งแก้ย้อนหลังไม่ได้ · **`download-font` มีสำเนาชุดของตัวเองอีกชุด — redeploy ทั้งคู่**
 const BRAND_DOMAIN = "dhammadha.com";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-device-id, x-timestamp, x-signature",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   // ต้องประกาศ expose ไม่งั้น JS ใน webview อ่าน header ชุด X-* ไม่เห็นเลย (CORS ซ่อนให้)
-  // — แอปต้องอ่าน `X-Font-File` เพื่อตั้งชื่อไฟล์ใน vault
-  "Access-Control-Expose-Headers": "X-Font-Type, X-Font-File, X-Stamped",
+  "Access-Control-Expose-Headers": "X-Font-Type, X-Font-File, X-Stamped, X-Enc",
 };
 
 function json(body: unknown, status = 200): Response {
@@ -63,13 +83,37 @@ function bangkokToday(): string {
   }).format(new Date());
 }
 
+// Postgres คืน bytea เป็นสตริง hex ขึ้นต้น \x ผ่าน PostgREST
+function hexToBytes(hex: string): Uint8Array {
+  const h = hex.startsWith("\\x") ? hex.slice(2) : hex;
+  const out = new Uint8Array(h.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(h.slice(i * 2, i * 2 + 2), 16);
+  return out;
+}
+
+function bytesToHex(b: Uint8Array): string {
+  return Array.from(b).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
-  let body: { action?: string; font_id?: string; file_index?: number; font_ids?: unknown };
+  // ⚠️ ต้องอ่าน text ดิบก่อน parse — ลายเซ็นคิดจากสตริงดิบตัวนี้
+  // parse แล้ว stringify ใหม่จะได้คนละ byte แล้วลายเซ็นไม่มีวันตรง
+  // (กับดักเดียวกับที่ stripe-webhook.ts ต้องอ่าน request.text() ก่อนเสมอ)
+  const rawBody = await req.text();
+  let body: {
+    action?: string;
+    font_id?: string;
+    file_index?: number;
+    font_ids?: unknown;
+    device_id?: string;
+    name?: string;
+    platform?: string;
+  };
   try {
-    body = await req.json();
+    body = JSON.parse(rawBody || "{}");
   } catch {
     return json({ error: "invalid_body" }, 400);
   }
@@ -109,10 +153,119 @@ Deno.serve(async (req: Request) => {
       role,
       provider: sub?.provider ?? (role === "admin" ? "admin" : null),
       current_period_end: sub?.current_period_end ?? null,
+      max_devices: MAX_DEVICES_PER_USER,
     });
   }
 
   if (!entitled) return json({ error: "no_subscription" }, 403);
+
+  // ── จัดการอุปกรณ์ (ต้องใช้ JWT อย่างเดียว แอปยังไม่มี key ตอนลงทะเบียน) ──
+
+  if (body.action === "devices") {
+    const { data: rows } = await admin
+      .from("sub_devices")
+      .select("id, name, platform, last_seen_at, created_at")
+      .eq("user_id", user.id)
+      .is("revoked_at", null)
+      .order("created_at");
+    return json({ devices: rows ?? [], max_devices: MAX_DEVICES_PER_USER });
+  }
+
+  if (body.action === "register_device") {
+    // 🔴 จุดอ่อนที่ยอมรับ: คนที่ขโมย access token ไปก็ลงทะเบียนเครื่องตัวเองได้
+    // การบังคับยืนยันนอกช่องทางทุกครั้งจะทำให้ onboard จริงลำบาก จึงเลือกทางกลาง —
+    // เพดาน 2 เครื่องทำให้ขโมยต้องกินสล็อต + ผู้ใช้เห็นรายการเครื่องและถอนเองได้
+    // (อีเมลแจ้งเตือนเครื่องใหม่อยู่ฝั่งเว็บ ไม่ได้ยิงจากที่นี่)
+    const { count } = await admin
+      .from("sub_devices")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("revoked_at", null);
+    if ((count ?? 0) >= MAX_DEVICES_PER_USER) {
+      return json(
+        { error: "device_limit_reached", max_devices: MAX_DEVICES_PER_USER },
+        409,
+      );
+    }
+
+    const { data: dev, error: devErr } = await admin
+      .from("sub_devices")
+      .insert({
+        user_id: user.id,
+        name: typeof body.name === "string" ? body.name.slice(0, 80) : null,
+        platform: typeof body.platform === "string" ? body.platform.slice(0, 20) : null,
+        last_seen_at: new Date().toISOString(),
+      })
+      .select("id, name, platform, created_at")
+      .single();
+    if (devErr || !dev) return json({ error: "device_create_failed" }, 500);
+
+    const key = newDeviceKey();
+    const { error: keyErr } = await admin
+      .from("sub_device_keys")
+      .insert({ device_id: dev.id, device_key: `\\x${bytesToHex(key)}` });
+    if (keyErr) {
+      // เก็บกวาดแถวกำพร้า ไม่งั้นจะกินสล็อตของผู้ใช้โดยที่ใช้งานไม่ได้
+      await admin.from("sub_devices").delete().eq("id", dev.id);
+      return json({ error: "device_key_failed" }, 500);
+    }
+
+    // **device_key คืนครั้งเดียวตรงนี้เท่านั้น** ไม่มี action ไหนอ่านคืนได้อีก
+    return json({ device_id: dev.id, device_key: bytesToHex(key), name: dev.name });
+  }
+
+  if (body.action === "revoke_device") {
+    const id = String(body.device_id ?? "");
+    if (!UUID_RE.test(id)) return json({ error: "invalid_device_id" }, 400);
+    const { error } = await admin
+      .from("sub_devices")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", user.id) // กันถอนเครื่องของคนอื่น
+      .is("revoked_at", null);
+    if (error) return json({ error: "revoke_failed" }, 500);
+    return json({ ok: true });
+  }
+
+  // ── ตั้งแต่นี้ไปต้องมีลายเซ็นจากเครื่องที่ลงทะเบียนแล้ว ──
+  // นี่คือชั้นที่ปิดทาง "ก๊อป token จาก devtools แล้วยิงตรง"
+
+  const deviceId = req.headers.get("x-device-id") ?? "";
+  if (!UUID_RE.test(deviceId)) return json({ error: "device_required" }, 401);
+
+  const { data: device } = await admin
+    .from("sub_devices")
+    .select("id, user_id, revoked_at")
+    .eq("id", deviceId)
+    .maybeSingle();
+  // เครื่องของคนอื่น / ถูกถอนแล้ว → ตอบเหมือนกันหมด ไม่บอกว่าอันไหนผิด
+  if (!device || device.user_id !== user.id || device.revoked_at) {
+    return json({ error: "device_invalid" }, 401);
+  }
+
+  const { data: keyRow } = await admin
+    .from("sub_device_keys")
+    .select("device_key")
+    .eq("device_id", deviceId)
+    .maybeSingle();
+  if (!keyRow?.device_key) return json({ error: "device_invalid" }, 401);
+  const deviceKey = hexToBytes(String(keyRow.device_key));
+
+  const sigOk = await verifyDeviceSignature(
+    deviceKey,
+    rawBody,
+    req.headers.get("x-timestamp"),
+    req.headers.get("x-signature"),
+  );
+  if (!sigOk) return json({ error: "bad_signature" }, 401);
+
+  // await ทั้งที่เป็นข้อมูลประดับ เพราะ promise ที่ไม่ await ใน Edge Function
+  // อาจถูกฆ่าทิ้งตอน response กลับ (ต้องใช้ EdgeRuntime.waitUntil ถึงจะรอด)
+  // — ยอมจ่ายหนึ่ง round trip ดีกว่าเขียนโค้ดที่ทำงานบ้างไม่ทำงานบ้าง
+  await admin
+    .from("sub_devices")
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq("id", deviceId);
 
   // ── รายการฟอนต์ที่อยู่ใน subscription + ไฟล์ + favourites ──
   if (body.action === "list") {
@@ -133,7 +286,8 @@ Deno.serve(async (req: Request) => {
     ]);
 
     const filesByFont = new Map<string, string[]>();
-    for (const row of files ?? []) filesByFont.set(row.font_id, row.full_font_files ?? []);
+    // pickStreamFiles ตัวเดียวกับที่ download ใช้ — index อ้างอิงผลลัพธ์ที่กรองแล้ว
+    for (const row of files ?? []) filesByFont.set(row.font_id, pickStreamFiles(row.full_font_files));
 
     return json({
       fonts: (fonts ?? []).map((f) => ({
@@ -165,26 +319,50 @@ Deno.serve(async (req: Request) => {
         .maybeSingle(),
       admin.from("font_files_private").select("full_font_files").eq("font_id", fontId).maybeSingle(),
     ]);
-    if (!font || !font.is_subscription || !font.is_active) return json({ error: "not_in_subscription" }, 403);
+    if (!font || !font.is_subscription || !font.is_active) {
+      return json({ error: "not_in_subscription" }, 403);
+    }
 
-    const paths: string[] = fileRow?.full_font_files ?? [];
+    // 🔴 กรองด้วยฟังก์ชันเดียวกับ list — ถ้าอ่าน array ดิบตรงนี้ ผู้ใช้จะขอ index
+    // ของไฟล์ .ttf ที่ถูกกรองออกไปได้ แล้วกติกา OTF จะกลายเป็นแค่คำแนะนำ
+    const paths = pickStreamFiles(fileRow?.full_font_files);
     if (!paths.length) return json({ error: "no_files" }, 404);
 
     const idx = Number(body.file_index);
     if (!Number.isInteger(idx) || idx < 0 || idx >= paths.length) {
       return json({ error: "invalid_file_index" }, 400);
     }
-
-    // ── จำกัดจำนวนดาวน์โหลดต่อวัน (ต่อ user ไม่ใช่ต่อฟอนต์ — แอปโหลดทั้งไลบรารีได้) ──
-    const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-    const { count } = await admin
-      .from("sub_download_logs")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", since);
-    if ((count ?? 0) >= MAX_DOWNLOADS_PER_DAY) return json({ error: "download_limit_reached" }, 429);
-
     const path = paths[idx];
+
+    // ── เพดานสามชั้น (รายเครื่อง) ──
+    const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const since30d = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+    const [{ data: recent }, { count: refetch }] = await Promise.all([
+      admin
+        .from("sub_download_logs")
+        .select("font_id")
+        .eq("device_id", deviceId)
+        .gte("created_at", since),
+      admin
+        .from("sub_download_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("device_id", deviceId)
+        .eq("file_path", path)
+        .gte("created_at", since30d),
+    ]);
+    const todayRows = recent ?? [];
+    if (todayRows.length >= MAX_FILES_PER_DAY) {
+      return json({ error: "download_limit_reached", limit: "files_per_day" }, 429);
+    }
+    // ตัวที่กันการดูดคลังจริง — นับ "ฟอนต์ที่ต่างกัน" ไม่ใช่จำนวนไฟล์
+    const distinctFonts = new Set(todayRows.map((r) => r.font_id));
+    if (!distinctFonts.has(fontId) && distinctFonts.size >= MAX_FONTS_PER_DAY) {
+      return json({ error: "download_limit_reached", limit: "fonts_per_day" }, 429);
+    }
+    if ((refetch ?? 0) >= MAX_REFETCH_PER_FILE) {
+      return json({ error: "download_limit_reached", limit: "refetch" }, 429);
+    }
+
     const { data: blob, error: dlErr } = await admin.storage.from("fonts-full").download(path);
     if (dlErr || !blob) return json({ error: "file_not_found" }, 404);
     let bytes = new Uint8Array(await blob.arrayBuffer());
@@ -192,43 +370,51 @@ Deno.serve(async (req: Request) => {
     // ── stamp name table (เฉพาะ ttf/otf) ──
     // ต่างจาก download-font: ไม่มี order_no/verify_token ให้อ้าง เพราะสิทธิ์มาจาก
     // การเป็นสมาชิก ไม่ใช่การซื้อขาด — stamp เป็น audit trail ระบุตัวสมาชิก ไม่ใช่ DRM
-    // (ไฟล์ที่ถอดรหัสอยู่บนเครื่องระหว่าง activate ยัง copy ได้ เหมือน Adobe Fonts)
     const filename = path.split("/").pop() ?? "font.ttf";
     const ext = filename.split(".").pop()?.toLowerCase() ?? "";
     let stamped = false;
-    if (ext === "ttf" || ext === "otf") {
-      try {
-        const who = profile?.name || user.email || user.id;
-        bytes = stampFont(bytes, {
-          uniqueId: `Subscription ${user.id} — ${BRAND_DOMAIN}`,
-          license: `Subscription — licensed to ${who} — via ${BRAND_DOMAIN}`,
-          licenseUrl: `https://${BRAND_DOMAIN}/subscribe`,
-        });
-        stamped = true;
-      } catch (e) {
-        // ไฟล์ผิดรูปแบบ/parse ไม่ได้ — ส่งต้นฉบับดีกว่าส่งไฟล์เสีย แต่บันทึกไว้
-        console.error("stamp_failed", path, e instanceof Error ? e.message : e);
-      }
+    try {
+      const who = profile?.name || user.email || user.id;
+      bytes = stampFont(bytes, {
+        uniqueId: `Subscription ${user.id} — ${BRAND_DOMAIN}`,
+        license: `Subscription — licensed to ${who} — via ${BRAND_DOMAIN}`,
+        licenseUrl: `https://${BRAND_DOMAIN}/subscribe`,
+      });
+      stamped = true;
+    } catch (e) {
+      // ไฟล์ผิดรูปแบบ/parse ไม่ได้ — ส่งต้นฉบับดีกว่าส่งไฟล์เสีย แต่บันทึกไว้
+      console.error("stamp_failed", path, e instanceof Error ? e.message : e);
     }
 
-    await admin.from("sub_download_logs").insert({
+    // 🔴 เช็ค error ของ log ด้วย **แล้ว fail ถ้าเขียนไม่ลง** — ตัวนับ rate limit
+    // อ่านจากตารางนี้เอง ปล่อยผ่านเมื่อ insert ล้ม = เพดานสูงขึ้นเงียบ ๆ
+    // (บทเรียนเดียวกับ sendResendEmail/supabaseSelect ที่เคยกลืน error)
+    const { error: logErr } = await admin.from("sub_download_logs").insert({
       user_id: user.id,
+      device_id: deviceId,
       font_id: fontId,
       file_path: path,
       ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
     });
+    if (logErr) {
+      console.error("sub_download_log_failed", logErr.message);
+      return json({ error: "log_write_failed" }, 500);
+    }
+
+    // ── เข้ารหัสถึงเครื่องนี้ ──
+    // ต่อให้หลุดทั้ง JWT และ device id ตัว body ก็ยังเปิดไม่ได้ถ้าไม่มี device key
+    const payload = await encryptForDevice(deviceKey, bytes);
 
     // **ไม่มี `Content-Disposition: attachment` โดยตั้งใจ** — ต่างจาก `download-font`
     // ที่ปลายทางคือผู้ซื้อกดโหลดไฟล์เก็บไว้จริง ๆ · ปลายทางของ subscription คือ vault
-    // ที่เข้ารหัสไว้ในแอป ไม่ใช่ไฟล์ที่สมาชิกถือครอง การใส่ header นี้เป็น affordance
-    // ของการ "บันทึกไฟล์" ซึ่งขัดกับโมเดลตรง ๆ · ชื่อไฟล์จริงส่งไปทาง `X-Font-File`
-    // ให้แอปใช้ตั้งชื่อภายใน vault เอง
-    return new Response(bytes, {
+    // ที่เข้ารหัสไว้ในแอป ไม่ใช่ไฟล์ที่สมาชิกถือครอง
+    return new Response(payload, {
       headers: {
         ...CORS,
         // ต้องเป็น octet-stream เท่านั้น — supabase-js functions.invoke คืน Blob
         // เฉพาะ application/octet-stream กับ application/pdf นอกนั้นถอดเป็น text
         "Content-Type": "application/octet-stream",
+        "X-Enc": ENC_VERSION,
         "X-Font-Type": ext === "otf" ? "font/otf" : "font/ttf",
         "X-Font-File": filename.replace(/[^\w.\-]/g, "_"),
         "X-Stamped": stamped ? "1" : "0",
@@ -254,6 +440,9 @@ Deno.serve(async (req: Request) => {
     if (vErr) return json({ error: "font_lookup_failed" }, 500);
 
     const day = bangkokToday();
+    // stream_days เป็น (user_id, font_id, day) โดยเจตนา — ไม่ผูก device
+    // เพราะสูตรแบ่งรายได้เป็น user-centric (สมาชิก 1 คน = น้ำหนัก 1)
+    // ถ้านับรายเครื่อง คนมี 2 เครื่องจะได้น้ำหนักสองเท่า = ผิดกติกาในสัญญา designer
     const rows = (valid ?? []).map((f) => ({ user_id: user.id, font_id: f.id, day }));
     if (rows.length) {
       const { error: insErr } = await admin
