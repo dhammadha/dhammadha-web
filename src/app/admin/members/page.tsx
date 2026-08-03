@@ -3,8 +3,8 @@
 // สมาชิก subscription (admin): รายการสมาชิก · อุปกรณ์ที่ลงทะเบียน · สัญญาณการใช้งานผิดปกติ
 //
 // แยกออกมาจาก /admin/subscriptions (3 ส.ค. 2569) — หน้านั้นเหลือเฉพาะการ์ดตั้งค่า
-// ราคา/trial/ลิงก์แอป ซึ่งเป็นฟอร์มแคบ ๆ ส่วนหน้านี้เป็นตารางล้วนจึงใช้ max-w-[1200px]
-// เหมือน /admin/orders · /admin/payouts · /admin/designers
+// ราคา/trial/ลิงก์แอป · **ใช้ max-w-[720px] เท่ากับหน้า subscription ตามที่เจ้าของกำหนด**
+// (ไม่ใช่ 1200px แบบ /admin/orders) ตารางที่กว้างเกินมี overflow-x-auto ครอบอยู่แล้ว
 //
 // เขียนตรงใต้ RLS: "admin all subscriptions" (0046) และ "admin manage sub devices" (0078)
 // ⚠️ การถอนอุปกรณ์ต้องมีทั้ง policy และ table grant — grant อยู่ใน 0079 (เคยพลาดมาแล้ว)
@@ -207,7 +207,7 @@ export default function AdminMembersPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1200px] flex flex-col gap-8">
+    <div className="p-6 max-w-[720px] flex flex-col gap-8">
       <h1 className="font-heading text-h2 text-black">Members</h1>
 
       {/* สมาชิก */}
