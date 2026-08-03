@@ -626,6 +626,8 @@ export interface Database {
           name: string | null;
           platform: string | null;
           last_seen_at: string | null;
+          // เครื่องที่ activated_at ใหม่ที่สุด (ยังไม่ถูกถอน) = เครื่องที่ถือสิทธิ์ใช้งาน (0080)
+          activated_at: string | null;
           revoked_at: string | null;
           created_at: string;
         };
@@ -635,6 +637,7 @@ export interface Database {
           name?: string | null;
           platform?: string | null;
           last_seen_at?: string | null;
+          activated_at?: string | null;
           revoked_at?: string | null;
           created_at?: string;
         };
@@ -642,6 +645,7 @@ export interface Database {
           name?: string | null;
           platform?: string | null;
           last_seen_at?: string | null;
+          activated_at?: string | null;
           revoked_at?: string | null;
         };
         Relationships: [];

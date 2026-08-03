@@ -152,6 +152,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="4" width="13" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.5"/><path d="M4 8h.01M12 8h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
     },
     {
+      href: "/admin/members",
+      label: "Members",
+      icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M1.5 13.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 4.5a2.5 2.5 0 010 4.8M12.5 13.5c0-1.6-.5-2.9-1.4-3.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+    },
+    {
       href: "/admin/subscriptions",
       label: "Subscription",
       icon: <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M2.5 13.5c0-2.5 2.2-4.5 5.5-4.5s5.5 2 5.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,

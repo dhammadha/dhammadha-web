@@ -1,9 +1,10 @@
 // Supabase Edge Function: sub-font — ท่อส่งไฟล์ฟอนต์เข้า vault ของ desktop app
 //
-// POST { action: "status" }                        → สิทธิ์ปัจจุบันของผู้เรียก
+// POST { action: "status" }                        → สิทธิ์ปัจจุบัน + เครื่องนี้ถือสิทธิ์อยู่ไหม
 // POST { action: "register_device", name, platform } → ลงทะเบียนเครื่อง คืน device_key ครั้งเดียว
 // POST { action: "devices" }                       → รายการเครื่องของผู้ใช้ (ไม่มี key)
 // POST { action: "revoke_device", device_id }      → ถอนเครื่อง (ใช้ต่อไม่ได้ทันที)
+// POST { action: "claim_activation" }              → ยึดสิทธิ์ใช้งานมาที่เครื่องนี้ (เตะเครื่องอื่น)
 // POST { action: "list" }                          → ฟอนต์ที่ opt-in + ไฟล์ + favourites
 // POST { action: "download", font_id, file_index } → bytes ที่ stamp แล้ว **เข้ารหัสถึงเครื่อง**
 // POST { action: "heartbeat", font_ids: [...] }    → บันทึก font-days ของวันนี้
@@ -13,6 +14,14 @@
 // ลงทะเบียนกับระบบฟอนต์ของ OS และลบทิ้งตอน deactivate/ปิดแอป/หมดอายุ
 // เงื่อนไขที่ผูกพันสมาชิกอยู่ใน `/agreement` หัวข้อ "การใช้งานผ่านสมาชิก (Subscription)"
 // (อ้างชื่อหัวข้อไม่ใช่เลขข้อ เลขเลื่อนได้)
+//
+// ── ใช้งานได้ทีละเครื่อง (C1c) ──────────────────────────────────────────────
+// ลงทะเบียนได้ 2 เครื่อง แต่ **activate ได้ทีละเครื่อง** (รูปแบบเดียวกับ Adobe CC)
+// เครื่องที่ `activated_at` ใหม่ที่สุดในบรรดาที่ยังไม่ถูกถอน = เครื่องที่ถือสิทธิ์
+// เปิดแอปที่ B → B เรียก `claim_activation` → A รู้ตัวตอน poll ถัดไปแล้วดับฟอนต์ทิ้ง
+// **vault ยังอยู่ครบทั้งสองเครื่อง สลับกลับไม่ต้องโหลดใหม่** — คือเหตุผลที่ไม่เลือก
+// "1 เครื่องแล้วเตะ" ซึ่งจะทำให้ทุกครั้งที่สลับต้องดึงไฟล์ใหม่ทั้งชุด
+// **เตะที่ระดับ activate ไม่ใช่ระดับ login** — เครื่องที่ถูกเตะยังเรียก `list` ดูไลบรารีได้
 //
 // ── ชั้นสิทธิ์ (C1b, 3 ส.ค. 2569) ───────────────────────────────────────────
 // JWT อย่างเดียว **ไม่พอ** สำหรับ action ที่แตะไฟล์ เพราะ `src/lib/supabase.ts` เก็บ
@@ -39,10 +48,17 @@ import {
 const MAX_DEVICES_PER_USER = 2; // เจ้าของเคาะ 3 ส.ค. 2569 — ต้องตรงกับ /agreement
 const MAX_HEARTBEAT_IDS = 500;
 
-// เพดานรายเครื่องสามชั้น — คิดบนฐาน 144 ไฟล์ (หลังกติกา OTF) ไม่ใช่ 284
+// เพดานสามชั้น — คิดบนฐาน 144 ไฟล์ (หลังกติกา OTF) ไม่ใช่ 284
 // ฟอนต์หนักสุดหลังกรองเหลือ 14 ไฟล์ → 60/วัน = activate เต็ม ๆ ได้ 4 ตัว
 // ตัวที่กันการดูดคลังจริงคือ MAX_FONTS_PER_DAY: ดูดครบ 22 ตัวต้องใช้ 3 วัน
 // นานพอให้สัญญาณ "โหลดแต่ไม่มี heartbeat" จับได้ก่อน
+//
+// 🔴 **นับด้วย `user_id` ไม่ใช่ `device_id`** (แก้จาก C1b ที่นับรายเครื่อง)
+// เดิมถอนอุปกรณ์แล้วลงทะเบียนใหม่ = ตัวนับทั้งสามชั้นรีเซ็ตเป็น 0 ทันที
+// ซึ่งทำให้ MAX_FONTS_PER_DAY ที่เป็นตัวกันดูดคลังจริงถูกข้ามได้ฟรี
+// (`sub_download_logs.device_id` ยังเก็บต่อ — เลิกใช้เป็น key ของเพดาน
+//  แต่ยังต้องใช้สอบย้อนหลังว่าเครื่องไหนดึงอะไร)
+//
 // **ทบทวนตัวเลขอีกครั้งตอน C2 เห็นพฤติกรรม fetch จริง**
 const MAX_FILES_PER_DAY = 60;
 const MAX_FONTS_PER_DAY = 10;
@@ -93,6 +109,29 @@ function hexToBytes(hex: string): Uint8Array {
 
 function bytesToHex(b: Uint8Array): string {
   return Array.from(b).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * เครื่องที่ถือสิทธิ์ใช้งานอยู่ = `activated_at` ใหม่ที่สุดในบรรดาที่ยังไม่ถูกถอน
+ * คืน null เมื่อยังไม่มีเครื่องไหนกดใช้งานเลย (ทุกแถว activated_at เป็น null)
+ *
+ * ไม่มีคอลัมน์ "ใครคือเครื่อง active" แยกต่างหากโดยตั้งใจ — ธงตัวที่สองมีโอกาส
+ * ค่าเพี้ยนกันเองเมื่อมีเส้นทางเขียนหลายทาง (0080 อธิบายไว้)
+ */
+async function activeDevice(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<{ id: string; name: string | null } | null> {
+  const { data } = await admin
+    .from("sub_devices")
+    .select("id, name, activated_at")
+    .eq("user_id", userId)
+    .is("revoked_at", null)
+    .not("activated_at", "is", null)
+    .order("activated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ? { id: data.id as string, name: (data.name as string | null) ?? null } : null;
 }
 
 Deno.serve(async (req: Request) => {
@@ -148,12 +187,20 @@ Deno.serve(async (req: Request) => {
   const entitled = Boolean(sub) || role === "admin";
 
   if (body.action === "status") {
+    // เรียกได้ตั้งแต่ยังไม่ลงทะเบียนเครื่อง (แอปเรียกตอน launch ก่อนทุกอย่าง)
+    // จึงไม่บังคับลายเซ็น · ถ้าส่ง X-Device-Id มาด้วยจะบอกกลับว่าเครื่องนี้ถือสิทธิ์อยู่ไหม
+    // **นี่คือสัญญาณที่แอปใช้ตัดสินใจ deactivate ฟอนต์เมื่อถูกเครื่องอื่นแย่งสิทธิ์ไป**
+    const hdrDevice = req.headers.get("x-device-id") ?? "";
+    const act = entitled ? await activeDevice(admin, user.id) : null;
     return json({
       active: entitled,
       role,
       provider: sub?.provider ?? (role === "admin" ? "admin" : null),
       current_period_end: sub?.current_period_end ?? null,
       max_devices: MAX_DEVICES_PER_USER,
+      active_device_id: act?.id ?? null,
+      active_device_name: act?.name ?? null,
+      is_active_device: Boolean(act && UUID_RE.test(hdrDevice) && act.id === hdrDevice),
     });
   }
 
@@ -162,13 +209,20 @@ Deno.serve(async (req: Request) => {
   // ── จัดการอุปกรณ์ (ต้องใช้ JWT อย่างเดียว แอปยังไม่มี key ตอนลงทะเบียน) ──
 
   if (body.action === "devices") {
-    const { data: rows } = await admin
-      .from("sub_devices")
-      .select("id, name, platform, last_seen_at, created_at")
-      .eq("user_id", user.id)
-      .is("revoked_at", null)
-      .order("created_at");
-    return json({ devices: rows ?? [], max_devices: MAX_DEVICES_PER_USER });
+    const [{ data: rows }, act] = await Promise.all([
+      admin
+        .from("sub_devices")
+        .select("id, name, platform, last_seen_at, activated_at, created_at")
+        .eq("user_id", user.id)
+        .is("revoked_at", null)
+        .order("created_at"),
+      activeDevice(admin, user.id),
+    ]);
+    return json({
+      devices: (rows ?? []).map((d) => ({ ...d, is_active: d.id === act?.id })),
+      max_devices: MAX_DEVICES_PER_USER,
+      active_device_id: act?.id ?? null,
+    });
   }
 
   if (body.action === "register_device") {
@@ -195,6 +249,9 @@ Deno.serve(async (req: Request) => {
         name: typeof body.name === "string" ? body.name.slice(0, 80) : null,
         platform: typeof body.platform === "string" ? body.platform.slice(0, 20) : null,
         last_seen_at: new Date().toISOString(),
+        // เครื่องที่เพิ่งลงทะเบียนยึดสิทธิ์ทันที — คนเพิ่งติดตั้งแอปที่เครื่องนี้
+        // ย่อมตั้งใจจะใช้ที่เครื่องนี้ ถ้าไม่ตั้งให้ ผู้ใช้ใหม่จะเจอ 409 ตั้งแต่โหลดฟอนต์แรก
+        activated_at: new Date().toISOString(),
       })
       .select("id, name, platform, created_at")
       .single();
@@ -267,7 +324,22 @@ Deno.serve(async (req: Request) => {
     .update({ last_seen_at: new Date().toISOString() })
     .eq("id", deviceId);
 
+  // ── ยึดสิทธิ์ใช้งานมาที่เครื่องนี้ ──
+  // ไม่ต้องเป็นเครื่อง active อยู่ก่อน (นั่นคือจุดประสงค์ของ action นี้)
+  // แค่ต้องเป็นเครื่องที่ลงทะเบียนไว้จริงและเซ็นถูก — การเตะเครื่องอื่นเป็นการ
+  // เปลี่ยนสถานะ ปลอมไม่ได้
+  if (body.action === "claim_activation") {
+    const { error } = await admin
+      .from("sub_devices")
+      .update({ activated_at: new Date().toISOString() })
+      .eq("id", deviceId);
+    if (error) return json({ error: "claim_failed" }, 500);
+    return json({ ok: true, active_device_id: deviceId });
+  }
+
   // ── รายการฟอนต์ที่อยู่ใน subscription + ไฟล์ + favourites ──
+  // **ไม่ต้องเป็นเครื่อง active** — เครื่องที่ถูกเตะยังดูไลบรารีได้ เห็นว่ามีฟอนต์อะไรบ้าง
+  // และกด "ใช้งานที่เครื่องนี้" เพื่อยึดสิทธิ์กลับได้ ต่างจากการเตะระดับ login
   if (body.action === "list") {
     const { data: fonts, error: fontErr } = await admin
       .from("fonts")
@@ -307,6 +379,24 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // ── ตั้งแต่นี้ไปต้องเป็นเครื่องที่ถือสิทธิ์ใช้งานอยู่ ──
+  // `download`/`heartbeat` คือการใช้งานฟอนต์จริง จึงผูกกับ "เครื่องที่ activate อยู่"
+  // เครื่องที่ถูกแย่งสิทธิ์ไปจะได้ 409 แล้วแอปเอาไปเป็นสัญญาณ deactivate
+  if (body.action === "download" || body.action === "heartbeat") {
+    const act = await activeDevice(admin, user.id);
+    if (!act || act.id !== deviceId) {
+      return json(
+        {
+          error: "not_active_device",
+          active_device_name: act?.name ?? null,
+          // แอปเรียก claim_activation เพื่อยึดกลับมาได้ ไม่ต้องโหลด vault ใหม่
+          hint: "claim_activation",
+        },
+        409,
+      );
+    }
+  }
+
   if (body.action === "download") {
     const fontId = String(body.font_id ?? "");
     if (!UUID_RE.test(fontId)) return json({ error: "invalid_font_id" }, 400);
@@ -334,19 +424,19 @@ Deno.serve(async (req: Request) => {
     }
     const path = paths[idx];
 
-    // ── เพดานสามชั้น (รายเครื่อง) ──
+    // ── เพดานสามชั้น (รายผู้ใช้ — ดูเหตุผลที่หัวไฟล์) ──
     const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const since30d = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
     const [{ data: recent }, { count: refetch }] = await Promise.all([
       admin
         .from("sub_download_logs")
         .select("font_id")
-        .eq("device_id", deviceId)
+        .eq("user_id", user.id)
         .gte("created_at", since),
       admin
         .from("sub_download_logs")
         .select("id", { count: "exact", head: true })
-        .eq("device_id", deviceId)
+        .eq("user_id", user.id)
         .eq("file_path", path)
         .gte("created_at", since30d),
     ]);
