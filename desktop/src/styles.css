@@ -1,0 +1,35 @@
+/* ฟอนต์ bundle มากับแอป — โหลดจาก Google Fonts ไม่ได้เพราะ CSP เป็น `default-src 'self'`
+   น้ำหนักที่ import = เท่าที่ DESIGN.md ใช้จริง (300/400/700/800) ไม่ยกมาทั้ง variable range */
+@import "@fontsource/noto-sans-thai/300.css";
+@import "@fontsource/noto-sans-thai/400.css";
+@import "@fontsource/noto-sans-thai/700.css";
+@import "@fontsource/noto-sans-thai/800.css";
+@import "@fontsource/noto-sans-thai-looped/300.css";
+@import "@fontsource/noto-sans-thai-looped/400.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-white font-body text-body text-black;
+    /* แอปไม่ใช่หน้าเว็บ — ห้ามเลือกข้อความ/ลากรูปเหมือนเบราว์เซอร์
+       ยกเว้นช่องกรอก (คืนให้ด้านล่าง) */
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+  }
+
+  input,
+  textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}

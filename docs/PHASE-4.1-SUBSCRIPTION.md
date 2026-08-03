@@ -220,17 +220,35 @@ keychain ได้เสมอ · ที่ได้คือปิดทาง�
 
 ## 🔲 Milestone C2 — Desktop app (~2-3 สัปดาห์)
 
-**ก่อนเริ่ม:** ติดตั้ง Rust toolchain (`rustup`) — ยังไม่มีบนเครื่อง ·
-ควรเคาะชื่อแบรนด์ก่อน scaffold เพราะ **bundle identifier** (`com.<brand>.app`)
-ฝังลง code signing + การลงทะเบียนระดับ OS เปลี่ยนทีหลัง = ผู้ใช้ต้องติดตั้งใหม่
+**ก่อนเริ่ม:** ~~ติดตั้ง Rust toolchain (`rustup`)~~ ✅ ติดตั้งแล้ว (rustc 1.97.1, 3 ส.ค. 2569) ·
+เคาะชื่อแบรนด์แล้ว: **`com.typedee.app` / Typedee / typedee.com** —
+**bundle identifier ตั้งได้โดยไม่ต้องมีโดเมนในมือ** (Apple/Windows ไม่ตรวจความเป็นเจ้าของ)
+แต่ `BRAND_DOMAIN` ที่ประทับลงไฟล์ต้องรอโดเมนจริง → แผนเต็มที่ `~/.claude/plans/c2-glistening-papert.md`
 
 `desktop/` (Tauri v2 + Vite + React + TS + Tailwind) — API ฝั่ง server พร้อมใช้แล้วจาก C1
-- [ ] scaffold Tauri v2
-- [ ] Auth: supabase-js + custom storage adapter → Rust `keyring` (auto-login, refresh token ไม่แตะ disk)
-- [ ] Vault (`src-tauri/src/vault.rs`): ไฟล์ฟอนต์ AES-256-GCM, ถอดตอน activate, ลบตอน deactivate/exit + sweep
-- [ ] Font registration: Windows `AddFontResourceExW(path,0)`+WM_FONTCHANGE / macOS `CTFontManagerRegisterFontsForURL` session
-- [ ] Lifecycle: launch→restore→status→register→`claim_activation`→`session_start` ของฟอนต์ที่ restore
-      / timer 6ชม / offline grace 7 วัน / สิทธิ์หมด→deactivate
+- [x] scaffold Tauri v2 (`desktop/`, 3 ส.ค. 2569)
+- [ ] Auth: **GoTrue REST จาก Rust ตรง ๆ ไม่ใช้ supabase-js** + `keyring`
+      (แก้จากแผนเดิม: ภัยที่ C1b ปิดไปคือ "session อยู่ใน storage ที่ JS อ่านได้ → ก๊อป token
+      ยิง endpoint ตรง" · webview ของ Tauri ก็เปิด devtools ได้ การเอา supabase-js เข้ามา
+      คือทำแผลเดิมซ้ำในที่ที่แก้ได้ฟรี · เว็บใช้ email/password ล้วน ไม่มี OAuth ให้ต้องรองรับ)
+- [ ] Vault (`src-tauri/src/vault.rs`): **เก็บ blob จาก server ดิบ ๆ ไม่เข้ารหัสซ้ำ** —
+      `salt‖iv‖ct‖tag` ที่ `encryptForDevice` ส่งมาคือ vault format อยู่แล้ว จึงไม่ต้องมี key
+      ตัวที่สอง และได้คุณสมบัติฟรี: **ถอนอุปกรณ์ = vault กลายเป็นขยะทันที** ·
+      ถอดตอน activate, ลบตอน deactivate/exit + sweep
+- [ ] Font registration: Windows `AddFontResourceExW(path,0)` (**flag 0 ไม่ใช่ `FR_PRIVATE`**)
+      + `SendNotifyMessageW`+WM_FONTCHANGE (**ไม่ใช่ `SendMessage` ซึ่งค้างถ้ามีแอปไม่ตอบ pump**) /
+      macOS `CTFontManagerRegisterFontsForURLs` **scope `Persistent` (=2)**
+      🔴 **แก้จากที่เคยเขียนว่า "session"** — `Session` deprecated และ `Process` = เห็นแค่แอปเรา
+      (ไร้ประโยชน์) ตัวที่ทำให้ Illustrator/Figma เห็นคือ `Persistent`
+      **แลกกับ: อยู่ข้ามการรีบูต → sweep ตอน launch เป็นข้อบังคับ ไม่ใช่ nice-to-have**
+- [ ] Lifecycle: launch→**sweep**→restore→status→register→`claim_activation`→`session_start`
+      / **`last_tick` 60 วิ (local) + heartbeat 30 นาที** — ไม่ใช่ timer 6 ชม.ตามแผนเดิม เพราะ
+      `last_tick` แก้เรื่องเครื่องดับดีกว่าอยู่แล้ว heartbeat จึงเหลือหน้าที่เป็น poll ของ
+      แย่งสิทธิ์/หมดอายุ/online/grace · 6 ชม. = "ถูกแย่งสิทธิ์แล้วยังใช้ต่อได้อีก 6 ชม."
+      = เพดาน 2 เครื่องแทบไม่มีความหมาย
+      / offline grace 7 วัน (**= `MAX_BACKDATE_DAYS` ของ `clampTime()` ไม่ใช่ตัวเลขทางธุรกิจ**
+      ปล่อยยาวกว่านี้ event จะถูกบีบขึ้นมา = รายงานเวลาผิดในทางที่ designer ได้เกินจริง)
+      / สิทธิ์หมด→deactivate
 - [ ] **🔴 การจับเวลา — พลาดตรงนี้แล้วเงินรั่วเงียบ ๆ ไม่มี error ให้เห็น:**
       - **`session_start` ทันทีที่ activate** ไม่ใช่รอ timer · เดิมถ้า activate 09:05 แล้ว
         deactivate 11:00 ส่วน heartbeat รอบถัดไป 15:00 ฟอนต์นั้นจะไม่อยู่ในรายการแล้ว

@@ -9,6 +9,12 @@
       "autoPort": true
     },
     {
+      "name": "Typedee Desktop UI",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "desktop", "run", "dev"],
+      "port": 1420
+    },
+    {
       "name": "Static Export 3001",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["-y", "serve", "-l", "3001", "out"],
