@@ -7,7 +7,11 @@
 // POST { action: "claim_activation" }              → ยึดสิทธิ์ใช้งานมาที่เครื่องนี้ (เตะเครื่องอื่น)
 // POST { action: "list" }                          → ฟอนต์ที่ opt-in + ไฟล์ + favourites
 // POST { action: "download", font_id, file_index } → bytes ที่ stamp แล้ว **เข้ารหัสถึงเครื่อง**
-// POST { action: "heartbeat", font_ids: [...] }    → บันทึก font-days ของวันนี้
+// POST { action: "session_start", font_ids[], at? } → เริ่มจับเวลา + บันทึก font-day ทันที
+// POST { action: "session_end", font_ids[], at?, reason } → หยุดจับเวลา (ไม่ส่ง font_ids = ปิดหมด)
+// POST { action: "heartbeat", font_ids: [...], at? } → ต่ออายุ session + บันทึก font-day
+//
+// ทุก action ที่มี `at` รับเวลาย้อนหลังได้ (คิวออฟไลน์) แต่ถูกบีบด้วย clampTime()
 //
 // **โมเดล: สมาชิกไม่ได้ "ไฟล์ฟอนต์" — ได้สิทธิ์ให้เครื่องเรียกใช้ระหว่างเป็นสมาชิกเท่านั้น**
 // แอปรับ bytes จาก `download` แล้วเก็บเข้า vault ที่เข้ารหัส ถอดเฉพาะตอน activate เพื่อ
@@ -90,13 +94,31 @@ const UUID_RE = /^[0-9a-f-]{36}$/i;
 
 // วันตามเวลาไทย — stream_days.day ต้องเป็นวันของ Asia/Bangkok ไม่ใช่ UTC
 // ไม่งั้น font-day คลาดกัน 7 ชม. (ช่วง 00:00–07:00 น. ไทยจะถูกนับเป็นเมื่อวาน)
-function bangkokToday(): string {
+function bangkokDay(d: Date = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Bangkok",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).format(d);
+}
+
+/**
+ * รับเวลาที่แอปส่งมา (คิวออฟไลน์ส่งย้อนหลังได้) แล้วบีบให้อยู่ในกรอบที่เชื่อถือได้
+ *
+ * 🔴 **นาฬิกาอยู่ในมือ client** — ปล่อยตามใจได้ก็แจ้งเวลาปลอมเพื่อปั๊มยอดให้ฟอนต์
+ * ตัวเองได้ · ความเสียหายถูกจำกัดด้วย user-centric normalization อยู่แล้ว (คนหนึ่ง
+ * = น้ำหนัก 1 ไม่ว่าจะแจ้งมากแค่ไหน) แต่ยังต้องกันค่าที่เป็นไปไม่ได้:
+ *   - อนาคต → บีบเป็นตอนนี้
+ *   - เก่ากว่า MAX_BACKDATE_DAYS → บีบขึ้นมา (คิวออฟไลน์ไม่ควรค้างนานกว่านี้)
+ *   - พาร์สไม่ได้/ไม่ส่งมา → ใช้เวลาปัจจุบัน
+ */
+const MAX_BACKDATE_DAYS = 7; // ตรงกับ offline grace ในแผน C2
+function clampTime(raw: unknown, now = Date.now()): Date {
+  const t = typeof raw === "string" ? Date.parse(raw) : NaN;
+  if (!Number.isFinite(t)) return new Date(now);
+  const floor = now - MAX_BACKDATE_DAYS * 24 * 3600 * 1000;
+  return new Date(Math.min(Math.max(t, floor), now));
 }
 
 // Postgres คืน bytea เป็นสตริง hex ขึ้นต้น \x ผ่าน PostgREST
@@ -109,6 +131,56 @@ function hexToBytes(hex: string): Uint8Array {
 
 function bytesToHex(b: Uint8Array): string {
   return Array.from(b).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
+const END_REASONS = new Set(["deactivate", "signout", "quit", "expired", "switched"]);
+
+/** คัด font_ids ที่แอปส่งมาให้เหลือ uuid ที่ไม่ซ้ำ ภายใต้เพดาน */
+function wantedFontIds(raw: unknown): string[] {
+  const arr = Array.isArray(raw) ? raw : [];
+  return [...new Set(arr.map(String).filter((id) => UUID_RE.test(id)))].slice(0, MAX_HEARTBEAT_IDS);
+}
+
+/** เหลือเฉพาะฟอนต์ที่ opt-in และยัง active จริง — แอปส่งอะไรมาก็ได้ ห้ามเชื่อ */
+async function validFonts(
+  admin: ReturnType<typeof createClient>,
+  wanted: string[],
+): Promise<string[] | null> {
+  const { data, error } = await admin
+    .from("fonts")
+    .select("id")
+    .in("id", wanted)
+    .eq("is_subscription", true)
+    .eq("is_active", true);
+  if (error) return null;
+  return (data ?? []).map((f) => f.id as string);
+}
+
+/**
+ * บันทึก font-day — **ตัวที่ใช้คิดเงิน 38% จริงในตอนนี้**
+ *
+ * `stream_days` เป็น (user_id, font_id, day) โดยเจตนา ไม่ผูก device เพราะสูตรแบ่งรายได้
+ * เป็น user-centric (สมาชิก 1 คน = น้ำหนัก 1) ถ้านับรายเครื่อง คนมี 2 เครื่องจะได้
+ * น้ำหนักสองเท่า = ผิดกติกาใน `/designer-agreement` ข้อ 4
+ *
+ * upsert + ignoreDuplicates และ **ไม่มีเส้นทางลบที่ไหนเลยในระบบ** → บันทึกวันไหนแล้ว
+ * deactivate ทีหลังลบทิ้งไม่ได้
+ */
+async function markStreamDays(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  fontIds: string[],
+  at: Date,
+): Promise<string | null> {
+  const day = bangkokDay(at);
+  if (!fontIds.length) return day;
+  const { error } = await admin
+    .from("stream_days")
+    .upsert(
+      fontIds.map((font_id) => ({ user_id: userId, font_id, day })),
+      { onConflict: "user_id,font_id,day", ignoreDuplicates: true },
+    );
+  return error ? null : day;
 }
 
 /**
@@ -329,11 +401,29 @@ Deno.serve(async (req: Request) => {
   // แค่ต้องเป็นเครื่องที่ลงทะเบียนไว้จริงและเซ็นถูก — การเตะเครื่องอื่นเป็นการ
   // เปลี่ยนสถานะ ปลอมไม่ได้
   if (body.action === "claim_activation") {
+    const now = new Date().toISOString();
     const { error } = await admin
       .from("sub_devices")
-      .update({ activated_at: new Date().toISOString() })
+      .update({ activated_at: now })
       .eq("id", deviceId);
     if (error) return json({ error: "claim_failed" }, 500);
+
+    // ปิด session ที่ค้างอยู่ของ "เครื่องอื่น" ให้ด้วย — เครื่องนั้นกำลังจะถูกเตะ
+    // ถ้าไม่ปิดตรงนี้ เวลาจะค้างจนถึง heartbeat ครั้งสุดท้ายของมัน ซึ่งคลาดได้
+    // เท่าระยะ heartbeat · ปิดที่ ณ เวลาที่ถูกแย่งสิทธิ์จริงแม่นกว่า
+    const { data: others } = await admin
+      .from("sub_devices")
+      .select("id")
+      .eq("user_id", user.id)
+      .neq("id", deviceId);
+    const otherIds = (others ?? []).map((d) => d.id as string);
+    if (otherIds.length) {
+      await admin
+        .from("stream_sessions")
+        .update({ ended_at: now, end_reason: "switched" })
+        .in("device_id", otherIds)
+        .is("ended_at", null);
+    }
     return json({ ok: true, active_device_id: deviceId });
   }
 
@@ -382,7 +472,9 @@ Deno.serve(async (req: Request) => {
   // ── ตั้งแต่นี้ไปต้องเป็นเครื่องที่ถือสิทธิ์ใช้งานอยู่ ──
   // `download`/`heartbeat` คือการใช้งานฟอนต์จริง จึงผูกกับ "เครื่องที่ activate อยู่"
   // เครื่องที่ถูกแย่งสิทธิ์ไปจะได้ 409 แล้วแอปเอาไปเป็นสัญญาณ deactivate
-  if (body.action === "download" || body.action === "heartbeat") {
+  // `session_end` ไม่อยู่ในรายการนี้โดยตั้งใจ — เครื่องที่เพิ่งถูกแย่งสิทธิ์ต้องปิด
+  // session ของตัวเองได้ ไม่งั้นเวลาจะค้างและข้อมูลไม่ตรงความจริง
+  if (body.action === "download" || body.action === "heartbeat" || body.action === "session_start") {
     const act = await activeDevice(admin, user.id);
     if (!act || act.id !== deviceId) {
       return json(
@@ -512,35 +604,138 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (body.action === "heartbeat") {
-    const raw = Array.isArray(body.font_ids) ? body.font_ids : [];
-    const wanted = [...new Set(raw.map(String).filter((id) => UUID_RE.test(id)))].slice(
-      0,
-      MAX_HEARTBEAT_IDS,
-    );
-    if (!wanted.length) return json({ recorded: 0, day: bangkokToday() });
+  // ── เริ่มจับเวลาการใช้งาน (แอปเรียกตอน activate และตอน restore หลังเปิดแอป) ──
+  //
+  // 🔴 **เขียน stream_days ตรงนี้ด้วย ไม่รอ heartbeat รอบถัดไป**
+  // เดิมถ้า activate 09:05 แล้ว deactivate 11:00 ส่วน heartbeat รอบถัดไปคือ 15:00
+  // ฟอนต์นั้นจะไม่อยู่ในรายการแล้ว = **ไม่เคยถูกบันทึกเลย designer ไม่ได้เงิน**
+  // ทั้งที่ลูกค้าใช้จริง 2 ชั่วโมง · เงินรั่วเงียบ ๆ ไม่มี error ให้เห็น
+  if (body.action === "session_start") {
+    const wanted = wantedFontIds(body.font_ids);
+    if (!wanted.length) return json({ started: 0 });
+    const valid = await validFonts(admin, wanted);
+    if (valid === null) return json({ error: "font_lookup_failed" }, 500);
 
-    // กรองเหลือเฉพาะฟอนต์ที่ opt-in จริง — แอปส่งอะไรมาก็ได้ ห้ามเชื่อ
-    const { data: valid, error: vErr } = await admin
-      .from("fonts")
-      .select("id")
-      .in("id", wanted)
-      .eq("is_subscription", true)
-      .eq("is_active", true);
-    if (vErr) return json({ error: "font_lookup_failed" }, 500);
+    const at = clampTime((body as { at?: unknown }).at);
 
-    const day = bangkokToday();
-    // stream_days เป็น (user_id, font_id, day) โดยเจตนา — ไม่ผูก device
-    // เพราะสูตรแบ่งรายได้เป็น user-centric (สมาชิก 1 คน = น้ำหนัก 1)
-    // ถ้านับรายเครื่อง คนมี 2 เครื่องจะได้น้ำหนักสองเท่า = ผิดกติกาในสัญญา designer
-    const rows = (valid ?? []).map((f) => ({ user_id: user.id, font_id: f.id, day }));
-    if (rows.length) {
-      const { error: insErr } = await admin
-        .from("stream_days")
-        .upsert(rows, { onConflict: "user_id,font_id,day", ignoreDuplicates: true });
-      if (insErr) return json({ error: "heartbeat_failed" }, 500);
+    // ไม่เปิดซ้ำถ้ายังมี session ค้างอยู่ของเครื่องนี้ (แอปเรียกซ้ำได้ปลอดภัย)
+    const { data: open } = await admin
+      .from("stream_sessions")
+      .select("font_id")
+      .eq("device_id", deviceId)
+      .is("ended_at", null)
+      .in("font_id", valid);
+    const alreadyOpen = new Set((open ?? []).map((r) => r.font_id as string));
+    const toOpen = valid.filter((id) => !alreadyOpen.has(id));
+
+    if (toOpen.length) {
+      const { error } = await admin.from("stream_sessions").insert(
+        toOpen.map((font_id) => ({
+          user_id: user.id,
+          font_id,
+          device_id: deviceId,
+          started_at: at.toISOString(),
+          last_seen_at: at.toISOString(),
+        })),
+      );
+      if (error) return json({ error: "session_start_failed" }, 500);
     }
-    return json({ recorded: rows.length, day });
+
+    const day = await markStreamDays(admin, user.id, valid, at);
+    if (day === null) return json({ error: "stream_day_failed" }, 500);
+    return json({ started: toOpen.length, already_open: alreadyOpen.size, day });
+  }
+
+  // ── หยุดจับเวลา ──
+  // **ไม่บังคับว่าต้องเป็นเครื่องที่ถือสิทธิ์** — เครื่องที่เพิ่งถูกแย่งสิทธิ์ไปต้องปิด
+  // session ของตัวเองให้เรียบร้อยได้ ไม่งั้นเวลาจะค้างไว้จนถึง heartbeat ครั้งสุดท้าย
+  if (body.action === "session_end") {
+    const wanted = wantedFontIds(body.font_ids);
+    const at = clampTime((body as { at?: unknown }).at);
+    const reason = END_REASONS.has(String((body as { reason?: unknown }).reason))
+      ? String((body as { reason?: unknown }).reason)
+      : "deactivate";
+
+    let q = admin
+      .from("stream_sessions")
+      .select("id, started_at")
+      .eq("device_id", deviceId)
+      .is("ended_at", null);
+    if (wanted.length) q = q.in("font_id", wanted); // ไม่ส่ง font_ids = ปิดทั้งหมด (ตอน quit/signout)
+    const { data: open, error: qErr } = await q;
+    if (qErr) return json({ error: "session_lookup_failed" }, 500);
+    if (!open?.length) return json({ ended: 0 });
+
+    // กันข้อมูลเพี้ยน: เวลาปิดต้องไม่ก่อนเวลาเริ่ม (คิวออฟไลน์ส่งย้อนหลังเกินได้)
+    // แถวที่ started_at > at ให้ปิดที่ started_at = ช่วงยาว 0 ดีกว่าค่าติดลบ
+    const normal: number[] = [], clamped: { id: number; started_at: string }[] = [];
+    for (const r of open) {
+      if (Date.parse(r.started_at as string) > at.getTime()) {
+        clamped.push({ id: r.id as number, started_at: r.started_at as string });
+      } else normal.push(r.id as number);
+    }
+    if (normal.length) {
+      const { error } = await admin
+        .from("stream_sessions")
+        .update({ ended_at: at.toISOString(), end_reason: reason })
+        .in("id", normal);
+      if (error) return json({ error: "session_end_failed" }, 500);
+    }
+    for (const r of clamped) {
+      await admin
+        .from("stream_sessions")
+        .update({ ended_at: r.started_at, end_reason: reason })
+        .eq("id", r.id);
+    }
+    return json({ ended: open.length, reason });
+  }
+
+  if (body.action === "heartbeat") {
+    const wanted = wantedFontIds(body.font_ids);
+    if (!wanted.length) return json({ recorded: 0, day: bangkokDay() });
+
+    const valid = await validFonts(admin, wanted);
+    if (valid === null) return json({ error: "font_lookup_failed" }, 500);
+
+    const at = clampTime((body as { at?: unknown }).at);
+
+    // (1) stream_days — **ตัวที่ใช้คิดเงินจริงตอนนี้ ไม่เปลี่ยนพฤติกรรมเดิม**
+    const day = await markStreamDays(admin, user.id, valid, at);
+    if (day === null) return json({ error: "heartbeat_failed" }, 500);
+
+    // (2) ต่ออายุ session ที่เปิดอยู่ — last_seen_at คือจุดสิ้นสุดเมื่อเครื่องดับไปดื้อ ๆ
+    const { data: open } = await admin
+      .from("stream_sessions")
+      .select("id, font_id")
+      .eq("device_id", deviceId)
+      .is("ended_at", null)
+      .in("font_id", valid);
+    const openIds = (open ?? []).map((r) => r.id as number);
+    if (openIds.length) {
+      await admin
+        .from("stream_sessions")
+        .update({ last_seen_at: at.toISOString() })
+        .in("id", openIds);
+    }
+
+    // (3) ฟอนต์ที่ heartbeat บอกว่า active อยู่แต่ไม่มี session เปิดค้าง → เปิดให้
+    // เกิดได้เมื่อแอป restore หลัง crash แล้วไม่ได้เรียก session_start
+    // **ซ่อมตัวเองตรงนี้ดีกว่าปล่อยให้ข้อมูลหาย** ตามหลัก "ทุกการเคลื่อนไหวต้องมีข้อมูล"
+    const openFonts = new Set((open ?? []).map((r) => r.font_id as string));
+    const missing = valid.filter((id) => !openFonts.has(id));
+    if (missing.length) {
+      await admin.from("stream_sessions").insert(
+        missing.map((font_id) => ({
+          user_id: user.id,
+          font_id,
+          device_id: deviceId,
+          started_at: at.toISOString(),
+          last_seen_at: at.toISOString(),
+        })),
+      );
+    }
+
+    return json({ recorded: valid.length, day, sessions_touched: openIds.length, sessions_opened: missing.length });
   }
 
   return json({ error: "unknown_action" }, 400);

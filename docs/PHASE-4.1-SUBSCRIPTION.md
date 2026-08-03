@@ -137,6 +137,38 @@ keychain ได้เสมอ · ที่ได้คือปิดทาง�
 
 ---
 
+## ✅ C1d — เก็บช่วงเวลาการใช้งานจริง (เสร็จ 3 ส.ค. 2569, `0081`)
+
+เจ้าของต้องการให้ **ทุกการเคลื่อนไหวมีข้อมูลมาคำนวณรายได้** — เริ่มนับตอน activate
+หยุดตอน deactivate/signout/เครื่องดับ/ออฟไลน์ แล้วนับต่อเมื่อกลับมา
+
+**`stream_sessions`** — หนึ่งแถวต่อหนึ่งช่วง · `started_at` · `last_seen_at` (heartbeat เลื่อน)
+· `ended_at` + `end_reason` (`deactivate|signout|quit|expired|switched`)
+
+```
+เวลาที่นับได้ = coalesce(ended_at, last_seen_at) - started_at
+```
+ปิดสวย ๆ → เป๊ะ · เครื่องดับ/crash → ได้ถึงแค่ heartbeat ครั้งสุดท้าย
+**ไม่มีทางนับเกินความจริง และไม่ต้องมี cron ไล่ปิด session ค้าง** ความจริงอยู่ในข้อมูลแล้ว
+
+- `session_start` เขียน `stream_days` ทันทีด้วย → **ปิดรูที่ activate สั้น ๆ แล้วหายไป**
+- `session_end` **ไม่ติดประตู active device** เครื่องที่เพิ่งถูกแย่งสิทธิ์ต้องปิดของตัวเองได้
+- `claim_activation` ปิด session ของเครื่องอื่นให้ด้วย (`switched`) — แม่นกว่าปล่อยให้
+  ค้างจนถึง heartbeat ครั้งสุดท้ายของเครื่องนั้น
+- heartbeat **ซ่อมตัวเอง** — ฟอนต์ที่ active อยู่แต่ไม่มี session ค้าง จะถูกเปิดให้
+- `at` รับเวลาย้อนหลังจากคิวออฟไลน์ · `clampTime()` บีบอนาคต→ตอนนี้ · เก่ากว่า 7 วัน→บีบขึ้น
+
+**🔴 ยังไม่ถูกใช้คิดเงิน — เจตนา** เจ้าของเลือกให้ 38% ยังคิดตาม `stream_days` (จำนวนวัน)
+เหมือนเดิม เพราะ `/designer-agreement` ข้อ 4 เขียนว่า *"นับจากจำนวนวันที่สมาชิกเปิดใช้ฟอนต์นั้น"*
+→ **`stream_days` และ RPC `subscription_month_data` ไม่ถูกแตะเลย** เก็บข้อมูลจริง 2-3 เดือน
+แล้วค่อยตัดสินใจ · วันนั้นแก้แค่แหล่งข้อมูลใน RPC กับถ้อยคำข้อ 4 —
+**สูตรถ่วงน้ำหนักไม่ต้องแก้** เพราะ `sum(x/total)/N` ใช้ได้ทั้งวันและวินาที
+
+**พิสูจน์แล้ว 11 ข้อ + ตรวจตัวเลขในตารางจริง:** คิวย้อนหลัง 3 ชม. → ได้ 180.0 นาทีเป๊ะ ·
+แจ้งย้อนหลัง 60 วัน → ถูกบีบเหลือ 10080 นาที (7 วัน) พอดี · เวลาอนาคต → บีบเป็น 0
+
+---
+
 **🔲 ยกไป Milestone D (ตอนเปิด trial):** อีเมลแจ้งเตือนเมื่อมีอุปกรณ์ใหม่ —
 `sub-font` เป็น Deno ส่วน `email-service.ts` อยู่บน Pages คนละ runtime ต้องยิง HTTP ข้ามกัน
 และต้องมีโดเมนเป็น env อีกตัว **ซึ่งจะพังตอนเปลี่ยนแบรนด์** · ตอนนี้สมาชิก 0 คน
@@ -167,7 +199,19 @@ keychain ได้เสมอ · ที่ได้คือปิดทาง�
 - [ ] Auth: supabase-js + custom storage adapter → Rust `keyring` (auto-login, refresh token ไม่แตะ disk)
 - [ ] Vault (`src-tauri/src/vault.rs`): ไฟล์ฟอนต์ AES-256-GCM, ถอดตอน activate, ลบตอน deactivate/exit + sweep
 - [ ] Font registration: Windows `AddFontResourceExW(path,0)`+WM_FONTCHANGE / macOS `CTFontManagerRegisterFontsForURL` session
-- [ ] Lifecycle: launch→restore→status→register→heartbeat / timer 6ชม / offline grace 7 วัน / สิทธิ์หมด→deactivate
+- [ ] Lifecycle: launch→restore→status→register→`claim_activation`→`session_start` ของฟอนต์ที่ restore
+      / timer 6ชม / offline grace 7 วัน / สิทธิ์หมด→deactivate
+- [ ] **🔴 การจับเวลา — พลาดตรงนี้แล้วเงินรั่วเงียบ ๆ ไม่มี error ให้เห็น:**
+      - **`session_start` ทันทีที่ activate** ไม่ใช่รอ timer · เดิมถ้า activate 09:05 แล้ว
+        deactivate 11:00 ส่วน heartbeat รอบถัดไป 15:00 ฟอนต์นั้นจะไม่อยู่ในรายการแล้ว
+        = **ไม่เคยถูกบันทึกเลย** ทั้งที่ลูกค้าใช้จริง 2 ชั่วโมง
+      - **`session_end` ทันทีที่ deactivate / signout / ปิดแอป** พร้อม `reason`
+        (เรียกได้แม้ถูกเครื่องอื่นแย่งสิทธิ์ไปแล้ว — ไม่ติดประตู active device โดยตั้งใจ)
+      - **คิวออฟไลน์:** เก็บเหตุการณ์พร้อม timestamp จริงไว้ในเครื่อง ส่งเมื่อกลับมาออนไลน์
+        ผ่านพารามิเตอร์ `at` · server บีบด้วย `clampTime()` (อนาคต→ตอนนี้ · เก่ากว่า 7 วัน→บีบขึ้น)
+        **ไม่มีคิว = ทำงานตอนเน็ตหลุดแล้ว designer ไม่ได้เงินช่วงนั้น**
+      - heartbeat เหลือหน้าที่ **ต่ออายุ `last_seen_at` + ต่อวันให้ฟอนต์ที่ยังเปิดค้างข้ามวัน**
+        ระยะ heartbeat จึงกำหนดแค่ *ความคลาดเมื่อเครื่องดับดื้อ ๆ* ไม่ใช่ความแม่นตอนใช้งานปกติ
 - [ ] UI v1: Login → Library (ทั้งหมด + tab รายการโปรด + activate/deactivate + search) → Settings
 - [ ] Update: tauri-plugin-updater + `public/desktop/latest.json` / CI `.github/workflows/desktop.yml` (win x64 + macos universal)
 - [ ] เทส dev build บน Intel Mac: activate → ฟอนต์โผล่ Font Book → ปิดแอปหาย
