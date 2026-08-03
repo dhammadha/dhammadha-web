@@ -1,6 +1,6 @@
 /**
  * ตรรกะแบ่งรายได้ subscription รายเดือน — pure (ไม่ผูก React/Supabase)
- * รับ output ของ RPC subscription_month_data (0048) มาแปลงเป็นยอดเงินต่อ designer
+ * รับ output ของ RPC subscription_month_data (0082) มาแปลงเป็นยอดเงินต่อ designer
  *
  * โมเดล (ยืนยันกับ user 2026-07-12, ปรับสัดส่วน Phase 4.2b):
  *   revenue เดือนนั้น → เว็บ 50% | equal pool 12% | stream pool 38%
@@ -10,7 +10,11 @@
  *   - ฟอนต์ opt-out กลางเดือนแต่มีสตรีม (orphan) → ยังรับส่วน stream ให้เจ้าของ
  *   - equal pool คิดจาก snapshot ฟอนต์ opt-in ณ เวลาคำนวณเท่านั้น
  *   - ส่วนที่แบ่งไม่หมด (ไม่มีฟอนต์/ไม่มีคนสตรีม) ตกเป็นของแพลตฟอร์ม
- *   - เดือนทดสอบ revenue = 0 → ทุกยอด 0 แต่สัดส่วน/font-days ยังแสดงจริง
+ *   - เดือนทดสอบ revenue = 0 → ทุกยอด 0 แต่สัดส่วน/เวลาใช้งานยังแสดงจริง
+ *
+ * **ตัวชี้วัดของ stream pool = ระยะเวลาที่เปิดใช้จริง (วินาที) ตั้งแต่ 0082**
+ * เดิมเป็น "จำนวนวันที่เคยเปิด" (font-days) · สูตรถ่วงน้ำหนักไม่เปลี่ยน —
+ * `sum(x/total)/N` ใช้ได้ทั้งสองหน่วย ที่เปลี่ยนคือความละเอียดของ x
  */
 
 export const SPLIT = { web: 0.5, equal: 0.12, stream: 0.38 } as const;
@@ -20,7 +24,7 @@ export type FontEntry = {
   name: string | null;
   owner_id: string;
   stream_share: number; // 0..1 (รวมทุกฟอนต์ = 1 เมื่อมีคนสตรีม)
-  font_days: number;
+  font_seconds: number; // วินาทีที่สมาชิกเปิดใช้ฟอนต์นี้ (เดิมเป็น font_days)
 };
 
 export type MonthData = {
@@ -42,7 +46,7 @@ export type FontShare = {
   streamAmount: number;
   total: number;
   streamShare: number;
-  fontDays: number;
+  fontSeconds: number;
 };
 
 export type DesignerSlice = {
@@ -98,7 +102,7 @@ export function buildSubMonthStatement(data: MonthData): SubMonthStatement {
       streamAmount,
       total: round2(equalAmount + streamAmount),
       streamShare: f.stream_share,
-      fontDays: f.font_days,
+      fontSeconds: f.font_seconds,
     });
   }
 
@@ -113,7 +117,7 @@ export function buildSubMonthStatement(data: MonthData): SubMonthStatement {
       streamAmount,
       total: streamAmount,
       streamShare: f.stream_share,
-      fontDays: f.font_days,
+      fontSeconds: f.font_seconds,
     });
   }
 

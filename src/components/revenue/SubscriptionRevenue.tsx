@@ -20,6 +20,16 @@ import {
 
 type Props = { mode: "admin" | "designer" };
 
+/**
+ * เวลาที่เปิดใช้ฟอนต์ — RPC คืนมาเป็นวินาที (0082 เปลี่ยนจาก "จำนวนวัน" เป็นระยะเวลาจริง)
+ * ต่ำกว่า 1 ชม. แสดงเป็นนาที เพราะ "0.0 ชม." อ่านแล้วเหมือนไม่มีการใช้งานเลย
+ */
+function fmtUsage(seconds: number): string {
+  if (!seconds) return "—";
+  if (seconds < 3600) return `${Math.round(seconds / 60)} นาที`;
+  return `${(seconds / 3600).toFixed(1)} ชม.`;
+}
+
 type UserName = { id: string; name: string | null; business_name: string | null };
 
 function recentMonths(count: number): { year: number; month: number; key: string }[] {
@@ -163,7 +173,7 @@ function AdminView({ stmt, names }: { stmt: SubMonthStatement; names: Record<str
                     </div>
                     <div>{fmtBaht(f.equalAmount)}</div>
                     <div>{fmtBaht(f.streamAmount)} <span className="text-grey-600">· {(f.streamShare * 100).toFixed(1)}%</span></div>
-                    <div className="text-grey-600">{f.fontDays} วัน-ฟอนต์</div>
+                    <div className="text-grey-600">{fmtUsage(f.fontSeconds)}</div>
                   </div>
                 ))}
               </div>
@@ -220,7 +230,9 @@ function DesignerView({ stmt, designerId }: { stmt: SubMonthStatement; designerI
         </div>
       )}
       <p className="font-body text-footnote text-grey-600 mt-2.5 leading-relaxed">
-        &quot;ตามการใช้งาน&quot; นับจากจำนวนวันที่สมาชิกเปิดใช้ฟอนต์ผ่านแอป (font-days) โดยนำสถิติการใช้งานของสมาชิก Subscription แต่ละคนมาคำนวณ
+        &quot;ตามการใช้งาน&quot; นับจากระยะเวลาที่สมาชิกเปิดใช้ฟอนต์ผ่านแอป
+        โดยถ่วงน้ำหนักให้สมาชิกทุกคนเท่ากันคนละหนึ่งส่วน ไม่ว่าจะเปิดใช้กี่ฟอนต์ก็ตาม
+        · ระบบนับจากที่แอปแจ้งเข้ามา หากอุปกรณ์ขาดการติดต่อจะนับถึงการแจ้งครั้งสุดท้าย
       </p>
     </>
   );
