@@ -6,6 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
 import Button from "@/components/ui/Button";
 import ShareMenu from "@/components/ui/ShareMenu";
+import SalePromoModal from "@/components/dashboard/SalePromoModal";
+import { isSaleActive } from "@/lib/sale";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -21,6 +23,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
   const [loading, setLoading] = useState(true);
   const [panelOpen, setPanelOpen] = useState(false);
   const [editingFont, setEditingFont] = useState<FontRow | null>(null);
+  const [promoFont, setPromoFont] = useState<FontRow | null>(null);
   const [toast, setToast] = useState("");
   const [designerSlug, setDesignerSlug] = useState<string | null>(null);
 
@@ -50,7 +53,8 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
   const filtered = fonts.filter((f) => {
     if (tab === "active") return !!f.published_at && f.is_active;
     if (tab === "hidden") return !!f.published_at && !f.is_active;
-    if (tab === "sale") return f.is_sale;
+    // isSaleActive ไม่ใช่ is_sale — is_sale เป็น flag ค้างใน DB ที่ไม่รู้จักวันหมดอายุ
+    if (tab === "sale") return isSaleActive(f);
     return true;
   });
 
@@ -66,7 +70,8 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
     { label: "ฟอนต์ทั้งหมด", value: fonts.length },
     { label: "แสดงบนเว็บ", value: fonts.filter((f) => !!f.published_at && f.is_active).length },
     { label: "รอ Publish", value: fonts.filter((f) => !f.published_at).length },
-    { label: "โปรโมชั่น", value: fonts.filter((f) => f.is_sale).length },
+    // ห้ามเขียน filter(isSaleActive) — filter ส่ง index มาเป็น arg ที่สอง ซึ่งคือ `now`
+    { label: "โปรโมชั่น", value: fonts.filter((f) => isSaleActive(f)).length },
   ];
 
   const TABS: { key: Tab; label: string }[] = [
@@ -143,10 +148,15 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
             <div className="font-body text-footnote text-grey-600 capitalize">{f.category ?? "—"}</div>
             <div className="font-body text-footnote text-grey-600 truncate">{(f.tags ?? []).slice(0, 3).join(", ") || "—"}</div>
             <div className="font-body text-body-sm text-black">
-              {f.is_free ? <span className="text-success">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
+              {f.is_sub_exclusive
+                ? <span className="text-grey-600">เฉพาะสมาชิก</span>
+                : f.is_free ? <span className="text-success">ฟรี</span>
+                : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
             </div>
+            {/* โปรที่หมดอายุแล้วถือว่าไม่มี (isSaleActive นับถึง 23:59:59 เวลาไทย) จะได้
+                ตั้งใหม่จากตรงนี้ได้เลย · ฟอนต์ฟรี/ยังไม่ตั้งราคาไม่มีอะไรให้ลด */}
             <div className="font-body text-footnote text-grey-600">
-              {f.is_sale && f.discount_percent ? (
+              {isSaleActive(f) ? (
                 <div className="flex flex-col gap-0.5">
                   <span className="text-warning font-ui text-ui">ลด {f.discount_percent}%</span>
                   {f.sale_end && (
@@ -155,6 +165,13 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
                     </span>
                   )}
                 </div>
+              ) : !f.is_free && !f.is_sub_exclusive && (f.price ?? 0) > 0 ? (
+                <button
+                  onClick={() => setPromoFont(f)}
+                  className="font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+                >
+                  สร้างโปรโมชั่น
+                </button>
               ) : <span className="text-grey-600">—</span>}
             </div>
             <div>
@@ -191,6 +208,13 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
           </div>
         ))}
       </div>
+
+      <SalePromoModal
+        key={promoFont?.id ?? "none"}
+        font={promoFont}
+        onClose={() => setPromoFont(null)}
+        onSaved={(msg) => { setPromoFont(null); showToast(msg); loadFonts(); }}
+      />
 
       <FontForm
         open={panelOpen}

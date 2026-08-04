@@ -7,6 +7,7 @@ import FontForm from "@/components/admin/FontForm";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { isSaleActive } from "@/lib/sale";
 import type { Database } from "@/lib/database.types";
 
 // หมวดหมู่มาตรฐาน — ชุดเดียวกับหน้า /fonts สาธารณะ
@@ -188,7 +189,8 @@ export default function AdminAllFontsPage() {
     if (tab === "active" && !(f.published_at && f.is_active)) return false;
     if (tab === "hidden" && !(f.published_at && !f.is_active)) return false;
     if (tab === "pending" && f.published_at) return false;
-    if (tab === "sale" && !f.is_sale) return false;
+    // isSaleActive ไม่ใช่ is_sale — is_sale เป็น flag ค้างใน DB ที่ไม่รู้จักวันหมดอายุ
+    if (tab === "sale" && !isSaleActive(f)) return false;
     if (category !== "all" && f.category !== category) return false;
     const q = search.trim().toLowerCase();
     if (q) {
@@ -384,7 +386,7 @@ export default function AdminAllFontsPage() {
               {f.is_free ? <span className="text-mint-text">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
             </div>
             <div className="font-body text-footnote text-grey-600">
-              {f.is_sale && f.discount_percent ? (
+              {isSaleActive(f) ? (
                 <div className="flex flex-col gap-0.5">
                   <span className="text-warning font-ui text-ui">ลด {f.discount_percent}%</span>
                   {f.sale_end && (
