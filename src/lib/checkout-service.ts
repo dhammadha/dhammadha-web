@@ -11,7 +11,7 @@
 
 import { handleEmailRequest } from "./email-service";
 import { effectiveSale } from "./sale";
-import { designerLicensePdfMap } from "./license";
+import { designerLicensePdfMap, LICENSE_LABEL } from "./license";
 
 export interface CheckoutEnv {
   STRIPE_SECRET_KEY?: string;
@@ -285,11 +285,11 @@ export async function handleCheckoutRequest(
     form.set(`line_items[${i}][quantity]`, "1");
     form.set(`line_items[${i}][price_data][currency]`, "thb");
     form.set(`line_items[${i}][price_data][unit_amount]`, String(Math.round(price * 100)));
-    // ใช้ถ้อยคำเดียวกับ LICENSE_LABEL.personal / /agreement — ลูกค้าเห็นคำเดียวกัน
-    // ตลอดเส้นทาง ตะกร้า → หน้าจ่ายเงิน → อีเมล → เอกสาร
+    // อ่านจาก LICENSE_LABEL.personal ตรง ๆ ห้าม copy ข้อความมาเขียนซ้ำ — ลูกค้าต้องเห็น
+    // คำเดียวกันตลอดเส้นทาง ตะกร้า → หน้าจ่ายเงิน → อีเมล → เอกสาร
     form.set(
       `line_items[${i}][price_data][product_data][name]`,
-      `ฟอนต์ ${fontName} — สิทธิการใช้งานส่วนบุคคล`
+      `ฟอนต์ ${fontName} — ${LICENSE_LABEL.personal}`
     );
     form.set(`line_items[${i}][price_data][product_data][metadata][font_id]`, font.id);
   });

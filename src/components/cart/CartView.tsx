@@ -15,7 +15,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart, type CartFont } from "@/context/CartContext";
 import { effectiveSale } from "@/lib/sale";
 import { cartPriceOf, fmtBaht } from "@/lib/revenue";
-import { designerLicensePdfMap } from "@/lib/license";
+import { designerLicensePdfMap, LICENSE_LABEL } from "@/lib/license";
 import Button from "@/components/ui/Button";
 import LicenseLink from "@/components/LicenseLink";
 
@@ -143,7 +143,7 @@ export default function CartView() {
                   <span className="font-body text-body text-black truncate block">{name}</span>
                 )}
                 <span className="font-body text-footnote text-grey-600">
-                  โดย {f.designer_profiles?.business_name || "—"} · สิทธิการใช้งานส่วนบุคคล
+                  โดย {f.designer_profiles?.business_name || "—"} · {LICENSE_LABEL.personal}
                 </span>
               </div>
               <div className="text-right flex-shrink-0">
