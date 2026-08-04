@@ -307,7 +307,7 @@ function PayoutHistory({ payouts }: { payouts: PayoutRow[] }) {
   return (
     <div className="bg-surface overflow-hidden">
       <div className="grid grid-cols-[1fr_140px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
-        <div>วันที่เว็บโอน</div><div>จำนวนเงิน</div>
+        <div>วันที่โอนส่วนแบ่งรายได้</div><div>จำนวนเงิน</div>
       </div>
       {payouts.length === 0 ? <EmptyRow text="ยังไม่มีข้อมูล" /> : payouts.map((p) => (
         <div key={p.id} className="grid grid-cols-[1fr_140px] gap-3 px-4 py-3 items-center">
