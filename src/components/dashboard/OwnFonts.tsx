@@ -11,7 +11,7 @@ import { isSaleActive } from "@/lib/sale";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
-type Tab = "all" | "active" | "hidden" | "sale";
+type Tab = "all" | "active" | "hidden" | "sale" | "free" | "sub";
 
 // หน้า "ฟอนต์ของฉัน" ใช้ร่วมกันระหว่าง /designer และ /admin — admin เข้า designer section
 // ต้องได้สิทธิ์เท่ากับ designer เป๊ะ ๆ (ไม่มีปุ่มลบ) การลบฟอนต์เป็นงาน admin section
@@ -55,6 +55,8 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
     if (tab === "hidden") return !!f.published_at && !f.is_active;
     // isSaleActive ไม่ใช่ is_sale — is_sale เป็น flag ค้างใน DB ที่ไม่รู้จักวันหมดอายุ
     if (tab === "sale") return isSaleActive(f);
+    if (tab === "free") return f.is_free;
+    if (tab === "sub") return f.is_sub_exclusive;
     return true;
   });
 
@@ -79,6 +81,8 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
     { key: "active", label: "แสดงอยู่" },
     { key: "hidden", label: "ซ่อนอยู่" },
     { key: "sale", label: "โปรโมชั่น" },
+    { key: "free", label: "ฟรี" },
+    { key: "sub", label: "เฉพาะสมาชิก" },
   ];
 
   return (

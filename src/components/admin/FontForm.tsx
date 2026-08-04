@@ -603,7 +603,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             />
             <Toggle
               label="Subscription Exclusive"
-              desc="ไม่ขายรายชุด ให้บริการเฉพาะสมาชิกรายเดือน (ยังขอใบเสนอราคาได้) · ได้น้ำหนักส่วนแบ่ง 1.25 เท่าใน pool ตามการใช้งาน"
+              desc="ไม่ขายรายชุด ให้บริการเฉพาะสมาชิกรายเดือน (ยังขอใบเสนอราคาได้) · ได้ส่วนแบ่งเพิ่มขึ้น 25% ใน pool ตามการใช้งาน"
               checked={isSubExclusive}
               onChange={(v) => {
                 setIsSubExclusive(v);

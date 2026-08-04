@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import FontForm from "@/components/admin/FontForm";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 import { isSaleActive } from "@/lib/sale";
 import type { Database } from "@/lib/database.types";
 
@@ -25,7 +24,7 @@ type FontRow = Database["public"]["Tables"]["fonts"]["Row"] & {
   designer_business_name?: string | null;
 };
 
-type Tab = "all" | "active" | "hidden" | "pending" | "sale";
+type Tab = "all" | "active" | "hidden" | "pending" | "sale" | "free" | "sub";
 
 // ── Quality checklist ────────────────────────────────────────────────────────
 
@@ -191,6 +190,8 @@ export default function AdminAllFontsPage() {
     if (tab === "pending" && f.published_at) return false;
     // isSaleActive ไม่ใช่ is_sale — is_sale เป็น flag ค้างใน DB ที่ไม่รู้จักวันหมดอายุ
     if (tab === "sale" && !isSaleActive(f)) return false;
+    if (tab === "free" && !f.is_free) return false;
+    if (tab === "sub" && !f.is_sub_exclusive) return false;
     if (category !== "all" && f.category !== category) return false;
     const q = search.trim().toLowerCase();
     if (q) {
@@ -280,6 +281,8 @@ export default function AdminAllFontsPage() {
     { key: "hidden", label: "ซ่อนอยู่" },
     { key: "pending", label: "รอ Publish", badge: pendingCount },
     { key: "sale", label: "โปรโมชั่น" },
+    { key: "free", label: "ฟรี" },
+    { key: "sub", label: "เฉพาะสมาชิก" },
   ];
 
   const GRID = "grid grid-cols-[52px_2fr_110px_90px_1fr_90px_140px_90px_230px] gap-3";
@@ -319,13 +322,19 @@ export default function AdminAllFontsPage() {
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant={category === "all" ? "primary" : "outline"} onClick={() => setCategory("all")}>
-            ทุกหมวดหมู่
-          </Button>
-          {categoryOptions.map((c) => (
-            <Button key={c} size="sm" variant={category === c ? "primary" : "outline"} onClick={() => setCategory(c)} className="capitalize">
-              {c}
-            </Button>
+          {/* ใช้ <button> ตรง ๆ ไม่ใช่ <Button variant="outline"> เพราะต้องการตัวอักษรเทา
+              ตอนยังไม่ถูกเลือก — ส่ง className="text-grey-600" เข้าไป override ไม่ได้
+              (cn() ไม่ได้ merge class ที่ชนกัน ดู src/lib/cn.ts) ทดสอบแล้วสีไม่เปลี่ยนจริง
+              ชุดคลาสตรงกับแถบตัวกรองด้านล่างและหน้า "ฟอนต์ของฉัน" · เก็บ focus-visible
+              ที่เคยได้จาก Button ไว้ด้วย */}
+          {[{ key: "all", label: "ทุกหมวดหมู่" }, ...categoryOptions.map((c) => ({ key: c, label: c }))].map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setCategory(c.key)}
+              className={`px-4 py-2 font-ui text-ui capitalize border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${category === c.key ? "bg-mint text-black" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
+            >
+              {c.label}
+            </button>
           ))}
         </div>
       </div>
