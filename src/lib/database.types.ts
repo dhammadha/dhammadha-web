@@ -25,6 +25,7 @@ export interface Database {
           is_active: boolean;
           is_free: boolean;
           is_subscription: boolean;
+          is_sub_exclusive: boolean;
           cover_image_url: string | null;
           preview_images: string[] | null;
           full_font_files: string[] | null;
@@ -59,6 +60,7 @@ export interface Database {
           is_active?: boolean;
           is_free?: boolean;
           is_subscription?: boolean;
+          is_sub_exclusive?: boolean;
           cover_image_url?: string | null;
           preview_images?: string[] | null;
           full_font_files?: string[] | null;
@@ -93,6 +95,7 @@ export interface Database {
           is_active?: boolean;
           is_free?: boolean;
           is_subscription?: boolean;
+          is_sub_exclusive?: boolean;
           cover_image_url?: string | null;
           preview_images?: string[] | null;
           full_font_files?: string[] | null;

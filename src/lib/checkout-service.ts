@@ -195,7 +195,9 @@ export async function handleCheckoutRequest(
   // ราคาคำนวณจาก DB ฝั่ง server เสมอ — ไม่รับราคาจาก client
   const fonts = await supabaseGet<PurchasableFont>(
     env,
-    `fonts?id=in.(${fontIds.join(",")})&is_active=eq.true&published_at=not.is.null` +
+    // is_sub_exclusive=eq.false คือด่านจริงที่กันการซื้อฟอนต์เฉพาะสมาชิก — ฝั่งหน้าเว็บ
+    // แค่ซ่อนปุ่ม ใครยิง API ตรงจะตกที่นี่และได้ font_not_found เหมือนฟอนต์ที่ถูกซ่อน
+    `fonts?id=in.(${fontIds.join(",")})&is_active=eq.true&published_at=not.is.null&is_sub_exclusive=eq.false` +
       `&select=id,slug,name,name_th,price,sale_price,sale_end,is_sale,is_free,owner_id,discount_percent,sale_label`
   );
   if (!fonts || fonts.length !== fontIds.length) {

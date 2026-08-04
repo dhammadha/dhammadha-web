@@ -98,6 +98,9 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
   const [isActive, setIsActive] = useState(true);
   const [isFree, setIsFree] = useState(false);
   const [isSub, setIsSub] = useState(true);
+  // ไม่ขายรายชุด ให้บริการเฉพาะสมาชิก — บังคับให้ isSub เปิดและ isFree ปิดเสมอ
+  // (ตรงกับ check constraint fonts_sub_exclusive_requires_subscription ใน 0083)
+  const [isSubExclusive, setIsSubExclusive] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
 
@@ -141,7 +144,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setName(""); setNameTh(""); setSlug(""); setDesignerName("");
     setCategory("serif"); setTags(""); setDescTh(""); setDescEn("");
     setPrice(""); setDiscount(""); setSaleLabel(""); setSaleEnd("");
-    setIsActive(true); setIsFree(false); setIsSub(true);
+    setIsActive(true); setIsFree(false); setIsSub(true); setIsSubExclusive(false);
     setCoverFile(null); setCoverUrl(""); setPreviewItems([]);
     setFullFonts([]); setDemoFonts([]); setFreeFonts([]); setSpecimens([]);
     setMetaSummary(null); setMetaLoading(false); setWeightOverride(""); setStyleOverride("");
@@ -169,6 +172,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     setDiscount(f.discount_percent?.toString() ?? "");
     setSaleLabel(f.sale_label ?? ""); setSaleEnd(f.sale_end ?? "");
     setIsActive(f.is_active); setIsFree(f.is_free); setIsSub(f.is_subscription);
+    setIsSubExclusive(f.is_sub_exclusive);
     // ค่าที่บันทึกไว้ใน DB ถือว่ามาจากคน (อาจถูกแก้มือมาแล้ว) จึงมีสิทธิ์เหนือผลอ่านจากไฟล์
     // ฟอนต์ที่ยังไม่มีค่าใน DB ปล่อยให้ effect ด้านล่างเติมให้อัตโนมัติได้ตามเดิม
     setWeightOverride(f.weight_count != null ? String(f.weight_count) : "");
@@ -249,13 +253,14 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       if (typeof d.isActive === "boolean") setIsActive(d.isActive);
       if (typeof d.isFree === "boolean") setIsFree(d.isFree);
       if (typeof d.isSub === "boolean") setIsSub(d.isSub);
+      if (typeof d.isSubExclusive === "boolean") setIsSubExclusive(d.isSubExclusive);
     } catch { /* ignore */ }
   }, [editingFont]);
 
   useEffect(() => {
     if (editingFont) return;
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ name, nameTh, slug, designerName, category, tags, descTh, descEn, price, discount, saleLabel, saleEnd, isActive, isFree, isSub }));
-  }, [name, nameTh, slug, designerName, category, tags, descTh, descEn, price, discount, saleLabel, saleEnd, isActive, isFree, isSub, editingFont]);
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ name, nameTh, slug, designerName, category, tags, descTh, descEn, price, discount, saleLabel, saleEnd, isActive, isFree, isSub, isSubExclusive }));
+  }, [name, nameTh, slug, designerName, category, tags, descTh, descEn, price, discount, saleLabel, saleEnd, isActive, isFree, isSub, isSubExclusive, editingFont]);
 
   // Auto-fill slug from name EN (new font only)
   useEffect(() => {
@@ -397,7 +402,9 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       try { finalFree = await uploadFontFiles(freeFonts, "fonts-free", slugVal); } catch (e) { throw new Error("[Free font upload] " + (e instanceof Error ? e.message : String(e))); }
       try { finalSpec = await uploadFontFiles(specimens, "specimens", slugVal); } catch (e) { throw new Error("[Specimen upload] " + (e instanceof Error ? e.message : String(e))); }
 
-      const discountVal = parseInt(discount) || 0;
+      // ฟอนต์ exclusive ไม่มีการขายรายชุด จึงไม่มีอะไรให้ลดราคา — ล้างฟิลด์โปรฯ ทิ้ง
+      // แต่ **เก็บ price ไว้** เผื่อวันหนึ่งปิด exclusive กลับมาขายรายชุดเหมือนเดิม
+      const discountVal = isSubExclusive ? 0 : parseInt(discount) || 0;
       const priceVal = parseFloat(price) || null;
 
       // weight/style: ใช้ตัวเลขที่ designer แก้ไข ถ้ามี ไม่งั้นใช้ค่าที่อ่านอัตโนมัติจากไฟล์จริง
@@ -419,11 +426,12 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         discount_percent: discountVal || null,
         sale_price: priceVal && discountVal ? Math.round(priceVal * (1 - discountVal / 100)) : null,
         is_sale: discountVal > 0,
-        sale_label: saleLabel.trim() || null,
-        sale_end: saleEnd || null,
+        sale_label: isSubExclusive ? null : saleLabel.trim() || null,
+        sale_end: isSubExclusive ? null : saleEnd || null,
         is_active: isActive,
-        is_free: isFree,
-        is_subscription: isSub,
+        is_free: isSubExclusive ? false : isFree,
+        is_subscription: isSubExclusive ? true : isSub,
+        is_sub_exclusive: isSubExclusive,
         cover_image_url: finalCover || null,
         preview_images: finalPreviews.length ? finalPreviews : null,
         demo_font_files: finalDemo.length ? finalDemo : null,
@@ -540,8 +548,22 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
       <section>
         <h3 className="font-ui text-ui text-black mb-3">ราคาและโปรโมชั่น</h3>
         <div className="bg-surface p-5">
-          <Toggle label="ฟอนต์ฟรี" desc="ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน" checked={isFree} onChange={setIsFree} />
-          {!isFree && (
+          <Toggle
+            label="ฟอนต์ฟรี"
+            desc={isSubExclusive ? "ปิดอยู่เพราะฟอนต์นี้เป็น Subscription Exclusive" : "ดาวน์โหลดได้เลยโดยไม่ต้องชำระเงิน"}
+            checked={isFree}
+            onChange={setIsFree}
+            disabled={isSubExclusive}
+          />
+          {isSubExclusive && (
+            // ไม่ซ่อนทั้งกล่องเพราะ toggle ฟอนต์ฟรียังต้องเห็น (แต่กดไม่ได้) —
+            // ให้คนแก้เข้าใจว่าทำไมช่องราคาหายไป ไม่ใช่คิดว่าฟอร์มพัง
+            <p className="mt-3 font-body text-footnote text-grey-600 leading-relaxed">
+              ฟอนต์ Subscription Exclusive ไม่จำหน่ายรายชุด จึงไม่มีราคาและส่วนลด
+              (ยังขอใบเสนอราคาสำหรับองค์กรได้ตามปกติ)
+            </p>
+          )}
+          {!isFree && !isSubExclusive && (
             <div className="mt-3 flex flex-col gap-3">
               <div className="grid grid-cols-2 gap-3">
                 <FormField label="ราคาปกติ (฿)">
@@ -572,7 +594,23 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         <div className="bg-surface p-5">
           <div className="flex flex-col gap-3">
             <Toggle label="แสดงบนเว็บ" desc="ปิดเพื่อซ่อนโดยไม่ลบข้อมูล" checked={isActive} onChange={setIsActive} />
-            <Toggle label="อยู่ใน Subscription" desc="รวมในแพลนรายเดือน — รับส่วนแบ่งจาก pool ตามยอดใช้งาน" checked={isSub} onChange={setIsSub} />
+            <Toggle
+              label="อยู่ใน Subscription"
+              desc={isSubExclusive ? "เปิดค้างไว้เพราะฟอนต์นี้เป็น Subscription Exclusive" : "รวมในแพลนรายเดือน — รับส่วนแบ่งจาก pool ตามยอดใช้งาน"}
+              checked={isSubExclusive ? true : isSub}
+              onChange={setIsSub}
+              disabled={isSubExclusive}
+            />
+            <Toggle
+              label="Subscription Exclusive"
+              desc="ไม่ขายรายชุด ให้บริการเฉพาะสมาชิกรายเดือน (ยังขอใบเสนอราคาได้) · ได้น้ำหนักส่วนแบ่ง 1.25 เท่าใน pool ตามการใช้งาน"
+              checked={isSubExclusive}
+              onChange={(v) => {
+                setIsSubExclusive(v);
+                // บังคับให้สอดคล้องกับ check constraint ทันทีที่กด ไม่รอตอนบันทึก
+                if (v) { setIsSub(true); setIsFree(false); }
+              }}
+            />
           </div>
         </div>
       </section>
@@ -788,16 +826,18 @@ function FormField({ label, children, className = "" }: { label: string; childre
   );
 }
 
-function Toggle({ label, desc, checked, onChange }: { label: string; desc: string; checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ label, desc, checked, onChange, disabled = false }: { label: string; desc: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
   return (
     <div className="flex items-center justify-between py-2">
       <div>
-        <div className="font-body text-body-sm text-black">{label}</div>
+        <div className={`font-body text-body-sm ${disabled ? "text-grey-600" : "text-black"}`}>{label}</div>
         <div className="font-body text-footnote text-grey-600">{desc}</div>
       </div>
       <button
+        type="button"
+        disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative w-10 h-6 rounded-full transition-colors duration-150 ease-base border-none cursor-pointer flex-shrink-0 ${checked ? "bg-mint" : "bg-grey-200"}`}
+        className={`relative w-10 h-6 rounded-full transition-colors duration-150 ease-base border-none flex-shrink-0 ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"} ${checked ? "bg-mint" : "bg-grey-200"}`}
       >
         <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-150 ease-base ${checked ? "left-5" : "left-1"}`} />
       </button>

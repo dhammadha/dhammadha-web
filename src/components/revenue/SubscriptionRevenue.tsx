@@ -145,7 +145,7 @@ function AdminView({ stmt, names }: { stmt: SubMonthStatement; names: Record<str
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         <Pool label="ยอดสมาชิกรวม" pct={`${stmt.subscriberCount} คน`} amount={stmt.revenue} sub={`ใช้งานจริง ${stmt.contributingUsers} คน`} />
         <Pool label="รายได้ของเว็บ" pct="50%" amount={stmt.platformAmount} sub="รวมส่วนที่แบ่งไม่หมด" />
-        <Pool label="Pool แบ่งเท่ากัน" pct="12%" amount={stmt.equalPool} sub={`${stmt.optedCount} ฟอนต์`} />
+        <Pool label="Pool ตามวันที่อยู่ในแผน" pct="12%" amount={stmt.equalPool} sub={`${stmt.optedCount} ฟอนต์`} />
         <Pool label="Pool ตามการใช้งาน" pct="38%" amount={stmt.streamPool} />
       </div>
 
@@ -195,7 +195,7 @@ function DesignerView({ stmt, designerId }: { stmt: SubMonthStatement; designerI
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
         <div className="bg-surface p-4">
           <div className="font-heading text-h2 text-black leading-none mb-1">{fmtBaht(slice?.equal ?? 0)}</div>
-          <div className="font-body text-footnote text-grey-600">แบ่งเท่ากัน (จากฟอนต์ในแพลน)</div>
+          <div className="font-body text-footnote text-grey-600">แบ่งเท่ากัน (ตามวันที่อยู่ในแพลน)</div>
         </div>
         <div className="bg-surface p-4">
           <div className="font-heading text-h2 text-black leading-none mb-1">{fmtBaht(slice?.stream ?? 0)}</div>

@@ -175,6 +175,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .in("id", items)
       .eq("is_active", true)
       .not("published_at", "is", null)
+      // ฟอนต์ที่เปลี่ยนเป็น Subscription Exclusive ทีหลังจะหลุดจากตะกร้าเอง
+      // (ทางเดียวกับฟอนต์ที่ถูกซ่อน) — checkout ก็กันซ้ำอีกชั้นฝั่ง server
+      .eq("is_sub_exclusive", false)
       .then(async ({ data }) => {
         if (!active) return;
         const withPromo = await mergeShopPromos((data ?? []) as unknown as CartFont[]);

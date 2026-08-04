@@ -104,14 +104,16 @@ function getFormats(urls: string[]): string {
 // แถบเมนู 3 หัวข้อ (moodboard: font detail alt.png) — สลับเนื้อหาในที่เดิม ไม่เปลี่ยน route
 // แท็บ "สั่งซื้อ" เปลี่ยนคำตามฟอนต์: ฟอนต์ฟรีไม่มีอะไรให้ "สั่งซื้อ" (ปุ่มในแท็บคือดาวน์โหลด)
 type Tab = "detail" | "tester" | "buy";
-function tabsFor(isFree: boolean | undefined, quoteEnabled: boolean): { id: Tab; label: string }[] {
+function tabsFor(isFree: boolean | undefined, quoteEnabled: boolean, subExclusive?: boolean): { id: Tab; label: string }[] {
+  // ฟอนต์ exclusive ไม่มีอะไรให้ "สั่งซื้อ" — เหลือแค่ทางสมาชิกกับใบเสนอราคาองค์กร
+  const action = subExclusive ? "เฉพาะสมาชิก" : isFree ? "ดาวน์โหลดฟอนต์" : "สั่งซื้อฟอนต์";
   return [
     { id: "detail", label: "รายละเอียด" },
     { id: "tester", label: "พิมพ์ทดสอบ" },
     {
       id: "buy",
       // ตัดท่อน "/ ขอใบเสนอราคา" ออกเมื่อดีไซน์เนอร์ปิดระบบ — แท็บจะได้ไม่โฆษณาสิ่งที่กดไม่ได้
-      label: `${isFree ? "ดาวน์โหลดฟอนต์" : "สั่งซื้อฟอนต์"}${quoteEnabled ? " / ขอใบเสนอราคา" : ""}`,
+      label: `${action}${quoteEnabled ? " / ขอใบเสนอราคา" : ""}`,
     },
   ];
 }
@@ -397,7 +399,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
               หัวข้อที่ 3 ("สั่งซื้อฟอนต์ / ขอใบเสนอราคา") ยาวเกินช่อง 114px ที่จอ 375
               ตอน 3 คอลัมน์ → ตัด 3 บรรทัด สูง 96px ทั้งแถว · เรียงตั้งได้บรรทัดเดียวต่อหัวข้อ */}
           <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white mb-8">
-            {tabsFor(font.is_free, quoteEnabled).map((t) => (
+            {tabsFor(font.is_free, quoteEnabled, font.is_sub_exclusive).map((t) => (
               <button
                 key={t.id}
                 role="tab"
@@ -460,7 +462,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                         ผู้ใช้งานทั่วไป นิสิต นักศึกษา นักออกแบบอิสระ
                       </span>
                       <span className="flex items-center gap-2 shrink-0">
-                        {font.is_free ? (
+                        {font.is_sub_exclusive ? (
+                          <Badge variant="sale">เฉพาะสมาชิก</Badge>
+                        ) : font.is_free ? (
                           <span className="font-ui text-ui text-success">ฟรี</span>
                         ) : saleActive ? (
                           <>
@@ -481,7 +485,18 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                     </div>
                   </div>
 
-                  {font.is_free ? (
+                  {font.is_sub_exclusive ? (
+                    // ไม่ขายรายชุด — ปุ่มซื้อหายไปทั้งอัน (checkout ฝั่ง server กันซ้ำอีกชั้น)
+                    // ปุ่มโหลด Demo ด้านล่างยังอยู่ตามเดิม ถ้านักออกแบบอัปโหลดไว้
+                    <div>
+                      <Button as="link" href="/subscribe/" size="lg" className="w-full">
+                        ใช้ฟอนต์นี้ด้วยแพลนสมาชิก
+                      </Button>
+                      <p className="font-body text-body-sm text-grey-600 text-center mt-2">
+                        ฟอนต์นี้ให้บริการเฉพาะสมาชิกรายเดือน ไม่มีจำหน่ายแบบรายชุด
+                      </p>
+                    </div>
+                  ) : font.is_free ? (
                     user ? (
                       <Button as="a" href={font.free_font_files?.[0] || "#"} external size="lg" className="w-full" onClick={() => trackFreeDownload(font.id)}>
                         ดาวน์โหลดฟรี
@@ -533,7 +548,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
                   {/* Subscription อยู่ในคอลัมน์ซ้าย — เป็นทางเลือกแทนการซื้อรายตัวของ "บุคคลธรรมดา"
                       ไม่เกี่ยวกับสิทธิ์องค์กร ถ้าปล่อยเป็นพี่น้องของ grid จะตกไปคอลัมน์ขวา */}
-                  {font.is_subscription && (
+                  {/* ฟอนต์ exclusive ไม่ต้องขึ้นกล่องนี้ — ปุ่มด้านบนบอกเรื่องแพลนสมาชิก
+                      ไปแล้ว ขึ้นซ้ำอีกกลายเป็นพูดเรื่องเดิมสองรอบติดกัน */}
+                  {font.is_subscription && !font.is_sub_exclusive && (
                     <div className="bg-surface px-4 py-4 flex flex-wrap items-center justify-between gap-3 mt-3">
                       <div>
                         <div className="font-ui text-ui text-black mb-1">รวมอยู่ใน Subscription</div>

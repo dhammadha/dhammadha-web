@@ -4,13 +4,20 @@
  *
  * โมเดล (ยืนยันกับ user 2026-07-12, ปรับสัดส่วน Phase 4.2b):
  *   revenue เดือนนั้น → เว็บ 50% | equal pool 12% | stream pool 38%
- *   - equal pool  ÷ จำนวนฟอนต์ opt-in → เจ้าของฟอนต์ (ทุกฟอนต์เท่ากัน)
+ *   - equal pool  แบ่งตาม equal_share (RPC normalize มาแล้ว sum = 1)
  *   - stream pool แบ่งตาม stream_share (RPC normalize แบบ user-centric มาแล้ว
  *     — subscriber แต่ละคนน้ำหนัก 1 เท่ากัน sum(stream_share) = 1 เมื่อมีคนสตรีม)
  *   - ฟอนต์ opt-out กลางเดือนแต่มีสตรีม (orphan) → ยังรับส่วน stream ให้เจ้าของ
- *   - equal pool คิดจาก snapshot ฟอนต์ opt-in ณ เวลาคำนวณเท่านั้น
  *   - ส่วนที่แบ่งไม่หมด (ไม่มีฟอนต์/ไม่มีคนสตรีม) ตกเป็นของแพลตฟอร์ม
  *   - เดือนทดสอบ revenue = 0 → ทุกยอด 0 แต่สัดส่วน/เวลาใช้งานยังแสดงจริง
+ *
+ * **สอง share มาจาก RPC ทั้งคู่ ห้ามหารเอง** (0085)
+ * equal_share  = สัดส่วนจำนวนวันที่ฟอนต์อยู่ในแผนระหว่างเดือนนั้น — เดิมไฟล์นี้หาร
+ *   `equalPool / จำนวนฟอนต์` เองซึ่งทำให้ฟอนต์ที่เข้าแผนวันที่ 30 ได้เท่าคนที่อยู่ทั้งเดือน
+ * stream_share = ถ่วงน้ำหนัก 1.25 เท่าให้ฟอนต์ `is_sub_exclusive` แล้ว (ทำใน SQL
+ *   ก่อน normalize จึงไม่ทำให้ pool บวม)
+ * ทั้งคู่รวมกันได้ 1 พอดี — ถ้าวันหนึ่งผลรวมเกิน 1 เงินส่วนเกินจะไปโผล่เป็น
+ * platformAmount ติดลบเงียบ ๆ นั่นคือสัญญาณว่า SQL ฝั่ง normalize พัง
  *
  * **ตัวชี้วัดของ stream pool = ระยะเวลาที่เปิดใช้จริง (วินาที) ตั้งแต่ 0082**
  * เดิมเป็น "จำนวนวันที่เคยเปิด" (font-days) · สูตรถ่วงน้ำหนักไม่เปลี่ยน —
@@ -23,6 +30,8 @@ export type FontEntry = {
   font_id: string;
   name: string | null;
   owner_id: string;
+  /** 0..1 สัดส่วนวันที่อยู่ในแผน (รวมทุกฟอนต์ = 1) — ไม่มีใน orphan */
+  equal_share?: number;
   stream_share: number; // 0..1 (รวมทุกฟอนต์ = 1 เมื่อมีคนสตรีม)
   font_seconds: number; // วินาทีที่สมาชิกเปิดใช้ฟอนต์นี้ (เดิมเป็น font_days)
 };
@@ -86,12 +95,11 @@ export function buildSubMonthStatement(data: MonthData): SubMonthStatement {
   const opted = data.opted_fonts ?? [];
   const orphans = data.orphan_stream ?? [];
   const optedCount = opted.length;
-  const equalPerFont = optedCount > 0 ? (revenue * SPLIT.equal) / optedCount : 0;
 
   const fonts: FontShare[] = [];
 
   for (const f of opted) {
-    const equalAmount = round2(equalPerFont);
+    const equalAmount = round2(revenue * SPLIT.equal * (f.equal_share ?? 0));
     const streamAmount = round2(revenue * SPLIT.stream * f.stream_share);
     fonts.push({
       fontId: f.font_id,

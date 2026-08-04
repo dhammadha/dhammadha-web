@@ -35,13 +35,14 @@ export default function AllFontsPage() {
   );
 }
 
-type PriceFilter = "all" | "free" | "sale";
+type PriceFilter = "all" | "free" | "sale" | "sub";
 
 // label "all" เดิมคือ "ราคา" (ชื่อหัว dropdown) — ตอนนี้เป็นปุ่มในแถวจึงต้องอ่านออกเดี่ยว ๆ
 const PRICE_OPTIONS: { value: PriceFilter; label: string }[] = [
   { value: "all", label: "ทั้งหมด" },
   { value: "free", label: "ฟรี" },
   { value: "sale", label: "ลดราคา" },
+  { value: "sub", label: "เฉพาะสมาชิก" },
 ];
 
 // ไอคอนแว่นขยาย 18×18 — ทรงเดียวกับ search ใน Nav.tsx เพื่อไม่ให้สองที่หลุดจากกันทางสายตา
@@ -134,6 +135,7 @@ function AllFontsContent() {
       if (category !== "all" && f.category !== category) return false;
       if (priceFilter === "free" && !f.is_free) return false;
       if (priceFilter === "sale" && !effectiveSale(f).active) return false;
+      if (priceFilter === "sub" && !f.is_sub_exclusive) return false;
       return true;
     });
   }, [fonts, search, category, priceFilter]);

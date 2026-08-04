@@ -49,6 +49,7 @@ export interface Font {
   shop_discount_percent?: number | null;
   shop_sale_end?: string | null;
   is_subscription?: boolean;
+  is_sub_exclusive?: boolean;
   cover_image_url?: string;
   preview_images?: string[];
   full_font_files?: string[];
@@ -99,10 +100,15 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
   const newFlag = isNew(font);
   const eff = effectiveSale(font);
   const saleActive = eff.active;
+  // exclusive ใช้ variant "sale" (พื้นเหลือง) ตามที่เจ้าของสั่ง — สีเดียวกับป้ายส่วนลด
+  // วางไว้ก่อน NEW เพราะ "ซื้อไม่ได้" เป็นข้อมูลที่สำคัญกว่า "เพิ่งมาใหม่"
+  // (ชนกับ sale/free ไม่ได้อยู่แล้ว: exclusive ห้ามฟรีและไม่มีการลดราคา)
   const badge = saleActive
     ? { text: eff.saleLabel, variant: "sale" as const }
     : font.is_free
     ? { text: "FREE", variant: "free" as const }
+    : font.is_sub_exclusive
+    ? { text: "เฉพาะสมาชิก", variant: "sale" as const }
     : newFlag
     ? { text: "NEW", variant: "new" as const }
     : null;
@@ -189,7 +195,12 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
 
           {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) · baseline ตรงกับบรรทัด "โดย" */}
           <div className="shrink-0 leading-none">
-            {font.is_free ? (
+            {font.is_sub_exclusive ? (
+              /* ไม่ขายรายชุด — ข้อความแทนตัวเลข ใช้ขนาด/น้ำหนักเดียวกับราคา
+                 คำสั้น "สมาชิก" ไม่ใช่ "เฉพาะสมาชิก": แถวล่างของการ์ดบนมือถือกว้าง 138px
+                 คำเต็มกิน 110px จนชื่อนักออกแบบถูกตัดจนไม่เหลือ · ป้ายมุมการ์ดบอกคำเต็มอยู่แล้ว */
+              <span className="font-heading text-h2 text-black">สมาชิก</span>
+            ) : font.is_free ? (
               <span className="font-heading text-h2 text-success">ฟรี</span>
             ) : saleActive && eff.salePrice > 0 && font.price ? (
               /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ
