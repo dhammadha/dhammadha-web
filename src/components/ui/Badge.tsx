@@ -25,7 +25,10 @@ type Size = "md" | "sm";
 // เพราะ ternary ใน FontCard เลือกอันเดียว: sale → free → new
 const VARIANT: Record<Variant, string> = {
   sale: "bg-warning text-black", // เดิม #f0c040/#5a3800 · 11.61:1 ✅
-  free: "bg-mint text-black", // เดิม #5ECEC8/white (1.89:1 ตก) → text-black 10.62:1 ✅
+  // 🔴 ตัวขาวบนพื้น mint = 1.89:1 ตกมาตรฐาน AA — **เจ้าของสั่งเองเมื่อ 4 ส.ค. 2569**
+  // หลังเห็นตัวเลขคอนทราสต์แล้ว (รอบก่อนเคยเปลี่ยนเป็น text-black 10.62:1 ด้วยเหตุผล
+  // ด้าน accessibility) นี่คือการตัดสินใจด้านดีไซน์ ไม่ใช่ regression — ห้ามแก้กลับเงียบ ๆ
+  free: "bg-mint text-white",
   new: "bg-mint text-black", // เดิม mint/navy (8.4:1) → text-black 10.62:1 ✅
   tag: "bg-surface text-grey-600", // 5.74:1 ✅ — ไม่มีเส้นขอบ (§4.1) ใช้พื้น surface แทน
 };
