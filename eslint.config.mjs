@@ -9,6 +9,7 @@ const eslintConfig = [
       "**/node_modules/**",
       "**/next-env.d.ts", // ไฟล์ที่ Next เจนเอง
       "supabase/functions/**", // Edge Function เป็น Deno คนละ runtime — กฎของ Next ใช้ไม่ตรง
+      "desktop/**", // แอป Tauri เป็น npm project แยก มี tsconfig/deps ของตัวเอง
     ],
   },
   ...coreWebVitals,
