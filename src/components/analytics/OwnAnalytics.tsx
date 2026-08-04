@@ -35,6 +35,15 @@ type FontStat = {
   paidDownloadsAll: number;
 };
 
+type SortKey = "viewsMonth" | "viewsAll" | "freeDownloadsAll" | "paidDownloadsAll";
+
+const SORT_COLUMNS: { key: SortKey; label: string }[] = [
+  { key: "viewsMonth", label: "เข้าชมเดือนที่เลือก" },
+  { key: "viewsAll", label: "เข้าชมทั้งหมด" },
+  { key: "freeDownloadsAll", label: "โหลดฟรี" },
+  { key: "paidDownloadsAll", label: "โหลดซื้อ" },
+];
+
 function isInMonth(iso: string, year: number, month: number): boolean {
   const d = new Date(iso);
   return d.getFullYear() === year && d.getMonth() + 1 === month;
@@ -63,6 +72,17 @@ export default function OwnAnalytics() {
   const months = recentMonths(12);
   const [monthKey, setMonthKey] = useState(months[0].key);
   const sel = months.find((m) => m.key === monthKey) ?? months[0];
+
+  // เรียงตามหัวคอลัมน์ที่กด — ค่าเริ่มต้นคือ "เข้าชมทั้งหมด มาก→น้อย" เหมือนก่อนมีปุ่ม
+  const [sortKey, setSortKey] = useState<SortKey>("viewsAll");
+  const [sortDesc, setSortDesc] = useState(true);
+
+  // คอลัมน์ใหม่เริ่มที่มาก→น้อยเสมอ (สิ่งที่คนอยากเห็นก่อนสำหรับตัวเลข) กดซ้ำถึงจะสลับ
+  const toggleSort = (key: SortKey) => {
+    if (key === sortKey) { setSortDesc((v) => !v); return; }
+    setSortKey(key);
+    setSortDesc(true);
+  };
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -125,8 +145,13 @@ export default function OwnAnalytics() {
         const paidDownloadsAll = fontDownloads.length;
         return { font, viewsMonth, viewsAll, freeDownloadsAll, paidDownloadsAll };
       })
-      .sort((a, b) => b.viewsAll - a.viewsAll);
-  }, [fonts, events, downloadLogs, sel.year, sel.month]);
+      // tie-break ด้วย viewsAll เสมอ — คอลัมน์โหลดฟรี/โหลดซื้อยังเป็น 0 เกือบทุกแถว
+      // ถ้าไม่มี tie-break ลำดับจะสลับไปมาทุกครั้งที่ re-render
+      .sort((a, b) => {
+        const diff = sortDesc ? b[sortKey] - a[sortKey] : a[sortKey] - b[sortKey];
+        return diff !== 0 ? diff : b.viewsAll - a.viewsAll;
+      });
+  }, [fonts, events, downloadLogs, sel.year, sel.month, sortKey, sortDesc]);
 
   const stats = useMemo(() => {
     const viewsMonth = events.filter((e) => e.kind === "view" && isInMonth(e.created_at, sel.year, sel.month)).length;
@@ -200,7 +225,18 @@ export default function OwnAnalytics() {
       ) : (
         <div className="bg-surface overflow-hidden">
           <div className="grid grid-cols-[2fr_100px_100px_100px_100px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
-            <div>ฟอนต์</div><div>เข้าชมเดือนที่เลือก</div><div>เข้าชมทั้งหมด</div><div>โหลดฟรี</div><div>โหลดซื้อ</div>
+            <div>ฟอนต์</div>
+            {SORT_COLUMNS.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggleSort(key)}
+                aria-sort={sortKey === key ? (sortDesc ? "descending" : "ascending") : "none"}
+                className={`w-full text-left bg-transparent border-none p-0 cursor-pointer font-heading text-badge tracking-[0.04em] transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${sortKey === key ? "text-black" : "text-grey-600 hover:text-black"}`}
+              >
+                {label}{sortKey === key && <span className="ml-1">{sortDesc ? "▾" : "▴"}</span>}
+              </button>
+            ))}
           </div>
           {fontStats.map(({ font, viewsMonth, viewsAll, freeDownloadsAll, paidDownloadsAll }) => (
             <div key={font.id} className="grid grid-cols-[2fr_100px_100px_100px_100px] gap-3 px-4 py-3 items-center">
