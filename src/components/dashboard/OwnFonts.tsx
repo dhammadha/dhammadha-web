@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import FontForm from "@/components/admin/FontForm";
 import Button from "@/components/ui/Button";
+import ShareMenu from "@/components/ui/ShareMenu";
 import type { Database } from "@/lib/database.types";
 
 type FontRow = Database["public"]["Tables"]["fonts"]["Row"];
@@ -108,9 +109,10 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
         </Button>
       </div>
 
-      {/* Table */}
-      <div className="bg-surface overflow-hidden">
-        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_130px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+      {/* Table — ห้ามใส่ overflow-hidden: เมนูแชร์ในคอลัมน์จัดการเป็น absolute
+          จะถูกตัดหายเงียบ ๆ ทันทีที่กด */}
+      <div className="bg-surface">
+        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_180px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
           <div /><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>โปรโมชั่น</div><div>สถานะ</div><div>จัดการ</div>
         </div>
 
@@ -124,7 +126,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
             )}
           </div>
         ) : filtered.map((f) => (
-          <div key={f.id} className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_130px] gap-3 px-4 py-3 hover:bg-grey-200 transition-colors duration-150 ease-base items-center">
+          <div key={f.id} className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_180px] gap-3 px-4 py-3 hover:bg-grey-200 transition-colors duration-150 ease-base items-center">
             <div>
               {f.cover_image_url
                 ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-10 h-[22px] object-cover" />
@@ -176,6 +178,15 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
               <button onClick={() => openEdit(f)} className="font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer">
                 แก้ไข
               </button>
+              {/* เงื่อนไขเดียวกับลิงก์ชื่อฟอนต์ด้านบน — ฟอนต์ที่ยังไม่เผยแพร่ไม่มีหน้าให้แชร์ */}
+              {designerSlug && f.published_at && (
+                <ShareMenu
+                  variant="text"
+                  getUrl={() => `${window.location.origin}/fonts/${designerSlug}/${f.slug}/`}
+                  title={f.name ?? undefined}
+                  text={f.name_th ? `ฟอนต์ "${f.name_th}"` : undefined}
+                />
+              )}
             </div>
           </div>
         ))}
