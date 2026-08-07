@@ -126,7 +126,7 @@ export default function AdminDesignersPage() {
             key={t}
             onClick={() => { setTab(t); setSelected(null); }}
             className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${
-              tab === t ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200"
+              tab === t ? "bg-black text-page" : "bg-surface text-grey-600 hover:bg-grey-200"
             }`}
           >
             {t === "applications" ? "คำขอสมัคร" : "Designers"}
@@ -160,17 +160,20 @@ export default function AdminDesignersPage() {
             <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">
               {tab === "applications" ? "ไม่มีคำขอรอพิจารณา" : "ยังไม่มี designer"}
             </div>
-          ) : list.map((u) => (
+          ) : list.map((u) => {
+            const on = selected?.id === u.id;
+            return (
             <div
               key={u.id}
-              onClick={() => setSelected(selected?.id === u.id ? null : u)}
+              onClick={() => setSelected(on ? null : u)}
+              // แถวที่เลือก = พื้นดำ · ลูกทุกตัวพลิกสีตาม (ป้าย warning คงเดิม อ่านออกบนดำ)
               className={`grid gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${
                 tab === "designers" ? "grid-cols-[100px_1fr_1fr_120px_80px]" : "grid-cols-[100px_1fr_1.5fr_80px]"
-              } ${selected?.id === u.id ? "bg-page" : "hover:bg-grey-200"}`}
+              } ${on ? "bg-black" : "hover:bg-grey-200"}`}
             >
-              <div className="font-body text-footnote text-grey-600">{fmtDate(u.created_at)}</div>
-              <div className="font-ui text-ui text-black truncate">{u.name ?? "—"}</div>
-              <div className="font-body text-body-sm text-grey-600 truncate">{u.email ?? "—"}</div>
+              <div className={`font-body text-footnote ${on ? "text-grey-400" : "text-grey-600"}`}>{fmtDate(u.created_at)}</div>
+              <div className={`font-ui text-ui truncate ${on ? "text-page" : "text-black"}`}>{u.name ?? "—"}</div>
+              <div className={`font-body text-body-sm truncate ${on ? "text-grey-400" : "text-grey-600"}`}>{u.email ?? "—"}</div>
               {tab === "designers" && (
                 <div>
                   {u.designer_slug ? (
@@ -179,12 +182,14 @@ export default function AdminDesignersPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="font-body text-footnote link-accent no-underline hover:underline truncate block"
+                      // `.link-accent` ตั้ง text-black ไว้ใน @layer components ส่วน `text-page` เป็น
+                      // utility ซึ่ง Tailwind ปล่อยทีหลัง → ทับได้จริง (ยืนยันในเบราว์เซอร์แล้ว)
+                      className={`font-body text-footnote link-accent no-underline hover:underline truncate block ${on ? "text-page" : ""}`}
                     >
                       {u.designer_slug}
                     </a>
                   ) : (
-                    <span className="font-body text-footnote text-grey-600">—</span>
+                    <span className={`font-body text-footnote ${on ? "text-grey-400" : "text-grey-600"}`}>—</span>
                   )}
                 </div>
               )}
@@ -192,11 +197,12 @@ export default function AdminDesignersPage() {
                 {tab === "applications" ? (
                   <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอพิจารณา</span>
                 ) : (
-                  <span className="text-badge font-heading px-2 py-0.5 bg-black text-white capitalize">{u.role}</span>
+                  <span className={`text-badge font-heading px-2 py-0.5 capitalize ${on ? "bg-page text-black" : "bg-black text-page"}`}>{u.role}</span>
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Detail panel */}
@@ -261,7 +267,7 @@ export default function AdminDesignersPage() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-page font-body text-body-sm shadow-lg">
           {toast}
         </div>
       )}

@@ -215,17 +215,23 @@ export default function OwnRevenue() {
         <>
           {/* 4 กล่องกดได้ */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {BOXES.map((b) => (
-              <button
-                key={b.key}
-                onClick={() => setBox(b.key)}
-                className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${box === b.key ? "bg-page" : "bg-surface hover:bg-grey-200"}`}
-              >
-                {/* ยอดค้างโอนเน้นด้วยส้ม · พอกดเลือก (พื้นเทา) เปลี่ยนเป็นดำให้อ่านออก */}
-                <div className={`font-heading text-h2 leading-none mb-1 ${b.accent && box !== b.key ? "text-orange-text" : "text-black"}`}>{fmtBaht(b.value)}</div>
-                <div className="font-body text-footnote text-grey-600">{b.label}</div>
-              </button>
-            ))}
+            {BOXES.map((b) => {
+              const on = box === b.key;
+              return (
+                <button
+                  key={b.key}
+                  onClick={() => setBox(b.key)}
+                  // เลือกอยู่ = พื้นดำ (เดิมเป็น bg-page ซึ่งสีเดียวกับพื้นหน้าเว็บ = มองไม่ออกว่าเลือกอันไหน)
+                  className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${on ? "bg-black" : "bg-surface hover:bg-grey-200"}`}
+                >
+                  {/* 🔴 ลูกทุกตัวต้องพลิกสีตามพ่อ ไม่งั้นตัวดำบนพื้นดำ — ไม่มี error ให้เห็น
+                      ยอดค้างโอนเน้นส้มเฉพาะตอน "ไม่ได้เลือก" (ส้มบนดำ 6.02:1 ก็ได้ แต่จะไปแย่ง
+                      ความหมายกับสถานะเลือก) · grey-600 บนดำได้ 1.9:1 จึงต้องเป็น grey-400 (9.23:1) */}
+                  <div className={`font-heading text-h2 leading-none mb-1 ${on ? "text-page" : b.accent ? "text-orange-text" : "text-black"}`}>{fmtBaht(b.value)}</div>
+                  <div className={`font-body text-footnote ${on ? "text-grey-400" : "text-grey-600"}`}>{b.label}</div>
+                </button>
+              );
+            })}
           </div>
 
           {/* Detail */}
@@ -349,8 +355,9 @@ function CombinedDetail({
           <span className="font-ui text-ui text-black">ส่วนแบ่ง {fmtBaht(retailShare)}</span>
         </div>
       </button>
+      {/* แผงที่กางออกมา = พื้นขาวเหมือนแถวหัวข้อ (เจ้าของสั่ง 8 ส.ค. 2569 — เดิม bg-page เทา) */}
       {retailOpen && (
-        <div className="bg-page">
+        <div className="bg-surface">
           <div className={`${COMBINED_RETAIL_GRID} px-4 py-2 font-heading text-badge text-grey-600 tracking-[0.04em]`}>
             <div>ฟอนต์</div><div>ขายกี่ครั้ง</div><div>ยอดรวม</div><div>ส่วนแบ่ง</div>
           </div>
@@ -373,8 +380,9 @@ function CombinedDetail({
         </div>
         <span className="font-ui text-ui text-black">ส่วนแบ่ง {fmtBaht(subTotal)}</span>
       </button>
+      {/* แผงที่กางออกมา = พื้นขาวเหมือนแถวหัวข้อ (เจ้าของสั่ง 8 ส.ค. 2569 — เดิม bg-page เทา) */}
       {subOpen && (
-        <div className="bg-page">
+        <div className="bg-surface">
           <div className="grid grid-cols-[2fr_1fr] gap-3 px-4 py-2 font-heading text-badge text-grey-600 tracking-[0.04em]">
             <div>เดือน</div><div>ส่วนแบ่ง</div>
           </div>

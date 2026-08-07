@@ -279,7 +279,7 @@ function Stepper({ step }: { step: number }) {
                   done
                     ? "bg-orange text-black"
                     : active
-                    ? "bg-black text-white"
+                    ? "bg-black text-page"
                     : "bg-surface text-grey-600"
                 }`}
               >

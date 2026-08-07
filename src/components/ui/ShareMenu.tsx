@@ -43,7 +43,7 @@ const ITEM_CLASS =
 const TRIGGER_CLASS = {
   icon: "flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-orange-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
   // ชุดคลาสเดียวกับปุ่ม "แก้ไข" ในตารางฟอนต์ของฉัน — ให้สูงเท่ากันทั้งแถว
-  text: "font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer",
+  text: "font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base border-none cursor-pointer",
 };
 
 export default function ShareMenu({

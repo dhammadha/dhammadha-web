@@ -164,7 +164,7 @@ export default function RevenueShareChart() {
               className={cn(
                 "font-ui text-ui px-5 py-2.5 cursor-pointer transition-colors duration-150 ease-base",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
-                on ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200 hover:text-black"
+                on ? "bg-black text-page" : "bg-surface text-grey-600 hover:bg-grey-200 hover:text-black"
               )}
             >
               {m.tab}

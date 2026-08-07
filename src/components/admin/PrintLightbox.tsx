@@ -99,7 +99,7 @@ export default function PrintLightbox({ open, data, onClose, onSendEmail }: Prop
     <div className="fixed inset-0 z-[200] bg-grey-800 flex flex-col">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-6 py-3 bg-black flex-shrink-0 flex-wrap gap-2">
-        <span className="font-ui text-ui text-white">
+        <span className="font-ui text-ui text-page">
           {docLabel} {data.doc_no}
         </span>
         <div className="flex gap-2 items-center flex-wrap">
@@ -107,7 +107,7 @@ export default function PrintLightbox({ open, data, onClose, onSendEmail }: Prop
             href={pdfUrl || undefined}
             download={`${data.doc_no}.pdf`}
             aria-disabled={docState !== "ready"}
-            className={`font-ui text-ui px-4 py-1.5 bg-grey-800 text-white no-underline transition-colors duration-150 ease-base ${
+            className={`font-ui text-ui px-4 py-1.5 bg-grey-800 text-page no-underline transition-colors duration-150 ease-base ${
               docState === "ready" ? "cursor-pointer hover:bg-grey-600" : "opacity-50 pointer-events-none"
             }`}
           >
@@ -129,7 +129,7 @@ export default function PrintLightbox({ open, data, onClose, onSendEmail }: Prop
                 : "ส่งอีเมลถึงลูกค้า"}
             </button>
           )}
-          <button onClick={onClose} className="font-ui text-ui px-3 py-1.5 bg-grey-800 text-white border-none cursor-pointer hover:bg-grey-600 transition-colors duration-150 ease-base">
+          <button onClick={onClose} className="font-ui text-ui px-3 py-1.5 bg-grey-800 text-page border-none cursor-pointer hover:bg-grey-600 transition-colors duration-150 ease-base">
             ปิด
           </button>
         </div>
@@ -147,7 +147,7 @@ export default function PrintLightbox({ open, data, onClose, onSendEmail }: Prop
         {docState === "ready" && pdfUrl ? (
           <iframe src={pdfUrl} title={`${docLabel} ${data.doc_no}`} className="w-full h-full max-w-[900px] border-none bg-white" />
         ) : (
-          <p className="font-body text-body-sm text-white/70">
+          <p className="font-body text-body-sm text-page/70">
             {docState === "error" ? "สร้างเอกสารไม่สำเร็จ" : "กำลังสร้างเอกสาร…"}
           </p>
         )}

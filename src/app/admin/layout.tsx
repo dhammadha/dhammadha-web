@@ -19,7 +19,7 @@ function NavItem({ href, label, icon, badge, isActive, onClick }: {
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base",
-        isActive ? "bg-page text-black" : "text-white hover:bg-orange hover:text-black"
+        isActive ? "bg-page text-black" : "text-page hover:bg-orange hover:text-black"
       )}
     >
       {icon}
@@ -169,7 +169,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar desktop — พื้นดำเหมือน Nav.tsx สาธารณะ ไม่มีเส้นขอบ (§4.0) */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-black sticky top-0 h-screen overflow-y-auto">
         <div className="px-5 py-5">
-          <span className="font-heading text-badge text-white tracking-[0.05em] block uppercase">{SHORT_NAME}</span>
+          <span className="font-heading text-badge text-page tracking-[0.05em] block uppercase">{SHORT_NAME}</span>
           <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">ADMIN PANEL</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
@@ -183,7 +183,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="p-3 flex flex-col gap-1">
-          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-orange hover:text-black">
+          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-page hover:bg-orange hover:text-black">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2l6 6M3.5 6.5V14h3v-3h3v3h3V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span>กลับหน้าแรก</span>
           </Link>
@@ -202,9 +202,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black flex items-center justify-between px-4 py-3">
         <Link href="/" className="flex flex-col gap-0.5 no-underline">
-          <span className="font-heading text-badge text-white tracking-[0.05em] uppercase">{SHORT_NAME} ADMIN</span>
+          <span className="font-heading text-badge text-page tracking-[0.05em] uppercase">{SHORT_NAME} ADMIN</span>
         </Link>
-        <button onClick={() => setMenuOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-1 text-white">
+        <button onClick={() => setMenuOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-1 text-page">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
@@ -216,7 +216,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setMenuOpen(false)}>
           <div className="w-[220px] bg-black h-full flex flex-col overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-5">
-              <span className="font-heading text-badge text-white tracking-[0.05em] uppercase">{SHORT_NAME} ADMIN</span>
+              <span className="font-heading text-badge text-page tracking-[0.05em] uppercase">{SHORT_NAME} ADMIN</span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
               <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-1 pb-1 uppercase">Designer Section</div>
@@ -229,7 +229,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               ))}
             </nav>
             <div className="p-3 flex flex-col gap-1">
-              <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-orange hover:text-black" onClick={() => setMenuOpen(false)}>
+              <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-page hover:bg-orange hover:text-black" onClick={() => setMenuOpen(false)}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2l6 6M3.5 6.5V14h3v-3h3v3h3V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 <span>กลับหน้าแรก</span>
               </Link>

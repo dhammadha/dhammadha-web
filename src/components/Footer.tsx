@@ -64,7 +64,7 @@ const LINK = cn(
 // หัวคอลัมน์ใช้ `ui` (Sans Bold 16) — Figma ไม่มีสไตล์ "footer heading" โดยเฉพาะ
 // และ fc-heading สงวนไว้ให้ชื่อฟอนต์บนการ์ด (สองอันเป็น Sans Bold 16 เหมือนกัน
 // แต่ชื่อต้องตรงกับหน้าที่)
-const HEADING = "font-heading text-ui text-white mb-3";
+const HEADING = "font-heading text-ui text-page mb-3";
 
 function Col({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -103,7 +103,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "text-white hover:text-orange-light transition-colors duration-150 ease-base flex",
+                  "text-page hover:text-orange-light transition-colors duration-150 ease-base flex",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                 )}
                 aria-label={s.name}

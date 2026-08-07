@@ -366,18 +366,22 @@ export default function OwnQuotes() {
             <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">กำลังโหลด…</div>
           ) : quotes.length === 0 ? (
             <div className="flex items-center justify-center py-12 font-body text-body-sm text-grey-600">ยังไม่มีใบเสนอราคา</div>
-          ) : quotes.map((q) => (
+          ) : quotes.map((q) => {
+            const on = selected?.id === q.id;
+            return (
             <div
               key={q.id}
-              onClick={() => setSelected(selected?.id === q.id ? null : q)}
+              onClick={() => setSelected(on ? null : q)}
+              // แถวที่เลือก = พื้นดำ · ลูกทุกตัวต้องพลิกสีตาม ไม่งั้นดำบนดำ
+              // ป้าย success/warning คงสีเดิม (คนละระบบสี อ่านออกบนดำอยู่แล้ว)
               className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${
-                selected?.id === q.id ? "bg-page" : "hover:bg-grey-200"
+                on ? "bg-black" : "hover:bg-grey-200"
               }`}
             >
-              <div className="font-body text-footnote text-grey-600">{fmtDate(q.created_at)}</div>
-              <div className="font-body text-body-sm text-black truncate">{q.contact_name}</div>
-              <div className="font-body text-footnote text-grey-600 truncate">{q.company_name}</div>
-              <div className="font-body text-footnote text-grey-600 truncate">{licenseLabel(q.license_type, allTiers)}</div>
+              <div className={`font-body text-footnote ${on ? "text-grey-400" : "text-grey-600"}`}>{fmtDate(q.created_at)}</div>
+              <div className={`font-body text-body-sm truncate ${on ? "text-page" : "text-black"}`}>{q.contact_name}</div>
+              <div className={`font-body text-footnote truncate ${on ? "text-grey-400" : "text-grey-600"}`}>{q.company_name}</div>
+              <div className={`font-body text-footnote truncate ${on ? "text-grey-400" : "text-grey-600"}`}>{licenseLabel(q.license_type, allTiers)}</div>
               {/* whitespace-nowrap: เลขเอกสาร (QT-2569-0005) ยาวกว่าช่องเดิม 80px
                   จนตัดขึ้นบรรทัดใหม่กลางป้าย — คอลัมน์กว้าง 120px + ห้ามตัดคำ */}
               <div>
@@ -390,13 +394,15 @@ export default function OwnQuotes() {
               <div className="flex flex-col gap-1 items-start">
                 {q.receipt_no
                   ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.receipt_no}</span>
-                  : <span className="font-body text-footnote text-grey-600">—</span>}
+                  : <span className={`font-body text-footnote ${on ? "text-grey-400" : "text-grey-600"}`}>—</span>}
                 {q.invoice_no && (
-                  <span className="text-badge font-heading px-2 py-0.5 bg-black text-white whitespace-nowrap">{q.invoice_no}</span>
+                  // ป้ายดำ/เทา ต้องสลับคู่เมื่อแถวเป็นดำ
+                  <span className={`text-badge font-heading px-2 py-0.5 whitespace-nowrap ${on ? "bg-page text-black" : "bg-black text-page"}`}>{q.invoice_no}</span>
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {selected && (
@@ -559,7 +565,7 @@ export default function OwnQuotes() {
       />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">{toast}</div>
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-page font-body text-body-sm shadow-lg">{toast}</div>
       )}
     </div>
   );

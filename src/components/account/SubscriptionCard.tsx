@@ -55,7 +55,7 @@ export default function SubscriptionCard() {
         <div className="flex items-center justify-between gap-3 mb-4">
           <h2 className="font-heading text-h2 text-black">Subscription</h2>
           {active ? (
-            <Badge variant="free">ใช้งานอยู่</Badge>
+            <Badge variant="solid">ใช้งานอยู่</Badge>
           ) : (
             <Badge variant="tag">ยังไม่ได้สมัคร</Badge>
           )}

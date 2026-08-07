@@ -77,7 +77,7 @@ const CartIcon = ({ size = 18 }: { size?: number }) => (
 // ลิงก์ nav — hover เป็นบล็อกส้ม (เดิม mint) ตาม moodboard/button.png (Nav_Button state hover)
 // px-2 ที่จอ 768–1023 กันล้นขวา (เมนู+ค้นหา+ไอคอนรวมกันกว้างกว่า container ถ้าใช้ px-3 เต็ม) → px-3 คืนที่ lg 1024+
 const NAV_LINK = cn(
-  "font-ui text-ui text-white no-underline px-2 lg:px-3 py-2 whitespace-nowrap",
+  "font-ui text-ui text-page no-underline px-2 lg:px-3 py-2 whitespace-nowrap",
   "hover:bg-orange hover:text-black transition-colors duration-150 ease-base",
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
 );
@@ -238,7 +238,7 @@ export default function Nav() {
             className={cn(
               // 44×44 = ขนาดเป้าสัมผัสขั้นต่ำที่กดไม่พลาด (เดิม 32 เล็กไป)
               // กล่องใหญ่แต่ไอคอนอยู่กลาง จึงต้องยึด badge กับตัวไอคอนไม่ใช่กับกล่อง
-              "relative flex items-center justify-center w-11 h-11 text-white",
+              "relative flex items-center justify-center w-11 h-11 text-page",
               "hover:text-orange-light transition-colors duration-150 ease-base",
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text",
               cartAnimating && "cart-bounce"
@@ -343,34 +343,39 @@ export default function Nav() {
             {/* Suggestions dropdown */}
             {searchOpen && suggestions.length > 0 && (
               <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-surface shadow-lg overflow-hidden z-50">
-                {suggestions.map((f, i) => (
+                {suggestions.map((f, i) => {
+                  const on = i === activeIdx;
+                  return (
                   <div
                     key={f.slug}
                     onMouseDown={() => goToFont(f)}
                     onMouseEnter={() => setActiveIdx(i)}
+                    // แถวที่ไฮไลต์ = พื้นดำ (เดิม bg-page ซึ่งจางเกินบนพาเนลขาว)
                     className={cn(
                       "flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer transition-colors duration-150 ease-base",
-                      i === activeIdx ? "bg-page" : "hover:bg-grey-200/50"
+                      on ? "bg-black" : "hover:bg-grey-200/50"
                     )}
                   >
                     <div className="min-w-0">
-                      <div className="font-heading text-fc-heading text-black leading-snug truncate">{f.name}</div>
-                      {f.name_th && <div className="font-body text-body-sm text-grey-600 leading-snug truncate">{f.name_th}</div>}
+                      <div className={cn("font-heading text-fc-heading leading-snug truncate", on ? "text-page" : "text-black")}>{f.name}</div>
+                      {f.name_th && <div className={cn("font-body text-body-sm leading-snug truncate", on ? "text-grey-400" : "text-grey-600")}>{f.name_th}</div>}
                       {(() => {
                         const q = searchQuery.trim().toLowerCase();
                         const matched = f.tags.filter((t) => t.toLowerCase().includes(q) && !f.name.toLowerCase().includes(q) && !f.name_th.toLowerCase().includes(q));
                         return matched.length > 0 ? (
                           <div className="flex gap-1 mt-1 flex-wrap">
                             {matched.slice(0, 3).map((t) => (
-                              <span key={t} className="font-heading text-badge bg-black text-white px-1.5 py-0.5 leading-none">{t}</span>
+                              // 🔴 ป้ายแท็กเป็นดำ/เทาอยู่แล้ว พอแถวเป็นดำต้องสลับคู่ ไม่งั้นดำบนดำ
+                              <span key={t} className={cn("font-heading text-badge px-1.5 py-0.5 leading-none", on ? "bg-page text-black" : "bg-black text-page")}>{t}</span>
                             ))}
                           </div>
                         ) : null;
                       })()}
                     </div>
-                    <span className="font-body text-body-sm text-grey-600 capitalize flex-shrink-0">{f.is_free ? "ฟรี" : f.category}</span>
+                    <span className={cn("font-body text-body-sm capitalize flex-shrink-0", on ? "text-grey-400" : "text-grey-600")}>{f.is_free ? "ฟรี" : f.category}</span>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -446,7 +451,7 @@ export default function Nav() {
                 href="/auth/login"
                 aria-label="เข้าสู่ระบบ"
                 className={cn(
-                  "flex items-center justify-center w-8 h-8 text-white",
+                  "flex items-center justify-center w-8 h-8 text-page",
                   "hover:text-orange-light transition-colors duration-150 ease-base",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                 )}
@@ -479,7 +484,7 @@ export default function Nav() {
               href="/cart/"
               aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
               className={cn(
-                "relative flex items-center justify-center w-8 h-8 text-white",
+                "relative flex items-center justify-center w-8 h-8 text-page",
                 "hover:text-orange-light transition-colors duration-150 ease-base",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text",
                 cartAnimating && "cart-bounce"
@@ -557,7 +562,7 @@ export default function Nav() {
       {/* เมนูมือถือ */}
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 bg-black shadow-md flex flex-col md:hidden">
-          <Link href="/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             หน้าแรก
           </Link>
           {CATEGORY_LINKS.map((c) => (
@@ -567,24 +572,24 @@ export default function Nav() {
               className={cn(
                 "px-4 py-3.5 font-ui no-underline transition-colors duration-150 ease-base",
                 "hover:bg-orange hover:text-black",
-                c.value === "all" ? "text-white" : "text-grey-400 pl-8"
+                c.value === "all" ? "text-page" : "text-grey-400 pl-8"
               )}
               onClick={() => setMenuOpen(false)}
             >
               {c.value === "all" ? "ฟอนต์ทั้งหมด" : c.label}
             </Link>
           ))}
-          <Link href="/agreement/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/agreement/" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             สัญญาอนุญาต
           </Link>
-          <Link href="/subscribe/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/subscribe/" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             สมัครสมาชิกรายเดือน
           </Link>
 
           {/* บัญชี — มือถือ */}
           {authLoading ? null : user ? (
             <>
-              <Link href="/account" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+              <Link href="/account" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
                 เข้าหน้าโปรไฟล์
               </Link>
               <button
@@ -623,7 +628,7 @@ export default function Nav() {
               <div
                 key={f.slug}
                 onMouseDown={() => { goToFont(f); setMenuOpen(false); }}
-                className="px-2 py-2.5 font-ui text-white cursor-pointer hover:text-orange-light transition-colors"
+                className="px-2 py-2.5 font-ui text-page cursor-pointer hover:text-orange-light transition-colors"
               >
                 {f.name}
                 {f.name_th && <span className="font-body text-body-sm text-grey-400"> — {f.name_th}</span>}

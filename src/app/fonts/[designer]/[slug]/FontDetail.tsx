@@ -339,7 +339,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                   href={c.isCategory
                     ? `/fonts/?category=${encodeURIComponent(c.label)}`
                     : `/fonts/?q=${encodeURIComponent(c.label)}`}
-                  className="inline-flex items-center bg-surface text-grey-600 hover:bg-black hover:text-white font-body text-body-sm px-2.5 py-1 no-underline transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                  className="inline-flex items-center bg-surface text-grey-600 hover:bg-black hover:text-page font-body text-body-sm px-2.5 py-1 no-underline transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                   {c.label}
                 </Link>
@@ -408,7 +408,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 aria-controls={`panel-${t.id}`}
                 onClick={() => { setTab(t.id); if (t.id === "tester") setTesterOpened(true); }}
                 className={`flex items-center justify-center text-center font-ui text-ui px-2 py-3 border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
-                  tab === t.id ? "bg-black text-white" : "bg-surface text-black hover:bg-orange"
+                  tab === t.id ? "bg-black text-page" : "bg-surface text-black hover:bg-orange"
                 }`}
               >
                 {t.label}

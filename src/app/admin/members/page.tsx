@@ -325,7 +325,7 @@ export default function AdminMembersPage() {
                           <div className="text-black flex items-center gap-2">
                             {d.name || "ไม่ระบุชื่อ"}
                             {holding && (
-                              <span className="text-badge font-heading px-2 py-0.5 bg-black text-white">ถือสิทธิ์อยู่</span>
+                              <span className="text-badge font-heading px-2 py-0.5 bg-black text-page">ถือสิทธิ์อยู่</span>
                             )}
                           </div>
                           <div className="font-body text-footnote text-grey-600">{d.platform ?? "—"} · ลงทะเบียน {fmtDate(d.created_at)}</div>

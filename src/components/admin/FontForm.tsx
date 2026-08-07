@@ -695,7 +695,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                   type="button"
                   onClick={handleGenerateDemo}
                   disabled={!!genProgress}
-                  className="font-ui text-ui px-3.5 py-2 bg-page text-black cursor-pointer hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none"
+                  className="font-ui text-ui px-3.5 py-2 bg-page text-black cursor-pointer hover:bg-black hover:text-page transition-colors duration-150 ease-base disabled:opacity-50 border-none"
                 >
                   สร้าง Demo
                 </button>
@@ -754,10 +754,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         </div>
         <div className="sticky bottom-0 bg-page px-6 py-4 flex justify-end gap-2 max-w-[1600px] w-full">
           {saving && <span className="font-body text-body-sm text-grey-600 mr-auto self-center">⏳ กำลังบันทึก…</span>}
-          <button onClick={handleCancel} disabled={saving} className="font-ui text-ui px-4 py-2 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
+          <button onClick={handleCancel} disabled={saving} className="font-ui text-ui px-4 py-2 bg-surface text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
             ยกเลิก
           </button>
-          <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-black text-white hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
+          <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-black text-page hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
             {saving ? "กำลังบันทึก…" : "บันทึก"}
           </button>
         </div>
@@ -795,10 +795,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         <div className="flex items-center justify-between px-6 py-4 bg-surface flex-shrink-0">
           {saving && <span className="font-body text-body-sm text-grey-600">⏳ กำลังบันทึก…</span>}
           <div className="flex gap-2 ml-auto">
-            <button onClick={onClose} disabled={saving} className="font-ui text-ui px-4 py-2 bg-page text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
+            <button onClick={onClose} disabled={saving} className="font-ui text-ui px-4 py-2 bg-page text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
               ยกเลิก
             </button>
-            <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-black text-white hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
+            <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-black text-page hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
               {saving ? "กำลังบันทึก…" : "บันทึก"}
             </button>
           </div>
@@ -837,7 +837,7 @@ function Toggle({ label, desc, checked, onChange, disabled = false }: { label: s
         type="button"
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative w-10 h-6 rounded-full transition-colors duration-150 ease-base border-none flex-shrink-0 ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"} ${checked ? "bg-orange" : "bg-grey-200"}`}
+        className={`relative w-10 h-6 rounded-full transition-colors duration-150 ease-base border-none flex-shrink-0 ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"} ${checked ? "bg-black" : "bg-grey-200"}`}
       >
         <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-150 ease-base ${checked ? "left-5" : "left-1"}`} />
       </button>

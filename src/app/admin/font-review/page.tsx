@@ -123,14 +123,14 @@ function PublishChecklist({ font, privateFiles, publishing, onClose, onPublish }
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="font-ui text-ui px-4 py-2 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+            className="font-ui text-ui px-4 py-2 bg-surface text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base border-none cursor-pointer"
           >
             ปิด
           </button>
           <button
             onClick={onPublish}
             disabled={!canPublish || publishing}
-            className="font-ui text-ui px-5 py-2 bg-black text-white border-none cursor-pointer hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="font-ui text-ui px-5 py-2 bg-black text-page border-none cursor-pointer hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {publishing ? "กำลัง Publish…" : "Publish"}
           </button>
@@ -331,7 +331,7 @@ export default function AdminAllFontsPage() {
             <button
               key={c.key}
               onClick={() => setCategory(c.key)}
-              className={`px-4 py-2 font-ui text-ui capitalize border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${category === c.key ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
+              className={`px-4 py-2 font-ui text-ui capitalize border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${category === c.key ? "bg-black text-page" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
             >
               {c.label}
             </button>
@@ -345,7 +345,7 @@ export default function AdminAllFontsPage() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base flex items-center gap-1.5 ${tab === t.key ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
+            className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base flex items-center gap-1.5 ${tab === t.key ? "bg-black text-page" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
           >
             {t.label}
             {t.badge != null && t.badge > 0 && (
@@ -419,7 +419,7 @@ export default function AdminAllFontsPage() {
               {f.published_at && (
                 <button
                   onClick={() => toggleActive(f)}
-                  className="font-ui text-ui px-2.5 py-1 bg-page text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+                  className="font-ui text-ui px-2.5 py-1 bg-page text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base border-none cursor-pointer"
                 >
                   {f.is_active ? "ซ่อน" : "แสดง"}
                 </button>
@@ -428,14 +428,14 @@ export default function AdminAllFontsPage() {
                 <button
                   onClick={() => openReview(f)}
                   disabled={publishing === f.id}
-                  className="font-ui text-ui px-2.5 py-1 bg-black text-white border-none cursor-pointer hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50"
+                  className="font-ui text-ui px-2.5 py-1 bg-black text-page border-none cursor-pointer hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50"
                 >
                   {publishing === f.id ? "…" : "ตรวจ & Publish"}
                 </button>
               ) : (
                 <button
                   onClick={() => setEditing(f)}
-                  className="font-ui text-ui px-2.5 py-1 bg-page text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+                  className="font-ui text-ui px-2.5 py-1 bg-page text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base border-none cursor-pointer"
                 >
                   แก้ไข
                 </button>
@@ -496,7 +496,7 @@ export default function AdminAllFontsPage() {
       />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[200] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">
+        <div className="fixed bottom-6 right-6 z-[200] px-4 py-3 bg-black text-page font-body text-body-sm shadow-lg">
           {toast}
         </div>
       )}

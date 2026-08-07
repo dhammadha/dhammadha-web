@@ -141,7 +141,7 @@ export default function BecomeADesignerPage() {
         <Container className="pb-12">
           <div className="bg-black px-6 py-14 md:px-12 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
-              <h2 className="font-heading text-h1 text-white mb-2.5">พร้อมวางขายฟอนต์แรกของคุณหรือยัง?</h2>
+              <h2 className="font-heading text-h1 text-page mb-2.5">พร้อมวางขายฟอนต์แรกของคุณหรือยัง?</h2>
               <p className="font-body text-body-sm text-grey-400 leading-[1.8] max-w-[480px]">
                 ไม่มีค่าแรกเข้า ไม่มีค่ารายเดือน — มีผลงานฟอนต์ไทยของตัวเอง ก็เริ่มได้เลยวันนี้<br />
                 ทำฟอนต์ฟรีเป็นงานอดิเรกก็ร่วมเผยแพร่ผลงานกับเราได้เช่นกัน

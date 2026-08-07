@@ -414,7 +414,7 @@ export default function OwnPricing() {
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={savePromo} disabled={promoSaving} className="flex-1 py-2 bg-black text-white font-ui text-ui border-none cursor-pointer hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50">
+          <button onClick={savePromo} disabled={promoSaving} className="flex-1 py-2 bg-black text-page font-ui text-ui border-none cursor-pointer hover:bg-black hover:text-page transition-colors duration-150 ease-base disabled:opacity-50">
             {promoSaving ? "กำลังบันทึก…" : "บันทึก / เปิดโปรโมชั่น"}
           </button>
           {promo.active && (
@@ -426,7 +426,7 @@ export default function OwnPricing() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-page font-body text-body-sm shadow-lg">
           {toast}
         </div>
       )}

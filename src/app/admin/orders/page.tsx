@@ -220,10 +220,11 @@ export default function AdminOrdersPage() {
           <button
             key={key}
             onClick={() => { setTab(key); setOpenId(null); }}
-            className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${tab === key ? "bg-page" : "bg-surface hover:bg-grey-200"}`}
+            // เลือกอยู่ = พื้นดำ + อักษรเทา (เดิม bg-page = สีเดียวกับพื้นหน้า มองไม่ออก)
+            className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${tab === key ? "bg-black" : "bg-surface hover:bg-grey-200"}`}
           >
-            <div className="font-heading text-h2 text-black leading-none mb-1">{tabCount[key]}</div>
-            <div className="font-body text-footnote text-grey-600">{label}</div>
+            <div className={`font-heading text-h2 leading-none mb-1 ${tab === key ? "text-page" : "text-black"}`}>{tabCount[key]}</div>
+            <div className={`font-body text-footnote ${tab === key ? "text-grey-400" : "text-grey-600"}`}>{label}</div>
           </button>
         ))}
       </div>
@@ -257,19 +258,20 @@ export default function AdminOrdersPage() {
               <Fragment key={o.id}>
                 <div
                   onClick={() => setOpenId(open ? null : o.id)}
-                  className={`${RETAIL_GRID} px-4 py-3 items-center cursor-pointer transition-colors duration-150 ease-base ${open ? "bg-page" : "hover:bg-grey-200"}`}
+                  // แถวที่กางอยู่ = พื้นดำ · ลูกทุกตัวพลิกสีตาม (แผงรายละเอียดเป็น sibling ไม่โดน)
+                  className={`${RETAIL_GRID} px-4 py-3 items-center cursor-pointer transition-colors duration-150 ease-base ${open ? "bg-black" : "hover:bg-grey-200"}`}
                 >
-                  <div className="font-body text-body-sm text-grey-600">{fmtDate(o.paid_at ?? o.created_at)}</div>
-                  <div className="font-body text-body-sm text-black">{o.order_no}</div>
-                  <div className="font-body text-body-sm text-grey-600 truncate">{o.customer_name || o.customer_email || "—"}</div>
-                  <div className="font-ui text-ui text-black">{fmtBaht(o.total_amount)}</div>
+                  <div className={`font-body text-body-sm ${open ? "text-grey-400" : "text-grey-600"}`}>{fmtDate(o.paid_at ?? o.created_at)}</div>
+                  <div className={`font-body text-body-sm ${open ? "text-page" : "text-black"}`}>{o.order_no}</div>
+                  <div className={`font-body text-body-sm truncate ${open ? "text-grey-400" : "text-grey-600"}`}>{o.customer_name || o.customer_email || "—"}</div>
+                  <div className={`font-ui text-ui ${open ? "text-page" : "text-black"}`}>{fmtBaht(o.total_amount)}</div>
                   {/* ทั้งแถวเป็นตัวกาง/หุบรายการฟอนต์ → ปุ่มนี้ต้องกันคลิกทะลุ */}
                   {(logsByOrder[o.id]?.length ?? 0) === 0 ? (
-                    <div className="font-body text-body-sm text-grey-600">ยังไม่มีการดาวน์โหลด</div>
+                    <div className={`font-body text-body-sm ${open ? "text-grey-400" : "text-grey-600"}`}>ยังไม่มีการดาวน์โหลด</div>
                   ) : (
                     <button
                       onClick={(e) => { e.stopPropagation(); setLogOrder(o); }}
-                      className="font-body text-body-sm link-accent bg-transparent border-none p-0 text-left cursor-pointer hover:underline"
+                      className={`font-body text-body-sm link-accent bg-transparent border-none p-0 text-left cursor-pointer hover:underline ${open ? "text-page" : ""}`}
                     >
                       ดูประวัติการดาวน์โหลด ({logsByOrder[o.id].length})
                     </button>

@@ -44,7 +44,7 @@ body {
 
 /* Type tester — สไลเดอร์ขนาดตัวอักษร: ราง + ปุ่มเหลี่ยม (docs/design/DESIGN.md §15.10)
    Tailwind styl ::-webkit-slider-thumb ไม่ได้ จึงต้องเขียน CSS จริงที่นี่
-   ราง = พื้นหลัง gradient (ส้ม ซ้าย · เทา ขวา) ตั้งจาก inline style ตามค่า value
+   ราง = พื้นหลัง gradient (ดำ ซ้าย · เทา ขวา) ตั้งจาก inline style ตามค่า value
    pseudo-track โปร่งใสให้พื้นหลัง element โผล่ · ปุ่มเป็นกล่องขาวเหลี่ยม border-radius:0 */
 .tester-range {
   -webkit-appearance: none;

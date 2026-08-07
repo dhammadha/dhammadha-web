@@ -183,7 +183,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
                   e.stopPropagation();
                   window.location.href = `/designer/${font.designer_slug}`;
                 }}
-                className="cursor-pointer hover:underline"
+                className="cursor-pointer hover:underline hover:decoration-orange"
               >
                 {designerName}
               </span>

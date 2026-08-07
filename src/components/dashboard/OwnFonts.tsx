@@ -106,7 +106,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${tab === t.key ? "bg-black text-white" : "text-grey-600 bg-transparent hover:bg-grey-200"}`}
+              className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${tab === t.key ? "bg-black text-page" : "text-grey-600 bg-transparent hover:bg-grey-200"}`}
             >
               {t.label}
             </button>
@@ -172,7 +172,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
               ) : !f.is_free && !f.is_sub_exclusive && (f.price ?? 0) > 0 ? (
                 <button
                   onClick={() => setPromoFont(f)}
-                  className="font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+                  className="font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base border-none cursor-pointer"
                 >
                   สร้างโปรโมชั่น
                 </button>
@@ -191,12 +191,12 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
               {f.published_at && (
                 <button
                   onClick={() => toggleActive(f)}
-                  className={`font-ui text-ui px-2.5 py-1 border-none cursor-pointer transition-colors duration-150 ease-base ${f.is_active ? "bg-surface text-black hover:bg-black hover:text-white" : "bg-orange text-black hover:bg-black hover:text-white"}`}
+                  className={`font-ui text-ui px-2.5 py-1 border-none cursor-pointer transition-colors duration-150 ease-base ${f.is_active ? "bg-surface text-black hover:bg-black hover:text-page" : "bg-orange text-black hover:bg-black hover:text-page"}`}
                 >
                   {f.is_active ? "ซ่อน" : "แสดง"}
                 </button>
               )}
-              <button onClick={() => openEdit(f)} className="font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer">
+              <button onClick={() => openEdit(f)} className="font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-page transition-colors duration-150 ease-base border-none cursor-pointer">
                 แก้ไข
               </button>
               {/* เงื่อนไขเดียวกับลิงก์ชื่อฟอนต์ด้านบน — ฟอนต์ที่ยังไม่เผยแพร่ไม่มีหน้าให้แชร์ */}
@@ -230,7 +230,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
       />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[200] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg">
+        <div className="fixed bottom-6 right-6 z-[200] px-4 py-3 bg-black text-page font-body text-body-sm shadow-lg">
           {toast}
         </div>
       )}

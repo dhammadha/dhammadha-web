@@ -64,7 +64,7 @@ export default function AccountPage() {
                 {/* Avatar + role */}
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center font-heading text-h2 text-white select-none">
+                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center font-heading text-h2 text-page select-none">
                       {(user.email?.[0] ?? "?").toUpperCase()}
                     </div>
                     <div>
@@ -72,13 +72,15 @@ export default function AccountPage() {
                         {profile?.name ?? user.email}
                       </p>
                       <span className="inline-block mt-1">
-                        {role === "admin" ? (
-                          <Badge className="bg-black text-white">{ROLE_LABEL.admin}</Badge>
-                        ) : role === "designer" ? (
-                          <Badge variant="free">{ROLE_LABEL.designer}</Badge>
-                        ) : (
-                          <Badge variant="tag">{ROLE_LABEL.customer}</Badge>
-                        )}
+                        {/* ⚠️ ต้องใช้ variant="solid" ห้าม override ด้วย className —
+                            `cn()` ไม่ merge class ที่ชนกัน (Tailwind ไม่มี twMerge ในโปรเจกต์นี้)
+                            ของเดิม admin เขียน className="bg-black text-white" ทับ variant ปริยาย
+                            `tag` (bg-page text-grey-600) แล้วสองชุดชนกันในสตริงเดียว ผลจริงบนจอคือ
+                            ป้าย "Admin" ออกมาเทาบนเทา อ่านไม่ออก (เจ้าของจับได้ 8 ส.ค. 2569)
+                            ส่วน designer เคยยืม variant="free" ซึ่งเป็นป้ายของ "ฟอนต์ฟรี" คนละความหมาย */}
+                        <Badge variant="solid">
+                          {role === "admin" ? ROLE_LABEL.admin : role === "designer" ? ROLE_LABEL.designer : ROLE_LABEL.customer}
+                        </Badge>
                       </span>
                     </div>
                   </div>

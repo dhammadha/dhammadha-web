@@ -272,7 +272,7 @@ function AllFontsContent() {
               <button
                 onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 disabled={page === 1}
-                className="w-9 h-9 flex items-center justify-center bg-surface text-grey-600 hover:bg-black hover:text-white disabled:bg-grey-200 disabled:text-grey-400 disabled:cursor-not-allowed disabled:hover:bg-grey-200 disabled:hover:text-grey-400 transition-colors duration-150 ease-base cursor-pointer border-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                className="w-9 h-9 flex items-center justify-center bg-surface text-grey-600 hover:bg-black hover:text-page disabled:bg-grey-200 disabled:text-grey-400 disabled:cursor-not-allowed disabled:hover:bg-grey-200 disabled:hover:text-grey-400 transition-colors duration-150 ease-base cursor-pointer border-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 aria-label="หน้าก่อนหน้า"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
@@ -287,8 +287,8 @@ function AllFontsContent() {
                   aria-current={p === page ? "page" : undefined}
                   className={`w-9 h-9 font-ui text-ui transition-colors duration-150 ease-base cursor-pointer border-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
                     p === page
-                      ? "bg-black text-white"
-                      : "bg-surface text-grey-600 hover:bg-black hover:text-white"
+                      ? "bg-black text-page"
+                      : "bg-surface text-grey-600 hover:bg-black hover:text-page"
                   }`}
                 >
                   {p}
@@ -298,7 +298,7 @@ function AllFontsContent() {
               <button
                 onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 disabled={page === totalPages}
-                className="w-9 h-9 flex items-center justify-center bg-surface text-grey-600 hover:bg-black hover:text-white disabled:bg-grey-200 disabled:text-grey-400 disabled:cursor-not-allowed disabled:hover:bg-grey-200 disabled:hover:text-grey-400 transition-colors duration-150 ease-base cursor-pointer border-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                className="w-9 h-9 flex items-center justify-center bg-surface text-grey-600 hover:bg-black hover:text-page disabled:bg-grey-200 disabled:text-grey-400 disabled:cursor-not-allowed disabled:hover:bg-grey-200 disabled:hover:text-grey-400 transition-colors duration-150 ease-base cursor-pointer border-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 aria-label="หน้าถัดไป"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">

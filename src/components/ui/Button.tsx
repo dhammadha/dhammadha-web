@@ -38,14 +38,14 @@ const SIZE = {
 
 // เหลี่ยม + **ไม่มีเส้นขอบ** (DESIGN.md §4.1) — ดีไซน์นี้ไม่ใช้เส้นกรอบเลยทุกส่วน
 // แยกลำดับชั้นด้วย "พื้นสี" แทนเส้น:
-//   primary = พื้นดำ + ตัวขาว · hover พลิกเป็นส้ม + ตัวดำ (เจ้าของสั่ง 7 ส.ค. 2569)
+//   primary = พื้นดำ + ตัวเทา (F0F0F0 คู่สีของโลโก้ ไม่ใช่ขาวแท้) · hover พลิกเป็นส้ม + ตัวดำ (เจ้าของสั่ง 7 ส.ค. 2569)
 //             เดิมเป็นพื้น mint แล้ว hover เป็นดำ = กลับทางกับตอนนี้
 //             ⚠️ ตัวอักษรบนพื้นส้มต้องเป็นดำเสมอ (6.02:1) ขาวได้แค่ 3.33:1
 //   outline = พื้น surface — ปุ่มรอง เห็นเป็นบล็อกอ่อน (เดิมนิยามด้วยเส้นขอบดำ)
 //   ghost   = โปร่ง โผล่พื้นตอน hover
 const VARIANT = {
-  primary: "bg-black text-white hover:bg-orange hover:text-black active:bg-orange/80",
-  outline: "bg-surface text-black hover:bg-black hover:text-white",
+  primary: "bg-black text-page hover:bg-orange hover:text-black active:bg-orange/80",
+  outline: "bg-surface text-black hover:bg-black hover:text-page",
   ghost: "bg-transparent text-black hover:bg-surface",
 };
 

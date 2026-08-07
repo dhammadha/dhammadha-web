@@ -122,7 +122,7 @@ export default function SubscribePage() {
               /* ── มี subscription ใช้งานอยู่ ── */
               <>
                 <span className="inline-block mb-6">
-                  <Badge variant="free">สมาชิกใช้งานอยู่</Badge>
+                  <Badge variant="solid">สมาชิกใช้งานอยู่</Badge>
                 </span>
                 <h1 className="font-heading text-hero text-black mb-4">
                   คุณเป็นสมาชิกแล้ว 🎉
@@ -155,7 +155,7 @@ export default function SubscribePage() {
               /* ── ยังไม่ได้สมัคร ── */
               <>
                 <span className="inline-block mb-6">
-                  <Badge variant="free">{trialOpen ? "เปิดให้ทดสอบฟรี" : "Coming Soon"}</Badge>
+                  <Badge variant="solid">{trialOpen ? "เปิดให้ทดสอบฟรี" : "Coming Soon"}</Badge>
                 </span>
                 <h1 className="font-heading text-hero text-black mb-4">
                   ฟอนต์ไทยไม่จำกัด<br />ด้วย <em className="text-orange-text not-italic">Subscription</em>

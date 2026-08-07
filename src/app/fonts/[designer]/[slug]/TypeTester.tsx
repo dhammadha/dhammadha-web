@@ -267,7 +267,7 @@ export default function TypeTester({ font }: { font: Font }) {
         <h3 className="font-heading text-h2 text-black">ทดสอบฟอนต์</h3>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A · ราง+ปุ่มเหลี่ยม (.tester-range ใน globals.css)
-              พื้นหลัง gradient ตั้งตามค่า value: ส้มซ้ายจุดปุ่ม · เทาขวา */}
+              พื้นหลัง gradient ตั้งตามค่า value: ดำซ้ายจุดปุ่ม · เทาขวา */}
           <div className="flex items-center gap-2">
             <span className="font-heading text-body-sm text-grey-600 leading-none">A</span>
             <input
@@ -280,7 +280,7 @@ export default function TypeTester({ font }: { font: Font }) {
               aria-label="ขนาดตัวอักษร"
               className="tester-range w-24 sm:w-32"
               style={{
-                background: `linear-gradient(to right, #FF4D00 0%, #FF4D00 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 100%)`,
+                background: `linear-gradient(to right, #080808 0%, #080808 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 100%)`,
               }}
             />
             <span className="font-heading text-h2 text-grey-600 leading-none">A</span>

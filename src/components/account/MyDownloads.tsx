@@ -218,8 +218,11 @@ export default function MyDownloads() {
                 <span className="text-grey-600 font-body text-footnote">{isOpen ? "▲" : "▼"}</span>
               </button>
 
+              {/* แผงรายละเอียดฟอนต์ = พื้นขาว (เจ้าของสั่ง 8 ส.ค. 2569 — เดิม bg-grey-200/40 ≈ #F3F3F3
+                  ซึ่งเกือบเท่าแถบ OTF/TTF ที่เป็น bg-page #F0F0F0 จึงดูแบนไปทั้งก้อน)
+                  แถบ OTF/TTF คง bg-page ไว้ → ตอนนี้เป็นเทาลอยบนขาว เห็นเป็นชั้นชัดเจน */}
               {isOpen && (
-                <div className="px-4 pb-3 pt-3 bg-grey-200/40 flex flex-col">
+                <div className="px-4 pb-3 pt-3 bg-surface flex flex-col">
                   {/* ฟอนต์ที่เจ้าของใช้สัญญาของตัวเอง — ฉบับกลางด้านบนไม่ได้ครอบฟอนต์ตัวนี้ */}
                   {ent.fonts?.owner_id && licensePdfs[ent.fonts.owner_id] && (
                     <p className="font-body text-footnote text-grey-600 mb-2">

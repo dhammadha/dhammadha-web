@@ -492,58 +492,66 @@ function QuoteForm() {
                 </h2>
 
                 {licenseConfig && !licenseConfig.use_default && licenseConfig.tiers ? (
-                  licenseConfig.tiers.map((tier) => (
+                  licenseConfig.tiers.map((tier) => {
+                    const on = form.license_type === tier.id;
+                    return (
                       <label
                         key={tier.id}
+                        // เลือกอยู่ = พื้นดำ · ลูกทุกตัวรวมถึงปุ่ม radio ต้องพลิกสีตาม
+                        // (accent-black บนพื้นดำ = จุดดำบนดำ มองไม่เห็นว่าเลือกอันไหน)
                         className={`flex items-start gap-3 p-3.5 cursor-pointer transition-colors ${
-                          form.license_type === tier.id ? "bg-page" : "bg-surface hover:bg-grey-200/60"
+                          on ? "bg-black" : "bg-surface hover:bg-grey-200/60"
                         }`}
                       >
                         <input
                           type="radio"
                           name="license_type"
                           value={tier.id}
-                          checked={form.license_type === tier.id}
+                          checked={on}
                           onChange={() => set("license_type", tier.id)}
-                          className="mt-0.5 accent-black"
+                          className={`mt-0.5 ${on ? "accent-page" : "accent-black"}`}
                         />
                         <div className="flex-1 flex items-start justify-between">
                           <div>
-                            <div className="font-body text-body text-black">{tier.name}</div>
+                            <div className={`font-body text-body ${on ? "text-page" : "text-black"}`}>{tier.name}</div>
                             {tier.desc && (
-                              <div className="font-body text-body-sm text-grey-600 mt-0.5">{tier.desc}</div>
+                              <div className={`font-body text-body-sm mt-0.5 ${on ? "text-grey-400" : "text-grey-600"}`}>{tier.desc}</div>
                             )}
                           </div>
-                          <div className="font-heading text-body text-black ml-3 shrink-0">
+                          <div className={`font-heading text-body ml-3 shrink-0 ${on ? "text-page" : "text-black"}`}>
                             ฿{tier.price.toLocaleString()}
                           </div>
                         </div>
                       </label>
-                    ))
+                    );
+                  })
                 ) : (
-                  defaultTiers.map((tier) => (
-                    <label
-                      key={tier.id}
-                      className={`flex items-start gap-3 p-3.5 cursor-pointer transition-colors ${
-                        form.license_type === tier.id ? "bg-page" : "bg-surface hover:bg-grey-200/60"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="license_type"
-                        value={tier.id}
-                        checked={form.license_type === tier.id}
-                        onChange={() => set("license_type", tier.id)}
-                        className="mt-0.5 accent-black"
-                      />
-                      <div>
-                        <div className="font-body text-body text-black">{tier.name}</div>
-                        {tier.desc && (
-                          <div className="font-body text-body-sm text-grey-600 mt-0.5">{tier.desc}</div>
-                        )}
-                      </div>
-                    </label>
-                  ))
+                  defaultTiers.map((tier) => {
+                    const on = form.license_type === tier.id;
+                    return (
+                      <label
+                        key={tier.id}
+                        className={`flex items-start gap-3 p-3.5 cursor-pointer transition-colors ${
+                          on ? "bg-black" : "bg-surface hover:bg-grey-200/60"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="license_type"
+                          value={tier.id}
+                          checked={on}
+                          onChange={() => set("license_type", tier.id)}
+                          className={`mt-0.5 ${on ? "accent-page" : "accent-black"}`}
+                        />
+                        <div>
+                          <div className={`font-body text-body ${on ? "text-page" : "text-black"}`}>{tier.name}</div>
+                          {tier.desc && (
+                            <div className={`font-body text-body-sm mt-0.5 ${on ? "text-grey-400" : "text-grey-600"}`}>{tier.desc}</div>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })
                 )}
 
                 <p className="font-body text-body-sm text-grey-600 mt-1">

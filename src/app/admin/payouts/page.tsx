@@ -654,13 +654,15 @@ export default function AdminPayoutsPage() {
                   <Fragment key={r.designerId}>
                     <div
                       onClick={() => setSelectedDesignerId(open ? null : r.designerId)}
-                      className={`${SUMMARY_GRID} px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${open ? "bg-page" : "hover:bg-grey-200"}`}
+                      // แถวที่กางอยู่ = พื้นดำ · ลูกทุกตัวพลิกสีตาม
+                      // (แผงรายละเอียดข้างล่างเป็น sibling ใน Fragment ไม่ได้อยู่ในนี้ จึงยังเป็นเทา)
+                      className={`${SUMMARY_GRID} px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${open ? "bg-black" : "hover:bg-grey-200"}`}
                     >
-                      <div className="font-ui text-ui text-black truncate">{displayName(d, r.designerId)}</div>
-                      <div className="font-body text-body-sm text-grey-600">{fmtBaht(r.designerAmount)}</div>
-                      <div className="font-body text-body-sm text-grey-600">{fmtBaht(r.subAmount)}</div>
-                      <div className="font-body text-body-sm text-grey-600">{fmtBaht(r.b2bTotal)}</div>
-                      <div className="font-ui text-ui text-black">{fmtBaht(r.pending)}</div>
+                      <div className={`font-ui text-ui truncate ${open ? "text-page" : "text-black"}`}>{displayName(d, r.designerId)}</div>
+                      <div className={`font-body text-body-sm ${open ? "text-grey-400" : "text-grey-600"}`}>{fmtBaht(r.designerAmount)}</div>
+                      <div className={`font-body text-body-sm ${open ? "text-grey-400" : "text-grey-600"}`}>{fmtBaht(r.subAmount)}</div>
+                      <div className={`font-body text-body-sm ${open ? "text-grey-400" : "text-grey-600"}`}>{fmtBaht(r.b2bTotal)}</div>
+                      <div className={`font-ui text-ui ${open ? "text-page" : "text-black"}`}>{fmtBaht(r.pending)}</div>
                       <div><PayoutStatusBadge status={status} /></div>
                     </div>
 
@@ -815,7 +817,7 @@ export default function AdminPayoutsPage() {
       <SubscriptionRevenue mode="admin" />
 
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-white font-body text-body-sm shadow-lg max-w-[420px]">{toast}</div>
+        <div className="fixed bottom-6 right-6 z-[190] px-4 py-3 bg-black text-page font-body text-body-sm shadow-lg max-w-[420px]">{toast}</div>
       )}
     </div>
   );
