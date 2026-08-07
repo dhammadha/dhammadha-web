@@ -152,7 +152,7 @@ function drawRecipient(w: DocWriter, data: QuoteDocData, salutation: boolean): v
 
     w.y = w.blockBottom + 22;
     w.drawAt("เรื่อง", w.y, { x: M.salutLabelX, font: "sans" });
-    w.text(QUOTE_SUBJECT, { x: M.salutBodyX, font: "loopedBold", color: COLOR.navy, maxWidth: bodyW });
+    w.text(QUOTE_SUBJECT, { x: M.salutBodyX, font: "loopedBold", color: COLOR.heading, maxWidth: bodyW });
 
     w.y = w.blockBottom + 21;
     w.text(QUOTE_VALIDITY, { x: M.salutLabelX, font: "looped", color: COLOR.grey, maxWidth: CONTENT_W });
@@ -199,14 +199,14 @@ function drawItemsTable(w: DocWriter, items: QuoteDocItem[]): void {
     w.drawAt(String(i + 1), baseline, {
       center: [MARGIN_X, M.colIndexRight],
       font: "sans",
-      color: COLOR.navy,
+      color: COLOR.heading,
     });
-    w.drawAt(money(item.price), baseline, { right: M.priceRight, font: "sans", color: COLOR.navy });
+    w.drawAt(money(item.price), baseline, { right: M.priceRight, font: "sans", color: COLOR.heading });
 
     w.text(`ชุดฟอนต์ “${item.name}”`, {
       x: M.colNameX,
       font: "sans",
-      color: COLOR.navy,
+      color: COLOR.heading,
       maxWidth: nameW,
     });
     for (const sub of subLines) {

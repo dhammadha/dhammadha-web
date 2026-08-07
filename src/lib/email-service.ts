@@ -4,7 +4,7 @@
 // fetch + plain objects only, no Next.js or Node-specific imports.
 
 import { licenseLabel, designerLicensePdf } from "./license";
-import { NAME as BRAND, DOMAIN, URL as SITE_URL, CONTACT_EMAIL, FROM_EMAIL, LEGAL_ENTITY, SOCIAL } from "./brand";
+import { NAME as BRAND, DOMAIN, URL as SITE_URL, CONTACT_EMAIL, FROM_EMAIL, LEGAL_ENTITY } from "./brand";
 
 const FROM = FROM_EMAIL;
 
@@ -275,7 +275,7 @@ const STUDIO_FOOTER = `
   ${LEGAL_ENTITY}<br>
   <a href="${SITE_URL}" style="color:#888">${SITE_URL.replace("https://", "")}</a><br>
   Mobile: 09-2929-9882<br>
-  Line: ${SOCIAL.line}
+  Email: <a href="mailto:${CONTACT_EMAIL}" style="color:#888">${CONTACT_EMAIL}</a>
 </p>
 `;
 

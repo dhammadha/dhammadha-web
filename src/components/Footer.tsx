@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/ui/Container";
 import { cn } from "@/lib/cn";
-import { NAME as BRAND_NAME, LOGO_SRC, SOCIAL, FOUNDED_YEAR } from "@/lib/brand";
+import { NAME as BRAND_NAME, LOGO_SRC, SOCIAL } from "@/lib/brand";
 
 /**
  * Footer — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/footer.png)
@@ -47,24 +47,10 @@ const socials = [
       </svg>
     ),
   },
-  {
-    name: "TikTok",
-    url: SOCIAL.tiktok,
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z" />
-      </svg>
-    ),
-  },
-  {
-    name: "LINE",
-    url: "https://lin.ee/EYRmUTx",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-        <path d="M19.952 12.477c0-4.185-4.195-7.586-9.352-7.586S1.248 8.292 1.248 12.477c0 3.75 3.328 6.892 7.823 7.487.305.066.72.2.824.46.094.235.062.604.03.842l-.133.8c-.04.237-.188.926.812.505 1-.422 5.398-3.18 7.367-5.445 1.359-1.49 2.012-3.003 2.012-4.649zm-12.36 2.105H5.677a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 1.024 0v2.959h1.403a.512.512 0 0 1 0 1.023zm1.578-.511a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 1.024 0v3.471zm4.687 0a.512.512 0 0 1-.897.338l-1.786-2.43v2.093a.512.512 0 0 1-1.024 0V10.6a.512.512 0 0 1 .897-.338l1.786 2.43V10.6a.512.512 0 0 1 1.024 0v3.471zm2.823-2.448a.512.512 0 0 1 0 1.023h-1.403v.913h1.403a.512.512 0 0 1 0 1.023H14.17a.512.512 0 0 1-.512-.511V10.6a.512.512 0 0 1 .512-.512h1.51a.512.512 0 0 1 0 1.023H14.68v.512h1.403z" />
-      </svg>
-    ),
-  },
+  // TikTok + LINE ถอดออก 7 ส.ค. 2569 ตอนแยกแบรนด์ — typedee ยังไม่ได้เปิดสองช่องทางนี้
+  // (ของเดิมชี้ไปบัญชี Dhammadha Studio ซึ่งตอนนี้เป็น foundry เจ้าหนึ่งบนแพลตฟอร์ม
+  //  ไม่ใช่ตัวแพลตฟอร์ม) เปิดบัญชีเมื่อไรเติม URL ใน SOCIAL แล้วเอา icon กลับมาที่นี่
+  // หมายเหตุ: LINE เคย hardcode URL ไว้ตรงนี้ ไม่ได้อ่านจาก SOCIAL.line เหมือนตัวอื่น
 ];
 
 // grey-400 บนพื้นดำ = 9.23:1 ผ่าน AA สบาย (DESIGN.md §3.2 — กฎ "ห้ามใช้กับตัวหนังสือ"
@@ -157,7 +143,7 @@ export default function Footer() {
       {/* แถบล่างพื้นอ่อน ตาม moodboard/footer.png — ใช้ `footnote` (Looped Light 12) */}
       <div className="bg-surface">
         <Container className="py-4 text-center font-body text-footnote text-grey-600">
-          © {FOUNDED_YEAR}–{new Date().getFullYear()} {BRAND_NAME}
+          © {new Date().getFullYear()} {BRAND_NAME}.com
         </Container>
       </div>
     </footer>

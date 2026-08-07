@@ -4,7 +4,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { FavouritesProvider } from "@/context/FavouritesContext";
 import { CartProvider } from "@/context/CartContext";
 import ScrollReset from "@/components/ScrollReset";
-import { NAME as BRAND_NAME, LOGO_SRC } from "@/lib/brand";
+import { NAME as BRAND_NAME, FAVICON_SRC } from "@/lib/brand";
 import "./globals.css";
 
 // ระบบดีไซน์: docs/design/DESIGN.md §2.1
@@ -37,7 +37,7 @@ const notoSansThaiLooped = Noto_Sans_Thai_Looped({
 export const metadata: Metadata = {
   title: BRAND_NAME,
   description: "คลังฟอนต์ภาษาไทยคุณภาพสูง สำหรับนักออกแบบ แบรนด์ และครีเอเตอร์ไทย",
-  icons: { icon: LOGO_SRC },
+  icons: { icon: FAVICON_SRC },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

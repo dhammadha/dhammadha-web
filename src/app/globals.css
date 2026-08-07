@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 :root {
-  --navy: #2B1B3D;
   --mint: #5ECEC8;
   --mint-light: #e8faf9;
   --mint-mid: #b8ecea;

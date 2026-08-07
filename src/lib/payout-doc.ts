@@ -123,8 +123,8 @@ export async function generatePayoutPdf(
 
   for (const [label, amount] of rows) {
     w.ensureSpace();
-    w.drawAt(label, w.y, { x: M.colNameX, font: "sans", color: COLOR.navy });
-    w.drawAt(money(amount), w.y, { right: M.priceRight, font: "sans", color: COLOR.navy });
+    w.drawAt(label, w.y, { x: M.colNameX, font: "sans", color: COLOR.heading });
+    w.drawAt(money(amount), w.y, { right: M.priceRight, font: "sans", color: COLOR.heading });
     w.blockBottom = w.y;
     w.y += LEAD;
   }

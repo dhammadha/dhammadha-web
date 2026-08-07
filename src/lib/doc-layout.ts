@@ -17,7 +17,7 @@
  * ── ค่าที่วัดจากต้นแบบ (dhammadha-web fix list/template.pdf) ─────────────────
  * หน้า A4 595.28 × 841.89 · ขอบซ้าย/ขวา 59.53 · เนื้อหากว้าง 476.22
  * ตัวอักษร 10pt leading 15pt · หัวผู้ออก 16pt · ชื่อเอกสาร 28pt
- * navy #1B1428 · เนื้อความ #1A1919 · เทา #747777 · เส้นคั่นดำ 1pt
+ * สีเน้น #080808 (เดิม navy #1B1428) · เนื้อความ #1A1919 · เทา #747777 · เส้นคั่นดำ 1pt
  */
 
 import { PDFDocument, PDFFont, PDFPage, rgb } from "pdf-lib";
@@ -43,7 +43,16 @@ export const FIRST_BASELINE = 59;
 export const LEAD = 15;
 
 export const COLOR = {
-  navy: rgb(0x1b / 255, 0x14 / 255, 0x28 / 255),
+  /**
+   * สีเน้น: ชื่อผู้ออกเอกสาร, ชื่อเอกสาร, ป้ายกำกับ, ตัวเลขเงิน, พื้นแถบยอดชำระ, ชื่อผู้เซ็น
+   *
+   * เดิมเป็น navy #1B1428 (วัดจากต้นแบบ) — เปลี่ยนเป็น #080808 ตอนแยกแบรนด์ typedee
+   * (7 ส.ค. 2569) เพราะ palette ใหม่เลิกใช้ navy ทั้งระบบ ตัวอักษรดำใช้ 080808 ตัวเดียว
+   *
+   * ⚠️ เอกสารถูกเรนเดอร์ใหม่ทุกครั้งที่เปิด → **ใบที่ออกไปแล้วเปลี่ยนสีตามย้อนหลังด้วย**
+   * (ตัวข้อความไม่เปลี่ยน เพราะถูก freeze ไว้ใน `quotes.fonts_detail` ตั้งแต่ตอนออกใบ)
+   */
+  heading: rgb(0x08 / 255, 0x08 / 255, 0x08 / 255),
   text: rgb(0x1a / 255, 0x19 / 255, 0x19 / 255),
   grey: rgb(0x74 / 255, 0x77 / 255, 0x77 / 255),
   white: rgb(1, 1, 1),
@@ -312,7 +321,7 @@ export class DocWriter {
   }
 
   /** แถบสีเต็มความกว้างเนื้อหา — `top` คือขอบบนของแถบ */
-  bar(top: number, height: number, color: RGB = COLOR.navy): void {
+  bar(top: number, height: number, color: RGB = COLOR.heading): void {
     this.page.drawRectangle({
       x: MARGIN_X,
       y: PAGE_H - top - height,
@@ -406,7 +415,7 @@ export function drawIssuerHeader(w: DocWriter, issuer: DocIssuer): void {
   w.drawAt(issuer.business_name || issuer.name || "", M.issuerName, {
     size: SZ.issuer,
     font: "sans",
-    color: COLOR.navy,
+    color: COLOR.heading,
   });
 
   const meta: string[] = [];
@@ -428,10 +437,10 @@ export function drawIssuerHeader(w: DocWriter, issuer: DocIssuer): void {
 
 /** แถวหัวเรื่อง: ชื่อเอกสารทางซ้าย + เลขที่/วันที่ทางขวา */
 export function drawTitleRow(w: DocWriter, title: string, rows: Array<[string, string]>): void {
-  w.drawAt(title, M.title, { size: SZ.title, font: "sans", color: COLOR.navy });
+  w.drawAt(title, M.title, { size: SZ.title, font: "sans", color: COLOR.heading });
   let baseline = M.metaLabel1;
   for (const [label, value] of rows) {
-    w.drawAt(label, baseline, { x: M.metaLabelX, font: "sans", color: COLOR.navy });
+    w.drawAt(label, baseline, { x: M.metaLabelX, font: "sans", color: COLOR.heading });
     w.drawAt(value, baseline, { x: M.metaValueX, font: "looped" });
     baseline += LEAD;
   }
@@ -439,7 +448,7 @@ export function drawTitleRow(w: DocWriter, title: string, rows: Array<[string, s
 
 /**
  * แถวป้าย/ค่า สองคอลัมน์ (บล็อกรายละเอียดการชำระเงิน, งวดในใบสรุปโอนส่วนแบ่ง)
- * ป้ายเป็นสีเดียวกับเนื้อความ ไม่ใช่ navy — วัดจากต้นแบบแล้วเป็น #1A1919
+ * ป้ายเป็นสีเดียวกับเนื้อความ ไม่ใช่สีเน้น — วัดจากต้นแบบแล้วเป็น #1A1919
  */
 export function drawLabelValue(w: DocWriter, label: string, value: string, valueX: number): void {
   w.drawAt(label, w.y, { font: "sans", color: COLOR.text });
@@ -449,7 +458,7 @@ export function drawLabelValue(w: DocWriter, label: string, value: string, value
 }
 
 /**
- * แถวยอดรวมเหนือแถบ navy (รวมจำนวนเงิน / ส่วนลด / หักภาษี ณ ที่จ่าย)
+ * แถวยอดรวมเหนือแถบสีเน้น (รวมจำนวนเงิน / ส่วนลด / หักภาษี ณ ที่จ่าย)
  * ป้ายชิดขวาที่แกน `totalLabelRight` ตัวเลขชิดขวาแกนเดียวกับคอลัมน์ราคา
  *
  * ใช้ร่วมกันระหว่างใบเสนอราคาและใบสรุปโอนส่วนแบ่ง — ทั้งสองใบต้องเรียงยอด
@@ -469,7 +478,7 @@ export function drawTotalRow(
 }
 
 /**
- * แถบยอดชำระพื้น navy — ป้ายชิดขวาแกนเดียวกับป้ายยอดรวม, ยอดชิดขวาแกนเดียวกับ
+ * แถบยอดชำระพื้นสีเน้น — ป้ายชิดขวาแกนเดียวกับป้ายยอดรวม, ยอดชิดขวาแกนเดียวกับ
  * ตัวเลข, ตัวหนังสือจำนวนเงินจัดกึ่งกลางระหว่างขอบซ้ายแถบกับป้าย
  */
 export function drawTotalBar(w: DocWriter, label: string, amount: string, inWords: string): void {
@@ -495,7 +504,7 @@ export function drawSignature(w: DocWriter, name: string, role: string): void {
 
   w.rule(top, M.sigLineX, M.sigLineX + M.sigLineW);
   const span: [number, number] = [M.sigLineX, M.sigLineX + M.sigLineW];
-  w.drawAt(name, top + M.sigLineToName, { center: span, font: "sans", color: COLOR.navy });
+  w.drawAt(name, top + M.sigLineToName, { center: span, font: "sans", color: COLOR.heading });
   w.drawAt(`(${role})`, top + M.sigLineToName + LEAD, { center: span, font: "looped" });
   w.y = top + M.sigLineToName + LEAD * 2;
 }

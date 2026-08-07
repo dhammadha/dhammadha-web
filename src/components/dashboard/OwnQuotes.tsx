@@ -392,7 +392,7 @@ export default function OwnQuotes() {
                   ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.receipt_no}</span>
                   : <span className="font-body text-footnote text-grey-600">—</span>}
                 {q.invoice_no && (
-                  <span className="text-badge font-heading px-2 py-0.5 bg-navy text-white whitespace-nowrap">{q.invoice_no}</span>
+                  <span className="text-badge font-heading px-2 py-0.5 bg-black text-white whitespace-nowrap">{q.invoice_no}</span>
                 )}
               </div>
             </div>

@@ -43,11 +43,11 @@ export default function NotFound() {
           <div className="text-[14px] text-[#aaa]">กำลังค้นหา…</div>
         ) : (
           <div className="text-center">
-            <div className="text-[80px] font-semibold text-navy leading-none mb-4">404</div>
+            <div className="text-[80px] font-semibold text-black leading-none mb-4">404</div>
             <div className="text-[18px] text-[#666] mb-8">ไม่พบหน้าที่คุณต้องการ</div>
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#888] no-underline hover:text-navy transition-colors"
+              className="inline-flex items-center gap-1.5 text-[13px] text-[#888] no-underline hover:text-black transition-colors"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                 <polyline points="15 18 9 12 15 6" />

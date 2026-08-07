@@ -7,28 +7,33 @@
 // Cloudflare Pages Function และ Next.js route handler จึงต้อง framework-free
 // (ดูหัวไฟล์ `email-service.ts`) ห้ามเพิ่ม import จาก next/* หรือ node:*
 //
-// ⚠️ ไฟล์นี้ครอบเฉพาะ "แพลตฟอร์ม" ไม่ครอบสองอย่างนี้:
-//   1. Dhammadha Studio ในฐานะ foundry เจ้าหนึ่งที่ขายบนแพลตฟอร์ม (ชื่อร้าน/slug/โซเชียลของสตูดิโอ)
-//   2. นิติบุคคลผู้เป็นคู่สัญญาในหน้าเอกสารกฎหมาย → ใช้ `LEGAL_ENTITY` ซึ่ง**ไม่เปลี่ยนตาม
-//      ชื่อทางการค้า** เพราะสัญญา/ใบเสร็จยังออกในนามนิติบุคคลเดิม
+// ⚠️ ไฟล์นี้ครอบเฉพาะ "แพลตฟอร์ม" ไม่ครอบ Dhammadha Studio ในฐานะ foundry เจ้าหนึ่ง
+// ที่ขายบนแพลตฟอร์ม (ชื่อร้าน/slug/โซเชียลของสตูดิโอ อยู่ในแถว users ของสตูดิโอ)
+//
+// หมายเหตุ: เดิมคอมเมนต์ตรงนี้ระบุว่า `LEGAL_ENTITY` **ไม่**เปลี่ยนตามชื่อทางการค้า
+// ตอนแยกแบรนด์ (7 ส.ค. 2569) เจ้าของสั่งให้เปลี่ยนเป็น "ไทป์ดี.คอม" — ตัวบุคคลที่เป็น
+// คู่สัญญาจริงยังคงเดิม แต่ไปอยู่ที่ `LEGAL_ENTITY_OPERATOR` ซึ่ง `drawIssuerHeader()`
+// พิมพ์เป็นบรรทัด "โดย ..." ใต้ชื่อการค้าให้เอง
 //
 // ⚠️ Edge Function `supabase/functions/download-font/` เป็น Deno รันคนละ runtime
 // import ไฟล์นี้ไม่ได้ → มีค่าคงที่ของตัวเองที่ต้องแก้คู่กันเสมอ (ดูคอมเมนต์ในไฟล์นั้น)
 
 /** ชื่อแพลตฟอร์มแบบเต็ม ใช้ใน <title>, หัวอีเมล, ชื่อผู้ส่ง */
-export const NAME = "DHAMMADHA STUDIO";
+export const NAME = "typedee";
 
 /** ชื่อสั้นสำหรับ wordmark ใน Nav / admin sidebar */
-export const SHORT_NAME = "DHAMMADHA";
+export const SHORT_NAME = "typedee";
 
 /**
  * บรรทัดที่สองของ wordmark ใน Nav (ตัวเล็กสีเทาใต้ SHORT_NAME ตาม moodboard)
  * ถ้าชื่อแบรนด์ใหม่เป็นคำเดียวไม่มีสร้อย ให้ตั้งเป็น "" แล้ว Nav จะไม่ render บรรทัดนี้เลย
+ *
+ * ว่างเพราะ "typedee" เป็นคำเดียวไม่มีสร้อยแบบ "DHAMMADHA / STUDIO"
  */
-export const WORDMARK_SUB = "STUDIO";
+export const WORDMARK_SUB = "";
 
-/** โดเมนเปล่า ไม่มี protocol — ใช้ในเนื้อความ ("ซื้อผ่าน dhammadha.com") และ mailto */
-export const DOMAIN = "dhammadha.com";
+/** โดเมนเปล่า ไม่มี protocol — ใช้ในเนื้อความ ("ซื้อผ่าน typedee.com") และ mailto */
+export const DOMAIN = "typedee.com";
 
 /**
  * URL หลักของเว็บ (canonical) — ใช้ทั้ง sitemap และลิงก์ในอีเมล
@@ -42,17 +47,50 @@ export const URL = `https://www.${DOMAIN}`;
 /** อีเมลติดต่อที่แสดงต่อสาธารณะ */
 export const CONTACT_EMAIL = `info@${DOMAIN}`;
 
-/** ผู้ส่งอีเมลระบบ (Resend) — โดเมนนี้ต้องผ่าน DNS verification ใน Resend ก่อนใช้ */
+/**
+ * ผู้ส่งอีเมลระบบ (Resend) — โดเมนนี้ต้องผ่าน DNS verification ใน Resend ก่อนใช้
+ *
+ * ⚠️ ค่านี้ผูกกับ `DOMAIN` อัตโนมัติ → **ห้าม push การเปลี่ยน `DOMAIN` ก่อน
+ * verify DNS (SPF/DKIM) ของโดเมนใหม่ใน Resend ให้ผ่านก่อน** ไม่งั้นอีเมลระบบ
+ * ตายทั้งเส้น (ยืนยันสมัคร, ใบเสร็จ, ใบเสนอราคา, แจ้งเตือน designer) แบบเงียบ ๆ
+ * เพราะ Resend ปฏิเสธที่ต้นทาง ผู้ใช้จะไม่เห็น error อะไรบนเว็บเลย
+ */
 export const FROM_EMAIL = `${NAME} <noreply@${DOMAIN}>`;
 
-/** โลโก้ใน /public — ใช้เป็น favicon, Nav, Footer */
-export const LOGO_SRC = "/logo_DHAMMADHA_192px.png";
+/**
+ * โลโก้ใน /public/brand — ตั้งชื่อตาม **สีของตัวโลโก้เอง** ไม่ใช่สีพื้นที่จะเอาไปวาง
+ *
+ * กติกาการเลือก (เจ้าของเคาะ 7 ส.ค. 2569):
+ *   พื้นมืด #080808 → LOGO_SRC (ตัวสว่าง)
+ *   **พื้นส้ม #FF4D00 → LOGO_SRC (ตัวสว่าง)** ← ข้อนี้พลาดง่าย ส้มไม่ใช่ "พื้นสว่าง"
+ *   พื้นสว่าง #F0F0F0 → LOGO_SRC_DARK
+ *
+ * ค่าเริ่มต้นเป็นตัวสว่าง เพราะทั้ง Nav และ Footer พื้นดำทั้งคู่
+ */
+export const LOGO_SRC = "/brand/typedee-logo-light.svg";
+export const LOGO_SRC_DARK = "/brand/typedee-logo-dark.svg";
 
 /**
- * นิติบุคคลผู้ให้บริการ — ปรากฏในหน้าเอกสารกฎหมายว่า "ดำเนินการโดย ..."
- * **ไม่ใช่ชื่อทางการค้า** ถ้าเปลี่ยนชื่อแพลตฟอร์ม ค่านี้ยังคงเดิมจนกว่าจะจดนิติบุคคลใหม่
+ * favicon — คนละไฟล์กับ LOGO_SRC เพราะมีพื้นหลังในตัว
+ * (โลโก้ตัวสว่างบนพื้นโปร่งจะหายไปบนแท็บธีมสว่าง)
  */
-export const LEGAL_ENTITY = "ธรรมดาสตูดิโอ";
+export const FAVICON_SRC = "/brand/typedee-favicon.svg";
+
+/**
+ * ผู้ให้บริการ — ปรากฏในหน้าเอกสารกฎหมายว่า "ดำเนินการโดย ..." และเป็นบรรทัดบนสุด
+ * ของหัวเอกสาร PDF ที่แพลตฟอร์มเป็นผู้ออก
+ *
+ * ⚠️ **ห้ามต่อ "โดย {ชื่อคน}" ลงในค่านี้** — `drawIssuerHeader()` (doc-layout.ts)
+ * ประกอบบรรทัด "โดย {LEGAL_ENTITY_OPERATOR}" ให้เองเมื่อสองค่าไม่เท่ากัน
+ * ต่อเองจะได้ "ไทป์ดี.คอม โดย มณฑล ธนาโรจน์ / โดย มณฑล ธนาโรจน์" ซ้ำสองบรรทัด
+ *
+ * ผลลัพธ์ที่ตั้งใจ: หน้าเว็บได้ "ดำเนินการโดย ไทป์ดี.คอม" ·
+ * หัวเอกสารได้ "ไทป์ดี.คอม" แล้วบรรทัดถัดมา "โดย มณฑล ธนาโรจน์ หมายเลขประจำตัวผู้เสียภาษี …"
+ *
+ * เดิมเป็น "ธรรมดาสตูดิโอ" — เปลี่ยนตอนแยกแบรนด์ (7 ส.ค. 2569) เพราะสตูดิโอกลายเป็น
+ * foundry เจ้าหนึ่งบนแพลตฟอร์ม ไม่ใช่ผู้ให้บริการแพลตฟอร์มอีกต่อไป
+ */
+export const LEGAL_ENTITY = "ไทป์ดี.คอม";
 
 /**
  * ข้อมูลบนหัวเอกสารที่ **แพลตฟอร์มเป็นผู้ออก** (ตอนนี้มีใบสรุปการโอนส่วนแบ่งรายได้)
@@ -79,30 +117,42 @@ export const LEGAL_ENTITY = "ธรรมดาสตูดิโอ";
  */
 export const LEGAL_ENTITY_IS_JURISTIC = false;
 
-export const LEGAL_ENTITY_OPERATOR = "มณทล ธนาโรจน์";
+/**
+ * ⚠️ ต้องสะกดตรงกับบัตรประชาชน — ชื่อนี้ถูกพิมพ์ลงใบเสร็จ ใบสรุปโอนส่วนแบ่ง ใบ 50 ทวิ
+ * ข้างเลขประจำตัวผู้เสียภาษี และในช่องลายเซ็น "ผู้จ่ายเงิน"
+ * (แก้ "มณทล" ท ทหาร → "มณฑล" ฑ มณโฑ · เจ้าของยืนยัน 7 ส.ค. 2569)
+ */
+export const LEGAL_ENTITY_OPERATOR = "มณฑล ธนาโรจน์";
 export const LEGAL_ENTITY_TAX_ID = "1849900005733";
 export const LEGAL_ENTITY_ADDRESS =
   "96/9 การุณราษฎร์ 27 ต.ตลาด อ.เมืองสุราษฎร์ธานี จ.สุราษฎร์ธานี 84000";
 export const LEGAL_ENTITY_PHONE = "09-2929-9882";
-export const LEGAL_ENTITY_EMAIL = "dhammadha@outlook.com";
+/** อีเมลบนหัวเอกสาร PDF — ไม่ auto จาก DOMAIN เผื่อวันหน้าอยากใช้คนละกล่องกับหน้าเว็บ
+ *  (เดิมเป็น dhammadha@outlook.com = กล่องส่วนตัว ปนเข้ามาในเอกสารที่ส่งลูกค้า) */
+export const LEGAL_ENTITY_EMAIL = `info@${DOMAIN}`;
 
 /** ปีที่เริ่มดำเนินการ — ใช้ในบรรทัดลิขสิทธิ์ท้ายเว็บ */
 export const FOUNDED_YEAR = 2012;
 
 /**
- * โซเชียลของ **Dhammadha Studio (สตูดิโอ)** ไม่ใช่ของแพลตฟอร์ม
- * ตอนแยกแบรนด์ต้องตัดสินใจว่าจะเปิดบัญชีใหม่ให้แพลตฟอร์มหรือใช้ของเดิมต่อ
+ * โซเชียลของ **แพลตฟอร์ม** (แยกบัญชีใหม่แล้ว 7 ส.ค. 2569 — เดิมยืมของ Dhammadha Studio มาใช้
+ * ซึ่งขัดกับเหตุผลที่แยกแบรนด์ตั้งแต่แรก คือ conflict of interest กับ designer เจ้าอื่น)
+ *
+ * ของ Dhammadha Studio ในฐานะ foundry ย้ายไปอยู่ repo เว็บสตูดิโอ ไม่ใช่ที่นี่
+ *
+ * ⚠️ **มีเฉพาะช่องทางที่เปิดบัญชีจริงแล้วเท่านั้น** — tiktok กับ line ถูกถอดออก
+ * (เจ้าของยังไม่เปิดของ typedee) ห้ามใส่ URL ที่ยังไม่มีบัญชีไว้ล่วงหน้า เพราะ Footer
+ * แสดงทุกหน้าและ email-service พิมพ์ท้ายอีเมลทุกฉบับ = ลิงก์ 404 ยิงเต็มหน้า
+ * เปิดบัญชีเมื่อไรค่อยเติมกลับที่นี่ แล้วต่อไอคอนใน Footer.tsx
  */
 export const SOCIAL = {
-  facebook: "https://www.facebook.com/dhammadha",
-  instagram: "https://www.instagram.com/dhammadha",
-  tiktok: "https://www.tiktok.com/@dhammadha",
-  line: "@dhammadha",
+  facebook: "https://www.facebook.com/typedee.official",
+  instagram: "https://www.instagram.com/typedee.official",
 } as const;
 
 /**
  * ประกอบ <title> ของหน้าย่อยให้เป็นรูปแบบเดียวกันทั้งเว็บ
- * `pageTitle("ตะกร้า")` → "ตะกร้า — DHAMMADHA STUDIO"
+ * `pageTitle("ตะกร้า")` → "ตะกร้า — typedee"
  */
 export function pageTitle(page: string): string {
   return `${page} — ${NAME}`;
