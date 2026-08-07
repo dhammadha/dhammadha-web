@@ -137,7 +137,7 @@ export default function Footer() {
       {/* แถบล่างพื้นอ่อน ตาม moodboard/footer.png — ใช้ `footnote` (Looped Light 12) */}
       <div className="bg-surface">
         <Container className="py-4 text-center font-body text-footnote text-grey-600">
-          © {new Date().getFullYear()} {BRAND_NAME}.com
+          © {new Date().getFullYear()} {BRAND_NAME}
         </Container>
       </div>
     </footer>

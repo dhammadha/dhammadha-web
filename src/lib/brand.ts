@@ -19,7 +19,7 @@
 // import ไฟล์นี้ไม่ได้ → มีค่าคงที่ของตัวเองที่ต้องแก้คู่กันเสมอ (ดูคอมเมนต์ในไฟล์นั้น)
 
 /** ชื่อแพลตฟอร์มแบบเต็ม ใช้ใน <title>, หัวอีเมล, ชื่อผู้ส่ง */
-export const NAME = "typedee";
+export const NAME = "typedee.com";
 
 /**
  * ชื่อสั้นแบบข้อความ — ใช้ใน admin sidebar ("typedee ADMIN") และ title ของ type tester
