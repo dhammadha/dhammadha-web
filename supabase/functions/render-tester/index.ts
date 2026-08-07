@@ -20,7 +20,9 @@ const MAX_TEXT = 80;
 const MIN_SIZE = 12;
 const MAX_SIZE = 120;
 const CACHE_BUCKET = "tester-cache";
-const CACHE_VERSION = "v1"; // ขยับเมื่อเปลี่ยน logic การ render เพื่อล้าง cache ทั้งหมด
+const CACHE_VERSION = "v2"; // ขยับเมื่อเปลี่ยน logic/สีการ render เพื่อล้าง cache ทั้งหมด
+// v1 → v2 เมื่อ 8 ส.ค. 2569: สีหมึกเปลี่ยนจาก navy #2B1B3D เป็น #080808
+// 🔴 ต้องตรงกับ literal ใน TypeTester.tsx เป๊ะ ๆ ไม่งั้น client probe พลาดทุกครั้ง
 const RATE_LIMIT_PER_MIN = 120; // ต่อ IP ต่อ instance — กันยิงถล่มแบบหลวม ๆ
 
 const CORS = {

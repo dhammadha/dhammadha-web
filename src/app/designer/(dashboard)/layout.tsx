@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useDesignerSetup } from "@/components/designer/SetupGate";
 import { cn } from "@/lib/cn";
+import Image from "next/image";
+import { NAME as BRAND_NAME, WORDMARK_SRC } from "@/lib/brand";
 
 // sidebar ดำ · hover ส้ม / หน้าปัจจุบันเป็นเม็ดเทา เหมือน Nav.tsx สาธารณะ (DESIGN.md §18.1)
 function NavItem({ href, label, icon, badge, isActive, onClick }: {
@@ -37,7 +39,6 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingQuotes, setPendingQuotes] = useState(0);
-  const [designerSlug, setDesignerSlug] = useState("");
   const setup = useDesignerSetup();
 
   const loadPending = useCallback(async () => {
@@ -63,17 +64,9 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
   }, [setup.loading, setup.complete, router]);
 
   useEffect(() => {
-    if (user && (role === "designer" || role === "admin")) {
-      loadPending();
-      supabase
-        .from("users")
-        .select("designer_slug")
-        .eq("id", user.id)
-        .single()
-        .then(({ data }) => {
-          if (data?.designer_slug) setDesignerSlug(data.designer_slug);
-        });
-    }
+    // เดิมยิง users.designer_slug มาโชว์เป็นหัว sidebar ด้วย — ตัดทิ้งตอนเปลี่ยนเป็น
+    // wordmark (8 ส.ค. 2569) ประหยัดไป 1 request ต่อการเปิดหน้า dashboard
+    if (user && (role === "designer" || role === "admin")) loadPending();
   }, [user, role, loadPending]);
 
   if (loading || !user || (role !== "designer" && role !== "admin")) {
@@ -131,10 +124,10 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
     <div className="flex min-h-screen bg-page">
       {/* Sidebar desktop — พื้นดำเหมือน Nav.tsx สาธารณะ ไม่มีเส้นขอบ (§4.0) */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-black sticky top-0 h-screen overflow-y-auto">
+        {/* wordmark แทนชื่อร้าน/slug (เจ้าของสั่ง 8 ส.ค. 2569 — ชุดเดียวกับ admin)
+            sidebar พื้นดำ → ต้องใช้ WORDMARK_SRC (ตัวสว่าง #F0F0F0) ไม่ใช่ตัว _DARK */}
         <div className="px-5 py-5">
-          <span className="font-heading text-badge text-page tracking-[0.05em] block uppercase">
-            {designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}
-          </span>
+          <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={101} height={24} className="block mb-1" />
           <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">DESIGNER</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
@@ -168,8 +161,9 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black flex items-center justify-between px-4 py-3">
         <Link href="/" className="no-underline">
-          <span className="font-heading text-badge text-page tracking-[0.05em] uppercase">
-            {designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}
+          <span className="flex items-center gap-1.5">
+            <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={84} height={20} />
+            <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">DESIGNER</span>
           </span>
         </Link>
         <button onClick={() => setMenuOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-1 text-page">
@@ -184,7 +178,10 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
         <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setMenuOpen(false)}>
           <div className="w-[220px] bg-black h-full flex flex-col overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-5">
-              <span className="font-heading text-badge text-page tracking-[0.05em] uppercase">{designerSlug ? designerSlug.toUpperCase() : "DESIGNER"}</span>
+              <span className="flex items-center gap-1.5">
+                <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={84} height={20} />
+                <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">DESIGNER</span>
+              </span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
               {NAV.map((item) => (

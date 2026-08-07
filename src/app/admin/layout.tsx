@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/cn";
-import { SHORT_NAME } from "@/lib/brand";
+import Image from "next/image";
+import { NAME as BRAND_NAME, WORDMARK_SRC } from "@/lib/brand";
 
 // sidebar ดำ · hover ส้ม / หน้าปัจจุบันเป็นเม็ดเทา เหมือน Nav.tsx สาธารณะ (DESIGN.md §18.1)
 function NavItem({ href, label, icon, badge, isActive, onClick }: {
@@ -168,8 +169,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen bg-page">
       {/* Sidebar desktop — พื้นดำเหมือน Nav.tsx สาธารณะ ไม่มีเส้นขอบ (§4.0) */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-black sticky top-0 h-screen overflow-y-auto">
+        {/* wordmark แทนชื่อที่พิมพ์เป็นตัวอักษร (เจ้าของสั่ง 8 ส.ค. 2569)
+            sidebar พื้นดำ → ต้องใช้ WORDMARK_SRC (ตัวสว่าง #F0F0F0) ไม่ใช่ตัว _DARK
+            101×24 = อัตราส่วนหลัง crop ชุดเดียวกับ Nav.tsx (ดู WORDMARK_SRC ใน lib/brand.ts) */}
         <div className="px-5 py-5">
-          <span className="font-heading text-badge text-page tracking-[0.05em] block uppercase">{SHORT_NAME}</span>
+          <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={101} height={24} className="block mb-1" />
           <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">ADMIN PANEL</span>
         </div>
         <nav className="flex flex-col gap-1 p-3 flex-1">
@@ -202,7 +206,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black flex items-center justify-between px-4 py-3">
         <Link href="/" className="flex flex-col gap-0.5 no-underline">
-          <span className="font-heading text-badge text-page tracking-[0.05em] uppercase">{SHORT_NAME} ADMIN</span>
+          <span className="flex items-center gap-1.5">
+            <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={84} height={20} />
+            <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">ADMIN</span>
+          </span>
         </Link>
         <button onClick={() => setMenuOpen((v) => !v)} className="bg-transparent border-none cursor-pointer p-1 text-page">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -216,7 +223,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={() => setMenuOpen(false)}>
           <div className="w-[220px] bg-black h-full flex flex-col overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-5">
-              <span className="font-heading text-badge text-page tracking-[0.05em] uppercase">{SHORT_NAME} ADMIN</span>
+              <span className="flex items-center gap-1.5">
+            <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={84} height={20} />
+            <span className="font-body text-footnote text-grey-400 tracking-[0.06em]">ADMIN</span>
+          </span>
             </div>
             <nav className="flex flex-col gap-1 p-3 flex-1">
               <div className="font-body text-footnote text-grey-400 tracking-wide px-3 pt-1 pb-1 uppercase">Designer Section</div>

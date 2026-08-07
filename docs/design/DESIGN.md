@@ -1,4 +1,4 @@
-# DESIGN.md — ระบบดีไซน์หน้าสาธารณะ DHAMMADHA STUDIO
+# DESIGN.md — ระบบดีไซน์หน้าสาธารณะ typedee.com
 
 > ## 🚀 เริ่มงานต่อใน session ใหม่
 >

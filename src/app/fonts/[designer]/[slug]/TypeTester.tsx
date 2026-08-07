@@ -186,7 +186,9 @@ export default function TypeTester({ font }: { font: Font }) {
     const normalized = normalizeTesterText(text);
     const hash = await sha256Hex40(normalized);
     if (seq !== seqRef.current) return;
-    const key = `v1/${font.id}/${weightId}/${size}/${hash}.png`;
+    // 🔴 "v2" ต้องตรงกับ CACHE_VERSION ใน supabase/functions/render-tester/index.ts เป๊ะ ๆ
+    // ฝั่งนี้ไม่มี const เป็นสตริงดิบ — ขยับฝั่งเดียวแล้ว probe พลาดทุกครั้งแบบเงียบ ๆ
+    const key = `v2/${font.id}/${weightId}/${size}/${hash}.png`;
 
     // ── client cache: เคย render combination นี้แล้วในรอบนี้ → โชว์ทันที ไม่วิ่ง network ──
     const hit = clientCacheRef.current.get(key);

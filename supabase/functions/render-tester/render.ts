@@ -16,7 +16,11 @@ const fontkit: any = (fontkitMod as any).default ?? fontkitMod;
 const RESVG_WASM_URL = "https://cdn.jsdelivr.net/npm/@resvg/resvg-wasm@2.6.2/index_bg.wasm";
 const SCALE_FACTOR = 2; // render 2x สำหรับจอ retina (ฝั่งเว็บแสดงที่ naturalWidth/2)
 const MAX_RASTER_W = 4096; // เพดานความกว้างรูป (device px)
-const INK = "#2B1B3D"; // token navy ใน tailwind.config.ts
+const INK = "#080808"; // = token `black` ใน tailwind.config.ts
+// เดิมเป็น navy #2B1B3D ซึ่งถูกยกเลิกตอนแยกแบรนด์ typedee (7 ส.ค. 2569)
+// ⚠️ เปลี่ยนค่านี้ต้องขยับ CACHE_VERSION ใน index.ts **และ** literal `v2/` ใน
+//    src/app/fonts/[designer]/[slug]/TypeTester.tsx ให้ตรงกัน แล้ว redeploy
+//    ไม่งั้นรูปเก่าใน bucket tester-cache ยังเป็น navy อยู่โดยหน้าเว็บดูปกติ
 
 // โหลด wasm ครั้งเดียวต่อ instance (memoize ไว้ตอนเรียก render ครั้งแรก)
 let wasmReady: Promise<void> | null = null;
