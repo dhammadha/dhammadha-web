@@ -76,11 +76,17 @@ const CartIcon = ({ size = 18 }: { size?: number }) => (
 
 // ลิงก์ nav — hover เป็นบล็อกส้ม (เดิม mint) ตาม moodboard/button.png (Nav_Button state hover)
 // px-2 ที่จอ 768–1023 กันล้นขวา (เมนู+ค้นหา+ไอคอนรวมกันกว้างกว่า container ถ้าใช้ px-3 เต็ม) → px-3 คืนที่ lg 1024+
-const NAV_LINK = cn(
-  "font-ui text-ui text-page no-underline px-2 lg:px-3 py-2 whitespace-nowrap",
+// 🔴 สีตัวอักษรถูกแยกออกมาจาก NAV_LINK โดยเจตนา — ห้ามยัดกลับเข้าไป
+// `cn()` แค่ต่อสตริง ไม่ merge class ที่ชนกัน และ Tailwind ปล่อย `.text-page` **หลัง**
+// `.text-black` ในไฟล์ CSS → เขียน cn(NAV_LINK, "text-black") แล้ว text-black แพ้เสมอ
+// ของเดิมทำแบบนั้นตอนเมนู "ฟอนต์" เปิดอยู่ ผลคือตัวอักษรเทาบนพื้นเทา = หายไปทั้งคำ
+// (เจ้าของจับได้ 8 ส.ค. 2569) · ตอนนี้เลือกสีครั้งเดียวที่จุดเรียกใช้
+const NAV_LINK_BASE = cn(
+  "font-ui text-ui no-underline px-2 lg:px-3 py-2 whitespace-nowrap",
   "hover:bg-orange hover:text-black transition-colors duration-150 ease-base",
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
 );
+const NAV_LINK = cn(NAV_LINK_BASE, "text-page");
 
 export default function Nav() {
   const router = useRouter();
@@ -271,7 +277,7 @@ export default function Nav() {
           >
             <Link
               href="/fonts/"
-              className={cn(NAV_LINK, fontMenuOpen && "bg-page text-black")}
+              className={cn(NAV_LINK_BASE, fontMenuOpen ? "bg-page text-black" : "text-page")}
               onFocus={() => setFontMenuOpen(true)}
             >
               ฟอนต์
