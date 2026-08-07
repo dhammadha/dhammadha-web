@@ -106,6 +106,10 @@ async function sendResendEmail(
       },
       body: JSON.stringify({
         from: FROM,
+        // `from` เป็น noreply@ ที่ไม่มีคนอ่าน — ถ้าไม่ตั้ง reply_to ผู้รับที่กด Reply
+        // (ซึ่งเป็นสิ่งที่คนทำเป็นอันดับแรก) จะเขียนหาย ไม่มีใครเห็น
+        // เดิม CONTACT_EMAIL โผล่แค่เป็นตัวหนังสือท้ายอีเมล = ต้องก๊อปเอาเองถึงจะติดต่อได้
+        reply_to: CONTACT_EMAIL,
         ...rest,
         ...(attachments && attachments.length ? { attachments } : {}),
       }),

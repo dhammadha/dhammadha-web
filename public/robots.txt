@@ -6,4 +6,4 @@ Disallow: /designer/pricing/
 Disallow: /account/
 Disallow: /auth/
 
-Sitemap: https://www.dhammadha.com/sitemap.xml
+Sitemap: https://www.typedee.com/sitemap.xml

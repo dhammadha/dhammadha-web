@@ -17,6 +17,7 @@ import {
   licenseLabel as getLicenseLabel,
   type LicenseTier,
 } from "@/lib/license";
+import { CONTACT_EMAIL } from "@/lib/brand";
 
 interface FontItem {
   id: string;
@@ -83,6 +84,9 @@ function QuoteForm() {
   const [selectedFonts, setSelectedFonts] = useState<string[]>([preselectedFont || ""]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  // คำขอถูกบันทึกแล้ว แต่อีเมลแจ้งนักออกแบบไม่ออก — สถานะกึ่งกลางที่ต้องแยกจาก
+  // ทั้ง success และ error (ดูเหตุผลตรงจุดที่ตั้งค่า)
+  const [notifyFailed, setNotifyFailed] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
@@ -302,11 +306,22 @@ function QuoteForm() {
         designer_id: designer?.id ?? null,
       };
 
-      await fetch("/api/send-email", {
+      // ⚠️ **ห้าม throw เมื่ออีเมลไม่ออก** — คำขอถูกบันทึกลง quotes ไปแล้วโดย
+      // `submit_public_quote` ข้างบน ถ้าโยนเข้า catch ผู้ใช้จะเห็น "ส่งไม่สำเร็จ" แล้วกดซ้ำ
+      // → ได้แถวซ้ำใน quotes และสุดท้ายชน rate limit 5 ครั้ง/ชม. (0074) ทั้งที่ครั้งแรกสำเร็จ
+      //
+      // แต่ก็ห้ามเงียบเหมือนเดิม (ก่อน 7 ส.ค. 2569 ไม่เช็ค res.ok เลย) — ตอนโดเมนอีเมล
+      // มีปัญหา ลูกค้าเห็น "ส่งคำขอสำเร็จ" ทั้งที่ designer ไม่เคยได้รับอะไร และไม่มีใครรู้
+      // → คงหน้า success ไว้ (เพราะคำขอถึงเราจริง) แล้วเตือนเพิ่มว่าช่องแจ้งเตือนขัดข้อง
+      const emailRes = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "quote", turnstile_token: turnstileToken, payload: emailPayload }),
       });
+      if (!emailRes.ok) {
+        console.error("quote saved but notification email failed:", emailRes.status, await emailRes.text().catch(() => ""));
+        setNotifyFailed(true);
+      }
 
       setStatus("success");
       setForm(EMPTY_FORM);
@@ -347,6 +362,19 @@ function QuoteForm() {
                 <p className="font-body text-body-sm text-grey-600 leading-[1.8] mb-6">
                   หากไม่พบอีเมลตอบกลับจากเรา รบกวนตรวจสอบใน Junk Mail
                 </p>
+                {/* คำขอบันทึกสำเร็จแต่อีเมลแจ้งเตือนไม่ออก — ต้องบอก ไม่งั้นลูกค้ารอเก้อ
+                    โดยไม่มีใครรู้ว่านักออกแบบยังไม่เคยเห็นคำขอนี้ */}
+                {notifyFailed && (
+                  <div className="border-l-2 border-warning bg-white p-4 mb-6">
+                    <p className="font-body text-body-sm text-grey-800 leading-[1.8]">
+                      หมายเหตุ: ระบบแจ้งเตือนนักออกแบบขัดข้องชั่วคราว คำขอของคุณถูกบันทึกไว้เรียบร้อยแล้ว
+                      แต่หากไม่ได้รับการติดต่อกลับภายใน 2 วันทำการ รบกวนแจ้งเราที่{" "}
+                      <a href={`mailto:${CONTACT_EMAIL}`} className="text-black underline decoration-danger-dark">
+                        {CONTACT_EMAIL}
+                      </a>
+                    </p>
+                  </div>
+                )}
                 <Button as="link" href="/">กลับหน้าแรก</Button>
               </div>
             </div>
