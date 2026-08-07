@@ -76,5 +76,10 @@ export function buildRetailReceiptData(order: RetailReceiptOrder): QuoteDocData 
     items,
     discount: Number(order.discount ?? 0),
     seller: PLATFORM_SELLER,
+    // 🔴 การซื้อรายชุด = ลูกค้าจ่ายเต็มจำนวนผ่านบัตร/PromptPay ไม่มีการหัก ณ ที่จ่าย
+    // (หน้าที่หัก 3% เป็นของลูกค้า**นิติบุคคล**ในเส้นทางใบเสนอราคาเท่านั้น)
+    // ถ้าไม่ส่งค่านี้ ตัวเรนเดอร์จะหัก 3% ตามปริยายของฝั่งองค์กร แล้วใบเสร็จจะพิมพ์
+    // ยอดชำระน้อยกว่าที่ Stripe เก็บจริง — เป็นบั๊กที่เจอในใบ RC-2569-0017
+    withholding: false,
   };
 }

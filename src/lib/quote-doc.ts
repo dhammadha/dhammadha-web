@@ -72,6 +72,20 @@ export type QuoteDocData = {
   items: QuoteDocItem[];
   seller: QuoteDocSeller;
   discount?: number;
+  /**
+   * พิมพ์บรรทัด "หักภาษี ณ ที่จ่าย 3%" หรือไม่ · **ปริยาย = true**
+   *
+   * 🔴 true ได้เฉพาะเอกสารฝั่ง**องค์กร** เท่านั้น — ที่นั่นลูกค้านิติบุคคลมีหน้าที่
+   * หัก 3% จากค่าสิทธิ์แล้วนำส่งสรรพากรเอง ยอดที่โอนจริงจึงเป็นยอดหลังหัก
+   *
+   * **การซื้อรายชุดผ่านเว็บต้องเป็น false** — ลูกค้าจ่ายผ่านบัตร/PromptPay เต็มจำนวน
+   * ไม่มีการหักอะไรทั้งสิ้น ถ้าเปิดไว้ ใบเสร็จจะพิมพ์ยอดชำระ**น้อยกว่าที่เก็บเงินจริง**
+   * (เจอจริงในใบ RC-2569-0017: Stripe เก็บ 1,100 แต่ใบเสร็จพิมพ์ 1,067)
+   *
+   * ⚠️ อย่าสับสนกับภาษีหัก ณ ที่จ่ายตอนแพลตฟอร์มโอนส่วนแบ่งให้ดีไซน์เนอร์ —
+   * อันนั้นอยู่ที่ `payout-doc.ts` และเปิดตาม `LEGAL_ENTITY_IS_JURISTIC` (ยังไม่จดบริษัท = ปิด)
+   */
+  withholding?: boolean;
 };
 
 /* ------------------------------------------------------------------------ */
@@ -107,7 +121,9 @@ export async function generateQuotePdf(
   const subtotal = data.items.reduce((s, i) => s + i.price, 0);
   const discount = data.discount ?? 0;
   const discountedSubtotal = subtotal - discount;
-  const wht = discountedSubtotal * QUOTE_WHT_RATE;
+  // ปริยาย true = พฤติกรรมเดิมของเอกสารฝั่งองค์กร · ฝั่ง retail ส่ง false มา (ดู type)
+  const withholding = data.withholding ?? true;
+  const wht = withholding ? discountedSubtotal * QUOTE_WHT_RATE : 0;
   const total = discountedSubtotal - wht;
 
   drawIssuerHeader(w, data.seller);
@@ -123,7 +139,7 @@ export async function generateQuotePdf(
   w.y = w.blockBottom + M.ruleToTotals;
   drawTotalRow(w, "รวมจำนวนเงิน", money(subtotal));
   if (discount > 0) drawTotalRow(w, "ส่วนลด", money(discount), COLOR.red);
-  drawTotalRow(w, `หักภาษี ณ ที่จ่าย ${QUOTE_WHT_RATE * 100}%`, money(wht));
+  if (withholding) drawTotalRow(w, `หักภาษี ณ ที่จ่าย ${QUOTE_WHT_RATE * 100}%`, money(wht));
 
   w.y = w.blockBottom + M.totalsToBar;
   drawTotalBar(w, "ยอดชำระ", money(total), bahtText(total));

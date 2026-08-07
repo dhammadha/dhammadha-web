@@ -233,8 +233,22 @@ export function fontDocName(
   return th || en;
 }
 
-/** บรรทัดแรกของทุกรายการ — คงที่ ไม่ขึ้นกับ tier */
-const DOC_LICENSE_HEADLINE = "สิทธิการใช้งาน สำหรับ ห้างร้าน องค์กร และบริษัท";
+/**
+ * บรรทัดแรกของรายการใน**เอกสารฝั่งองค์กร** (ใบเสนอราคา/ใบแจ้งหนี้/ใบเสร็จของ B2B)
+ *
+ * 🔴 **ห้ามใช้กับใบเสร็จการซื้อรายชุด (retail)** — สิทธิ์ `personal` เป็นของบุคคลธรรมดา
+ * ไม่ใช่ห้างร้าน/องค์กร · เดิม `licenseDocLines("personal")` ตกเข้ากิ่ง fallback แล้วพิมพ์
+ * หัวข้อนี้ทับไป ทำให้ใบเสร็จของลูกค้าทั่วไปขึ้นทั้ง "สำหรับ ห้างร้าน องค์กร และบริษัท"
+ * และ "สิทธิการใช้งานบุคคลธรรมดา" พร้อมกัน (เจ้าของจับได้จากใบ RC-2569-0017)
+ */
+const DOC_LICENSE_HEADLINE = "สิทธิการใช้งานสำหรับห้างร้าน องค์กร และบริษัท";
+
+/**
+ * บรรทัดสิทธิ์ของการซื้อรายชุด — เขียนเต็มว่า "สำหรับ" ต่างจาก `LICENSE_LABEL.personal`
+ * ที่ตัดคำนี้ออกเพื่อความกระชับบนหน้าจอ · บนเอกสารต้องเป็นข้อความเต็มให้ตรงกับ
+ * หน้า /agreement เพราะเป็นเอกสารทางการเงินที่ลูกค้าเก็บไว้อ้างอิง
+ */
+const DOC_PERSONAL_LINE = "สิทธิการใช้งานสำหรับบุคคลธรรมดา";
 
 /**
  * บรรทัดปิดท้ายของ tier "สิทธิการใช้งานเพิ่มเติม" — อ้าง **ข้อ 5** ในหน้า /agreement
@@ -290,6 +304,12 @@ export function licenseDocLines(
   value: string | null | undefined,
   tiers?: LicenseTier[] | null
 ): string[] {
+  // 🔴 สิทธิ์รายชุด (`personal`) ไม่ใช่ tier องค์กร — ห้ามตกเข้ากิ่ง fallback ข้างล่าง
+  // ซึ่งจะแปะหัวข้อ "สำหรับ ห้างร้าน องค์กร และบริษัท" ให้ใบเสร็จของลูกค้าทั่วไป
+  // ค่านี้ตั้งโดย checkout-service (`metadata[license_type] = "personal"`) จึงมาจาก
+  // เส้นทาง retail เท่านั้น — ฝั่ง B2B ส่ง id ของ tier มาพร้อม `tiers` เสมอ
+  if (value === "personal") return [DOC_PERSONAL_LINE, DOC_VERSION_LINE];
+
   const tier = findTier(value, tiers);
   if (!tier) {
     const label = licenseLabel(value, tiers);
