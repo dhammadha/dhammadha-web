@@ -101,14 +101,22 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
   const eff = effectiveSale(font);
   const saleActive = eff.active;
   // exclusive ใช้ variant "sale" (พื้นเหลือง) ตามที่เจ้าของสั่ง — สีเดียวกับป้ายส่วนลด
+  // **ทบทวนซ้ำแล้วเมื่อ 8 ส.ค. 2569 ตอน NEW/FREE ย้ายไปพื้นดำ: เจ้าของยืนยันให้คงเหลือง**
+  // เหตุผลคือต้องเด่นกว่าป้ายดำ — "ซื้อรายชุดไม่ได้" เป็นข้อมูลที่ต้องเห็นก่อนกดเข้าไป
+  // (จึงไม่ใช่ regression ถ้าเห็นว่าซ้ำสีกับป้ายลดราคา — ห้ามแก้กลับเงียบ ๆ)
+  //
   // วางไว้ก่อน NEW เพราะ "ซื้อไม่ได้" เป็นข้อมูลที่สำคัญกว่า "เพิ่งมาใหม่"
   // (ชนกับ sale/free ไม่ได้อยู่แล้ว: exclusive ห้ามฟรีและไม่มีการลดราคา)
+  //
+  // ⚠️ ข้อความบนป้ายเป็นอังกฤษ "MEMBERS ONLY" เข้าชุดกับ NEW/FREE (เจ้าของเคาะ 8 ส.ค. 2569)
+  // **แต่ที่อื่นยังเป็นไทยโดยเจตนา** — ตัวกรอง /fonts, แท็บในหน้าฟอนต์, ช่องราคาบนการ์ด
+  // ("สมาชิก") และเนื้อสัญญา ล้วนเป็น UI/เอกสารภาษาไทย คนละเรื่องกับป้ายบนปก
   const badge = saleActive
     ? { text: eff.saleLabel, variant: "sale" as const }
     : font.is_free
     ? { text: "FREE", variant: "free" as const }
     : font.is_sub_exclusive
-    ? { text: "เฉพาะสมาชิก", variant: "sale" as const }
+    ? { text: "MEMBERS ONLY", variant: "sale" as const }
     : newFlag
     ? { text: "NEW", variant: "new" as const }
     : null;

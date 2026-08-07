@@ -461,9 +461,12 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                       <span className="font-body text-body text-black">
                         ผู้ใช้งานทั่วไป นิสิต นักศึกษา นักออกแบบอิสระ
                       </span>
+                      {/* ป้าย MEMBERS ONLY ใช้ข้อความอังกฤษเข้าชุดกับ NEW/FREE บนการ์ด
+                          (เจ้าของเคาะ 8 ส.ค. 2569) · แท็บกับตัวกรองในหน้าเดียวกันยังเป็นไทย
+                          โดยเจตนา — คนละบทบาทกัน */}
                       <span className="flex items-center gap-2 shrink-0">
                         {font.is_sub_exclusive ? (
-                          <Badge variant="sale">เฉพาะสมาชิก</Badge>
+                          <Badge variant="sale">MEMBERS ONLY</Badge>
                         ) : font.is_free ? (
                           <span className="font-ui text-ui text-success">ฟรี</span>
                         ) : saleActive ? (
