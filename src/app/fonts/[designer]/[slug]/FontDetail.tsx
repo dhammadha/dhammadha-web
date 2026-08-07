@@ -232,7 +232,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     return (
       <>
         <Nav />
-        <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="min-h-screen flex items-center justify-center bg-page">
           <div className="font-body text-body text-grey-600">กำลังโหลด...</div>
         </div>
         <Footer />
@@ -244,9 +244,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     return (
       <>
         <Nav />
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-page">
           <div className="font-heading text-h2 text-black">ไม่พบฟอนต์นี้</div>
-          <Link href="/" className="font-body text-body text-mint-text no-underline hover:underline">
+          <Link href="/" className="font-body text-body link-accent no-underline hover:underline">
             ← กลับหน้าแรก
           </Link>
         </div>
@@ -279,7 +279,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
     <p className="font-body text-body-sm text-grey-600">
       ออกแบบโดย{" "}
       {font.designer_slug ? (
-        <Link href={`/designer/${font.designer_slug}`} className="font-ui text-ui text-mint-text no-underline hover:underline">
+        <Link href={`/designer/${font.designer_slug}`} className="font-ui text-ui link-accent no-underline hover:underline">
           {designerName}
         </Link>
       ) : (
@@ -326,7 +326,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
   return (
     <>
       <Nav />
-      <div className="bg-white min-h-screen">
+      <div className="bg-page min-h-screen">
 
         {/* ฮีโร่ — ชื่ออังกฤษอย่างเดียว + ป้ายหมวดหมู่/แท็ก (moodboard: font detail alt.png) */}
         <Container className="pt-10 pb-5">
@@ -355,11 +355,11 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
           {/* ชื่อฟอนต์ + หัวใจ — เหนือแถบเมนู จึงเห็นตลอดทุกแท็บโดยไม่ต้องเขียนซ้ำ 3 ที่
               sticky ใต้ nav (70px) ตอน scroll อ่านรายละเอียดยาว ๆ ยังรู้ว่าอยู่ฟอนต์ไหน
-              ต้องมี bg-white — ไม่งั้นเนื้อหาที่เลื่อนผ่านจะทะลุขึ้นมาซ้อน
+              ต้องมี bg-page — ไม่งั้นเนื้อหาที่เลื่อนผ่านจะทะลุขึ้นมาซ้อน
               pt-4 = ระยะจากสไลด์ — วัดพื้นที่จริงให้ visual gap (slide→ชื่อ) เท่า (ออกแบบโดย→แท็บ)
               carousel มี pb-5 (20px) อยู่แล้ว + pt-4 (16px) = 36px ≈ pb-4+mb-4 ข้างล่าง (เจ้าของสั่งวัดจริง)
               -mx/px ให้พื้นขาวเต็มความกว้าง Container */}
-          <div className="sticky top-[70px] z-30 bg-white pt-4 pb-4 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 flex items-start justify-between gap-4 mb-4">
+          <div className="sticky top-[70px] z-30 bg-page pt-4 pb-4 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8 flex items-start justify-between gap-4 mb-4">
             <div className="min-w-0">
               <h2 className="font-heading text-h1 text-black leading-none">ฟอนต์ &ldquo;{mainTitle}&rdquo;</h2>
               <div className="mt-2">{designerLine}</div>
@@ -386,9 +386,9 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 aria-pressed={isFavourite(font.id)}
                 aria-label={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
                 title={isFavourite(font.id) ? "บันทึกแล้ว" : "บันทึกไว้ดูภายหลัง"}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-mint-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-orange-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               >
-                <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#5ECEC8" : "none"} stroke={isFavourite(font.id) ? "#5ECEC8" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <svg viewBox="0 0 24 24" fill={isFavourite(font.id) ? "#FF4D00" : "none"} stroke={isFavourite(font.id) ? "#FF4D00" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
               </button>
@@ -398,7 +398,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
           {/* แถบเมนู 3 หัวข้อ — มือถือเรียงแนวตั้ง (§15.5 เจ้าของเคาะ 2026-07-20)
               หัวข้อที่ 3 ("สั่งซื้อฟอนต์ / ขอใบเสนอราคา") ยาวเกินช่อง 114px ที่จอ 375
               ตอน 3 คอลัมน์ → ตัด 3 บรรทัด สูง 96px ทั้งแถว · เรียงตั้งได้บรรทัดเดียวต่อหัวข้อ */}
-          <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white mb-8">
+          <div role="tablist" aria-label="ข้อมูลฟอนต์" className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-page mb-8">
             {tabsFor(font.is_free, quoteEnabled, font.is_sub_exclusive).map((t) => (
               <button
                 key={t.id}
@@ -408,7 +408,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                 aria-controls={`panel-${t.id}`}
                 onClick={() => { setTab(t.id); if (t.id === "tester") setTesterOpened(true); }}
                 className={`flex items-center justify-center text-center font-ui text-ui px-2 py-3 border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
-                  tab === t.id ? "bg-mint text-black" : "bg-surface text-black hover:bg-mint"
+                  tab === t.id ? "bg-black text-white" : "bg-surface text-black hover:bg-orange"
                 }`}
               >
                 {t.label}
@@ -592,7 +592,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                     <LicenseLink
                       pdfUrl={customLicensePdf}
                       newTab
-                      className="text-mint-text font-body text-body-sm hover:underline"
+                      className="link-accent font-body text-body-sm hover:underline"
                     />
                   </p>
                   <Button

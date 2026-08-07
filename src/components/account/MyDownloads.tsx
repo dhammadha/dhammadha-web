@@ -177,7 +177,7 @@ export default function MyDownloads() {
       </p>
       <p className="font-body text-body-sm text-grey-600 mb-4">
         ดูรายละเอียด{" "}
-        <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text">
+        <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="link-accent">
           สัญญาอนุญาต
         </Link>
       </p>
@@ -187,7 +187,7 @@ export default function MyDownloads() {
       ) : items.length === 0 ? (
         <div className="bg-surface px-4 py-6 text-center">
           <p className="font-body text-body-sm text-grey-600">ยังไม่มีคำสั่งซื้อ</p>
-          <Link href="/fonts/" className="font-body text-body-sm text-mint-text no-underline mt-1 inline-block">
+          <Link href="/fonts/" className="font-body text-body-sm link-accent no-underline mt-1 inline-block">
             เลือกดูฟอนต์
           </Link>
         </div>
@@ -226,7 +226,7 @@ export default function MyDownloads() {
                       ฟอนต์นี้ใช้สัญญาอนุญาตของผู้ออกแบบ —{" "}
                       <LicenseLink
                         pdfUrl={licensePdfs[ent.fonts.owner_id]}
-                        className="text-mint-text font-body text-footnote hover:underline"
+                        className="link-accent font-body text-footnote hover:underline"
                       />
                     </p>
                   )}
@@ -237,7 +237,7 @@ export default function MyDownloads() {
                       <button
                         onClick={() => openReceipt(ent)}
                         disabled={receiptBusy === ent.id}
-                        className="bg-transparent border-none p-0 cursor-pointer font-body text-footnote text-mint-text hover:underline disabled:opacity-50"
+                        className="bg-transparent border-none p-0 cursor-pointer font-body text-footnote link-accent hover:underline disabled:opacity-50"
                       >
                         {receiptBusy === ent.id ? "กำลังสร้างใบเสร็จ…" : `ใบเสร็จรับเงิน ${ent.orders.receipt_no}`}
                       </button>
@@ -254,7 +254,7 @@ export default function MyDownloads() {
                         <button
                           onClick={() => setOpenExt((prev) => ({ ...prev, [key]: !prev[key] }))}
                           aria-expanded={expanded}
-                          className="w-full flex items-center gap-2 px-3 py-2 bg-white border-none cursor-pointer text-left hover:bg-grey-200/60 transition-colors duration-150 ease-base"
+                          className="w-full flex items-center gap-2 px-3 py-2 bg-page border-none cursor-pointer text-left hover:bg-grey-200/60 transition-colors duration-150 ease-base"
                         >
                           <span className="font-ui text-ui text-black flex-1">{ext}</span>
                           <span className="font-body text-footnote text-grey-600">{group.length} ไฟล์</span>

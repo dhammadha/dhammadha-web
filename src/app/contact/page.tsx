@@ -129,7 +129,7 @@ export default function ContactPage() {
   return (
     <>
       <Nav />
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-16">
           <div className="max-w-[640px] mx-auto">
             <h1 className="font-heading text-h1 text-black mb-3">ติดต่อสอบถาม</h1>

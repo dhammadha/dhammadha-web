@@ -60,7 +60,7 @@ function LoginForm() {
         <div>
           <div className="flex items-center justify-between gap-2 mb-2">
             <label className="font-ui text-ui text-black">รหัสผ่าน</label>
-            <Link href="/auth/forgot-password" className="font-body text-body-sm text-mint-text no-underline hover:underline">
+            <Link href="/auth/forgot-password" className="font-body text-body-sm link-accent no-underline hover:underline">
               ลืมพาสเวิร์ด
             </Link>
           </div>
@@ -86,7 +86,7 @@ function LoginForm() {
 
       <p className="text-center font-body text-body-sm text-grey-600 mt-6">
         ยังไม่มีบัญชี ?{" "}
-        <Link href="/auth/signup" className="text-mint-text no-underline hover:underline">
+        <Link href="/auth/signup" className="link-accent no-underline hover:underline">
           สมัครสมาชิก
         </Link>
       </p>

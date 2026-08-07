@@ -42,8 +42,8 @@ export default function WaitlistForm() {
         placeholder="your@email.com"
         required
         className={cn(
-          "flex-1 min-w-0 px-3.5 bg-white font-body text-body-sm text-black placeholder:text-grey-400 outline-none",
-          "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-mint",
+          "flex-1 min-w-0 px-3.5 bg-surface font-body text-body-sm text-black placeholder:text-grey-400 outline-none",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-orange-text",
           status === "error" && "outline outline-2 -outline-offset-2 outline-danger"
         )}
       />

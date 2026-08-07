@@ -244,7 +244,7 @@ export default function AdminMembersPage() {
           <div className="overflow-x-auto">
             <table className="w-full font-body text-body-sm">
               <thead>
-                <tr className="text-left bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+                <tr className="text-left bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
                   <th className="px-4 py-3 font-heading">ผู้ใช้</th>
                   <th className="px-4 py-3 font-heading">แผน</th>
                   <th className="px-4 py-3 font-heading">สถานะ</th>
@@ -263,14 +263,14 @@ export default function AdminMembersPage() {
                       </td>
                       <td className="px-4 py-3 text-grey-600">{PROVIDER_LABEL[r.provider] ?? r.provider}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-badge font-heading px-2 py-0.5 ${active ? "bg-success text-white" : "bg-white text-grey-600"}`}>
+                        <span className={`text-badge font-heading px-2 py-0.5 ${active ? "bg-success text-white" : "bg-page text-grey-600"}`}>
                           {active ? "ใช้งาน" : STATUS_LABEL[r.status] ?? r.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-grey-600">{fmtDate(r.current_period_end)}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2 justify-end">
-                          <button onClick={() => extend(r)} className="font-body text-footnote text-mint-text hover:underline bg-transparent border-none cursor-pointer p-0">+30 วัน</button>
+                          <button onClick={() => extend(r)} className="font-body text-footnote link-accent hover:underline bg-transparent border-none cursor-pointer p-0">+30 วัน</button>
                           {r.status === "active" && (
                             <button onClick={() => cancel(r)} className="font-body text-footnote text-danger-dark hover:underline bg-transparent border-none cursor-pointer p-0">ยกเลิก</button>
                           )}
@@ -305,7 +305,7 @@ export default function AdminMembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full font-body text-body-sm">
                 <thead>
-                  <tr className="text-left bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+                  <tr className="text-left bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
                     <th className="px-4 py-3 font-heading">ผู้ใช้</th>
                     <th className="px-4 py-3 font-heading">เครื่อง</th>
                     <th className="px-4 py-3 font-heading">ใช้ล่าสุด</th>
@@ -325,7 +325,7 @@ export default function AdminMembersPage() {
                           <div className="text-black flex items-center gap-2">
                             {d.name || "ไม่ระบุชื่อ"}
                             {holding && (
-                              <span className="text-badge font-heading px-2 py-0.5 bg-mint text-black">ถือสิทธิ์อยู่</span>
+                              <span className="text-badge font-heading px-2 py-0.5 bg-black text-white">ถือสิทธิ์อยู่</span>
                             )}
                           </div>
                           <div className="font-body text-footnote text-grey-600">{d.platform ?? "—"} · ลงทะเบียน {fmtDate(d.created_at)}</div>
@@ -360,7 +360,7 @@ export default function AdminMembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full font-body text-body-sm">
                 <thead>
-                  <tr className="text-left bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+                  <tr className="text-left bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
                     <th className="px-4 py-3 font-heading">ผู้ใช้</th>
                     <th className="px-4 py-3 font-heading text-right">ไฟล์ที่โหลด</th>
                     <th className="px-4 py-3 font-heading text-right">ฟอนต์ที่โหลด</th>
@@ -406,4 +406,4 @@ export default function AdminMembersPage() {
   );
 }
 
-const iCls = "w-full px-3 py-2 bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
+const iCls = "w-full px-3 py-2 bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";

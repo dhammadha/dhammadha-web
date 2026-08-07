@@ -211,14 +211,14 @@ export default function DesignerAgreementPage() {
       <LegalSection title="12. ข้อมูลส่วนบุคคล">
         <p>
           ข้อมูลส่วนบุคคลของนักออกแบบได้รับความคุ้มครองตาม{" "}
-          <Link href="/privacy/" className="text-mint-text">นโยบายความเป็นส่วนตัว</Link>
+          <Link href="/privacy/" className="link-accent">นโยบายความเป็นส่วนตัว</Link>
         </p>
       </LegalSection>
 
       <LegalSection title="13. ติดต่อ">
         <p>
           คำถามเกี่ยวกับข้อตกลงฉบับนี้ ติดต่อ{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
+          <a href={`mailto:${CONTACT_EMAIL}`} className="link-accent">{CONTACT_EMAIL}</a>
         </p>
       </LegalSection>
     </LegalPage>

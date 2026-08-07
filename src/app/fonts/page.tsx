@@ -27,7 +27,7 @@ export default function AllFontsPage() {
   return (
     <>
       <Nav />
-      <Suspense fallback={<div className="bg-white min-h-screen" />}>
+      <Suspense fallback={<div className="bg-page min-h-screen" />}>
         <AllFontsContent />
       </Suspense>
       <Footer />
@@ -158,7 +158,7 @@ function AllFontsContent() {
 
   return (
     <>
-      <div className="bg-white min-h-screen">
+      <div className="bg-page min-h-screen">
         <Container className="pt-10 pb-8">
           <div className="flex items-baseline justify-between mb-4">
             <h1 className="font-heading text-h1 text-black">ฟอนต์ทั้งหมด</h1>
@@ -168,7 +168,7 @@ function AllFontsContent() {
           </div>
 
           {/* Filter bar — ปุ่มเรียงเป็นแถว (เจ้าของสั่ง 2026-07-18 แทน dropdown เดิม)
-              active/inactive แยกด้วย "พื้นสี" ไม่ใช่เส้นขอบ: primary = mint · outline = surface (§4.0)
+              active/inactive แยกด้วย "พื้นสี" ไม่ใช่เส้นขอบ: primary = ดำ · outline = surface (§4.0)
               flex-wrap ไม่ scroll — กันไม่ให้เกิด horizontal scroll ที่ 375px */}
           {!loading && fonts.length > 0 && (
             <div className="flex flex-col gap-3 mb-5">

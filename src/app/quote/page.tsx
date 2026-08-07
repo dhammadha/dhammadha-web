@@ -350,7 +350,7 @@ function QuoteForm() {
     return (
       <>
         <Nav />
-        <section className="bg-white">
+        <section className="bg-page">
           <Container className="pt-10 pb-16">
             <div className="max-w-[640px] mx-auto">
               <div className="bg-surface p-6">
@@ -365,7 +365,7 @@ function QuoteForm() {
                 {/* คำขอบันทึกสำเร็จแต่อีเมลแจ้งเตือนไม่ออก — ต้องบอก ไม่งั้นลูกค้ารอเก้อ
                     โดยไม่มีใครรู้ว่านักออกแบบยังไม่เคยเห็นคำขอนี้ */}
                 {notifyFailed && (
-                  <div className="border-l-2 border-warning bg-white p-4 mb-6">
+                  <div className="border-l-2 border-warning bg-page p-4 mb-6">
                     <p className="font-body text-body-sm text-grey-800 leading-[1.8]">
                       หมายเหตุ: ระบบแจ้งเตือนนักออกแบบขัดข้องชั่วคราว คำขอของคุณถูกบันทึกไว้เรียบร้อยแล้ว
                       แต่หากไม่ได้รับการติดต่อกลับภายใน 2 วันทำการ รบกวนแจ้งเราที่{" "}
@@ -388,7 +388,7 @@ function QuoteForm() {
   return (
     <>
       <Nav />
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-16">
           <div className="max-w-[640px] mx-auto">
             <div className="mb-8">
@@ -496,7 +496,7 @@ function QuoteForm() {
                       <label
                         key={tier.id}
                         className={`flex items-start gap-3 p-3.5 cursor-pointer transition-colors ${
-                          form.license_type === tier.id ? "bg-mint" : "bg-surface hover:bg-grey-200/60"
+                          form.license_type === tier.id ? "bg-page" : "bg-surface hover:bg-grey-200/60"
                         }`}
                       >
                         <input
@@ -525,7 +525,7 @@ function QuoteForm() {
                     <label
                       key={tier.id}
                       className={`flex items-start gap-3 p-3.5 cursor-pointer transition-colors ${
-                        form.license_type === tier.id ? "bg-mint" : "bg-surface hover:bg-grey-200/60"
+                        form.license_type === tier.id ? "bg-page" : "bg-surface hover:bg-grey-200/60"
                       }`}
                     >
                       <input
@@ -551,7 +551,7 @@ function QuoteForm() {
                   <LicenseLink
                     pdfUrl={designerLicensePdf(licenseConfig)}
                     newTab
-                    className="text-mint-text font-body text-body-sm hover:underline"
+                    className="link-accent font-body text-body-sm hover:underline"
                   />
                 </p>
               </div>
@@ -595,7 +595,7 @@ function QuoteForm() {
                 <button
                   type="button"
                   onClick={addFont}
-                  className="self-start flex items-center gap-1.5 font-body text-body-sm text-mint-text cursor-pointer border-none bg-transparent p-0 hover:opacity-70 transition-opacity"
+                  className="self-start flex items-center gap-1.5 font-body text-body-sm text-black cursor-pointer border-none bg-transparent p-0 hover:opacity-70 transition-opacity"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                     <line x1="12" y1="5" x2="12" y2="19" />

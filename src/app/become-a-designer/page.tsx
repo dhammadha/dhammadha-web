@@ -71,11 +71,11 @@ export default function BecomeADesignerPage() {
       <Nav />
 
       {/* HERO */}
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-6">
-          <p className="font-body text-body-sm text-mint-text mb-3">สำหรับนักออกแบบฟอนต์</p>
+          <p className="font-body text-body-sm text-black mb-3">สำหรับนักออกแบบฟอนต์</p>
           <h1 className="font-heading text-hero text-black mb-3.5">
-            ขายฟอนต์ของคุณ<br />ได้ส่วนแบ่ง <em className="text-mint-text not-italic">75%*</em> สูงกว่าทุกที่
+            ขายฟอนต์ของคุณ<br />ได้ส่วนแบ่ง <em className="text-orange-text not-italic">75%*</em> สูงกว่าทุกที่
           </h1>
           <p className="font-body text-body text-grey-600 max-w-[720px] mb-6">
             เราคือแพลตฟอร์มตลาดฟอนต์ไทยที่สร้างโดยนักออกแบบฟอนต์<br />
@@ -94,7 +94,7 @@ export default function BecomeADesignerPage() {
       </section>
 
       {/* ส่วนแบ่งรายได้ — พระเอกของหน้า */}
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-6 pb-10">
           <h2 className="font-heading text-h1 text-black mb-3">ส่วนแบ่งรายได้</h2>
           <p className="font-body text-body text-grey-600 max-w-[720px] mb-7">
@@ -105,13 +105,13 @@ export default function BecomeADesignerPage() {
       </section>
 
       {/* BENEFITS */}
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="py-10">
           <h2 className="font-heading text-h1 text-black mb-6">ทำไมต้องขายกับเรา</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {BENEFITS.map((b) => (
               <div key={b.title} className="bg-surface p-5 flex flex-col">
-                <div className="text-mint-text mb-4">{b.icon}</div>
+                <div className="text-orange-text mb-4">{b.icon}</div>
                 <h3 className="font-heading text-h2 text-black mb-2">{b.title}</h3>
                 <p className="font-body text-body-sm text-grey-600 leading-[1.8]">{b.desc}</p>
               </div>
@@ -121,13 +121,13 @@ export default function BecomeADesignerPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="py-10">
           <h2 className="font-heading text-h1 text-black mb-6">เริ่มต้นอย่างไร</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {STEPS.map((s) => (
               <div key={s.n}>
-                <div className="font-heading text-h1 text-mint-text leading-none mb-3">{s.n}</div>
+                <div className="font-heading text-h1 text-orange-text leading-none mb-3">{s.n}</div>
                 <h3 className="font-heading text-h2 text-black mb-1.5">{s.title}</h3>
                 <p className="font-body text-body-sm text-grey-600 leading-[1.8]">{s.desc}</p>
               </div>
@@ -137,7 +137,7 @@ export default function BecomeADesignerPage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pb-12">
           <div className="bg-black px-6 py-14 md:px-12 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>

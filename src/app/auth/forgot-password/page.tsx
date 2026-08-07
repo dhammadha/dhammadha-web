@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
           <button
             type="button"
             onClick={() => setSent(false)}
-            className="font-body text-body-sm text-mint-text bg-transparent border-none cursor-pointer hover:underline p-0 mt-4"
+            className="font-body text-body-sm link-accent bg-transparent border-none cursor-pointer hover:underline p-0 mt-4"
           >
             ส่งอีกครั้ง / เปลี่ยนอีเมล
           </button>
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
       )}
 
       <p className="text-center font-body text-body-sm text-grey-600 mt-6">
-        <Link href="/auth/login" className="text-mint-text no-underline hover:underline">
+        <Link href="/auth/login" className="link-accent no-underline hover:underline">
           กลับไปหน้าเข้าสู่ระบบ
         </Link>
       </p>

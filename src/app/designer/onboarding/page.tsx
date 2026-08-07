@@ -25,7 +25,7 @@ const THAI_BANKS = [
 ];
 
 const iCls =
-  "w-full px-3 py-2 h-[42px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
+  "w-full px-3 py-2 h-[42px] bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
 
 function Field({ label, hint, children, className = "" }: {
   label: string; hint?: string; children: React.ReactNode; className?: string;
@@ -277,7 +277,7 @@ function Stepper({ step }: { step: number }) {
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-badge font-heading transition-colors duration-150 ease-base ${
                   done
-                    ? "bg-mint text-black"
+                    ? "bg-orange text-black"
                     : active
                     ? "bg-black text-white"
                     : "bg-surface text-grey-600"
@@ -287,7 +287,7 @@ function Stepper({ step }: { step: number }) {
               </div>
               <span
                 className={`font-body text-footnote whitespace-nowrap ${
-                  active ? "text-black" : done ? "text-mint-text" : "text-grey-600"
+                  active ? "text-black" : done ? "text-black" : "text-grey-600"
                 }`}
               >
                 {label}
@@ -296,7 +296,7 @@ function Stepper({ step }: { step: number }) {
             {n < steps.length && (
               <div
                 className={`flex-1 h-[1px] mb-4 mx-1 transition-colors duration-150 ease-base ${
-                  step > n ? "bg-mint" : "bg-surface"
+                  step > n ? "bg-orange" : "bg-grey-200"
                 }`}
               />
             )}
@@ -460,14 +460,14 @@ export default function OnboardingPage() {
 
   if (loading || !user || !dbLoaded) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <span className="font-body text-body-sm text-grey-600">กำลังโหลด…</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-page flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-[720px]">
         {/* Header */}
         <div className="text-center mb-8">

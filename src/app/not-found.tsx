@@ -38,7 +38,7 @@ export default function NotFound() {
   return (
     <>
       <Nav />
-      <div className="min-h-[calc(100vh-112px)] flex items-center justify-center bg-bg px-8 py-16">
+      <div className="min-h-[calc(100vh-112px)] flex items-center justify-center bg-page px-8 py-16">
         {checking ? (
           <div className="text-[14px] text-[#aaa]">กำลังค้นหา…</div>
         ) : (

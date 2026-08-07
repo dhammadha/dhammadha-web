@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <p>
           เว็บไซต์ {DOMAIN} ("เว็บไซต์") ดำเนินการโดย <strong>{LEGAL_ENTITY}</strong> ("เรา")<br />
 ติดต่อเรื่องข้อมูลส่วนบุคคลได้ที่อีเมล{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
+          <a href={`mailto:${CONTACT_EMAIL}`} className="link-accent">{CONTACT_EMAIL}</a>
         </p>
       </LegalSection>
 
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
       <LegalSection title="6. สิทธิของเจ้าของข้อมูล">
         <p>
           คุณมีสิทธิขอเข้าถึง ขอสำเนา ขอแก้ไข ขอลบข้อมูล ขอให้ระงับการใช้ และถอนความยินยอม
-          โดยแจ้งมาที่ <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>{" "}
+          โดยแจ้งมาที่ <a href={`mailto:${CONTACT_EMAIL}`} className="link-accent">{CONTACT_EMAIL}</a>{" "}
           เราจะดำเนินการภายใน 30 วัน ทั้งนี้การลบข้อมูลบางส่วนอาจกระทบสิทธิ์การใช้งานฟอนต์ที่ซื้อไว้
         </p>
       </LegalSection>
@@ -77,8 +77,8 @@ export default function PrivacyPage() {
       <LegalSection title="8. การเปลี่ยนแปลงนโยบาย">
         <p>
           หากมีการแก้ไขนโยบายอย่างมีนัยสำคัญ เราจะประกาศบนเว็บไซต์
-          ดูเอกสารที่เกี่ยวข้องเพิ่มเติม : <Link href="/terms/" className="text-mint-text">ข้อกำหนดการใช้งาน</Link>{" "}
-          และ <Link href="/refund-policy/" className="text-mint-text">นโยบายการคืนเงิน</Link>
+          ดูเอกสารที่เกี่ยวข้องเพิ่มเติม : <Link href="/terms/" className="link-accent">ข้อกำหนดการใช้งาน</Link>{" "}
+          และ <Link href="/refund-policy/" className="link-accent">นโยบายการคืนเงิน</Link>
         </p>
       </LegalSection>
     </LegalPage>

@@ -14,7 +14,7 @@ export default function PdfLightbox({ open, url, onClose }: PdfLightboxProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white overflow-hidden flex flex-col w-full max-w-[780px] h-[90vh]"
+        className="bg-page overflow-hidden flex flex-col w-full max-w-[780px] h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3 bg-grey-200/40 shrink-0">

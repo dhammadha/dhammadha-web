@@ -80,7 +80,7 @@ export default function MyFavourites() {
           <p className="font-body text-body-sm text-grey-600">
             กดรูปหัวใจบนฟอนต์ที่ชอบ เพื่อบันทึกไว้ดูภายหลังและใช้งานผ่านแอป
           </p>
-          <Link href="/fonts/" className="inline-block mt-3 font-body text-body-sm text-mint-text no-underline hover:underline">
+          <Link href="/fonts/" className="inline-block mt-3 font-body text-body-sm link-accent no-underline hover:underline">
             เลือกดูฟอนต์ →
           </Link>
         </div>

@@ -118,7 +118,7 @@ export default function PrintLightbox({ open, data, onClose, onSendEmail }: Prop
               onClick={handleSend}
               disabled={!canSend || emailState === "sending" || emailState === "sent"}
               title={!data.email ? "เอกสารนี้ไม่มีอีเมลลูกค้า" : `ส่งถึง ${data.email}`}
-              className="font-ui text-ui px-4 py-1.5 bg-mint text-black border-none cursor-pointer hover:bg-white transition-colors duration-150 ease-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="font-ui text-ui px-4 py-1.5 bg-orange text-black border-none cursor-pointer hover:bg-orange-light transition-colors duration-150 ease-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {emailState === "sending"
                 ? "กำลังส่ง…"

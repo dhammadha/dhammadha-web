@@ -194,7 +194,7 @@ export default function SignupPage() {
                 />
                 <span className="font-body text-body-sm text-grey-800 leading-[1.8]">
                   ฉันได้อ่านและยอมรับ{" "}
-                  <Link href="/designer-agreement/" target="_blank" className="text-mint-text no-underline hover:underline">
+                  <Link href="/designer-agreement/" target="_blank" className="link-accent no-underline hover:underline">
                     ข้อตกลงสำหรับนักออกแบบ
                   </Link>
                 </span>
@@ -215,7 +215,7 @@ export default function SignupPage() {
             />
             <span className="font-body text-body-sm text-grey-600 leading-[1.8]">
               ยินยอมรับข่าวสาร ฟอนต์ใหม่ และโปรโมชั่นทางอีเมล (ยกเลิกได้ทุกเมื่อ — ดู{" "}
-              <Link href="/privacy/" target="_blank" className="text-mint-text no-underline hover:underline">
+              <Link href="/privacy/" target="_blank" className="link-accent no-underline hover:underline">
                 นโยบายความเป็นส่วนตัว
               </Link>)
             </span>
@@ -233,7 +233,7 @@ export default function SignupPage() {
 
       <p className="text-center font-body text-body-sm text-grey-600 mt-6">
         มีบัญชีแล้ว?{" "}
-        <Link href="/auth/login" className="text-mint-text no-underline hover:underline">
+        <Link href="/auth/login" className="link-accent no-underline hover:underline">
           เข้าสู่ระบบ
         </Link>
       </p>

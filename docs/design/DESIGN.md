@@ -90,7 +90,7 @@ moodboard เล็กน้อย ถ้าต้องแก้ ใส่ `lin
 |---|---|---|---|---|
 | `badge` | Noto Sans Thai | Bold 700 | 12 | ป้าย Sale / FREE / NEW / tag |
 | `footnote` | Noto Looped Thai | Light 300 | 12 | `© 2012–2026 …` ท้าย footer |
-| `fc-byline` | Noto Looped Thai | Light 300 | 10 | "โดย {ดีไซน์เนอร์}" บนการ์ดฟอนต์ (ข้อยกเว้นพื้นล่าง §2.5) |
+| `fc-byline` | Noto Looped Thai | Light 300 | 10 | ชื่อดีไซน์เนอร์บนการ์ดฟอนต์ (ตัดคำว่า "โดย" ออกในรีแบรนด์เฟส 1) (ข้อยกเว้นพื้นล่าง §2.5) |
 
 ### 2.5 พื้นล่างของขนาด
 
@@ -119,22 +119,35 @@ moodboard เล็กน้อย ถ้าต้องแก้ ใส่ `lin
 
 ## 3. Color
 
-### 3.1 Palette — 5 ตัวตาม Figma (ใช้ชื่อ Figma ตรง ๆ ไม่แปลงเป็น role name)
+### 3.1 Palette — typedee (รีแบรนด์เฟส 1, 8 ส.ค. 2569)
 
-**เหตุผลที่ไม่ใช้ role name (`accent`/`surface` แทน `navy`/`mint`):** palette มีแค่ 5 สี เล็กเกินกว่าจะคุ้ม
-กับสองคำศัพท์ + Figma เป็นแหล่งความจริงด้านดีไซน์ + `navy`/`mint` มีอยู่แล้วในโค้ดด้วยค่าเดิมเป๊ะ
+> **palette เดิม (Figma: `navy` #2B1B3D · `mint` #5ECEC8 · `white` #F8F8F8) ถูกยกเลิกทั้งชุด**
+> navy ออกไปตอนแยกแบรนด์ 7 ส.ค. · mint ออกตอนเฟส 1 · ค่าทั้งหมดวัดจากไฟล์ต้นแบบ
+> `docs/design/typedee.com/logo/color.png` **คอนทราสต์ทุกตัวคำนวณบนพื้น `page` #F0F0F0 ไม่ใช่ขาว**
 
-| Figma เรียก | ค่าจริง | ชื่อ Tailwind | ใช้ที่ |
-|---|---|---|---|
-| `navy` | `#2B1B3D` | `navy` | ยังไม่มีที่ใช้บนหน้าสาธารณะ — เก็บสำรอง (หัวข้อทั้งหมดเป็น `black`) |
-| `mint` | `#5ECEC8` | `mint` | accent, hover ปุ่ม nav, logo, หัวใจ |
-| `white` (Figma) | **`#F8F8F8`** | **`surface`** ⚠️ | พื้นการ์ด, แถบล่าง footer, ช่องกรอก, ปุ่มรอง |
-| `black` | `#080808` | `black` | พื้น nav, พื้น footer, ตัวหนังสือเข้ม, ราคา |
-| `grey` | `#808080` | `grey` | placeholder cover, ตัวหนังสือรองบนพื้นดำ (5.07:1 ✅) |
+| ชื่อ Tailwind | ค่า | ใช้ที่ |
+|---|---|---|
+| `black` | `#080808` | ตัวหนังสือ**ทุกจุด** · พื้น nav/footer/sidebar · **พื้นปุ่มหลัก** · แท็บที่เลือก |
+| `page` | `#F0F0F0` | พื้นหน้าเว็บ (`body` + section wrapper) · เม็ด "เลือกอยู่" บนพื้นมืด · กล่องซ้อนชั้นที่ 3 |
+| `surface` | **`#FFFFFF`** | พื้นการ์ด/พาเนล/modal · ช่องกรอกบนหน้าสาธารณะ · ปุ่มรอง |
+| `orange` | `#FF4D00` | **พื้นตอน hover** · ป้ายที่ต้องดึงสายตา (FREE/NEW, เลขตะกร้า) · เส้นใต้ลิงก์ |
+| `orange-text` | `#E03C00` | ตัวหนังสือ ≥24px (หรือ ≥18.66px bold) · เส้นโฟกัส · **ห้ามใช้กับเนื้อความ** |
+| `orange-light` | `#FF6A28` | ตัวหนังสือ/hover **บนพื้นมืด** เท่านั้น |
+| `grey` | `#808080` | placeholder cover · ตัวหนังสือรองบนพื้นดำ (5.07:1 ✅) |
 
-> ⚠️ **`white` ของ Figma = `#F8F8F8` ไม่ใช่ `#FFFFFF`** จึงตั้งชื่อ `surface` แทน — ทับ Tailwind `white`
-> จริงจะกระทบ `bg-white`/`text-white` ~227 จุดใน admin/designer (เห็นได้ชัด) **เจ้าของเคาะแล้ว: ไม่ทับ**
-> `body` background คงเป็น `#FFFFFF` เดิม (ดำแค่ nav/footer) → การ์ด `surface` ลอยขึ้นเองไม่ต้องพึ่งเส้นกรอบ
+**กติกาสีที่ผิดแล้วไม่มีอะไรเตือน** (Tailwind ไม่ error เรื่องคอนทราสต์):
+1. **ตัวอักษรบนพื้น `orange` ต้องเป็น `black`** (6.02:1) — `text-white` ได้แค่ **3.33:1 ❌**
+2. `orange-text` บนพื้นสว่างได้ 3.83:1 = ผ่าน AA เฉพาะ large text · ตัวเล็กกว่านั้นใช้ `black`
+3. **ลิงก์ในข้อความ = อักษรดำ + เส้นใต้ส้ม** ผ่านคลาส `.link-accent` (globals.css)
+   เส้นใต้เป็น graphic ใช้เกณฑ์ 3:1 จึงใส่สีได้ ส่วนตัวอักษรใช้เกณฑ์ 4.5:1 จึงต้องดำ
+
+**ปุ่มกลับทางจากของเดิม (เจ้าของสั่ง 7 ส.ค. 2569):** ปุ่มหลัก = **พื้นดำ ตัวขาว** → **hover เป็นส้ม ตัวดำ**
+(เดิมเป็นพื้น mint แล้ว hover เป็นดำ) เจตนาคือ *หน้าจอโดยรวมเป็นดำกับเทาตามโลโก้ · ส้มเป็นสีของการโต้ตอบ*
+
+> ⚠️ **`surface` ไม่ใช่ Tailwind `white`** — ตั้งใจไม่ทับ token `white` ของ Tailwind เพราะ
+> `text-white` ถูกใช้ 112 จุด (ตัวหนังสือบนพื้นดำ) ซึ่งไม่เกี่ยวกับพื้นผิวเลย
+> **`bg-white` ที่เหลืออยู่ 6 จุดคือ "ขาวจริง" ไม่ใช่พื้นผิว** — ขีดแฮมเบอร์เกอร์, ลูกบิด toggle,
+> กระดาษ PDF ใน iframe, และพื้นโปร่งทับรูปปก (`bg-white/55`, `/70`) **ห้ามเปลี่ยนเป็น `bg-page`**
 
 ### 3.2 Neutral ramp — ปั่นจาก `grey #808080`
 
@@ -154,17 +167,30 @@ moodboard เล็กน้อย ถ้าต้องแก้ ใส่ `lin
 
 `success` `#0A8A84` · `warning` `#F0C040` · `danger` `#E74C3C`
 
-### 3.4 คอนทราสต์ (WCAG 2.1 คำนวณจริง)
+### 3.4 คอนทราสต์ (WCAG 2.1 คำนวณจริง — พื้นอ้างอิงคือ `page` #F0F0F0)
 
-`navy`/white 15.83:1 ✅ · white/black 20.03:1 ✅ · `mint`/black 10.62:1 ✅ · `grey`/black 5.07:1 ✅ ·
-`grey-600`/white 5.74:1 ✅ · `grey-800`/white 12.63:1 ✅ · **`mint`/white 1.89:1 ❌ ดู §3.5**
+`black`/`page` 17.9:1 ✅ · `black`/`surface` 19.3:1 ✅ · `white`/`black` 20.03:1 ✅ ·
+`grey`/`black` 5.07:1 ✅ · `grey-600`/`page` 5.74:1 ✅ · `grey-800`/`page` 11.6:1 ✅ ·
+`orange-light`/`black` 7.0:1 ✅ · **`black`/`orange` 6.02:1 ✅** ·
+`orange-text`/`page` **3.83:1 = large text เท่านั้น** · `orange-text`/`surface` 4.13:1 ·
+`orange`/`page` 2.92:1 — **ต่ำกว่า 3:1 จึงห้ามใช้ `orange` เป็นเส้นโฟกัสบนพื้นสว่าง** ·
+❌ `white`/`orange` **3.33:1 ตก AA** — ห้ามใช้ตัวขาวบนพื้นส้มทุกกรณี
 
-### 3.5 🚨 `mint-text` — หนี้คอนทราสต์ที่รู้ตัวและยอมรับไว้
+### 3.5 ลิงก์ในข้อความ — `.link-accent`
 
-`mint` บนขาวตก AA (1.89:1) แต่บนดำผ่านสบาย (10.62:1) — **เจ้าของเคาะ (2026-07-17): ใช้ mint เดิมบนขาวไปก่อน**
+**หนี้ `mint-text` 1.89:1 ที่เคยยอมรับไว้ (2026-07-17) ปิดแล้วในรีแบรนด์เฟส 1** — `mint-text`
+ถูกลบทั้ง token · 80 จุดที่เคยใช้ถูกแยกตามบทบาทจริง ไม่ใช่แทนที่ด้วยสีเดียว:
 
-ตั้ง token แยกไว้ให้ปรับได้บรรทัดเดียวในอนาคต: `mint-text: #5ECEC8` (**component ทุกตัวใช้ `text-mint-text`
-ห้ามใช้ `text-mint` กับตัวหนังสือบนพื้นขาว**) ค่าสำรองถ้าวันหน้าอยากผ่าน AA: `#27817C` (4.65:1 ✅ เฉดเดียวกัน)
+| บทบาท | จำนวน | ผลลัพธ์ |
+|---|---|---|
+| ลิงก์ในข้อความ | 50 | `.link-accent` = อักษรดำ + เส้นใต้ส้ม (17.9:1 ✅) |
+| ตัวเน้นไม่ใช่ลิงก์ ≥24px / ≥18.66px bold | 15 | `text-orange-text` (3.83:1 = large text ✅) |
+| ตัวเน้นเล็กกว่านั้น | 13 | `text-black` — ส้มจะตก AA จริง ไม่ใช่เรื่องรสนิยม |
+| บรรทัดชื่อดีไซน์เนอร์บนการ์ด | 2 | ลบคลาสทิ้ง สืบทอด `text-grey-600` |
+
+`.link-accent` นิยามใน `src/app/globals.css` (`@layer components`) ไม่ใช่ component
+เพราะ 50 จุดปนกันทั้ง `<Link>`, `<a href>`, `<span role="link">`
+⚠️ **คลาสนี้หาไม่เจอถ้า grep `text-black`** — ค้นด้วยชื่อ `link-accent`
 
 หนี้คอนทราสต์ของเดิม (ไม่เกี่ยวกับดีไซน์ใหม่): `#aaa` เดิมใช้เป็นตัวหนังสือรอง 38 จุด ได้แค่ 2.32:1 — ย้ายไป
 `grey-600` (5.74:1) แก้ไปในตัว
@@ -460,7 +486,7 @@ slider เดิมของ `FontDetail` ทิ้งทั้งชุด (แ
 **กับดักที่ใช้ซ้ำได้ทั่วโปรเจกต์:**
 - 🔴 **dedupe ด้วย `Map`/`Set` เก็บ "ตัวหลัง"** — ฟอนต์ที่ category กับ tag ซ้ำคำกัน (เช่น `display`)
   ต้องวนเก็บ "ตัวแรก" เอง ไม่งั้นลิงก์ผิดประเภท (`?q=` แทน `?category=`)
-- **sticky ต้องมี `bg-white` +ล้อ padding ของ `Container`** ไม่งั้นเนื้อหาที่เลื่อนผ่านทะลุซ้อน
+- **sticky ต้องมี `bg-page` (เดิม `bg-white`) +ล้อ padding ของ `Container`** ไม่งั้นเนื้อหาที่เลื่อนผ่านทะลุซ้อน
 - **`text-h2` ตั้ง `font-weight: 800` ในตัว** — span ลูกที่ไม่ได้ตั้ง weight เองจะสืบทอด 800 มาด้วย ต้อง
   ใส่ `font-normal` ทับถ้าไม่ต้องการ
 - **ข้อมูล id ผสมจาก Edge Function เชื่อไม่ได้เสมอ** — `weightCss()` ไม่รู้จัก id ผสม (`bolditalic`) ตกเป็น
@@ -563,13 +589,15 @@ pricing ไม่แตะ) แค่สลับ legacy `@/components/Button` �
   — logic/flow/open-close ไม่แตะ restyle ล้วน
 
 กฎที่ใช้ (สรุปจาก reference: `OwnRevenue`/`OwnAnalytics`/`OwnPricing`):
-- เลย์เอาต์: page bg ขาว · การ์ด `bg-surface` · กล่องซ้อนในการ์ด `bg-white` — ไม่มีเส้นขอบ ไม่มี `rounded-*`
-  (ยกเว้น `rounded-full` ของกลมจริง: จุด stepper, ปุ่ม ✕, check-bubble)
+- เลย์เอาต์ (**ค่าอัปเดตตามรีแบรนด์เฟส 1 — ขั้วกลับด้านจากตอนเขียนครั้งแรก**):
+  page bg `bg-page` #F0F0F0 · การ์ด `bg-surface` #FFFFFF · **กล่องซ้อนในการ์ด `bg-page`**
+  → ยังเป็นการสลับสองระดับเหมือนเดิม แค่สลับว่าอันไหนเข้ม (เดิม: ขาว → F8F8F8 → ขาว)
+  ไม่มีเส้นขอบ ไม่มี `rounded-*` (ยกเว้น `rounded-full` ของกลมจริง: จุด stepper, ปุ่ม ✕, check-bubble)
 - หัวหน้า `font-heading text-h2` · หัวการ์ด `font-ui text-ui` · ข้อความรอง `font-body text-body-sm/footnote text-grey-600`
   · ค่า/ข้อมูล `text-black` — **ไม่มี `font-medium`/`font-semibold` เหลือ** (เน้นด้วยสี ไม่ใช่ weight)
 - ป้ายสถานะเหลี่ยม `text-badge font-heading`: warning=`bg-warning text-black` · ok=`bg-success text-white` ·
-  neutral=`bg-surface/bg-white text-grey-600` · danger=`bg-danger text-white`
-- ปุ่ม: `ui/Button` (เลิก import `components/Button` เก่าทุกไฟล์แล้ว) · input/select ไร้เส้นขอบ `bg-surface/bg-white`
+  neutral=`bg-page text-grey-600` · danger=`bg-danger text-white`
+- ปุ่ม: `ui/Button` (เลิก import `components/Button` เก่าทุกไฟล์แล้ว) · input/select ไร้เส้นขอบ `bg-surface` (บนหน้าสาธารณะ) / `bg-page` (ในการ์ด dashboard)
   focus-visible outline · checkbox/radio `accent-black` · toast `bg-black text-white`
 - **หน้าไม่เต็มจอ** — คง `max-w-[...]` เดิมของแต่ละหน้า (เจ้าของสั่งชัด ไม่เอา full-width)
 

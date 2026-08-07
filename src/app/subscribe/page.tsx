@@ -22,7 +22,7 @@ import {
 const features = [
   {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-mint-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-orange-text">
         <path d="M4 7h16M4 12h10M4 17h7" />
       </svg>
     ),
@@ -31,7 +31,7 @@ const features = [
   },
   {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-mint-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-orange-text">
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
       </svg>
     ),
@@ -40,7 +40,7 @@ const features = [
   },
   {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-mint-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-orange-text">
         <polyline points="23 4 23 10 17 10" />
         <polyline points="1 20 1 14 7 14" />
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
@@ -51,7 +51,7 @@ const features = [
   },
   {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-mint-text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7 text-orange-text">
         <rect x="2" y="7" width="20" height="14" rx="2" />
         <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
       </svg>
@@ -113,7 +113,7 @@ export default function SubscribePage() {
   return (
     <>
       <Nav />
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-16">
           <div className="max-w-[560px] mx-auto text-center">
             {!loaded ? (
@@ -147,7 +147,7 @@ export default function SubscribePage() {
                     <span className="inline-flex items-center px-6 py-3 bg-grey-200 font-body text-body text-grey-400">Windows — เร็ว ๆ นี้</span>
                   )}
                 </div>
-                <Link href="/account" className="font-body text-body-sm text-mint-text no-underline hover:underline">
+                <Link href="/account" className="font-body text-body-sm link-accent no-underline hover:underline">
                   ไปที่บัญชีของฉัน →
                 </Link>
               </>
@@ -158,7 +158,7 @@ export default function SubscribePage() {
                   <Badge variant="free">{trialOpen ? "เปิดให้ทดสอบฟรี" : "Coming Soon"}</Badge>
                 </span>
                 <h1 className="font-heading text-hero text-black mb-4">
-                  ฟอนต์ไทยไม่จำกัด<br />ด้วย <em className="text-mint-text not-italic">Subscription</em>
+                  ฟอนต์ไทยไม่จำกัด<br />ด้วย <em className="text-orange-text not-italic">Subscription</em>
                 </h1>
 
                 {/* ราคา */}
@@ -170,7 +170,7 @@ export default function SubscribePage() {
                   <span className="font-body text-body text-grey-600 mb-1">/ เดือน</span>
                 </div>
                 <p className="font-body text-body-sm text-grey-600 mb-2">
-                  หรือรายปี ฿{settings?.yearly_price.toLocaleString()} <span className="text-mint-text">(ฟรี 2 เดือน)</span>
+                  หรือรายปี ฿{settings?.yearly_price.toLocaleString()} <span className="text-black">(ฟรี 2 เดือน)</span>
                 </p>
                 <p className="font-body text-body text-grey-600 leading-[1.8] mb-9">
                   {trialOpen

@@ -94,7 +94,7 @@ export default function SalePromoModal({
         {salePrice !== null && price > 0 && (
           <div className="font-body text-body-sm text-grey-600">
             ราคาหลังลด <span className="line-through">฿{price.toLocaleString()}</span>{" "}
-            <span className="text-mint-text font-ui text-ui">฿{salePrice.toLocaleString()}</span>
+            <span className="text-black font-ui text-ui">฿{salePrice.toLocaleString()}</span>
           </div>
         )}
 
@@ -117,4 +117,4 @@ export default function SalePromoModal({
   );
 }
 
-const inputCls = "w-full px-3 py-2 h-[42px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
+const inputCls = "w-full px-3 py-2 h-[42px] bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";

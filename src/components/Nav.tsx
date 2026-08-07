@@ -15,7 +15,7 @@ import { NAME as BRAND_NAME, LOGO_SRC, WORDMARK_SRC } from "@/lib/brand";
 /**
  * Nav — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/nav bar.png + button.png)
  *
- * พื้นดำ · ลิงก์ขาวหนา · hover = บล็อก mint · ไม่มีเส้นขอบเลย
+ * พื้นดำ · ลิงก์ขาวหนา · hover = บล็อกส้ม · ไม่มีเส้นขอบเลย
  *
  * ⚠️ search เดสก์ท็อปกับมือถือ **เขียนแยกกันเหมือนเดิม ห้ามรวม** — ทั้งคู่แชร์ state
  * `suggestions` ตัวเดียว การรวบเป็น refactor logic ที่เสี่ยงช่องค้นหาทุกหน้า (§8)
@@ -74,12 +74,12 @@ const CartIcon = ({ size = 18 }: { size?: number }) => (
   </svg>
 );
 
-// ลิงก์ nav — hover เป็นบล็อก mint ตาม moodboard/button.png (Nav_Button state hover)
+// ลิงก์ nav — hover เป็นบล็อกส้ม (เดิม mint) ตาม moodboard/button.png (Nav_Button state hover)
 // px-2 ที่จอ 768–1023 กันล้นขวา (เมนู+ค้นหา+ไอคอนรวมกันกว้างกว่า container ถ้าใช้ px-3 เต็ม) → px-3 คืนที่ lg 1024+
 const NAV_LINK = cn(
   "font-ui text-ui text-white no-underline px-2 lg:px-3 py-2 whitespace-nowrap",
-  "hover:bg-mint hover:text-black transition-colors duration-150 ease-base",
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+  "hover:bg-orange hover:text-black transition-colors duration-150 ease-base",
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
 );
 
 export default function Nav() {
@@ -212,7 +212,7 @@ export default function Nav() {
           href="/"
           className={cn(
             "flex items-center gap-2.5 no-underline flex-shrink-0",
-            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
           )}
         >
           {/* จอแคบ (<sm) = เครื่องหมายอย่างเดียว · sm ขึ้นไป = wordmark เต็มคำ
@@ -239,8 +239,8 @@ export default function Nav() {
               // 44×44 = ขนาดเป้าสัมผัสขั้นต่ำที่กดไม่พลาด (เดิม 32 เล็กไป)
               // กล่องใหญ่แต่ไอคอนอยู่กลาง จึงต้องยึด badge กับตัวไอคอนไม่ใช่กับกล่อง
               "relative flex items-center justify-center w-11 h-11 text-white",
-              "hover:text-mint transition-colors duration-150 ease-base",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint",
+              "hover:text-orange-light transition-colors duration-150 ease-base",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text",
               cartAnimating && "cart-bounce"
             )}
           >
@@ -249,7 +249,7 @@ export default function Nav() {
               {cartReady && cartCount > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 bg-mint text-black font-heading text-[10px] leading-[16px] text-center",
+                    "absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 bg-orange text-black font-heading text-[10px] leading-[16px] text-center",
                     cartAnimating && "cart-badge-pop"
                   )}
                 >
@@ -271,7 +271,7 @@ export default function Nav() {
           >
             <Link
               href="/fonts/"
-              className={cn(NAV_LINK, fontMenuOpen && "bg-mint text-black")}
+              className={cn(NAV_LINK, fontMenuOpen && "bg-page text-black")}
               onFocus={() => setFontMenuOpen(true)}
             >
               ฟอนต์
@@ -294,7 +294,7 @@ export default function Nav() {
                         onClick={() => setFontMenuOpen(false)}
                         className={cn(
                           "font-ui text-ui text-black no-underline px-3 py-1.5",
-                          "hover:bg-mint transition-colors duration-150 ease-base",
+                          "hover:bg-orange transition-colors duration-150 ease-base",
                           "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-black"
                         )}
                       >
@@ -350,7 +350,7 @@ export default function Nav() {
                     onMouseEnter={() => setActiveIdx(i)}
                     className={cn(
                       "flex items-center justify-between gap-2 px-4 py-2.5 cursor-pointer transition-colors duration-150 ease-base",
-                      i === activeIdx ? "bg-mint" : "hover:bg-grey-200/50"
+                      i === activeIdx ? "bg-page" : "hover:bg-grey-200/50"
                     )}
                   >
                     <div className="min-w-0">
@@ -394,16 +394,16 @@ export default function Nav() {
               onMouseEnter={() => setUserMenuOpen(true)}
               onMouseLeave={() => setUserMenuOpen(false)}
             >
-              {/* avatar — สี่เหลี่ยม mint (เจ้าของสั่งให้เข้าโทนเว็บ 2026-07-18)
+              {/* avatar — สี่เหลี่ยมส้ม (เจ้าของสั่งให้เข้าโทนเว็บ 2026-07-18)
                   กล่อง w-8 h-8 เท่าไอคอนตอน logout เป๊ะ ไม่มี ml → nav ไม่ขยับตอนสลับสถานะ */}
               <button
                 onClick={() => setUserMenuOpen((v) => !v)}
                 onFocus={() => setUserMenuOpen(true)}
                 className={cn(
                   // ตัวอักษรใช้ text-ui (Bold 700, 16px) ให้หนาเท่าเมนูใน submenu (เจ้าของ 2026-07-18)
-                  "w-8 h-8 bg-mint flex items-center justify-center cursor-pointer leading-none",
+                  "w-8 h-8 bg-orange flex items-center justify-center cursor-pointer leading-none",
                   "font-heading text-ui text-black transition-colors duration-150 ease-base",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                 )}
                 title={user.email ?? ""}
                 aria-expanded={userMenuOpen}
@@ -419,7 +419,7 @@ export default function Nav() {
                     <Link
                       href="/account"
                       onClick={() => setUserMenuOpen(false)}
-                      className="block px-4 py-2.5 font-ui text-ui text-black no-underline border-t border-grey-200 hover:bg-mint transition-colors duration-150 ease-base"
+                      className="block px-4 py-2.5 font-ui text-ui text-black no-underline border-t border-grey-200 hover:bg-orange transition-colors duration-150 ease-base"
                     >
                       เข้าหน้าโปรไฟล์
                     </Link>
@@ -447,8 +447,8 @@ export default function Nav() {
                 aria-label="เข้าสู่ระบบ"
                 className={cn(
                   "flex items-center justify-center w-8 h-8 text-white",
-                  "hover:text-mint transition-colors duration-150 ease-base",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  "hover:text-orange-light transition-colors duration-150 ease-base",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                 )}
               >
                 <PersonIcon />
@@ -458,7 +458,7 @@ export default function Nav() {
                   <div className="bg-surface shadow-lg py-1">
                     <Link
                       href="/auth/login"
-                      className="block px-4 py-2.5 font-ui text-ui text-black no-underline hover:bg-mint transition-colors duration-150 ease-base"
+                      className="block px-4 py-2.5 font-ui text-ui text-black no-underline hover:bg-orange transition-colors duration-150 ease-base"
                     >
                       เข้าสู่ระบบ
                     </Link>
@@ -480,8 +480,8 @@ export default function Nav() {
               aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
               className={cn(
                 "relative flex items-center justify-center w-8 h-8 text-white",
-                "hover:text-mint transition-colors duration-150 ease-base",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint",
+                "hover:text-orange-light transition-colors duration-150 ease-base",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text",
                 cartAnimating && "cart-bounce"
               )}
             >
@@ -489,7 +489,7 @@ export default function Nav() {
               {cartReady && cartCount > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-mint text-black font-heading text-[10px] leading-[15px] text-center",
+                    "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-orange text-black font-heading text-[10px] leading-[15px] text-center",
                     cartAnimating && "cart-badge-pop"
                   )}
                 >
@@ -529,7 +529,7 @@ export default function Nav() {
                   {cartCount > 0 && (
                     <Link
                       href="/cart/"
-                      className="block font-ui text-ui text-black no-underline px-4 py-2.5 mt-1 hover:bg-mint transition-colors duration-150 ease-base"
+                      className="block font-ui text-ui text-black no-underline px-4 py-2.5 mt-1 hover:bg-orange transition-colors duration-150 ease-base"
                     >
                       ชำระเงิน
                     </Link>
@@ -557,7 +557,7 @@ export default function Nav() {
       {/* เมนูมือถือ */}
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 bg-black shadow-md flex flex-col md:hidden">
-          <Link href="/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             หน้าแรก
           </Link>
           {CATEGORY_LINKS.map((c) => (
@@ -566,7 +566,7 @@ export default function Nav() {
               href={categoryHref(c.value)}
               className={cn(
                 "px-4 py-3.5 font-ui no-underline transition-colors duration-150 ease-base",
-                "hover:bg-mint hover:text-black",
+                "hover:bg-orange hover:text-black",
                 c.value === "all" ? "text-white" : "text-grey-400 pl-8"
               )}
               onClick={() => setMenuOpen(false)}
@@ -574,17 +574,17 @@ export default function Nav() {
               {c.value === "all" ? "ฟอนต์ทั้งหมด" : c.label}
             </Link>
           ))}
-          <Link href="/agreement/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/agreement/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             สัญญาอนุญาต
           </Link>
-          <Link href="/subscribe/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/subscribe/" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             สมัครสมาชิกรายเดือน
           </Link>
 
           {/* บัญชี — มือถือ */}
           {authLoading ? null : user ? (
             <>
-              <Link href="/account" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+              <Link href="/account" className="px-4 py-3.5 font-ui text-white no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
                 เข้าหน้าโปรไฟล์
               </Link>
               <button
@@ -595,7 +595,7 @@ export default function Nav() {
               </button>
             </>
           ) : (
-            <Link href="/auth/login" className="px-4 py-3.5 font-ui text-mint no-underline hover:bg-mint hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+            <Link href="/auth/login" className="px-4 py-3.5 font-ui text-orange-light no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
               เข้าสู่ระบบ
             </Link>
           )}
@@ -623,7 +623,7 @@ export default function Nav() {
               <div
                 key={f.slug}
                 onMouseDown={() => { goToFont(f); setMenuOpen(false); }}
-                className="px-2 py-2.5 font-ui text-white cursor-pointer hover:text-mint transition-colors"
+                className="px-2 py-2.5 font-ui text-white cursor-pointer hover:text-orange-light transition-colors"
               >
                 {f.name}
                 {f.name_th && <span className="font-body text-body-sm text-grey-400"> — {f.name_th}</span>}

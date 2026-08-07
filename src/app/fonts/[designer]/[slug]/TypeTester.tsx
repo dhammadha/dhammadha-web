@@ -267,7 +267,7 @@ export default function TypeTester({ font }: { font: Font }) {
         <h3 className="font-heading text-h2 text-black">ทดสอบฟอนต์</h3>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A · ราง+ปุ่มเหลี่ยม (.tester-range ใน globals.css)
-              พื้นหลัง gradient ตั้งตามค่า value: mint ซ้ายจุดปุ่ม · grey ขวา */}
+              พื้นหลัง gradient ตั้งตามค่า value: ส้มซ้ายจุดปุ่ม · เทาขวา */}
           <div className="flex items-center gap-2">
             <span className="font-heading text-body-sm text-grey-600 leading-none">A</span>
             <input
@@ -280,14 +280,14 @@ export default function TypeTester({ font }: { font: Font }) {
               aria-label="ขนาดตัวอักษร"
               className="tester-range w-24 sm:w-32"
               style={{
-                background: `linear-gradient(to right, #5ECEC8 0%, #5ECEC8 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 100%)`,
+                background: `linear-gradient(to right, #FF4D00 0%, #FF4D00 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 100%)`,
               }}
             />
             <span className="font-heading text-h2 text-grey-600 leading-none">A</span>
             <span className="font-body text-body-sm text-grey-600 w-12 text-right shrink-0">{size}px</span>
           </div>
 
-          {/* Dropdown น้ำหนัก — สไตล์เดียวกับเมนูบัญชีใน Nav (bg-surface · shadow · แถวคั่นบาง ๆ · hover mint)
+          {/* Dropdown น้ำหนัก — สไตล์เดียวกับเมนูบัญชีใน Nav (bg-surface · shadow · แถวคั่นบาง ๆ · hover ส้ม)
               เลิกใช้ <select> เพราะ dropdown ของ OS สไตล์ไม่ได้ (เจ้าของเห็นเมนู macOS สีเข้ม)
               เปิดตอน hover เหมือน submenu "ฟอนต์"/บัญชีใน Nav · คลิกยังใช้ได้ (มือถือ/แตะ) */}
           {weights.length > 0 && (
@@ -321,7 +321,7 @@ export default function TypeTester({ font }: { font: Font }) {
                       role="option"
                       aria-selected={w.id === weightId}
                       onClick={() => { setWeightId(w.id); setWeightOpen(false); }}
-                      className={`flex items-center gap-2 w-full text-left whitespace-nowrap px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none cursor-pointer hover:bg-mint transition-colors duration-150 ease-base ${i > 0 ? "border-t border-grey-200" : ""}`}
+                      className={`flex items-center gap-2 w-full text-left whitespace-nowrap px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none cursor-pointer hover:bg-orange transition-colors duration-150 ease-base ${i > 0 ? "border-t border-grey-200" : ""}`}
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-3.5 h-3.5 shrink-0 ${w.id === weightId ? "opacity-100" : "opacity-0"}`}>
                         <polyline points="20 6 9 17 4 12" />

@@ -23,7 +23,7 @@ export default function AgreementPage() {
       <LegalSection title="ขอบเขตของสัญญาอนุญาตนี้">
         <p>
           การสั่งซื้อฟอนต์ผ่านเว็บไซต์นี้ และการสมัครสมาชิก (Subscription) อยู่ภายใต้{" "}
-          <Link href="/terms/" className="text-mint-text">ข้อกำหนดการใช้งาน</Link>{" "}
+          <Link href="/terms/" className="link-accent">ข้อกำหนดการใช้งาน</Link>{" "}
           และสัญญาอนุญาตฉบับนี้ควบคู่กัน การกดยอมรับในขั้นตอนชำระเงินหรือขั้นตอนสมัครสมาชิก
           ถือว่าผู้ซื้อหรือสมาชิกได้อ่านและยอมรับเอกสารทั้งสองฉบับแล้ว
           · การใช้งานผ่านสมาชิกมีเงื่อนไขเฉพาะตามข้อ 7
@@ -369,7 +369,7 @@ export default function AgreementPage() {
         <p>
           กรณีไฟล์ฟอนต์ชำรุดหรือใช้งานไม่ได้ ผู้ได้รับอนุญาตแจ้งเพื่อขอรับไฟล์ใหม่ได้
           เงื่อนไขการคืนเงินให้เป็นไปตาม{" "}
-          <Link href="/refund-policy/" className="text-mint-text">นโยบายการคืนเงิน</Link>{" "}
+          <Link href="/refund-policy/" className="link-accent">นโยบายการคืนเงิน</Link>{" "}
           ซึ่งถือเป็นส่วนหนึ่งของสัญญาฉบับนี้
         </p>
       </LegalSection>

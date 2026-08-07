@@ -23,7 +23,7 @@ export default function Input({
         "w-full bg-surface text-black font-body text-body-sm py-2",
         icon ? "pl-9 pr-3" : "px-3",
         "placeholder:text-grey-400",
-        "focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-mint",
+        "focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-orange-text",
         className
       )}
     />

@@ -42,7 +42,7 @@ export default function AccountPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <span className="font-body text-body-sm text-grey-600">กำลังโหลด…</span>
       </div>
     );
@@ -51,7 +51,7 @@ export default function AccountPage() {
   return (
     <>
       <Nav />
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-16">
           {/* สองคอลัมน์ที่ ≥1024px: ซ้าย = โปรไฟล์/สมาชิก/รายการโปรด · ขวา = ดาวน์โหลด
               จอเล็กกว่านั้นเรียงต่อกันตามเดิม (ขวาไปอยู่ล่างสุด) */}
@@ -64,7 +64,7 @@ export default function AccountPage() {
                 {/* Avatar + role */}
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-mint flex items-center justify-center font-heading text-h2 text-black select-none">
+                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center font-heading text-h2 text-white select-none">
                       {(user.email?.[0] ?? "?").toUpperCase()}
                     </div>
                     <div>
@@ -84,7 +84,7 @@ export default function AccountPage() {
                   </div>
                   <Link
                     href="/account/settings"
-                    className="inline-flex items-center gap-1.5 font-body text-body-sm text-mint-text no-underline hover:underline shrink-0"
+                    className="inline-flex items-center gap-1.5 font-body text-body-sm link-accent no-underline hover:underline shrink-0"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                       <circle cx="12" cy="12" r="3" />
@@ -108,7 +108,7 @@ export default function AccountPage() {
                 {(role === "admin" || role === "designer") && (
                   <Link
                     href={role === "admin" ? "/admin" : "/designer"}
-                    className="inline-flex items-center gap-2 font-body text-body-sm text-mint-text no-underline hover:underline"
+                    className="inline-flex items-center gap-2 font-body text-body-sm link-accent no-underline hover:underline"
                   >
                     {role === "admin" ? "ไปที่ Admin Panel →" : "ไปที่ Designer Dashboard →"}
                   </Link>

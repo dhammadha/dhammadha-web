@@ -358,7 +358,7 @@ export default function OwnQuotes() {
 
       <div className="flex gap-4 items-start">
         <div className="flex-1 bg-surface overflow-hidden">
-          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
             <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท/องค์กร</div><div>รูปแบบสิทธิ์</div><div>ใบเสนอราคา</div><div>ใบเสร็จ</div>
           </div>
 
@@ -371,7 +371,7 @@ export default function OwnQuotes() {
               key={q.id}
               onClick={() => setSelected(selected?.id === q.id ? null : q)}
               className={`grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${
-                selected?.id === q.id ? "bg-mint" : "hover:bg-grey-200"
+                selected?.id === q.id ? "bg-page" : "hover:bg-grey-200"
               }`}
             >
               <div className="font-body text-footnote text-grey-600">{fmtDate(q.created_at)}</div>
@@ -427,7 +427,7 @@ export default function OwnQuotes() {
               <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">ฟอนต์ที่ขอ</div>
               <div className="flex flex-col gap-1">
                 {selected.fonts.map((f, i) => (
-                  <div key={i} className="font-body text-body-sm text-black px-2 py-1 bg-white">{f}</div>
+                  <div key={i} className="font-body text-body-sm text-black px-2 py-1 bg-page">{f}</div>
                 ))}
               </div>
             </div>

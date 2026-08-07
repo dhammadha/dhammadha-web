@@ -19,7 +19,7 @@
   }
 
   body {
-    @apply bg-white font-body text-body text-black;
+    @apply bg-page font-body text-body text-black;
     /* แอปไม่ใช่หน้าเว็บ — ห้ามเลือกข้อความ/ลากรูปเหมือนเบราว์เซอร์
        ยกเว้นช่องกรอก (คืนให้ด้านล่าง) */
     -webkit-user-select: none;

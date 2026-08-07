@@ -78,7 +78,7 @@ function CheckoutSuccess() {
   return (
     <>
       <Nav />
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-16">
           <div className="max-w-[640px] mx-auto">
             {!sessionId ? (
@@ -141,7 +141,7 @@ function CheckoutSuccess() {
                   กรุณารอสักครู่ ระบบกำลังตรวจสอบการชำระเงินกับผู้ให้บริการ
                 </p>
                 <div className="mt-4 h-1 w-full bg-grey-200 overflow-hidden">
-                  <div className="h-full w-1/3 bg-mint animate-pulse" />
+                  <div className="h-full w-1/3 bg-black animate-pulse" />
                 </div>
               </Panel>
             )}

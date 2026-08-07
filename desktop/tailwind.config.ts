@@ -19,12 +19,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: "#2B1B3D", // = สีหมึกของ PNG จาก render-tester (hardcode ฝั่ง server)
-        mint: "#5ECEC8",
+        // มิเรอร์ค่าจาก tailwind.config.ts ที่ราก repo (รีแบรนด์เฟส 1, 8 ส.ค. 2569)
+        // เดิมมี navy #2B1B3D + mint #5ECEC8 + mint-text — ยกเลิกทั้งชุดพร้อมฝั่งเว็บ
+        // ⚠️ ไฟล์นี้ไม่ได้ import จากที่ราก (คนละ Vite project) จึงต้องแก้ตามด้วยมือเสมอ
         black: "#080808",
         grey: "#808080",
-        surface: "#F8F8F8",
-        "mint-text": "#5ECEC8",
+        orange: "#FF4D00", // ตัวอักษรบนพื้นนี้ต้องเป็นดำ (6.02:1)
+        "orange-text": "#E03C00", // ตัวอักษร ≥24px / เส้นโฟกัส
+        "orange-light": "#FF6A28", // ตัวอักษรบนพื้นมืด
+        page: "#F0F0F0", // พื้นหน้าต่างแอป
+        surface: "#FFFFFF", // พื้นการ์ด
 
         "grey-200": "#E0E0E0",
         "grey-400": "#B0B0B0",

@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { useDesignerSetup } from "@/components/designer/SetupGate";
 import { cn } from "@/lib/cn";
 
-// sidebar ดำ + hover/active mint เหมือน Nav.tsx สาธารณะ (DESIGN.md §18.1)
+// sidebar ดำ · hover ส้ม / หน้าปัจจุบันเป็นเม็ดเทา เหมือน Nav.tsx สาธารณะ (DESIGN.md §18.1)
 function NavItem({ href, label, icon, badge, isActive, onClick }: {
   href: string; label: string; icon: React.ReactNode;
   badge?: number; isActive: boolean; onClick?: () => void;
@@ -19,7 +19,7 @@ function NavItem({ href, label, icon, badge, isActive, onClick }: {
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base",
-        isActive ? "bg-mint text-black" : "text-white hover:bg-mint hover:text-black"
+        isActive ? "bg-page text-black" : "text-white hover:bg-orange hover:text-black"
       )}
     >
       {icon}
@@ -78,7 +78,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
 
   if (loading || !user || (role !== "designer" && role !== "admin")) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <span className="font-body text-body-sm text-grey-600">กำลังโหลด…</span>
       </div>
     );
@@ -128,7 +128,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
   ];
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-page">
       {/* Sidebar desktop — พื้นดำเหมือน Nav.tsx สาธารณะ ไม่มีเส้นขอบ (§4.0) */}
       <aside className="hidden md:flex flex-col w-[220px] min-h-screen bg-black sticky top-0 h-screen overflow-y-auto">
         <div className="px-5 py-5">
@@ -144,12 +144,12 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
         </nav>
         <div className="p-3 flex flex-col gap-1">
           {role === "admin" && (
-            <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-mint hover:text-black">
+            <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-orange hover:text-black">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.4 3.4l.85.85M11.75 11.75l.85.85M3.4 12.6l.85-.85M11.75 4.25l.85-.85" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5"/></svg>
               <span>Admin Panel</span>
             </Link>
           )}
-          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-mint hover:text-black">
+          <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-orange hover:text-black">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2l6 6M3.5 6.5V14h3v-3h3v3h3V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span>กลับหน้าแรก</span>
           </Link>
@@ -157,7 +157,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
             <div className="font-body text-body-sm text-grey-400 mb-2 truncate">{user.email}</div>
             <button
               onClick={() => signOut().then(() => router.push("/"))}
-              className="w-full text-left font-body text-body-sm text-grey-400 hover:text-mint bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base p-0"
+              className="w-full text-left font-body text-body-sm text-grey-400 hover:text-orange-light bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base p-0"
             >
               ออกจากระบบ
             </button>
@@ -194,12 +194,12 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
             {/* ท้าย drawer เหมือน sidebar desktop — ไม่งั้นบนมือถือไม่มีทางออกจากระบบ */}
             <div className="p-3 flex flex-col gap-1">
               {role === "admin" && (
-                <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-mint hover:text-black" onClick={() => setMenuOpen(false)}>
+                <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-orange hover:text-black" onClick={() => setMenuOpen(false)}>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v1.2M8 13.3v1.2M1.5 8h1.2M13.3 8h1.2M3.4 3.4l.85.85M11.75 11.75l.85.85M3.4 12.6l.85-.85M11.75 4.25l.85-.85" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5"/></svg>
                   <span>Admin Panel</span>
                 </Link>
               )}
-              <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-mint hover:text-black" onClick={() => setMenuOpen(false)}>
+              <Link href="/" className="flex items-center gap-3 px-3 py-2.5 font-ui text-ui no-underline transition-colors duration-150 ease-base text-white hover:bg-orange hover:text-black" onClick={() => setMenuOpen(false)}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8L8 2l6 6M3.5 6.5V14h3v-3h3v3h3V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 <span>กลับหน้าแรก</span>
               </Link>
@@ -207,7 +207,7 @@ export default function DesignerLayout({ children }: { children: React.ReactNode
                 <div className="font-body text-body-sm text-grey-400 mb-2 truncate">{user.email}</div>
                 <button
                   onClick={() => signOut().then(() => router.push("/"))}
-                  className="w-full text-left font-body text-body-sm text-grey-400 hover:text-mint bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base p-0"
+                  className="w-full text-left font-body text-body-sm text-grey-400 hover:text-orange-light bg-transparent border-none cursor-pointer transition-colors duration-150 ease-base p-0"
                 >
                   ออกจากระบบ
                 </button>

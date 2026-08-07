@@ -112,7 +112,7 @@ export default function SubscriptionRevenue({ mode }: Props) {
       ) : (
         <>
           {isTrial && (
-            <div className="mb-4 px-4 py-2.5 bg-mint font-body text-footnote text-black">
+            <div className="mb-4 px-4 py-2.5 bg-grey-200 font-body text-footnote text-black">
               ช่วงทดสอบ — ยอดเงินเป็น ฿0 แต่แสดงสัดส่วนและสถิติการใช้งานจริง
             </div>
           )}
@@ -150,7 +150,7 @@ function AdminView({ stmt, names }: { stmt: SubMonthStatement; names: Record<str
       </div>
 
       <div className="bg-surface overflow-hidden">
-        <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+        <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
           <div>Designer</div><div>แบ่งเท่ากัน</div><div>ตามการใช้งาน</div><div>รวม</div>
         </div>
         {designers.length === 0 ? (
@@ -166,7 +166,7 @@ function AdminView({ stmt, names }: { stmt: SubMonthStatement; names: Record<str
               </summary>
               <div className="px-4 pb-3 flex flex-col gap-1.5">
                 {d.fonts.map((f) => (
-                  <div key={f.fontId} className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 font-body text-footnote text-grey-600 bg-white px-3 py-2 items-center">
+                  <div key={f.fontId} className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 font-body text-footnote text-grey-600 bg-page px-3 py-2 items-center">
                     <div className="truncate">
                       {f.name ?? "—"}
                       {!f.optedIn && <span className="ml-1.5 text-warning">(ออกจากแพลนแล้ว)</span>}
@@ -202,7 +202,7 @@ function DesignerView({ stmt, designerId }: { stmt: SubMonthStatement; designerI
           <div className="font-body text-footnote text-grey-600">ตามการใช้งาน (font-days)</div>
         </div>
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-mint-text leading-none mb-1">{fmtBaht(slice?.total ?? 0)}</div>
+          <div className="font-heading text-h2 text-orange-text leading-none mb-1">{fmtBaht(slice?.total ?? 0)}</div>
           <div className="font-body text-footnote text-grey-600">รวมส่วนแบ่ง Subscription</div>
         </div>
       </div>
@@ -213,7 +213,7 @@ function DesignerView({ stmt, designerId }: { stmt: SubMonthStatement; designerI
         </div>
       ) : (
         <div className="bg-surface overflow-hidden">
-          <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
             <div>ฟอนต์</div><div>แบ่งเท่ากัน</div><div>ตามการใช้งาน</div><div>รวม</div>
           </div>
           {slice.fonts.map((f) => (

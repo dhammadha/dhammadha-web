@@ -102,7 +102,7 @@ export default function DesignerDetail() {
         <Nav />
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="font-heading text-h2 text-black">ไม่พบ designer นี้</div>
-          <Link href="/fonts/" className="font-body text-body text-mint-text no-underline hover:underline">← ดูฟอนต์ทั้งหมด</Link>
+          <Link href="/fonts/" className="font-body text-body link-accent no-underline hover:underline">← ดูฟอนต์ทั้งหมด</Link>
         </div>
         <Footer />
       </>
@@ -112,10 +112,10 @@ export default function DesignerDetail() {
   return (
     <>
       <Nav />
-      <div className="bg-white min-h-screen">
+      <div className="bg-page min-h-screen">
         <Container className="pt-10 pb-5">
           <p className="font-body text-body-sm text-grey-600 mb-1">
-            <Link href="/fonts/" className="text-grey-600 no-underline hover:text-mint-text transition-colors">ฟอนต์ทั้งหมด</Link>
+            <Link href="/fonts/" className="text-grey-600 no-underline hover:link-accent transition-colors">ฟอนต์ทั้งหมด</Link>
             {" / "}นักออกแบบ
           </p>
           <h1 className="font-heading text-h1 text-black">{designerName}</h1>
@@ -123,7 +123,7 @@ export default function DesignerDetail() {
             <p className="font-body text-body-sm text-grey-600">{fonts.length} ฟอนต์</p>
             <LicenseLink
               pdfUrl={licensePdf}
-              className="font-body text-body-sm text-mint-text hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+              className="font-body text-body-sm link-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
             >
               สัญญาอนุญาต →
             </LicenseLink>

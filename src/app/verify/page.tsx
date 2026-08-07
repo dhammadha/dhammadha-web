@@ -56,7 +56,7 @@ function VerifyContent() {
   }, [initial]);
 
   return (
-    <section className="bg-white">
+    <section className="bg-page">
       <Container className="pt-10 pb-16">
         <div className="max-w-[640px] mx-auto">
           <h1 className="font-heading text-h1 text-black mb-3">ตรวจสอบสิทธิการใช้งานฟอนต์</h1>
@@ -107,7 +107,7 @@ function VerifyContent() {
                 <p className="font-body text-body text-grey-800 leading-[1.8]">
                   รหัสยืนยันไม่ถูกต้อง หรือไฟล์ฟอนต์นี้อาจไม่ได้มาจากการซื้อผ่าน {DOMAIN}
                   — หากคุณเชื่อว่าไฟล์ถูกละเมิดลิขสิทธิ์ แจ้งได้ที่{" "}
-                  <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="link-accent">{CONTACT_EMAIL}</a>
                 </p>
               </div>
             )
@@ -122,7 +122,7 @@ export default function VerifyPage() {
   return (
     <>
       <Nav />
-      <Suspense fallback={<section className="bg-white min-h-[60vh]" />}>
+      <Suspense fallback={<section className="bg-page min-h-[60vh]" />}>
         <VerifyContent />
       </Suspense>
       <Footer />

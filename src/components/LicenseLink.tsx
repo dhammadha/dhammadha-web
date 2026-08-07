@@ -27,7 +27,7 @@ const BUTTON_RESET = "bg-transparent border-none cursor-pointer p-0";
 interface LicenseLinkProps {
   /** URL สัญญาฉบับของดีไซน์เนอร์ — `null` = ใช้ฉบับกลาง (ผลจาก `designerLicensePdf()`) */
   pdfUrl: string | null;
-  /** คลาสที่มองเห็น เช่น `font-body text-body-sm text-mint-text hover:underline` */
+  /** คลาสที่มองเห็น เช่น `font-body text-body-sm link-accent hover:underline` */
   className?: string;
   /** เปิดฉบับกลางในแท็บใหม่หรือไม่ (มีผลเฉพาะกรณีใช้ฉบับกลาง — PDF เปิดเป็น lightbox อยู่แล้ว) */
   newTab?: boolean;

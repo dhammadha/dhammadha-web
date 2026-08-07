@@ -126,7 +126,7 @@ export default function AdminDesignersPage() {
             key={t}
             onClick={() => { setTab(t); setSelected(null); }}
             className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${
-              tab === t ? "bg-mint text-black" : "bg-surface text-grey-600 hover:bg-grey-200"
+              tab === t ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200"
             }`}
           >
             {t === "applications" ? "คำขอสมัคร" : "Designers"}
@@ -143,13 +143,13 @@ export default function AdminDesignersPage() {
         {/* List */}
         <div className="flex-1 bg-surface overflow-hidden">
           {tab === "applications" && (
-            <div className="grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+            <div className="grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
               <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>สถานะ</div>
             </div>
           )}
 
           {tab === "designers" && (
-            <div className="grid grid-cols-[100px_1fr_1fr_120px_80px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+            <div className="grid grid-cols-[100px_1fr_1fr_120px_80px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
               <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>ลิงก์</div><div>Role</div>
             </div>
           )}
@@ -166,7 +166,7 @@ export default function AdminDesignersPage() {
               onClick={() => setSelected(selected?.id === u.id ? null : u)}
               className={`grid gap-3 px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${
                 tab === "designers" ? "grid-cols-[100px_1fr_1fr_120px_80px]" : "grid-cols-[100px_1fr_1.5fr_80px]"
-              } ${selected?.id === u.id ? "bg-mint/20" : "hover:bg-grey-200"}`}
+              } ${selected?.id === u.id ? "bg-page" : "hover:bg-grey-200"}`}
             >
               <div className="font-body text-footnote text-grey-600">{fmtDate(u.created_at)}</div>
               <div className="font-ui text-ui text-black truncate">{u.name ?? "—"}</div>
@@ -179,7 +179,7 @@ export default function AdminDesignersPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="font-body text-footnote text-mint-text no-underline hover:underline truncate block"
+                      className="font-body text-footnote link-accent no-underline hover:underline truncate block"
                     >
                       {u.designer_slug}
                     </a>
@@ -192,7 +192,7 @@ export default function AdminDesignersPage() {
                 {tab === "applications" ? (
                   <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอพิจารณา</span>
                 ) : (
-                  <span className="text-badge font-heading px-2 py-0.5 bg-mint text-black capitalize">{u.role}</span>
+                  <span className="text-badge font-heading px-2 py-0.5 bg-black text-white capitalize">{u.role}</span>
                 )}
               </div>
             </div>
@@ -219,7 +219,7 @@ export default function AdminDesignersPage() {
                     href={selected.portfolio_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-mint-text no-underline hover:underline break-all"
+                    className="link-accent no-underline hover:underline break-all"
                   >
                     {selected.portfolio_url}
                   </a>
@@ -235,7 +235,7 @@ export default function AdminDesignersPage() {
                   </Button>
                   <button
                     onClick={() => reject(selected)}
-                    className="w-full py-2 text-danger-dark bg-white font-ui text-ui cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base border-none"
+                    className="w-full py-2 text-danger-dark bg-page font-ui text-ui cursor-pointer hover:bg-danger hover:text-white transition-colors duration-150 ease-base border-none"
                   >
                     ปฏิเสธ
                   </button>

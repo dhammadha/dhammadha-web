@@ -60,7 +60,7 @@ export default function ConfirmDeleteModal({
             autoComplete="off"
             spellCheck={false}
             placeholder={confirmText}
-            className="w-full px-3 py-2 h-[38px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base"
+            className="w-full px-3 py-2 h-[38px] bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base"
           />
         </div>
 

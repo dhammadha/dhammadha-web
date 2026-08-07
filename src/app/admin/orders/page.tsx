@@ -220,7 +220,7 @@ export default function AdminOrdersPage() {
           <button
             key={key}
             onClick={() => { setTab(key); setOpenId(null); }}
-            className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${tab === key ? "bg-mint" : "bg-surface hover:bg-grey-200"}`}
+            className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${tab === key ? "bg-page" : "bg-surface hover:bg-grey-200"}`}
           >
             <div className="font-heading text-h2 text-black leading-none mb-1">{tabCount[key]}</div>
             <div className="font-body text-footnote text-grey-600">{label}</div>
@@ -246,7 +246,7 @@ export default function AdminOrdersPage() {
         <div className="bg-surface py-16 flex items-center justify-center font-body text-body-sm text-grey-600">กำลังโหลด…</div>
       ) : tab === "retail" ? (
         <div className="bg-surface overflow-hidden">
-          <div className={`${RETAIL_GRID} px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+          <div className={`${RETAIL_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
             <div>วันที่</div><div>หมายเลขออเดอร์</div><div>ผู้ซื้อ</div><div>ยอดเงิน</div><div>ประวัติดาวน์โหลด</div>
           </div>
           {retailOrders.length === 0 ? (
@@ -257,7 +257,7 @@ export default function AdminOrdersPage() {
               <Fragment key={o.id}>
                 <div
                   onClick={() => setOpenId(open ? null : o.id)}
-                  className={`${RETAIL_GRID} px-4 py-3 items-center cursor-pointer transition-colors duration-150 ease-base ${open ? "bg-mint/20" : "hover:bg-grey-200"}`}
+                  className={`${RETAIL_GRID} px-4 py-3 items-center cursor-pointer transition-colors duration-150 ease-base ${open ? "bg-page" : "hover:bg-grey-200"}`}
                 >
                   <div className="font-body text-body-sm text-grey-600">{fmtDate(o.paid_at ?? o.created_at)}</div>
                   <div className="font-body text-body-sm text-black">{o.order_no}</div>
@@ -269,14 +269,14 @@ export default function AdminOrdersPage() {
                   ) : (
                     <button
                       onClick={(e) => { e.stopPropagation(); setLogOrder(o); }}
-                      className="font-body text-body-sm text-mint-text bg-transparent border-none p-0 text-left cursor-pointer hover:underline"
+                      className="font-body text-body-sm link-accent bg-transparent border-none p-0 text-left cursor-pointer hover:underline"
                     >
                       ดูประวัติการดาวน์โหลด ({logsByOrder[o.id].length})
                     </button>
                   )}
                 </div>
                 {open && (
-                  <div className="bg-white px-4 py-3">
+                  <div className="bg-page px-4 py-3">
                     <div className={`${ITEM_GRID} px-3 pb-1.5 font-heading text-badge text-grey-600 tracking-[0.04em]`}>
                       <div>ฟอนต์</div>
                       <div>ดีไซน์เนอร์</div>
@@ -306,7 +306,7 @@ export default function AdminOrdersPage() {
         </div>
       ) : (
         <div className="bg-surface overflow-hidden">
-          <div className={`${SUB_GRID} px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+          <div className={`${SUB_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
             <div>วันที่</div><div>หมายเลข</div><div>สมาชิก</div><div>อีเมล</div><div>วันหมดอายุ</div>
           </div>
           {periodSubs.length === 0 ? (

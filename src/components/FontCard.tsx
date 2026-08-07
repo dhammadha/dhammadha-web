@@ -95,7 +95,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         backgroundSize: "cover",
         backgroundPosition: "center",
       }
-    : { background: "#2B1B3D" };
+    : { background: "#080808" };
 
   const newFlag = isNew(font);
   const eff = effectiveSale(font);
@@ -152,8 +152,8 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
         >
           <svg
             viewBox="0 0 24 24"
-            fill={faved ? "#5ECEC8" : "none"}
-            stroke={faved ? "#5ECEC8" : "#fff"}
+            fill={faved ? "#FF4D00" : "none"}
+            stroke={faved ? "#FF4D00" : "#fff"}
             strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -166,16 +166,15 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
 
       {/* แถบรายละเอียด — 3 ชิ้นวางแยกกันแบบ Figma (font-card-redesign.png)
           ⚠️ leading-none ทั้ง 3 ชิ้น: line-height 1.5 ที่สืบทอดมาทำให้ line-box ของราคา (24px)
-          สูง 36px แล้วดันบรรทัด "โดย" ให้ห่างจากชื่อฟอนต์ ~17px (เจ้าของจับได้ 2026-07-18)
+          สูง 36px แล้วดันบรรทัดชื่อดีไซน์เนอร์ให้ห่างจากชื่อฟอนต์ ~17px (เจ้าของจับได้ 2026-07-18)
           ตัด leading ทิ้ง = กล่องเท่าขนาดตัวอักษร ระยะกระชับตามต้นแบบ */}
-      {/* pt-3 (เดิม py-2): บรรทัด "โดย" เล็กลงเหลือ 10px แล้วดันชื่อฟอนต์ลงมาให้บาลานซ์ (เจ้าของ 2026-07-20) */}
+      {/* pt-3 (เดิม py-2): บรรทัดชื่อดีไซน์เนอร์เล็กลงเหลือ 10px แล้วดันชื่อฟอนต์ลงมาให้บาลานซ์ (เจ้าของ 2026-07-20) */}
       <div className="px-3.5 pt-3 pb-2 md:px-4">
         {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
         <div className="font-heading text-fc-heading text-black truncate leading-none">{font.name || "—"}</div>
 
         <div className="flex items-baseline justify-between gap-2">
           <div className="font-body text-fc-byline text-grey-600 truncate min-w-0 leading-0">
-            โดย{" "}
             {font.designer_slug ? (
               <span
                 role="link"
@@ -184,16 +183,16 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
                   e.stopPropagation();
                   window.location.href = `/designer/${font.designer_slug}`;
                 }}
-                className="text-mint-text cursor-pointer hover:underline"
+                className="cursor-pointer hover:underline"
               >
                 {designerName}
               </span>
             ) : (
-              <span className="text-mint-text">{designerName}</span>
+              <span>{designerName}</span>
             )}
           </div>
 
-          {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) · baseline ตรงกับบรรทัด "โดย" */}
+          {/* ⚠️ ternary ราคา — restyle ในที่ ห้าม extract (DESIGN.md §8) · baseline ตรงกับบรรทัดชื่อดีไซน์เนอร์ */}
           <div className="shrink-0 leading-none">
             {font.is_sub_exclusive ? (
               /* ไม่ขายรายชุด — ข้อความแทนตัวเลข ใช้ขนาด/น้ำหนักเดียวกับราคา

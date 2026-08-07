@@ -82,7 +82,7 @@ function PublishChecklist({ font, privateFiles, publishing, onClose, onPublish }
   return (
     <div className="fixed inset-0 z-[150] bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-white w-full max-w-[480px] max-h-[85vh] overflow-y-auto p-6"
+        className="bg-page w-full max-w-[480px] max-h-[85vh] overflow-y-auto p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-ui text-ui text-black">ตรวจก่อน Publish</h2>
@@ -130,7 +130,7 @@ function PublishChecklist({ font, privateFiles, publishing, onClose, onPublish }
           <button
             onClick={onPublish}
             disabled={!canPublish || publishing}
-            className="font-ui text-ui px-5 py-2 bg-mint text-black border-none cursor-pointer hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="font-ui text-ui px-5 py-2 bg-black text-white border-none cursor-pointer hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {publishing ? "กำลัง Publish…" : "Publish"}
           </button>
@@ -331,7 +331,7 @@ export default function AdminAllFontsPage() {
             <button
               key={c.key}
               onClick={() => setCategory(c.key)}
-              className={`px-4 py-2 font-ui text-ui capitalize border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${category === c.key ? "bg-mint text-black" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
+              className={`px-4 py-2 font-ui text-ui capitalize border-none cursor-pointer transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${category === c.key ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
             >
               {c.label}
             </button>
@@ -345,7 +345,7 @@ export default function AdminAllFontsPage() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base flex items-center gap-1.5 ${tab === t.key ? "bg-mint text-black" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
+            className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base flex items-center gap-1.5 ${tab === t.key ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200"}`}
           >
             {t.label}
             {t.badge != null && t.badge > 0 && (
@@ -359,7 +359,7 @@ export default function AdminAllFontsPage() {
 
       {/* Table */}
       <div className="bg-surface overflow-hidden">
-        <div className={`${GRID} px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+        <div className={`${GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
           <div /><div>ฟอนต์</div><div>Designer</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>โปรโมชั่น</div><div>สถานะ</div><div>จัดการ</div>
         </div>
 
@@ -372,11 +372,11 @@ export default function AdminAllFontsPage() {
             <div>
               {f.cover_image_url
                 ? <img src={f.cover_image_url} alt={f.name ?? ""} className="w-10 h-[22px] object-cover" />
-                : <div className="w-10 h-[22px] bg-white" />}
+                : <div className="w-10 h-[22px] bg-page" />}
             </div>
             <div>
               {f.designer_slug && f.published_at ? (
-                <a href={`/fonts/${f.designer_slug}/${f.slug}`} target="_blank" rel="noopener" className="font-ui text-ui text-black no-underline hover:text-mint-text">{f.name ?? "—"}</a>
+                <a href={`/fonts/${f.designer_slug}/${f.slug}`} target="_blank" rel="noopener" className="font-ui text-ui text-black no-underline hover:link-accent">{f.name ?? "—"}</a>
               ) : (
                 <div className="font-ui text-ui text-black">{f.name ?? "—"}</div>
               )}
@@ -384,7 +384,7 @@ export default function AdminAllFontsPage() {
             </div>
             <div className="font-body text-footnote text-grey-600 truncate">
               {f.designer_slug ? (
-                <Link href={`/designer/${f.designer_slug}`} target="_blank" className="text-black no-underline hover:text-mint-text">
+                <Link href={`/designer/${f.designer_slug}`} target="_blank" className="text-black no-underline hover:link-accent">
                   {f.designer_slug}
                 </Link>
               ) : <span className="text-grey-600">—</span>}
@@ -392,7 +392,7 @@ export default function AdminAllFontsPage() {
             <div className="font-body text-body-sm text-grey-600 capitalize">{f.category ?? "—"}</div>
             <div className="font-body text-footnote text-grey-600 truncate">{(f.tags ?? []).slice(0, 3).join(", ") || "—"}</div>
             <div className="font-body text-body-sm text-black">
-              {f.is_free ? <span className="text-mint-text">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
+              {f.is_free ? <span className="text-black">ฟรี</span> : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
             </div>
             <div className="font-body text-footnote text-grey-600">
               {isSaleActive(f) ? (
@@ -408,7 +408,7 @@ export default function AdminAllFontsPage() {
             </div>
             <div>
               {f.published_at ? (
-                <span className={`text-badge font-heading px-2 py-0.5 ${f.is_active ? "bg-success text-white" : "bg-white text-grey-600"}`}>
+                <span className={`text-badge font-heading px-2 py-0.5 ${f.is_active ? "bg-success text-white" : "bg-page text-grey-600"}`}>
                   {f.is_active ? "แสดงบนเว็บ" : "ซ่อน"}
                 </span>
               ) : (
@@ -419,7 +419,7 @@ export default function AdminAllFontsPage() {
               {f.published_at && (
                 <button
                   onClick={() => toggleActive(f)}
-                  className="font-ui text-ui px-2.5 py-1 bg-white text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+                  className="font-ui text-ui px-2.5 py-1 bg-page text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
                 >
                   {f.is_active ? "ซ่อน" : "แสดง"}
                 </button>
@@ -428,21 +428,21 @@ export default function AdminAllFontsPage() {
                 <button
                   onClick={() => openReview(f)}
                   disabled={publishing === f.id}
-                  className="font-ui text-ui px-2.5 py-1 bg-mint text-black border-none cursor-pointer hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50"
+                  className="font-ui text-ui px-2.5 py-1 bg-black text-white border-none cursor-pointer hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50"
                 >
                   {publishing === f.id ? "…" : "ตรวจ & Publish"}
                 </button>
               ) : (
                 <button
                   onClick={() => setEditing(f)}
-                  className="font-ui text-ui px-2.5 py-1 bg-white text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+                  className="font-ui text-ui px-2.5 py-1 bg-page text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
                 >
                   แก้ไข
                 </button>
               )}
               <button
                 onClick={() => setDeleting(f)}
-                className="font-ui text-ui px-2.5 py-1 text-danger-dark bg-white hover:bg-danger hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
+                className="font-ui text-ui px-2.5 py-1 text-danger-dark bg-page hover:bg-danger hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer"
               >
                 ลบ
               </button>
@@ -479,7 +479,7 @@ export default function AdminAllFontsPage() {
         busy={deletingBusy}
         description={
           deleting && (
-            <div className="flex flex-col gap-1 font-body text-body-sm bg-white px-3 py-2.5">
+            <div className="flex flex-col gap-1 font-body text-body-sm bg-page px-3 py-2.5">
               <div className="font-ui text-ui text-black">{deleting.name ?? "—"}</div>
               {deleting.name_th && <div className="text-grey-600">{deleting.name_th}</div>}
               <div className="text-grey-600">

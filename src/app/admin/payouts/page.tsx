@@ -631,7 +631,7 @@ export default function AdminPayoutsPage() {
 
           {/* สรุปยอดต้องโอนต่อ designer — คลิกแถวเพื่อกางรายละเอียดใต้แถวนั้นเลย */}
           <div className="bg-surface overflow-hidden">
-            <div className={`${SUMMARY_GRID} px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+            <div className={`${SUMMARY_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
               <div>Designer</div>
               <div>ส่วนแบ่ง Retail Font</div>
               <div>ส่วนแบ่ง Subscription</div>
@@ -654,7 +654,7 @@ export default function AdminPayoutsPage() {
                   <Fragment key={r.designerId}>
                     <div
                       onClick={() => setSelectedDesignerId(open ? null : r.designerId)}
-                      className={`${SUMMARY_GRID} px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${open ? "bg-mint/20" : "hover:bg-grey-200"}`}
+                      className={`${SUMMARY_GRID} px-4 py-3 cursor-pointer transition-colors duration-150 ease-base items-center ${open ? "bg-page" : "hover:bg-grey-200"}`}
                     >
                       <div className="font-ui text-ui text-black truncate">{displayName(d, r.designerId)}</div>
                       <div className="font-body text-body-sm text-grey-600">{fmtBaht(r.designerAmount)}</div>
@@ -666,7 +666,7 @@ export default function AdminPayoutsPage() {
 
                     {/* รายละเอียด — กางใต้แถวที่เลือก เต็มความกว้าง วางข้อมูลแนวนอน */}
                     {open && (
-                      <div className="bg-white px-4 py-4 flex flex-col gap-4">
+                      <div className="bg-page px-4 py-4 flex flex-col gap-4">
                         <div className="font-body text-footnote text-grey-600">
                           {selectedQuarter ? quarterLabel(selectedQuarter.year, selectedQuarter.quarter) : periodLabel(period)}
                         </div>
@@ -825,7 +825,7 @@ export default function AdminPayoutsPage() {
 function PayoutStatusBadge({ status }: { status: PayoutStatus }) {
   if (status === "overdue") return <span className="text-badge font-heading px-2 py-0.5 bg-danger text-white">ค้างชำระ</span>;
   if (status === "waiting") return <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอโอน</span>;
-  if (status === "notdue") return <span className="text-badge font-heading px-2 py-0.5 bg-mint text-black">ยังไม่ถึงรอบโอน</span>;
+  if (status === "notdue") return <span className="text-badge font-heading px-2 py-0.5 bg-grey-200 text-grey-800">ยังไม่ถึงรอบโอน</span>;
   return <span className="font-body text-footnote text-grey-600">จ่ายครบแล้ว</span>;
 }
 
@@ -860,7 +860,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 function StatTile({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="bg-surface p-4">
-      <div className={`font-heading text-h2 leading-none mb-1 ${highlight ? "text-mint-text" : "text-black"}`}>{value}</div>
+      <div className={`font-heading text-h2 leading-none mb-1 ${highlight ? "text-orange-text" : "text-black"}`}>{value}</div>
       <div className="font-body text-footnote text-grey-600">{label}</div>
     </div>
   );

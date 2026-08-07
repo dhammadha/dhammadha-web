@@ -2,16 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --mint: #5ECEC8;
-  --mint-light: #e8faf9;
-  --mint-mid: #b8ecea;
-  --bg: #f5f5f2;
-  --border: #e8e8e0;
-}
+/* เดิมมี :root ประกาศ --mint / --mint-light / --mint-mid / --bg / --border ไว้ที่นี่
+   ลบทิ้งตอนรีแบรนด์เฟส 1 — ตรวจแล้วว่าไม่มี var(--x) ตัวไหนอ่านมันเลยสักจุด
+   สีทั้งหมดอยู่ที่ tailwind.config.ts ที่เดียว (เหตุผลอยู่ในหัวไฟล์นั้น) */
 
 * {
   box-sizing: border-box;
+}
+
+@layer components {
+  /* ลิงก์ในข้อความ — อักษรดำ + เส้นใต้ส้ม (docs/design/DESIGN.md §3.5)
+     ทำไมไม่ใช้ตัวอักษรสีส้ม: orange-text #E03C00 ได้ 3.83:1 บนพื้น page ซึ่งผ่าน AA
+     เฉพาะตัว ≥24px (หรือ ≥18.66px bold) แต่ลิงก์ในข้อความเป็นขนาดเนื้อความ 14–16px
+     → เส้นใต้เป็น graphic ใช้เกณฑ์ 3:1 จึงใส่สีส้มตรงนั้นได้ ส่วนตัวอักษรต้องเป็นดำ
+
+     ทำไมเป็นคลาสไม่ใช่ <TextLink>: 51 จุดกระจาย 34 ไฟล์ ปนกันทั้ง <Link>, <a href>
+     และ <span role="link"> → wrapper ต้องมี 3 แบบ · คลาสทำให้แต่ละจุดเป็นการสลับ
+     token ตัวเดียว grep ตรวจได้
+     ⚠️ คลาสนี้มองไม่เห็นตอน grep หา text-black — หาด้วยชื่อ link-accent */
+  .link-accent {
+    @apply text-black underline decoration-orange decoration-1 underline-offset-2;
+  }
 }
 
 html {
@@ -23,13 +34,17 @@ html {
 }
 
 body {
-  background: #fff;
+  /* พื้นหน้าเว็บ = token `page` #F0F0F0 (รีแบรนด์เฟส 1) — ของเดิม #fff
+     คู่กับ `surface` #FFFFFF ที่เป็นพื้นการ์ด → การ์ดลอยขึ้นมาเองโดยไม่ต้องมีเส้นกรอบ
+     ⚠️ ค่านี้ต้องเท่ากับ `page` ใน tailwind.config.ts เป๊ะ ๆ ไม่งั้นแถบ sticky
+     ที่ใช้ bg-page จะเห็นเป็นรอยต่อตอนเลื่อน (FontDetail.tsx) */
+  background: #F0F0F0;
   font-family: var(--font-noto-thai), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* Type tester — สไลเดอร์ขนาดตัวอักษร: ราง + ปุ่มเหลี่ยม (docs/design/DESIGN.md §15.10)
    Tailwind styl ::-webkit-slider-thumb ไม่ได้ จึงต้องเขียน CSS จริงที่นี่
-   ราง = พื้นหลัง gradient (mint ซ้าย · grey ขวา) ตั้งจาก inline style ตามค่า value
+   ราง = พื้นหลัง gradient (ส้ม ซ้าย · เทา ขวา) ตั้งจาก inline style ตามค่า value
    pseudo-track โปร่งใสให้พื้นหลัง element โผล่ · ปุ่มเป็นกล่องขาวเหลี่ยม border-radius:0 */
 .tester-range {
   -webkit-appearance: none;
@@ -46,7 +61,9 @@ body {
   height: 20px;
   margin-top: -8px; /* จัดกึ่งกลางบนราง 4px (2 - 20/2) */
   background: #fff;
-  border: 1px solid #E0E0E0;
+  /* grey-400 ไม่ใช่ grey-200: ปุ่มขาวเดิมอยู่บนพาเนล #F8F8F8 จึงมีเงาตัวเองอยู่บ้าง
+     หลังรีแบรนด์พาเนลเป็น #FFFFFF = ขาวบนขาว เหลือแค่ขอบเส้นนี้เป็นตัวบอกรูปทรง */
+  border: 1px solid #B0B0B0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 .tester-range::-moz-range-thumb {
@@ -54,7 +71,9 @@ body {
   height: 20px;
   border-radius: 0;
   background: #fff;
-  border: 1px solid #E0E0E0;
+  /* grey-400 ไม่ใช่ grey-200: ปุ่มขาวเดิมอยู่บนพาเนล #F8F8F8 จึงมีเงาตัวเองอยู่บ้าง
+     หลังรีแบรนด์พาเนลเป็น #FFFFFF = ขาวบนขาว เหลือแค่ขอบเส้นนี้เป็นตัวบอกรูปทรง */
+  border: 1px solid #B0B0B0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 .tester-range:focus-visible {

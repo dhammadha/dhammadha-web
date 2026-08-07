@@ -20,7 +20,7 @@ export default function AuthShell({
   return (
     <>
       <Nav />
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-16">
           <div className="max-w-[400px] mx-auto">
             <h1 className="font-heading text-h1 text-black mb-6">{title}</h1>

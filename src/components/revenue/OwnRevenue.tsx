@@ -176,12 +176,12 @@ export default function OwnRevenue() {
     return next;
   });
 
-  // กล่อง 1-3 = ส่วนแบ่งของตัวเอง (ไม่ใช่ยอดขาย gross) · กล่อง 4 = ยอดค้างโอน (mint)
-  const BOXES: { key: Box; label: string; value: number; mint?: boolean }[] = [
+  // กล่อง 1-3 = ส่วนแบ่งของตัวเอง (ไม่ใช่ยอดขาย gross) · กล่อง 4 = ยอดค้างโอน (เน้นสีส้ม)
+  const BOXES: { key: Box; label: string; value: number; accent?: boolean }[] = [
     { key: "retail", label: "รายได้ Retail Font", value: b2cShare },
     { key: "subscription", label: "รายได้ Subscription", value: subTotal },
     { key: "gross", label: "รายได้รวม", value: netTotal },
-    { key: "pending", label: "ยอดค้างโอน", value: outstanding, mint: true },
+    { key: "pending", label: "ยอดค้างโอน", value: outstanding, accent: true },
   ];
 
   return (
@@ -219,10 +219,10 @@ export default function OwnRevenue() {
               <button
                 key={b.key}
                 onClick={() => setBox(b.key)}
-                className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${box === b.key ? "bg-mint" : "bg-surface hover:bg-grey-200"}`}
+                className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${box === b.key ? "bg-page" : "bg-surface hover:bg-grey-200"}`}
               >
-                {/* mint = สีปกติของกล่องยอดค้างโอน · พอกดเลือก (พื้น mint) เปลี่ยนเป็นดำให้อ่านออก */}
-                <div className={`font-heading text-h2 leading-none mb-1 ${b.mint && box !== b.key ? "text-mint-text" : "text-black"}`}>{fmtBaht(b.value)}</div>
+                {/* ยอดค้างโอนเน้นด้วยส้ม · พอกดเลือก (พื้นเทา) เปลี่ยนเป็นดำให้อ่านออก */}
+                <div className={`font-heading text-h2 leading-none mb-1 ${b.accent && box !== b.key ? "text-orange-text" : "text-black"}`}>{fmtBaht(b.value)}</div>
                 <div className="font-body text-footnote text-grey-600">{b.label}</div>
               </button>
             ))}
@@ -257,7 +257,7 @@ function EmptyRow({ text = "ไม่มีข้อมูลในช่วง�
 function RetailDetail({ sales, fonts }: { sales: FontSale[]; fonts: Record<string, FontMeta> }) {
   return (
     <div className="bg-surface overflow-hidden">
-      <div className={`${RETAIL_GRID} px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+      <div className={`${RETAIL_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
         <div /><div>ฟอนต์</div><div>ราคา</div><div>จำนวนที่ขาย</div><div>ยอดรวมทั้งหมด</div><div>ส่วนแบ่ง</div>
       </div>
       {sales.length === 0 ? <EmptyRow /> : sales.map((s) => {
@@ -285,7 +285,7 @@ function RetailDetail({ sales, fonts }: { sales: FontSale[]; fonts: Record<strin
 function SubscriptionDetail({ fonts }: { fonts: { name: string | null; equal: number; stream: number; total: number }[] }) {
   return (
     <div className="bg-surface overflow-hidden">
-      <div className={`${SUB_GRID} px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+      <div className={`${SUB_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
         <div>ฟอนต์</div><div>แบ่งเท่ากัน</div><div>ตามการใช้งาน</div><div>รายได้รวม</div>
       </div>
       {fonts.length === 0 ? <EmptyRow /> : fonts.map((f, i) => (
@@ -306,7 +306,7 @@ function PayoutHistory({ payouts }: { payouts: PayoutRow[] }) {
     new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" });
   return (
     <div className="bg-surface overflow-hidden">
-      <div className="grid grid-cols-[1fr_140px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+      <div className="grid grid-cols-[1fr_140px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
         <div>วันที่โอนส่วนแบ่งรายได้</div><div>จำนวนเงิน</div>
       </div>
       {payouts.length === 0 ? <EmptyRow text="ยังไม่มีข้อมูล" /> : payouts.map((p) => (
@@ -346,11 +346,11 @@ function CombinedDetail({
         </div>
         <div className="flex items-baseline gap-4">
           <span className="font-body text-footnote text-grey-600">ยอดขาย {fmtBahtOrDash(retailGross)}</span>
-          <span className="font-ui text-ui text-mint-text">ส่วนแบ่ง {fmtBaht(retailShare)}</span>
+          <span className="font-ui text-ui text-black">ส่วนแบ่ง {fmtBaht(retailShare)}</span>
         </div>
       </button>
       {retailOpen && (
-        <div className="bg-white/60">
+        <div className="bg-page">
           <div className={`${COMBINED_RETAIL_GRID} px-4 py-2 font-heading text-badge text-grey-600 tracking-[0.04em]`}>
             <div>ฟอนต์</div><div>ขายกี่ครั้ง</div><div>ยอดรวม</div><div>ส่วนแบ่ง</div>
           </div>
@@ -359,7 +359,7 @@ function CombinedDetail({
               <div className="text-black truncate">{s.name ?? "—"}</div>
               <div className="text-grey-600">{s.qty}</div>
               <div className="text-black">{fmtBaht(s.total)}</div>
-              <div className="text-mint-text">{fmtBaht(s.designerShare)}</div>
+              <div className="text-black">{fmtBaht(s.designerShare)}</div>
             </div>
           ))}
         </div>
@@ -371,17 +371,17 @@ function CombinedDetail({
           <Chevron open={subOpen} />
           <span className="font-ui text-ui text-black">Subscription</span>
         </div>
-        <span className="font-ui text-ui text-mint-text">ส่วนแบ่ง {fmtBaht(subTotal)}</span>
+        <span className="font-ui text-ui text-black">ส่วนแบ่ง {fmtBaht(subTotal)}</span>
       </button>
       {subOpen && (
-        <div className="bg-white/60">
+        <div className="bg-page">
           <div className="grid grid-cols-[2fr_1fr] gap-3 px-4 py-2 font-heading text-badge text-grey-600 tracking-[0.04em]">
             <div>เดือน</div><div>ส่วนแบ่ง</div>
           </div>
           {subMonths.filter((m) => m.total > 0).length === 0 ? <EmptyRow /> : subMonths.filter((m) => m.total > 0).map((m) => (
             <div key={`${m.year}-${m.month}`} className="grid grid-cols-[2fr_1fr] gap-3 px-4 py-2.5 items-center font-body text-body-sm">
               <div className="text-black">{monthLabel(m.year, m.month)}</div>
-              <div className="text-mint-text">{fmtBaht(m.total)}</div>
+              <div className="text-black">{fmtBaht(m.total)}</div>
             </div>
           ))}
         </div>

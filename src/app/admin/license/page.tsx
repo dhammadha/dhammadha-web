@@ -125,7 +125,7 @@ export default function AdminLicensePage() {
                   type="button"
                   onClick={() => removeTier(i)}
                   title="ลบรูปแบบสิทธินี้"
-                  className="w-8 h-8 mt-1 flex items-center justify-center text-grey-600 hover:text-danger-dark transition-colors duration-150 ease-base bg-white cursor-pointer shrink-0 border-none"
+                  className="w-8 h-8 mt-1 flex items-center justify-center text-grey-600 hover:text-danger-dark transition-colors duration-150 ease-base bg-page cursor-pointer shrink-0 border-none"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -139,7 +139,7 @@ export default function AdminLicensePage() {
         <button
           type="button"
           onClick={addTier}
-          className="mt-3 flex items-center gap-1.5 font-body text-body-sm text-mint-text cursor-pointer border-none bg-transparent p-0 hover:opacity-70 transition-opacity duration-150 ease-base"
+          className="mt-3 flex items-center gap-1.5 font-body text-body-sm text-black cursor-pointer border-none bg-transparent p-0 hover:opacity-70 transition-opacity duration-150 ease-base"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
             <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -166,4 +166,4 @@ export default function AdminLicensePage() {
   );
 }
 
-const iCls = "w-full px-3 py-2 bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
+const iCls = "w-full px-3 py-2 bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";

@@ -19,7 +19,7 @@ import { effectiveSale } from "@/lib/sale";
  * ส่ง `slides` มา = ใช้ตรง ๆ · ไม่ส่ง = map จาก `fonts` เหมือนเดิม (call site เดิมไม่ต้องแก้)
  *
  * cover = 16:9 (สัดส่วนรูปจริง) · ตัดชื่อฟอนต์ในสไลด์ (เลี่ยงโหลด webfont · §7)
- * ลูกศรที่ขอบ cover กลาง + จุดวางทับ cover (active mint)
+ * ลูกศรที่ขอบ cover กลาง + จุดวางทับ cover (active ดำ)
  *
  * geometry: วัดความกว้าง/ตำแหน่งเนื้อหา (max-w-site) ด้วย ResizeObserver
  *   slideW = ความกว้างเนื้อหา (หลังหัก padding) → cover กลางตรงขอบกริดหน้าอื่น
@@ -145,7 +145,7 @@ export default function CoverCarousel({
   if (poolSize === 0 && !loading) return null;
 
   return (
-    <section className="relative overflow-hidden bg-white">
+    <section className="relative overflow-hidden bg-page">
       {/* ตัววัดความกว้าง/ตำแหน่งเนื้อหา (max-w-site) — ซ่อน ไม่กินพื้นที่แนวตั้ง */}
       <div aria-hidden className="max-w-site mx-auto px-4 md:px-6 lg:px-8 pointer-events-none">
         <div ref={measureRef} className="h-0" />
@@ -202,22 +202,22 @@ export default function CoverCarousel({
                     ไม่มีวงกลมรองพื้น (§4.0) ขาว+เงาให้อ่านออกบนรูป */}
                 <button onClick={() => moveSlide(-1)}
                   style={{ left: Math.max(24, slideOffset - 70), textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}
-                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[80px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[80px] leading-none text-white hover:text-orange-light transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                   aria-label="ก่อนหน้า">
                   ‹
                 </button>
                 <button onClick={() => moveSlide(1)}
                   style={{ right: Math.max(24, slideOffset - 70), textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}
-                  className="absolute top-1/2 translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[80px] leading-none text-white hover:text-mint transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  className="absolute top-1/2 translate-x-1/2 -translate-y-1/2 z-10 bg-transparent border-none cursor-pointer text-[80px] leading-none text-white hover:text-orange-light transition-colors px-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                   aria-label="ถัดไป">
                   ›
                 </button>
 
-                {/* จุดบอกตำแหน่ง — วางทับ cover กลาง (bottom-center) · active mint */}
+                {/* จุดบอกตำแหน่ง — วางทับ cover กลาง (bottom-center) · active ดำ */}
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
                   {Array.from({ length: poolSize }, (_, i) => (
                     <button key={i} onClick={() => { setPos(pad + i); }}
-                      className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-mint" : "w-[5px] h-[3px] bg-white/70"}`}
+                      className={`border-none cursor-pointer rounded-full transition-all ${i === dotIdx ? "w-5 h-[3px] bg-black" : "w-[5px] h-[3px] bg-white/70"}`}
                       aria-label={`ตำแหน่ง ${i + 1}`} />
                   ))}
                 </div>

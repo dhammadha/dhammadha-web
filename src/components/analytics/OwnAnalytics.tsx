@@ -201,7 +201,7 @@ export default function OwnAnalytics() {
           <div className="font-body text-footnote text-grey-600">โหลดไฟล์ซื้อ</div>
         </div>
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-mint-text leading-none mb-1">{stats.viewsAll.toLocaleString("th-TH")}</div>
+          <div className="font-heading text-h2 text-orange-text leading-none mb-1">{stats.viewsAll.toLocaleString("th-TH")}</div>
           <div className="font-body text-footnote text-grey-600">ยอดเข้าชมรวมทั้งหมด</div>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function OwnAnalytics() {
         </div>
       ) : (
         <div className="bg-surface overflow-hidden">
-          <div className="grid grid-cols-[2fr_100px_100px_100px_100px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[2fr_100px_100px_100px_100px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
             <div>ฟอนต์</div>
             {SORT_COLUMNS.map(({ key, label }) => (
               <button

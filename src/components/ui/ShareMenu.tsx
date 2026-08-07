@@ -38,10 +38,10 @@ const ShareIcon = () => (
 );
 
 const ITEM_CLASS =
-  "w-full flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none text-left cursor-pointer hover:bg-mint transition-colors duration-150 ease-base";
+  "w-full flex items-center gap-2.5 px-4 py-2.5 font-ui text-ui text-black bg-transparent border-none text-left cursor-pointer hover:bg-orange transition-colors duration-150 ease-base";
 
 const TRIGGER_CLASS = {
-  icon: "flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-mint-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
+  icon: "flex items-center justify-center w-10 h-10 rounded-full bg-surface text-black hover:text-orange-text cursor-pointer border-none transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
   // ชุดคลาสเดียวกับปุ่ม "แก้ไข" ในตารางฟอนต์ของฉัน — ให้สูงเท่ากันทั้งแถว
   text: "font-ui text-ui px-2.5 py-1 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base border-none cursor-pointer",
 };

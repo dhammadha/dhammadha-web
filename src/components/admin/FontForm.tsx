@@ -626,7 +626,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                 <button onClick={() => { setCoverFile(null); setCoverUrl(""); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white text-[12px] border-none cursor-pointer flex items-center justify-center">✕</button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center gap-2 p-6 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base">
+              <label className="flex flex-col items-center justify-center gap-2 p-6 bg-page cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-grey-400"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/><path d="M3 17l5-5 4 4 3-3 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
                 <span className="font-body text-body-sm text-grey-600">คลิกเพื่อเลือกรูป Cover</span>
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleCoverFile(e.target.files[0])} />
@@ -634,7 +634,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             )}
           </FormField>
           <FormField label="รูป Preview (ลากเพื่อเรียงลำดับ)" className="mt-3">
-            <label className="flex items-center gap-2 px-4 py-2 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-body-sm text-grey-600">
+            <label className="flex items-center gap-2 px-4 py-2 bg-page cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-body-sm text-grey-600">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               เพิ่มรูป Preview
               <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => e.target.files && addPreviewFiles(e.target.files)} />
@@ -650,9 +650,9 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                     onDrop={(e) => onDrop(e, i)}
                     onDragEnd={onDragEnd}
                     className={`relative aspect-video overflow-hidden cursor-grab select-none transition-all duration-150 ease-base ${
-                      draggingIdx === i ? "opacity-40 outline outline-2 outline-dashed outline-mint" :
-                      dragOverIdx === i ? "outline outline-2 outline-mint" :
-                      "bg-white"
+                      draggingIdx === i ? "opacity-40 outline outline-2 outline-dashed outline-orange" :
+                      dragOverIdx === i ? "outline outline-2 outline-orange" :
+                      "bg-page"
                     }`}
                   >
                     <img src={item.type === "ex" ? item.url : item.objectUrl} alt="" className="w-full h-full object-cover pointer-events-none" />
@@ -695,7 +695,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
                   type="button"
                   onClick={handleGenerateDemo}
                   disabled={!!genProgress}
-                  className="font-ui text-ui px-3.5 py-2 bg-white text-black cursor-pointer hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none"
+                  className="font-ui text-ui px-3.5 py-2 bg-page text-black cursor-pointer hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none"
                 >
                   สร้าง Demo
                 </button>
@@ -741,7 +741,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
   if (mode === "page") {
     return (
-      <div className="flex flex-col min-h-screen bg-white">
+      <div className="flex flex-col min-h-screen bg-page">
         <div className="flex-1 overflow-y-auto p-6 w-full">
           <h1 className="font-heading text-h2 text-black mb-6">{editingFont ? "แก้ไขฟอนต์" : "เพิ่มฟอนต์"}</h1>
           {/* 3 คอลัมน์เฉพาะจอ xl (1280+) — ที่ lg ยังแคบไป เพราะแต่ละคอลัมน์
@@ -752,12 +752,12 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
             {colFiles}
           </div>
         </div>
-        <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-2 max-w-[1600px] w-full">
+        <div className="sticky bottom-0 bg-page px-6 py-4 flex justify-end gap-2 max-w-[1600px] w-full">
           {saving && <span className="font-body text-body-sm text-grey-600 mr-auto self-center">⏳ กำลังบันทึก…</span>}
           <button onClick={handleCancel} disabled={saving} className="font-ui text-ui px-4 py-2 bg-surface text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
             ยกเลิก
           </button>
-          <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-mint text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
+          <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-black text-white hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
             {saving ? "กำลังบันทึก…" : "บันทึก"}
           </button>
         </div>
@@ -775,7 +775,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 h-screen w-full max-w-[680px] bg-white z-[100] flex flex-col shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-screen w-full max-w-[680px] bg-page z-[100] flex flex-col shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-surface flex-shrink-0">
@@ -795,10 +795,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
         <div className="flex items-center justify-between px-6 py-4 bg-surface flex-shrink-0">
           {saving && <span className="font-body text-body-sm text-grey-600">⏳ กำลังบันทึก…</span>}
           <div className="flex gap-2 ml-auto">
-            <button onClick={onClose} disabled={saving} className="font-ui text-ui px-4 py-2 bg-white text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
+            <button onClick={onClose} disabled={saving} className="font-ui text-ui px-4 py-2 bg-page text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
               ยกเลิก
             </button>
-            <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-mint text-black hover:bg-black hover:text-white transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
+            <button onClick={handleSave} disabled={saving} className="font-ui text-ui px-5 py-2 bg-black text-white hover:bg-orange hover:text-black transition-colors duration-150 ease-base disabled:opacity-50 border-none cursor-pointer">
               {saving ? "กำลังบันทึก…" : "บันทึก"}
             </button>
           </div>
@@ -812,10 +812,10 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = "w-full px-3 py-2 h-[42px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base disabled:bg-grey-200 disabled:text-grey-600 disabled:cursor-not-allowed";
+const inputCls = "w-full px-3 py-2 h-[42px] bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base disabled:bg-grey-200 disabled:text-grey-600 disabled:cursor-not-allowed";
 
 // เหมือน inputCls แต่เอา h-[42px] ออก (ไม่งั้นมัน override rows) + สูงขั้นต่ำ 170px (ลดลงจาก 210px ~20%) + ลากขยายได้
-const textareaCls = "w-full px-3 py-2 min-h-[170px] bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base resize-y";
+const textareaCls = "w-full px-3 py-2 min-h-[170px] bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base resize-y";
 
 function FormField({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -837,7 +837,7 @@ function Toggle({ label, desc, checked, onChange, disabled = false }: { label: s
         type="button"
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={`relative w-10 h-6 rounded-full transition-colors duration-150 ease-base border-none flex-shrink-0 ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"} ${checked ? "bg-mint" : "bg-grey-200"}`}
+        className={`relative w-10 h-6 rounded-full transition-colors duration-150 ease-base border-none flex-shrink-0 ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"} ${checked ? "bg-orange" : "bg-grey-200"}`}
       >
         <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-150 ease-base ${checked ? "left-5" : "left-1"}`} />
       </button>
@@ -873,10 +873,10 @@ function FontMetaSummaryBlock({
       )}
       <div className="grid grid-cols-2 gap-3 mt-2.5">
         <FormField label="จำนวน Weight (อ่านอัตโนมัติ แก้ไขได้)">
-          <input type="number" min="0" value={weightOverride} onChange={(e) => onWeightChange(e.target.value)} className={`${inputCls} bg-white`} />
+          <input type="number" min="0" value={weightOverride} onChange={(e) => onWeightChange(e.target.value)} className={`${inputCls} bg-page`} />
         </FormField>
         <FormField label="จำนวน Style (อ่านอัตโนมัติ แก้ไขได้)">
-          <input type="number" min="0" value={styleOverride} onChange={(e) => onStyleChange(e.target.value)} className={`${inputCls} bg-white`} />
+          <input type="number" min="0" value={styleOverride} onChange={(e) => onStyleChange(e.target.value)} className={`${inputCls} bg-page`} />
         </FormField>
       </div>
       {summary.failed.length > 0 && (
@@ -901,7 +901,7 @@ function FontFileSection({
         <span className="font-ui text-ui text-black">{label}</span>
         <span className={`text-badge font-heading px-2 py-0.5 ${badgeColor}`}>{badge}</span>
       </div>
-      <label className="flex items-center gap-2 px-3 py-1.5 bg-white cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-footnote text-grey-600">
+      <label className="flex items-center gap-2 px-3 py-1.5 bg-page cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-footnote text-grey-600">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
         เลือกไฟล์
         <input type="file" accept={accept} multiple className="hidden" onChange={(e) => e.target.files && onAdd(Array.from(e.target.files))} />
@@ -922,7 +922,7 @@ function FontFileSection({
                 <div className="font-body text-footnote text-grey-600 mt-2 mb-1">{ext}</div>
                 <div className="flex flex-col gap-1">
                   {items.map(({ f, originalIndex }) => (
-                    <div key={originalIndex} className="flex items-center justify-between px-2 py-1 bg-white font-body text-footnote text-grey-600">
+                    <div key={originalIndex} className="flex items-center justify-between px-2 py-1 bg-page font-body text-footnote text-grey-600">
                       <span className="truncate mr-2">{f.name}</span>
                       <button onClick={() => onRemove(originalIndex)} className="text-grey-600 hover:text-danger-dark bg-transparent border-none cursor-pointer text-[14px] leading-none flex-shrink-0 transition-colors duration-150 ease-base">✕</button>
                     </div>

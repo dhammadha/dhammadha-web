@@ -64,7 +64,7 @@ export default function AdminSubscriptionsPage() {
           <p className="font-body text-footnote text-grey-600 mt-0.5">ราคาแพลนรายเดือน/รายปี และช่วงทดสอบฟรี (฿0)</p>
         </div>
         {subTrialActive && (
-          <div className="mb-3 px-4 py-3 bg-mint/20 font-body text-body-sm text-black">
+          <div className="mb-3 px-4 py-3 bg-grey-200 font-body text-body-sm text-black">
             ⚡ ช่วงทดสอบเปิดอยู่{subTrialEnd ? ` ถึง ${subTrialEnd}` : ""} — สมัครได้ในราคา ฿0
           </div>
         )}
@@ -81,7 +81,7 @@ export default function AdminSubscriptionsPage() {
         <div className="grid grid-cols-2 gap-3 mt-3">
           <div className="flex flex-col gap-1.5">
             <label className="font-body font-bold text-body-sm text-grey-600">เปิดช่วงทดสอบฟรี</label>
-            <label className="flex items-center gap-2 h-[38px] px-3 bg-white cursor-pointer">
+            <label className="flex items-center gap-2 h-[38px] px-3 bg-page cursor-pointer">
               <input type="checkbox" checked={subTrialActive} onChange={(e) => setSubTrialActive(e.target.checked)} className="accent-black" />
               <span className="font-body text-body-sm text-black">{subTrialActive ? "กดเพื่อปิด" : "กดเพื่อเปิด"}</span>
             </label>
@@ -113,4 +113,4 @@ export default function AdminSubscriptionsPage() {
   );
 }
 
-const iCls = "w-full px-3 py-2 bg-white font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";
+const iCls = "w-full px-3 py-2 bg-page font-body text-body-sm text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black transition-colors duration-150 ease-base";

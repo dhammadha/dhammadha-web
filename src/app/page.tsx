@@ -79,10 +79,10 @@ export default function HomePage() {
       <Nav />
 
       {/* HERO — gap น้อยลงตามที่เจ้าของสั่ง ~30-40px (เดิม pt-14 pb-12 หลวมเกิน) */}
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-5">
           <h1 className="font-heading text-hero text-black mb-3.5">
-            ฟอนต์ไทย<br />ที่ <em className="text-mint-text not-italic">ออกแบบ</em> อย่างพิถีพิถัน
+            ฟอนต์ไทย<br />ที่ <em className="text-orange-text not-italic">ออกแบบ</em> อย่างพิถีพิถัน
           </h1>
           {/* บรรทัดเดียวบนเดสก์ท็อป (ไม่ใส่ max-w) — มือถือ wrap ตาม responsive เอง (เจ้าของ 2026-07-18) */}
           <p className="font-body text-body text-grey-600">
@@ -95,7 +95,7 @@ export default function HomePage() {
       <CoverCarousel fonts={sliderPool} loading={loading} />
 
       {/* FONT GRID (ตัด ad ระหว่างสไลด์กับกริดออกตามที่เจ้าของสั่ง 2026-07-18) */}
-      <section id="fonts" className="bg-white">
+      <section id="fonts" className="bg-page">
         <Container className="pt-5 pb-6">
           <h2 className="font-heading text-h1 text-black mb-3.5">ฟอนต์ล่าสุด</h2>
 
@@ -116,7 +116,7 @@ export default function HomePage() {
                 <Link href="/fonts/" className="flex flex-col items-center justify-center gap-1 bg-surface cursor-pointer transition-shadow duration-150 ease-base hover:shadow-md p-6 no-underline">
                   <span className="font-heading text-h2 text-black">+{remaining}</span>
                   <span className="font-body text-body-sm text-grey-600">ฟอนต์อื่น ๆ</span>
-                  <span className="font-body text-body-sm text-mint-text mt-0.5">ดูทั้งหมด →</span>
+                  <span className="font-body text-body-sm text-black mt-0.5">ดูทั้งหมด →</span>
                 </Link>
               )}
             </div>
@@ -127,7 +127,7 @@ export default function HomePage() {
       <AdBanner slot="1401819374" />
 
       {/* PRICING */}
-      <section id="pricing" className="bg-white">
+      <section id="pricing" className="bg-page">
         <Container className="py-7">
           <h2 className="font-heading text-h1 text-black mb-4">ราคาและแผนบริการ</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">

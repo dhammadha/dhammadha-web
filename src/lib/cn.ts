@@ -1,7 +1,7 @@
 /**
  * ต่อ class name เข้าด้วยกัน ตัดค่าที่เป็น falsy ทิ้ง
  *
- *   cn("px-4", isActive && "bg-mint", className)
+ *   cn("px-4", isActive && "bg-black", className)
  *
  * ตั้งใจไม่ลง clsx/cva — cls() ใน components/Button.tsx พิสูจน์มาแล้วว่า
  * การต่อ string เปล่า ๆ พอสำหรับโปรเจกต์นี้ (docs/design/DESIGN.md §1)

@@ -76,7 +76,7 @@ export default function AccountSettingsPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <span className="font-body text-body-sm text-grey-600">กำลังโหลด…</span>
       </div>
     );
@@ -85,7 +85,7 @@ export default function AccountSettingsPage() {
   return (
     <>
       <Nav />
-      <section className="bg-white">
+      <section className="bg-page">
         <Container className="pt-10 pb-16">
           <div className="max-w-[680px] mx-auto">
             <Link

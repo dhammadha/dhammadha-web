@@ -170,7 +170,7 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
   return (
     <div className="fixed inset-0 z-[200] bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-white shadow-lg w-full max-w-[560px] max-h-[85vh] overflow-y-auto p-6"
+        className="bg-page shadow-lg w-full max-w-[560px] max-h-[85vh] overflow-y-auto p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-1">
@@ -203,7 +203,7 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
                   <select
                     value={row.font_id}
                     onChange={(e) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, font_id: e.target.value } : r)))}
-                    className="flex-1 font-body text-body-sm px-2 py-2 bg-white text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                    className="flex-1 font-body text-body-sm px-2 py-2 bg-page text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                   >
                     <option value="">— เลือกฟอนต์ในระบบ —</option>
                     {fonts.map((f) => (
@@ -217,7 +217,7 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
                       min="0"
                       value={row.price}
                       onChange={(e) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, price: e.target.value } : r)))}
-                      className="w-[100px] font-body text-body-sm px-2 py-2 text-right bg-white text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                      className="w-[100px] font-body text-body-sm px-2 py-2 text-right bg-page text-black outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                     />
                   </div>
                 </div>

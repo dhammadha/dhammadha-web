@@ -106,7 +106,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${tab === t.key ? "bg-mint text-black" : "text-grey-600 bg-transparent hover:bg-grey-200"}`}
+              className={`px-4 py-2 font-ui text-ui border-none cursor-pointer transition-colors duration-150 ease-base ${tab === t.key ? "bg-black text-white" : "text-grey-600 bg-transparent hover:bg-grey-200"}`}
             >
               {t.label}
             </button>
@@ -121,7 +121,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
       {/* Table — ห้ามใส่ overflow-hidden: เมนูแชร์ในคอลัมน์จัดการเป็น absolute
           จะถูกตัดหายเงียบ ๆ ทันทีที่กด */}
       <div className="bg-surface">
-        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_180px] gap-3 px-4 py-2.5 bg-white font-heading text-badge text-grey-600 tracking-[0.04em]">
+        <div className="grid grid-cols-[52px_2fr_90px_1fr_90px_140px_100px_180px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
           <div /><div>ฟอนต์</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>โปรโมชั่น</div><div>สถานะ</div><div>จัดการ</div>
         </div>
 
@@ -143,7 +143,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
             </div>
             <div>
               {designerSlug && f.published_at ? (
-                <a href={`/fonts/${designerSlug}/${f.slug}`} target="_blank" rel="noopener" className="font-ui text-ui text-black no-underline hover:text-mint-text">{f.name ?? "—"}</a>
+                <a href={`/fonts/${designerSlug}/${f.slug}`} target="_blank" rel="noopener" className="font-ui text-ui text-black no-underline hover:link-accent">{f.name ?? "—"}</a>
               ) : (
                 <div className="font-ui text-ui text-black">{f.name ?? "—"}</div>
               )}
@@ -191,7 +191,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
               {f.published_at && (
                 <button
                   onClick={() => toggleActive(f)}
-                  className={`font-ui text-ui px-2.5 py-1 border-none cursor-pointer transition-colors duration-150 ease-base ${f.is_active ? "bg-surface text-black hover:bg-black hover:text-white" : "bg-mint text-black hover:bg-black hover:text-white"}`}
+                  className={`font-ui text-ui px-2.5 py-1 border-none cursor-pointer transition-colors duration-150 ease-base ${f.is_active ? "bg-surface text-black hover:bg-black hover:text-white" : "bg-orange text-black hover:bg-black hover:text-white"}`}
                 >
                   {f.is_active ? "ซ่อน" : "แสดง"}
                 </button>

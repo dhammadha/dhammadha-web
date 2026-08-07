@@ -18,7 +18,7 @@ export default function TermsPage() {
       <LegalSection title="1. ทั่วไป">
         <p>
           เว็บไซต์ {DOMAIN} ดำเนินการโดย <strong>{LEGAL_ENTITY}</strong> การใช้งานเว็บไซต์ถือว่าคุณยอมรับข้อกำหนดฉบับนี้ หากไม่เห็นด้วย กรุณายุติการใช้งาน ติดต่อ :{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} className="text-mint-text">{CONTACT_EMAIL}</a>
+          <a href={`mailto:${CONTACT_EMAIL}`} className="link-accent">{CONTACT_EMAIL}</a>
         </p>
       </LegalSection>
 
@@ -33,13 +33,13 @@ export default function TermsPage() {
         <p>
           ฟอนต์ทุกชุดบนเว็บไซต์เป็นลิขสิทธิ์ของนักออกแบบเจ้าของผลงานหรือของ{LEGAL_ENTITY}{" "}
           การซื้อฟอนต์เป็นการได้รับ <strong>สิทธิ์การใช้งาน (license)</strong> ตามขอบเขตที่ระบุใน{" "}
-          <Link href="/agreement/" className="text-mint-text">สัญญาอนุญาตใช้งานฟอนต์</Link> ไม่ใช่การซื้อขาดลิขสิทธิ์
+          <Link href="/agreement/" className="link-accent">สัญญาอนุญาตใช้งานฟอนต์</Link> ไม่ใช่การซื้อขาดลิขสิทธิ์
         </p>
         <p>
           ห้ามแจกจ่าย แชร์ ขายต่อ หรือดัดแปลงไฟล์ฟอนต์เพื่อเผยแพร่ต่อโดยไม่ได้รับอนุญาต
           รายละเอียดขอบเขตสิทธิ์ ข้อห้าม และเงื่อนไขของไฟล์ทดลอง (Demo) และฟอนต์แจกฟรี
           ให้เป็นไปตาม{" "}
-          <Link href="/agreement/" className="text-mint-text">สัญญาอนุญาตใช้งานฟอนต์</Link>
+          <Link href="/agreement/" className="link-accent">สัญญาอนุญาตใช้งานฟอนต์</Link>
         </p>
       </LegalSection>
 
@@ -66,8 +66,8 @@ export default function TermsPage() {
       <LegalSection title="6. กฎหมายที่ใช้บังคับ">
         <p>
           ข้อกำหนดฉบับนี้อยู่ภายใต้กฎหมายแห่งราชอาณาจักรไทย
-          ดูเพิ่มเติม : <Link href="/privacy/" className="text-mint-text">นโยบายความเป็นส่วนตัว</Link>{" "}
-          และ <Link href="/refund-policy/" className="text-mint-text">นโยบายการคืนเงิน</Link>
+          ดูเพิ่มเติม : <Link href="/privacy/" className="link-accent">นโยบายความเป็นส่วนตัว</Link>{" "}
+          และ <Link href="/refund-policy/" className="link-accent">นโยบายการคืนเงิน</Link>
         </p>
       </LegalSection>
     </LegalPage>

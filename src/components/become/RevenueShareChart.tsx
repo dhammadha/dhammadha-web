@@ -17,7 +17,7 @@ import { cn } from "@/lib/cn";
  * พูดเป็น "ระบบใบเสนอราคาฟรี" ในส่วน benefit ของหน้า ไม่ใช่ในชาร์ตนี้
  */
 
-type Tone = "mint" | "mint-soft" | "grey";
+type Tone = "accent" | "accent-soft" | "grey";
 
 type Slice = {
   key: string;
@@ -50,7 +50,7 @@ const MODELS: Model[] = [
         key: "designer",
         label: "นักออกแบบ",
         pct: 75,
-        tone: "mint",
+        tone: "accent",
         detail:
           "ทุกยอดขายผ่านหน้าเว็บ คุณได้รับ 75% — สูงกว่ามาร์เก็ตเพลสทั่วไปที่หัก 30–50% (ตัวอย่าง : ฟอนต์ราคา 1,000 บาท คุณได้ 750 บาท)",
       },
@@ -75,7 +75,7 @@ const MODELS: Model[] = [
         key: "stream",
         label: "ตามการใช้งานจริง",
         pct: pct(SPLIT.stream),
-        tone: "mint",
+        tone: "accent",
         detail:
           "แบ่งตามการใช้งานจริง — 38% ของรายได้เดือนนั้น × สัดส่วนการใช้ฟอนต์ของคุณ ยิ่งมีสมาชิกใช้ฟอนต์คุณมาก ส่วนแบ่งของคุณก็จะมากขึ้น",
       },
@@ -83,7 +83,7 @@ const MODELS: Model[] = [
         key: "equal",
         label: "แบ่งเท่ากันทุกฟอนต์",
         pct: pct(SPLIT.equal),
-        tone: "mint-soft",
+        tone: "accent-soft",
         detail:
           "แบ่งเท่ากันทุกฟอนต์ — 12% ของรายได้เดือนนั้นแบ่งให้ฟอนต์ที่เข้าร่วมระบบสมาชิกเท่า ๆ กัน ไม่ว่าเดือนนั้นจะมีคนใช้มากหรือน้อย ฟอนต์ที่เข้าร่วมไม่เต็มเดือนได้ตามสัดส่วนจำนวนวันที่อยู่ในระบบ",
       },
@@ -112,18 +112,20 @@ const ACTIVE_W = 22;
 const GAP = 2; // ช่องว่างระหว่าง slice — แยกด้วยที่ว่างแทนเส้นคั่น (DESIGN.md §4.0)
 
 const TONE_STROKE: Record<Tone, string> = {
-  mint: "stroke-mint",
-  "mint-soft": "stroke-mint",
-  grey: "stroke-grey-400",
+  accent: "stroke-orange",
+  "accent-soft": "stroke-orange",
+  // grey-600 ไม่ใช่ grey-400: #B0B0B0 บนพื้น page #F0F0F0 ได้ 1.87:1 = ชิ้นแพลตฟอร์มหายไป
+  // (เดิมพื้นเป็น #fff จึงยังพอเห็น) · grey-600 #666 ได้ 5.74:1
+  grey: "stroke-grey-600",
 };
 
-// mint-soft = mint จาง — พาเลตใหม่ไม่มี mint อ่อน (mint-light/mint-mid เป็น token เก่า)
-const TONE_OPACITY: Record<Tone, number> = { mint: 1, "mint-soft": 0.45, grey: 1 };
+// accent-soft = โทนจาง — พาเลตใหม่ไม่มีส้มอ่อนเป็น token แยก จึงใช้ opacity แทน
+const TONE_OPACITY: Record<Tone, number> = { accent: 1, "accent-soft": 0.45, grey: 1 };
 
 const TONE_SWATCH: Record<Tone, string> = {
-  mint: "bg-mint",
-  "mint-soft": "bg-mint/45",
-  grey: "bg-grey-400",
+  accent: "bg-orange",
+  "accent-soft": "bg-orange/45",
+  grey: "bg-grey-600",
 };
 
 export default function RevenueShareChart() {
@@ -162,7 +164,7 @@ export default function RevenueShareChart() {
               className={cn(
                 "font-ui text-ui px-5 py-2.5 cursor-pointer transition-colors duration-150 ease-base",
                 "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
-                on ? "bg-mint text-black" : "bg-surface text-grey-600 hover:bg-grey-200 hover:text-black"
+                on ? "bg-black text-white" : "bg-surface text-grey-600 hover:bg-grey-200 hover:text-black"
               )}
             >
               {m.tab}

@@ -136,14 +136,14 @@ export default function CartView() {
               )}
               <div className="flex-1 min-w-0">
                 {designerSlug ? (
-                  <Link href={`/fonts/${designerSlug}/${f.slug}/`} className="font-body text-body text-black no-underline hover:text-mint-text truncate block">
+                  <Link href={`/fonts/${designerSlug}/${f.slug}/`} className="font-body text-body text-black no-underline hover:link-accent truncate block">
                     {name}
                   </Link>
                 ) : (
                   <span className="font-body text-body text-black truncate block">{name}</span>
                 )}
                 <span className="font-body text-footnote text-grey-600">
-                  โดย {f.designer_profiles?.business_name || "—"} · {LICENSE_LABEL.personal}
+                  {f.designer_profiles?.business_name || "—"} · {LICENSE_LABEL.personal}
                 </span>
               </div>
               <div className="text-right flex-shrink-0">
@@ -174,7 +174,7 @@ export default function CartView() {
         </p>
       )}
 
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+      <div className="flex items-center justify-between mt-6 pt-4 border-t border-grey-200">
         <span className="font-body text-body text-black">รวม {fonts.length} ฟอนต์</span>
         <span className="font-heading text-h3 text-black">{fmtBaht(total)}</span>
       </div>
@@ -189,7 +189,7 @@ export default function CartView() {
         {hasDefaultLicenseFont && (
           <p>
             กรุณาศึกษา{" "}
-            <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="text-mint-text">
+            <Link href="/agreement/" target="_blank" rel="noopener noreferrer" className="link-accent">
               สัญญาอนุญาต
             </Link>{" "}
             ก่อนสั่งซื้อฟอนต์
@@ -199,7 +199,7 @@ export default function CartView() {
         {customLicenseShops.map((shop) => (
           <p key={shop.id}>
             ฟอนต์ของ {shop.name} ใช้สัญญาอนุญาตของผู้ออกแบบ —{" "}
-            <LicenseLink pdfUrl={shop.url} className="text-mint-text font-body text-footnote hover:underline" />
+            <LicenseLink pdfUrl={shop.url} className="link-accent font-body text-footnote hover:underline" />
           </p>
         ))}
       </div>

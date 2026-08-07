@@ -57,8 +57,8 @@ const socials = [
 // ใช้กับพื้นขาวเท่านั้น ซึ่งได้แค่ 2.17:1)
 const LINK = cn(
   "block font-body text-body-sm text-grey-400 no-underline",
-  "hover:text-mint transition-colors duration-150 ease-base",
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+  "hover:text-orange-light transition-colors duration-150 ease-base",
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
 );
 
 // หัวคอลัมน์ใช้ `ui` (Sans Bold 16) — Figma ไม่มีสไตล์ "footer heading" โดยเฉพาะ
@@ -87,7 +87,7 @@ export default function Footer() {
             href="/"
             className={cn(
               "flex items-center gap-2.5 no-underline w-fit",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
             )}
           >
             {/* wordmark ทุกขนาดจอ — Footer ไม่มีของอื่นแย่งที่ในแถวเดียวกันเหมือน Nav
@@ -103,8 +103,8 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
-                  "text-white hover:text-mint transition-colors duration-150 ease-base flex",
-                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
+                  "text-white hover:text-orange-light transition-colors duration-150 ease-base flex",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                 )}
                 aria-label={s.name}
               >
