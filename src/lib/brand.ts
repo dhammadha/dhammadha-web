@@ -21,16 +21,14 @@
 /** ชื่อแพลตฟอร์มแบบเต็ม ใช้ใน <title>, หัวอีเมล, ชื่อผู้ส่ง */
 export const NAME = "typedee";
 
-/** ชื่อสั้นสำหรับ wordmark ใน Nav / admin sidebar */
-export const SHORT_NAME = "typedee";
-
 /**
- * บรรทัดที่สองของ wordmark ใน Nav (ตัวเล็กสีเทาใต้ SHORT_NAME ตาม moodboard)
- * ถ้าชื่อแบรนด์ใหม่เป็นคำเดียวไม่มีสร้อย ให้ตั้งเป็น "" แล้ว Nav จะไม่ render บรรทัดนี้เลย
+ * ชื่อสั้นแบบข้อความ — ใช้ใน admin sidebar ("typedee ADMIN") และ title ของ type tester
  *
- * ว่างเพราะ "typedee" เป็นคำเดียวไม่มีสร้อยแบบ "DHAMMADHA / STUDIO"
+ * **ไม่ใช่ของ Nav/Footer อีกแล้ว** — สองที่นั้นวาง wordmark เป็นภาพ (ตัวอักษรอยู่ในภาพ)
+ * ตั้งแต่ 7 ส.ค. 2569 · `WORDMARK_SUB` ("STUDIO" บรรทัดสองใต้ชื่อ) ถูกลบไปพร้อมกัน
+ * เพราะ typedee เป็นคำเดียวไม่มีสร้อย และ Nav ไม่ render ข้อความชื่อแบรนด์แล้ว
  */
-export const WORDMARK_SUB = "";
+export const SHORT_NAME = "typedee";
 
 /** โดเมนเปล่า ไม่มี protocol — ใช้ในเนื้อความ ("ซื้อผ่าน typedee.com") และ mailto */
 export const DOMAIN = "typedee.com";
@@ -69,6 +67,21 @@ export const FROM_EMAIL = `${NAME} <noreply@${DOMAIN}>`;
  */
 export const LOGO_SRC = "/brand/typedee-logo-light.svg";
 export const LOGO_SRC_DARK = "/brand/typedee-logo-dark.svg";
+
+/**
+ * Wordmark (เครื่องหมาย + คำว่า "typedee" ในตัวเดียว) — Nav บนจอ ≥sm และ Footer ทุกขนาด
+ * ใช้ตัวนี้ ส่วน LOGO_SRC เหลือไว้ให้ Nav บนจอแคบที่ไม่มีที่พอ
+ *
+ * ⚠️ **ไฟล์ใน /public/brand ถูก crop viewBox ชิดตัวอักษรแล้ว ต่างจากต้นฉบับใน docs/**
+ * ต้นฉบับที่ Illustrator export มาเว้นขอบเปล่าไว้มาก (wordmark: ตัวจริงสูงแค่ 41%
+ * ของกรอบ · logo: 56%) ถ้าเอาต้นฉบับมาวางแล้วสั่ง height={28} จะได้ตัวจริงสูง ~11px
+ * = ที่เจ้าของทักว่า "ดูเตี้ยเกินไป" · ตอนนี้ height ที่สั่ง = ความสูงที่เห็นจริง
+ *
+ * อัตราส่วนหลัง crop — wordmark 4.20:1 · logo 0.83:1 (สูงกว่ากว้าง)
+ * เปลี่ยนขนาดต้องคูณตามนี้ ไม่งั้น next/image จะยืดภาพ
+ */
+export const WORDMARK_SRC = "/brand/typedee-wordmark-light.svg";
+export const WORDMARK_SRC_DARK = "/brand/typedee-wordmark-dark.svg";
 
 /**
  * favicon — คนละไฟล์กับ LOGO_SRC เพราะมีพื้นหลังในตัว

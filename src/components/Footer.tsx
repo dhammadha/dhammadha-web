@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Container from "@/components/ui/Container";
 import { cn } from "@/lib/cn";
-import { NAME as BRAND_NAME, LOGO_SRC, SOCIAL } from "@/lib/brand";
+import { NAME as BRAND_NAME, WORDMARK_SRC, SOCIAL } from "@/lib/brand";
 
 /**
  * Footer — ดีไซน์ใหม่ (docs/design/DESIGN.md §6.3, moodboard/footer.png)
@@ -90,16 +90,10 @@ export default function Footer() {
               "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-mint"
             )}
           >
-            <Image
-              src={LOGO_SRC}
-              alt={BRAND_NAME}
-              width={28}
-              height={28}
-              className="object-cover"
-            />
-            <span className="font-heading text-body-sm font-bold text-white tracking-wide">
-              {BRAND_NAME}
-            </span>
+            {/* wordmark ทุกขนาดจอ — Footer ไม่มีของอื่นแย่งที่ในแถวเดียวกันเหมือน Nav
+                จึงไม่ต้องสลับเป็นเครื่องหมายอย่างเดียวตอนจอแคบ
+                84×20 = อัตราส่วน 4.20:1 หลัง crop (ดู WORDMARK_SRC ใน lib/brand.ts) */}
+            <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={84} height={20} />
           </Link>
           <div className="flex gap-3">
             {socials.map((s) => (
