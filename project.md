@@ -82,20 +82,56 @@ DB apply 0069–0071 ไปก่อนหน้าโค้ด ถ้าเว�
 
 ## งานที่เหลือ (เรียงลำดับ)
 
-0. **🔴 เคาะชื่อแพลตฟอร์ม + จดโดเมน — บล็อกงาน go-live ทั้งหมด**
-   · ข้อ 2/3/5/6 ด้านล่าง (Stripe ToS URL + webhook, Zoho, DNS, Supabase Site URL) ผูกกับโดเมน
-     ทำบนโดเมนเก่าแล้วเปลี่ยนทีหลัง = รื้อทำใหม่ทุกข้อ + license PDF ที่ออกไปแล้วอ้างโดเมนเก่า
-   · ตอนนี้แพลตฟอร์มมีลูกค้า 0 คน designer 0 คน = จังหวะที่ถูกที่สุดเท่าที่จะเป็นไปได้
-   · **จดโดเมนก่อนพูดชื่อในที่สาธารณะ** + ค้นเครื่องหมายการค้าที่กรมทรัพย์สินฯ (จำพวก 9/35/42)
-   · โค้ดพร้อมแล้ว — เคาะชื่อเมื่อไร แก้ `src/lib/brand.ts` ไฟล์เดียว แล้วเหลืองานที่ **ยังไม่ได้ทำ**:
-     (ก) **Edge Function สองตัวมี `BRAND_DOMAIN` สำเนาของตัวเองคนละชุด** (Deno import
-         `lib/brand.ts` ไม่ได้) — `supabase/functions/download-font/index.ts` **และ**
-         `supabase/functions/sub-font/index.ts` แก้แล้ว **ต้อง redeploy ทั้งคู่**
-         ไม่งั้นไฟล์ที่ขาย/ที่ส่งให้สมาชิกถูกประทับโดเมนเก่าไว้ในตัวไฟล์ แก้ย้อนหลังไม่ได้
-     (ข) โลโก้/wordmark ใหม่ใน `/public` (`LOGO_SRC`) — ตอนนี้ยังเป็นโลโก้ Dhammadha
+0. **✅ เคาะชื่อ + จดโดเมนแล้ว: `typedee.com` (7 ส.ค. 2569) — โค้ดฝั่งชื่อ push ขึ้น production แล้ว**
+
+   4 commit: `3cd87f0` (ชื่อ/เอกสาร/ยกเลิกสี navy) · `5c07c0a` (Nav/Footer ใช้ wordmark) ·
+   `f3d28df` (reply_to + กัน quote ล้มเงียบ + robots/cart) · `343d15a` (`PUBLIC_SITE_URL` ในเอกสาร)
+   ระบบแบรนด์เต็ม ๆ ดู [[project_typedee_brand_system]] · อีเมลดู [[reference_email_stack]]
+
+   **✅ เสร็จแล้วในรอบนี้**
+     (ข) โลโก้/wordmark — SVG อยู่ `public/brand/` (crop viewBox ชิดตัวอักษรแล้ว
+         ต้นฉบับ Illustrator เว้นขอบเยอะจนตัวจริงเหลือ 40%) · `LOGO_SRC`/`WORDMARK_SRC`/
+         `FAVICON_SRC` ใน brand.ts · Nav จอ<sm=เครื่องหมาย ≥sm=wordmark · Footer=wordmark เสมอ
+     (ง) `SOCIAL` → `facebook.com/typedee.official` + `instagram.com/typedee.official` ·
+         **ถอด tiktok+line ออก** (ยังไม่เปิดบัญชี — ห้ามใส่ URL ล่วงหน้า Footer/อีเมลจะยิง 404)
+     · `LEGAL_ENTITY` → **"ไทป์ดี.คอม"** (เดิม "ธรรมดาสตูดิโอ") — `drawIssuerHeader()` ประกอบ
+       "โดย {LEGAL_ENTITY_OPERATOR}" ให้เอง จึงไม่ต้องแตก token · **แก้สะกด "มณทล" → "มณฑล"**
+       (ชื่อบนใบเสร็จ/ใบ 50 ทวิ ข้างเลขผู้เสียภาษี)
+     · Resend: `typedee.com` verified · **API key เดิมผูกโดเมน dhammadha.com จึงตายตอนลบโดเมน**
+       สร้างใหม่แล้วใส่ครบ 3 ที่ (`.env.local` / Pages env / **Supabase SMTP password**)
+     · Cloudflare Pages: **ชื่อโปรเจกต์เปลี่ยนเป็น `typedee-web` แต่ hostname ยังเป็น
+       `dhammadha-web.pages.dev`** (Cloudflare แก้ได้แค่ชื่อที่แสดง) → **Stripe webhook /
+       Turnstile hostname / deploy hook ไม่ต้องแตะตอน cutover** ดู [[reference_cloudflare_pages]]
+
+   **⏳ ยังไม่ทำ — ทำวัน DNS cutover พร้อมกันให้หมด**
+     (ก) **`BRAND_DOMAIN` ใน Edge Function สองตัว** (Deno import `lib/brand.ts` ไม่ได้ จึงมีสำเนา
+         ของตัวเอง) — `supabase/functions/download-font/index.ts:21` **และ**
+         `supabase/functions/sub-font/index.ts:75` แก้แล้ว **ต้อง redeploy ทั้งคู่**
+         ไม่งั้นไฟล์ที่ขาย/ส่งให้สมาชิกถูกประทับโดเมนเก่าในตัวไฟล์ แก้ย้อนหลังไม่ได้
+         **ต้องพลิกให้ตรงจังหวะกับ DNS** เพราะช่วงคาบเกี่ยวจะประทับผิดฝั่ง
      (ค) ทบทวน**ถ้อยคำ**หน้ากฎหมาย (terms/privacy/refund/agreement/designer-agreement) ว่าประโยคไหน
-         ควรพูดถึงแพลตฟอร์ม ประโยคไหนพูดถึงนิติบุคคล — โค้ดแยกตัวแปรให้แล้ว แต่ถ้อยคำยังไม่ได้ทบทวน
-     (ง) โซเชียล (`SOCIAL` ใน brand.ts) ยังเป็นของสตูดิโอ — ตัดสินใจว่าจะเปิดบัญชีใหม่ให้แพลตฟอร์มไหม
+         ควรพูดถึงแพลตฟอร์ม ประโยคไหนพูดถึงนิติบุคคล — ตัวแปรถูกต้องแล้ว แต่ถ้อยคำยังไม่ทบทวน
+     · Pages → Custom domains เพิ่ม `typedee.com`+`www` → ถอด `dhammadha.com`
+     · Turnstile widget `typedee-quote` → เพิ่ม hostname `typedee.com`, `www.typedee.com`
+     · Supabase → Auth → URL Configuration → Site URL + Redirect URLs เป็น typedee.com
+       (https://supabase.com/dashboard/project/skyuqpshxsskjwkbnrmd/auth/url-configuration)
+     · Pages → Build → Git repository reconnect ไป `dhammadha/typedee-web`
+       (repo rename แล้ว GitHub redirect ให้อยู่ ยังไม่พัง) **แล้วเช็ค deploy hook ว่า URL
+       ยังตรงกับ env `CF_DEPLOY_HOOK`** ไม่งั้นปุ่ม publish ฟอนต์กดแล้วไม่ rebuild แบบเงียบ
+     · Zoho mailbox รับ `info@typedee.com` — **MX ที่รากสงวนไว้ให้ Zoho ห้ามเอา MX ของ Resend
+       ไปวาง** (ของ Resend อยู่ที่ `send.typedee.com`) · แล้วเปลี่ยน DMARC `rua=` เป็น
+       `dmarc@typedee.com` (ตอนนี้ชี้ gmail ซึ่งจะไม่ได้รับรายงานตาม RFC 7489 §7.1)
+
+   **⏳ งานแบรนด์ที่ยังไม่เริ่มเลย (ไม่บล็อก cutover)**
+     · **เฟส 1 — palette ส้ม**: `mint` แตกเป็น 3 token (`bg-mint` 68 จุด→`orange` FF4D00 ·
+       `mint-text` 87 จุด→`orange-text` E03C00 · `text-mint` ล้วน 25 จุด บนพื้นมืด→`orange-light`
+       FF6A28) · พื้นหน้าเว็บ F0F0F0 / กล่อง #FFFFFF (`bg-surface` #F8F8F8 ห่างจาก F0F0F0
+       แค่ 8/255 = กลืนหาย ต้องยุบรวมกับ `bg-white`) · ลิงก์ = อักษรดำ + เส้นใต้ส้ม
+     · **เฟส 2 — ฟอนต์**: heading/ปุ่ม/ป้าย = `typedee` (Black/Bold) · เนื้อความ =
+       IBM Plex Sans Thai Looped (ดึงจาก Google ได้ ยืนยันใน next/font แล้ว)
+       ⚠️ type scale ใช้ `fontWeight: 800` แต่ IBM Plex สูงสุด 700 → ต้อง remap
+       ⚠️ ห้ามวางไฟล์ฟอนต์ต้นฉบับใน `public/` (เคยเผลอ ลบทันแล้ว) · ส่งแค่ woff2 Bold+Black
+
      (จ) `dhammadha.com` → ทำเป็นเว็บสตูดิโอ ชี้ปุ่มซื้อไปหน้าร้านบนแพลตฟอร์ม
          · **แผนละเอียดพร้อมแล้ว (5 ส.ค. 2569): `~/.claude/plans/typedee-com-compiled-waterfall.md`**
            — repo ใหม่แยกขาด อ่าน Supabase เดิมด้วย anon key (RLS เปิดทางไว้หมดแล้ว **ไม่ต้องแตะ backend**) ·
