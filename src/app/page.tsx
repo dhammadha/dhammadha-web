@@ -82,7 +82,7 @@ export default function HomePage() {
       <section className="bg-page">
         <Container className="pt-10 pb-5">
           <h1 className="font-heading text-hero text-black mb-3.5">
-            ฟอนต์ไทย<br />ที่ <em className="text-orange-text not-italic">ออกแบบ</em> อย่างพิถีพิถัน
+            ฟอนต์เทสต์ดี<br />เลือกช็อปได้ที่ <em className="text-orange-text not-italic">ไทป์ดี</em>.คอม
           </h1>
           {/* บรรทัดเดียวบนเดสก์ท็อป (ไม่ใส่ max-w) — มือถือ wrap ตาม responsive เอง (เจ้าของ 2026-07-18) */}
           <p className="font-body text-body text-grey-600">

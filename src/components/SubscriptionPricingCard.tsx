@@ -45,7 +45,7 @@ export default function SubscriptionPricingCard() {
       <div className="font-body text-body-sm text-grey-600 flex-1 mb-4">
         {trialOpen
           ? "ช่วงทดสอบเปิดให้ใช้ฟรี — activate ฟอนต์ผ่านแอปบนเครื่องของคุณ"
-          : "ลงทะเบียนรับข่าว แล้วเราจะแจ้งคุณเป็นคนแรกพร้อมสิทธิพิเศษช่วงเปิดตัว"}
+          : "ลงทะเบียนรับข่าวสาร แล้วเราจะแจ้งคุณเป็นคนแรกพร้อมสิทธิพิเศษช่วงเปิดตัว"}
       </div>
       {trialOpen ? (
         <Button as="link" href="/subscribe/" variant="primary" className="w-full">
