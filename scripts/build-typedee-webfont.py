@@ -10,10 +10,11 @@
 
 สามอย่างที่สคริปต์นี้ทำ นอกจากแปลงฟอร์แมต
 ──────────────────────────────────────────
-1. **ไม่แตะ Regular** — ส่งขึ้นเว็บแค่ Bold/Black เป็นมาตรการกันฟอนต์หลุด
-   (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด) · ตอนนี้ layout.tsx ประกาศแค่ Black
-   เพราะ typedee ถอยมาเหลือแค่หัวข้อใหญ่ซึ่งเป็น 900 ทั้งหมด — Bold ยังสร้างไว้ให้
-   เผื่อเติมกลับ และ desktop ใช้ผ่าน @font-face ของตัวเอง
+1. **ไม่แตะ Regular** — เป็นมาตรการกันฟอนต์หลุด (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด)
+   ตอนนี้ **มีแค่ Black ที่ถูกใช้จริง** ทั้งเว็บและแอป เพราะ typedee ถอยมาเหลือแค่หัวข้อใหญ่
+   ซึ่งเป็น 900 ทั้งหมด · **Bold ยังสร้างไว้ที่ `src/fonts/` เผื่อเติมกลับ แต่ไม่คัดลอกไป
+   desktop และ `layout.tsx` ก็ไม่ประกาศ** (`next/font/local` preload ทุกไฟล์ที่ประกาศ
+   ไม่ว่ามีใครใช้จริงหรือไม่ — ปล่อยไว้ = เสีย 40KB ทุกครั้งที่เปิดหน้า)
 
 2. **fsType + license string** — fsType = 4 (Preview & Print) และเขียน nameID 13/14
    ทับของเดิมซึ่งชี้ `dhammadha.com/agreement` (URL นั้นจะตายหลัง DNS cutover)
@@ -37,6 +38,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "docs/design/typedee.com/font/typedee")
 DST = os.path.join(ROOT, "src/fonts")
 DESKTOP_DST = os.path.join(ROOT, "desktop/src/fonts")
+DESKTOP_WEIGHTS = ("Black",)
 
 LICENSE_DESC = (
     "Copyright © 2026 Montonn Thanaroj. All Rights Reserved. "
@@ -83,7 +85,10 @@ def build(weight: str) -> None:
     f.save(dst)
     f.close()
 
-    shutil.copy2(dst, os.path.join(DESKTOP_DST, f"typedee-{weight}.woff2"))
+    # แอป desktop เอาไปเฉพาะน้ำหนักที่ @font-face ของมันประกาศจริง (ดู desktop/src/styles.css)
+    # คัดลอกทุกน้ำหนักจะทำให้ไฟล์ที่ถอดออกไปแล้วงอกกลับมาทุกครั้งที่รันสคริปต์
+    if weight in DESKTOP_WEIGHTS:
+        shutil.copy2(dst, os.path.join(DESKTOP_DST, f"typedee-{weight}.woff2"))
     print(
         f"{weight:6} typo {old[0]}/{old[1]}/gap{old[2]} → {ascender}/{-descender}/gap0 "
         f"(กึ่งกลางกล่อง {(old[0] + old[1]) // 2} → {VCENTER}) | "

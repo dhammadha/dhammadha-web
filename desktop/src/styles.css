@@ -6,15 +6,13 @@
 @import "@fontsource/ibm-plex-sans-thai-looped/700.css";
 
 /* typedee ไม่มีบน npm (ฟอนต์ของเจ้าของเอง) — ไฟล์ .woff2 คัดลอกมาจาก /src/fonts ของเว็บ
-   ⚠️ ส่งแค่ Bold 700 + Black 900 ไม่ส่ง Regular เหมือนฝั่งเว็บ (มาตรการกันฟอนต์หลุด)
-      จุดไหนขอ typedee ที่น้ำหนัก 300/400 เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ */
-@font-face {
-  font-family: "typedee";
-  src: url("./fonts/typedee-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
+   สร้างด้วย scripts/build-typedee-webfont.py ที่ราก repo (รันแล้วคัดลอกมาให้เอง)
+   ⚠️ **Black 900 อย่างเดียว เหมือนฝั่งเว็บ** — ไม่ส่ง Regular เป็นมาตรการกันฟอนต์หลุด
+      ส่วน Bold 700 ถอดออกตอนที่ wordmark ในแถบหัวแอปเปลี่ยนไปใช้ไฟล์ SVG แทนตัวหนังสือ
+      (จุดนั้นคือที่เดียวที่เคยขอ typedee ที่ 700)
+   ⚠️ ตอนนี้ยังไม่มีใครใช้จริง เพราะ tailwind.config.ts ฝั่งนี้ไม่ได้คัด step หัวข้อใหญ่
+      (hero/font-slug/h1) มา — ประกาศไว้ให้ตรงกับเว็บ พอ S8 วางหน้าจริงแล้วมีหัวข้อจะใช้ได้ทันที
+      ไฟล์ที่ไม่มีใครอ้างถึงจะไม่ถูกดึงลงมา (ต่างจาก next/font/local ที่ preload ทุกไฟล์) */
 @font-face {
   font-family: "typedee";
   src: url("./fonts/typedee-Black.woff2") format("woff2");

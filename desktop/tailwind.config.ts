@@ -46,11 +46,10 @@ const config: Config = {
         // เดิมเป็น Noto Sans Thai / Noto Sans Thai Looped — ยกเลิกทั้งคู่พร้อมฝั่งเว็บ
         //
         // `heading` = typedee ใช้ได้เฉพาะหัวข้อใหญ่ (text-hero/font-slug/h1) ซึ่ง **config นี้
-        // ไม่ได้คัดมา** เพราะแอปไม่มีหน้าที่มีหัวข้อขนาดนั้น
-        // → ที่นี่ `font-heading` เหลือที่ใช้จุดเดียวคือ **wordmark ในแถบหัวแอป** (App.tsx)
-        //   ซึ่งเป็นตัวแบรนด์ ไม่ใช่ข้อความ UI — เพราะจุดนั้นอยู่ที่ `text-ui` (700)
-        //   **desktop จึงต้อง bundle typedee Bold ด้วย ต่างจากเว็บที่ส่งแค่ Black**
-        // ทุกอย่างที่เหลือ — หัวข้อรอง ปุ่ม แท็บ ป้าย label — เป็น Plex Bold
+        // ไม่ได้คัดมา** เพราะแอปไม่มีหน้าที่มีหัวข้อขนาดนั้น → ตอนนี้จึงยังไม่มีใครใช้ `font-heading`
+        // เลยสักจุด (wordmark ในแถบหัวแอปเป็นไฟล์ SVG เหมือนเว็บ ไม่ใช่ตัวหนังสือ)
+        // ปล่อย key ไว้ให้ตรงกับเว็บ · @font-face มีแค่ Black 900 (ดู src/styles.css)
+        // ทุกอย่างที่แอปใช้จริง — หัวข้อรอง ปุ่ม แท็บ ป้าย label — เป็น Plex Bold
         heading: ["typedee", "system-ui", "sans-serif"],
         ui: ["IBM Plex Sans Thai Looped", "system-ui", "sans-serif"],
         body: ["IBM Plex Sans Thai Looped", "system-ui", "sans-serif"],
