@@ -57,7 +57,7 @@ export default function Modal({
         {title && (
           // ไม่มีเส้นคั่น (§4.1) — แยกแถบหัวจากเนื้อหาด้วยพื้นสีต่างระดับแทน
           <div className="flex items-center justify-between gap-4 px-5 py-3 bg-grey-200/40 shrink-0">
-            <span className="font-heading font-bold text-body text-black">{title}</span>
+            <span className="font-ui font-bold text-body text-black">{title}</span>
             <button
               onClick={onClose}
               aria-label="ปิด"

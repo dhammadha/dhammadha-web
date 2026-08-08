@@ -166,7 +166,7 @@ export default function OwnAnalytics() {
   return (
     <div className="p-6 max-w-[1200px]">
       <div className="mb-1">
-        <h1 className="font-heading text-h2 text-black">สถิติ</h1>
+        <h1 className="font-ui text-h2 text-black">สถิติ</h1>
       </div>
       <p className="font-body text-footnote text-grey-600 mb-4 leading-relaxed">
         ยอดเข้าชม/ยอดดาวน์โหลดของฟอนต์ที่คุณเป็นเจ้าของเท่านั้น
@@ -189,19 +189,19 @@ export default function OwnAnalytics() {
       {/* Stat tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-black leading-none mb-1">{stats.viewsMonth.toLocaleString("th-TH")}</div>
+          <div className="font-ui text-h2 text-black leading-none mb-1">{stats.viewsMonth.toLocaleString("th-TH")}</div>
           <div className="font-body text-footnote text-grey-600">ยอดเข้าชม</div>
         </div>
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-black leading-none mb-1">{stats.freeDownloadsMonth.toLocaleString("th-TH")}</div>
+          <div className="font-ui text-h2 text-black leading-none mb-1">{stats.freeDownloadsMonth.toLocaleString("th-TH")}</div>
           <div className="font-body text-footnote text-grey-600">โหลดฟรี</div>
         </div>
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-black leading-none mb-1">{stats.paidDownloadsMonth.toLocaleString("th-TH")}</div>
+          <div className="font-ui text-h2 text-black leading-none mb-1">{stats.paidDownloadsMonth.toLocaleString("th-TH")}</div>
           <div className="font-body text-footnote text-grey-600">โหลดไฟล์ซื้อ</div>
         </div>
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-orange-text leading-none mb-1">{stats.viewsAll.toLocaleString("th-TH")}</div>
+          <div className="font-ui text-h2 text-orange-text leading-none mb-1">{stats.viewsAll.toLocaleString("th-TH")}</div>
           <div className="font-body text-footnote text-grey-600">ยอดเข้าชมรวมทั้งหมด</div>
         </div>
       </div>
@@ -224,7 +224,7 @@ export default function OwnAnalytics() {
         </div>
       ) : (
         <div className="bg-surface overflow-hidden">
-          <div className="grid grid-cols-[2fr_100px_100px_100px_100px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[2fr_100px_100px_100px_100px] gap-3 px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
             <div>ฟอนต์</div>
             {SORT_COLUMNS.map(({ key, label }) => (
               <button
@@ -232,7 +232,7 @@ export default function OwnAnalytics() {
                 type="button"
                 onClick={() => toggleSort(key)}
                 aria-sort={sortKey === key ? (sortDesc ? "descending" : "ascending") : "none"}
-                className={`w-full text-left bg-transparent border-none p-0 cursor-pointer font-heading text-badge tracking-[0.04em] transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${sortKey === key ? "text-black" : "text-grey-600 hover:text-black"}`}
+                className={`w-full text-left bg-transparent border-none p-0 cursor-pointer font-ui text-badge tracking-[0.04em] transition-colors duration-150 ease-base focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${sortKey === key ? "text-black" : "text-grey-600 hover:text-black"}`}
               >
                 {label}{sortKey === key && <span className="ml-1">{sortDesc ? "▾" : "▴"}</span>}
               </button>
@@ -243,7 +243,7 @@ export default function OwnAnalytics() {
               <div>
                 <div className="font-ui text-ui text-black">{font.name_th ?? font.name ?? "—"}</div>
                 {!font.published_at && (
-                  <span className="inline-block mt-1 text-badge font-heading px-2 py-0.5 bg-warning text-black">
+                  <span className="inline-block mt-1 text-badge font-ui px-2 py-0.5 bg-warning text-black">
                     ยังไม่เผยแพร่
                   </span>
                 )}

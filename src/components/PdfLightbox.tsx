@@ -18,7 +18,7 @@ export default function PdfLightbox({ open, url, onClose }: PdfLightboxProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3 bg-grey-200/40 shrink-0">
-          <span className="font-heading font-bold text-body text-black">สัญญาอนุญาตการใช้งาน</span>
+          <span className="font-ui font-bold text-body text-black">สัญญาอนุญาตการใช้งาน</span>
           <button
             onClick={onClose}
             className="text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-xl leading-none"

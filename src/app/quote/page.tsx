@@ -354,7 +354,7 @@ function QuoteForm() {
           <Container className="pt-10 pb-16">
             <div className="max-w-[640px] mx-auto">
               <div className="bg-surface p-6">
-                <h1 className="font-heading text-h2 text-success mb-3">✓ ส่งคำขอสำเร็จ</h1>
+                <h1 className="font-ui text-h2 text-success mb-3">✓ ส่งคำขอสำเร็จ</h1>
                 <p className="font-body text-body text-grey-800 leading-[1.8] mb-2">
                   เราได้รับคำขอใบเสนอราคาของคุณแล้ว<br />
                   ทีมงานจะติดต่อกลับทางอีเมลภายใน 1–2 วันทำการ
@@ -425,7 +425,7 @@ function QuoteForm() {
             <form onSubmit={submit} className="flex flex-col gap-10">
               {/* Contact & Company */}
               <div className="flex flex-col gap-4">
-                <h2 className="font-heading text-h2 text-black">ข้อมูลผู้ติดต่อ</h2>
+                <h2 className="font-ui text-h2 text-black">ข้อมูลผู้ติดต่อ</h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="ชื่อผู้ติดต่อ">
@@ -487,7 +487,7 @@ function QuoteForm() {
 
               {/* License Type */}
               <div className="flex flex-col gap-3">
-                <h2 className="font-heading text-h2 text-black">
+                <h2 className="font-ui text-h2 text-black">
                   รูปแบบสิทธิการใช้งานที่ต้องการ
                 </h2>
 
@@ -520,7 +520,7 @@ function QuoteForm() {
                           </div>
                           {/* font-bold: text-body มากับน้ำหนัก 400 ซึ่ง typedee ไม่ได้ส่งขึ้นเว็บ
                               (มีแค่ 700/900) ราคาตั้งใจให้หนาอยู่แล้ว จึงประกาศให้ชัด */}
-                          <div className={`font-heading text-body font-bold ml-3 shrink-0 ${on ? "text-page" : "text-black"}`}>
+                          <div className={`font-ui text-body font-bold ml-3 shrink-0 ${on ? "text-page" : "text-black"}`}>
                             ฿{tier.price.toLocaleString()}
                           </div>
                         </div>
@@ -568,7 +568,7 @@ function QuoteForm() {
 
               {/* Font Selection */}
               <div className="flex flex-col gap-3">
-                <h2 className="font-heading text-h2 text-black">
+                <h2 className="font-ui text-h2 text-black">
                   โปรแกรมคอมพิวเตอร์ฟอนต์ที่ต้องการสั่งซื้อ
                 </h2>
 

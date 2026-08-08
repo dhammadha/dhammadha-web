@@ -10,7 +10,6 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useFavourites } from "@/context/FavouritesContext";
 import FontCard, { Font } from "@/components/FontCard";
-import Button from "@/components/ui/Button";
 import { isSubActive, type SubscriptionRow } from "@/lib/subscription";
 import { mergeShopPromos } from "@/lib/shop-promo";
 
@@ -57,18 +56,18 @@ export default function MyFavourites() {
   return (
     <section className="mt-10">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h2 className="font-heading text-h2 text-black">ฟอนต์ที่บันทึกไว้</h2>
+        <h2 className="font-ui text-h2 text-black">ฟอนต์ที่บันทึกไว้</h2>
         {fonts.length > 0 && <span className="font-body text-body-sm text-grey-600">{fonts.length} ฟอนต์</span>}
       </div>
 
+      {/* ไม่มีปุ่ม "ดูแผนบริการ" ที่นี่โดยตั้งใจ — การ์ด Subscription ด้านบนของหน้าเดียวกัน
+          มีปุ่มนั้นอยู่แล้ว (SubscriptionCard) สองปุ่มไปที่เดียวกันในหน้าเดียว = ซ้ำซ้อน
+          เหลือไว้แต่ประโยคอธิบายว่าทำไมต้องสมัคร (เจ้าของสั่ง 8 ส.ค. 2569) */}
       {!hasActiveSub && (
-        <div className="bg-surface px-4 py-3.5 mb-4 flex items-center justify-between gap-3">
+        <div className="bg-surface px-4 py-3.5 mb-4">
           <p className="font-body text-body-sm text-grey-800 leading-relaxed">
             สมัคร subscription เพื่อ activate ฟอนต์ที่บันทึกไว้ผ่านแอปบนเครื่องของคุณ
           </p>
-          <Button as="link" href="/subscribe/" size="sm" className="flex-shrink-0">
-            ดูแผนบริการ
-          </Button>
         </div>
       )}
 

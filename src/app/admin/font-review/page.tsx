@@ -291,7 +291,7 @@ export default function AdminAllFontsPage() {
     <div className="p-6 max-w-[1200px]">
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h1 className="font-heading text-h2 text-black">Fonts</h1>
+          <h1 className="font-ui text-h2 text-black">Fonts</h1>
           <p className="font-body text-body-sm text-grey-600 mt-0.5">ฟอนต์ทั้งหมดจากทุก designer</p>
         </div>
         <div className="font-ui text-ui text-black bg-surface px-4 py-2">
@@ -349,7 +349,7 @@ export default function AdminAllFontsPage() {
           >
             {t.label}
             {t.badge != null && t.badge > 0 && (
-              <span className={`text-badge font-heading px-1.5 py-0.5 leading-none ${tab === t.key ? "bg-black/20 text-black" : "bg-danger text-white"}`}>
+              <span className={`text-badge font-ui px-1.5 py-0.5 leading-none ${tab === t.key ? "bg-black/20 text-black" : "bg-danger text-white"}`}>
                 {t.badge}
               </span>
             )}
@@ -359,7 +359,7 @@ export default function AdminAllFontsPage() {
 
       {/* Table */}
       <div className="bg-surface overflow-hidden">
-        <div className={`${GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+        <div className={`${GRID} px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]`}>
           <div /><div>ฟอนต์</div><div>Designer</div><div>หมวดหมู่</div><div>Tags</div><div>ราคา</div><div>โปรโมชั่น</div><div>สถานะ</div><div>จัดการ</div>
         </div>
 
@@ -408,11 +408,11 @@ export default function AdminAllFontsPage() {
             </div>
             <div>
               {f.published_at ? (
-                <span className={`text-badge font-heading px-2 py-0.5 ${f.is_active ? "bg-success text-white" : "bg-page text-grey-600"}`}>
+                <span className={`text-badge font-ui px-2 py-0.5 ${f.is_active ? "bg-success text-white" : "bg-page text-grey-600"}`}>
                   {f.is_active ? "แสดงบนเว็บ" : "ซ่อน"}
                 </span>
               ) : (
-                <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอ Publish</span>
+                <span className="text-badge font-ui px-2 py-0.5 bg-warning text-black">รอ Publish</span>
               )}
             </div>
             <div className="flex gap-1.5 flex-wrap">

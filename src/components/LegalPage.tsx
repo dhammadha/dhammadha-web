@@ -38,7 +38,7 @@ export default function LegalPage({
 export function LegalSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="font-heading text-h2 text-black mb-4">{title}</h2>
+      <h2 className="font-ui text-h2 text-black mb-4">{title}</h2>
       <div className="font-body text-body text-grey-800 leading-[1.8] flex flex-col gap-2.5">{children}</div>
     </section>
   );

@@ -255,7 +255,7 @@ export default function TypeTester({ font }: { font: Font }) {
   if (infoError) {
     return (
       <div>
-        <h3 className="font-heading text-h2 text-black mb-3">ทดสอบฟอนต์</h3>
+        <h3 className="font-ui text-h2 text-black mb-3">ทดสอบฟอนต์</h3>
         <div className="bg-surface font-body text-body text-grey-600 text-center py-10">
           ระบบทดสอบฟอนต์ขัดข้องชั่วคราว
         </div>
@@ -266,12 +266,12 @@ export default function TypeTester({ font }: { font: Font }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-        <h3 className="font-heading text-h2 text-black">ทดสอบฟอนต์</h3>
+        <h3 className="font-ui text-h2 text-black">ทดสอบฟอนต์</h3>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A · ราง+ปุ่มเหลี่ยม (.tester-range ใน globals.css)
               พื้นหลัง gradient ตั้งตามค่า value: ดำซ้ายจุดปุ่ม · เทาขวา */}
           <div className="flex items-center gap-2">
-            {/* font-body ไม่ใช่ font-heading: ป้ายกำกับสไลเดอร์เป็นน้ำหนัก 300
+            {/* font-body ไม่ใช่ font-ui: ป้ายกำกับสไลเดอร์เป็นน้ำหนัก 300
                 ซึ่ง typedee ไม่ได้ส่งขึ้นเว็บ (มีแค่ 700/900) จะกลายเป็นตัวหนาเงียบ ๆ */}
             <span className="font-body text-body-sm text-grey-600 leading-none">A</span>
             <input
@@ -287,7 +287,7 @@ export default function TypeTester({ font }: { font: Font }) {
                 background: `linear-gradient(to right, #080808 0%, #080808 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 ${((size - 16) / (120 - 16)) * 100}%, #E0E0E0 100%)`,
               }}
             />
-            <span className="font-heading text-h2 text-grey-600 leading-none">A</span>
+            <span className="font-ui text-h2 text-grey-600 leading-none">A</span>
             <span className="font-body text-body-sm text-grey-600 w-12 text-right shrink-0">{size}px</span>
           </div>
 

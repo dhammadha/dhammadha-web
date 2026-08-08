@@ -574,7 +574,7 @@ export default function AdminPayoutsPage() {
   return (
     <div className="p-6 max-w-[1200px]">
       <div className="mb-4">
-        <h1 className="font-heading text-h2 text-black">Payouts / จ่ายส่วนแบ่ง</h1>
+        <h1 className="font-ui text-h2 text-black">Payouts / จ่ายส่วนแบ่ง</h1>
         <p className="font-body text-body-sm text-grey-600 mt-0.5">สรุปยอดขายและรายได้แบ่งปันนักออกแบบ</p>
         <p className="font-body text-body-sm text-grey-600 mt-0.5">
           จ่ายส่วนแบ่งทุก 3 เดือน (รายไตรมาส) — โอนในเดือนมกราคม เมษายน กรกฎาคม และตุลาคม
@@ -620,10 +620,10 @@ export default function AdminPayoutsPage() {
             {(overdueCount > 0 || waitingCount > 0) && (
               <div className="ml-auto flex items-center gap-2">
                 {overdueCount > 0 && (
-                  <span className="text-badge font-heading px-2 py-0.5 bg-danger text-white">ค้างชำระ {overdueCount} ราย</span>
+                  <span className="text-badge font-ui px-2 py-0.5 bg-danger text-white">ค้างชำระ {overdueCount} ราย</span>
                 )}
                 {waitingCount > 0 && (
-                  <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอโอน {waitingCount} ราย</span>
+                  <span className="text-badge font-ui px-2 py-0.5 bg-warning text-black">รอโอน {waitingCount} ราย</span>
                 )}
               </div>
             )}
@@ -631,7 +631,7 @@ export default function AdminPayoutsPage() {
 
           {/* สรุปยอดต้องโอนต่อ designer — คลิกแถวเพื่อกางรายละเอียดใต้แถวนั้นเลย */}
           <div className="bg-surface overflow-hidden">
-            <div className={`${SUMMARY_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+            <div className={`${SUMMARY_GRID} px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]`}>
               <div>Designer</div>
               <div>ส่วนแบ่ง Retail Font</div>
               <div>ส่วนแบ่ง Subscription</div>
@@ -685,7 +685,7 @@ export default function AdminPayoutsPage() {
                           {/* บัญชีธนาคาร — เรียงแนวตั้งกันอ่านผิดคู่ */}
                           {!rowIsStudio && (
                             <div>
-                              <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">บัญชีธนาคาร (สำหรับโอน)</div>
+                              <div className="font-ui text-badge text-grey-600 tracking-[0.04em] mb-1.5">บัญชีธนาคาร (สำหรับโอน)</div>
                               {rowHasBank ? (
                                 <div className="flex flex-col gap-1 font-body text-body-sm bg-surface px-3 py-2.5">
                                   <Row label="ธนาคาร" value={rowBank?.bank_name} />
@@ -709,7 +709,7 @@ export default function AdminPayoutsPage() {
                               <div className="flex flex-col gap-3">
                                 {retailOrders.length > 0 && (
                                   <div>
-                                    <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">Retail Font</div>
+                                    <div className="font-ui text-badge text-grey-600 tracking-[0.04em] mb-1.5">Retail Font</div>
                                     <div className="flex flex-col gap-1">
                                       {retailOrders.map((o) => (
                                         <div key={o.id} className="grid grid-cols-[auto_1fr_auto] gap-3 items-baseline font-body text-body-sm bg-surface px-3 py-2">
@@ -723,7 +723,7 @@ export default function AdminPayoutsPage() {
                                 )}
                                 {r.subAmount > 0 && (
                                   <div>
-                                    <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">Subscription</div>
+                                    <div className="font-ui text-badge text-grey-600 tracking-[0.04em] mb-1.5">Subscription</div>
                                     <div className="grid grid-cols-[1fr_auto] gap-3 items-baseline font-body text-body-sm bg-surface px-3 py-2">
                                       <span className="text-black">ส่วนแบ่งรวมของไตรมาส</span>
                                       <span className="font-ui text-ui text-black">{fmtBaht(r.subAmount)}</span>
@@ -825,9 +825,9 @@ export default function AdminPayoutsPage() {
 
 // สถานะการโอน (rollup ต่อ designer) — เขียวอ่อน/เหลือง/แดง/เทา
 function PayoutStatusBadge({ status }: { status: PayoutStatus }) {
-  if (status === "overdue") return <span className="text-badge font-heading px-2 py-0.5 bg-danger text-white">ค้างชำระ</span>;
-  if (status === "waiting") return <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอโอน</span>;
-  if (status === "notdue") return <span className="text-badge font-heading px-2 py-0.5 bg-grey-200 text-grey-800">ยังไม่ถึงรอบโอน</span>;
+  if (status === "overdue") return <span className="text-badge font-ui px-2 py-0.5 bg-danger text-white">ค้างชำระ</span>;
+  if (status === "waiting") return <span className="text-badge font-ui px-2 py-0.5 bg-warning text-black">รอโอน</span>;
+  if (status === "notdue") return <span className="text-badge font-ui px-2 py-0.5 bg-grey-200 text-grey-800">ยังไม่ถึงรอบโอน</span>;
   return <span className="font-body text-footnote text-grey-600">จ่ายครบแล้ว</span>;
 }
 
@@ -862,7 +862,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 function StatTile({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="bg-surface p-4">
-      <div className={`font-heading text-h2 leading-none mb-1 ${highlight ? "text-orange-text" : "text-black"}`}>{value}</div>
+      <div className={`font-ui text-h2 leading-none mb-1 ${highlight ? "text-orange-text" : "text-black"}`}>{value}</div>
       <div className="font-body text-footnote text-grey-600">{label}</div>
     </div>
   );

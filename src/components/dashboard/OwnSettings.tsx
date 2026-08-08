@@ -140,7 +140,7 @@ export default function OwnSettings() {
 
   return (
     <div className="p-6 max-w-[720px]">
-      <h1 className="font-heading text-h2 text-black mb-6">ตั้งค่า</h1>
+      <h1 className="font-ui text-h2 text-black mb-6">ตั้งค่า</h1>
       <div className="flex flex-col gap-8">
       <Section title="ข้อมูลผู้ขาย" desc="ใช้แสดงในใบเสนอราคาและใบเสร็จ">
         <div className="flex gap-2 mb-4">
@@ -161,7 +161,7 @@ export default function OwnSettings() {
                 <div className={`${iCls} flex items-center gap-2 cursor-default text-grey-600`}>
                   <span className="text-grey-600">/designer/</span>
                   <span className="font-ui text-ui text-black">{designerSlug}</span>
-                  <span className="ml-auto text-badge font-heading text-grey-600 bg-surface px-2 py-0.5">ล็อก</span>
+                  <span className="ml-auto text-badge font-ui text-grey-600 bg-surface px-2 py-0.5">ล็อก</span>
                 </div>
                 <p className="font-body text-footnote text-grey-600 mt-1">URL ถูกล็อกหลังตั้งครั้งแรก — ติดต่อ admin เพื่อเปลี่ยน</p>
               </div>

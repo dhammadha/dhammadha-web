@@ -241,7 +241,7 @@ export default function RevenueShareChart() {
                   <span className={cn("font-body text-body flex-1", on ? "text-black" : "text-grey-600")}>
                     {s.label}
                   </span>
-                  <span className={cn("font-heading text-h2", on ? "text-black" : "text-grey-600")}>{s.pct}%</span>
+                  <span className={cn("font-ui text-h2", on ? "text-black" : "text-grey-600")}>{s.pct}%</span>
                 </button>
               );
             })}

@@ -135,7 +135,7 @@ export default function IssueQuoteModal({ quote, initialItems, tiers, onClose, o
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-1">
-          <h3 className="font-heading text-h2 text-black">ออกใบเสนอราคา</h3>
+          <h3 className="font-ui text-h2 text-black">ออกใบเสนอราคา</h3>
           <button onClick={onClose} className="text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-lg leading-none transition-colors duration-150 ease-base">✕</button>
         </div>
         <p className="font-body text-body-sm text-grey-600 mb-4">
@@ -195,7 +195,7 @@ export default function IssueQuoteModal({ quote, initialItems, tiers, onClose, o
           </div>
           <div className="flex items-center justify-between pt-2 bg-surface px-3 py-2 -mx-3">
             <span className="font-body text-body-sm text-grey-600">ยอดสุทธิ</span>
-            <span className="font-heading text-h2 text-black">฿{net.toLocaleString()}</span>
+            <span className="font-ui text-h2 text-black">฿{net.toLocaleString()}</span>
           </div>
         </div>
 

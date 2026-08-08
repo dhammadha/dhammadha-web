@@ -164,7 +164,7 @@ function Panel({
 }) {
   return (
     <div className="bg-surface p-6">
-      <h1 className="font-heading text-h2 text-black mb-3">
+      <h1 className="font-ui text-h2 text-black mb-3">
         {success && <span className="text-success">✓ </span>}
         {title}
       </h1>

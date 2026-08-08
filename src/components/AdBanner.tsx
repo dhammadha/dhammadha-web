@@ -38,7 +38,7 @@ export default function AdBanner({ slot, className = "" }: Props) {
   return (
     <div className={`bg-surface ${className}`}>
       <Container className="py-2.5 flex items-center justify-center gap-2.5">
-        <span className="font-heading text-badge text-grey-600 shrink-0">ADS</span>
+        <span className="font-ui text-badge text-grey-600 shrink-0">ADS</span>
         <div className="flex-1 max-w-[728px] flex justify-center">
           <ins
             className="adsbygoogle"

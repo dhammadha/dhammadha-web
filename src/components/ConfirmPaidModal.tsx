@@ -174,7 +174,7 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-1">
-          <h3 className="font-heading text-h2 text-black">ยืนยันรับชำระ</h3>
+          <h3 className="font-ui text-h2 text-black">ยืนยันรับชำระ</h3>
           <button onClick={onClose} className="text-grey-600 hover:text-black bg-transparent border-none cursor-pointer text-lg leading-none transition-colors duration-150 ease-base">✕</button>
         </div>
         <p className="font-body text-body-sm text-grey-600 mb-4">
@@ -241,14 +241,14 @@ export default function ConfirmPaidModal({ quote, tiers, onClose, onConfirmed }:
           )}
           <div className="flex items-center justify-between bg-surface px-3 py-2 -mx-3">
             <span className="font-body text-body-sm text-grey-600">ยอดรวม</span>
-            <span className="font-heading text-h2 text-black">฿{net.toLocaleString()}</span>
+            <span className="font-ui text-h2 text-black">฿{net.toLocaleString()}</span>
           </div>
         </div>
 
         {/* เอกสารที่จะออก — ใบเสร็จออกทุกครั้ง (ปิดไม่ได้) ส่วนใบแจ้งหนี้เป็นของเสริม
             ที่ออกเฉพาะเมื่อลูกค้าขอ · ไม่ติ๊ก = ไม่มีเลข = ไม่แนบไฟล์ ไม่เอ่ยถึงในอีเมล */}
         <div className="bg-surface p-3 mb-4 flex flex-col gap-3">
-          <div className="font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="font-ui text-badge text-grey-600 tracking-[0.04em]">
             เอกสารที่จะออกและส่งให้ลูกค้า
           </div>
           <label className="flex items-start gap-3">

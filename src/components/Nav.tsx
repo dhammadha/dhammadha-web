@@ -214,10 +214,28 @@ export default function Nav() {
       {/* สูง 70 ตายตัวตามสเปก — เดิมเป็น py-3 แล้วปล่อยความสูงลอยตามของข้างใน */}
       {/* relative = จุดอ้างอิงของไอคอนตะกร้ามือถือที่ absolute อยู่กึ่งกลางแถบ */}
       <Container className="relative flex items-center h-[70px]">
+        {/* ปุ่มสามขีด — มือถือ · อยู่ซ้ายสุด (เจ้าของสั่งเรียงใหม่ 8 ส.ค. 2569:
+            สามขีดซ้าย · wordmark กลาง · ตะกร้าขวาสุด)
+            เดิมอยู่ในกลุ่มขวาคู่กับ ml-auto จึงไปโผล่ขวาสุด */}
+        <button
+          className="md:hidden flex flex-col gap-1.5 p-1 mr-auto bg-transparent border-none cursor-pointer"
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label="เมนู"
+          aria-expanded={menuOpen}
+        >
+          <span className={cn("block w-5 h-0.5 bg-white transition-all", menuOpen && "rotate-45 translate-y-2")} />
+          <span className={cn("block w-5 h-0.5 bg-white transition-all", menuOpen && "opacity-0")} />
+          <span className={cn("block w-5 h-0.5 bg-white transition-all", menuOpen && "-rotate-45 -translate-y-2")} />
+        </button>
+
         <Link
           href="/"
           className={cn(
             "flex items-center gap-2.5 no-underline flex-shrink-0",
+            // มือถือ: absolute กึ่งกลาง**แถบจริง** ไม่ใช่กึ่งกลางที่ว่างระหว่างสามขีดกับตะกร้า
+            // (สองอันนั้นกว้างไม่เท่ากัน วางในสายจะเบี้ยวไปข้างละหลายพิกเซล)
+            // เดสก์ท็อป: กลับมาอยู่ในสายตามปกติ ชิดซ้าย
+            "absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
           )}
         >
@@ -230,41 +248,6 @@ export default function Nav() {
           <Image src={LOGO_SRC} alt={BRAND_NAME} width={25} height={30} className="sm:hidden" />
           <Image src={WORDMARK_SRC} alt={BRAND_NAME} width={101} height={24} className="hidden sm:block" />
         </Link>
-
-        {/* ตะกร้า — มือถือ · absolute กึ่งกลางแถบจริง ๆ ไม่ใช่กึ่งกลางที่ว่างระหว่างโลโก้กับ
-            ปุ่มสามขีด (สองอันนั้นกว้างไม่เท่ากัน วางในสายจะเบี้ยวไปข้างละหลายพิกเซล)
-            · ไม่มี submenu เพราะทัชไม่มี hover จริง กดแล้วไป /cart เลย
-            · จงใจซ้ำกับตัวเดสก์ท็อปตามธรรมเนียมของไฟล์นี้ (เหมือนช่องค้นหา/เมนูบัญชี) */}
-        {/* กล่องนอกถือ -translate-x-1/2 ไว้ ส่วน animation อยู่ที่ตัวลิงก์ — ถ้ารวมไว้ก้อนเดียว
-            keyframe translateY จะทับ transform ที่จัดกึ่งกลาง ไอคอนจะกระเด็นขวา 16px ตอนเด้ง */}
-        <div className="md:hidden absolute left-1/2 -translate-x-1/2">
-          <Link
-            href="/cart/"
-            aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
-            className={cn(
-              // 44×44 = ขนาดเป้าสัมผัสขั้นต่ำที่กดไม่พลาด (เดิม 32 เล็กไป)
-              // กล่องใหญ่แต่ไอคอนอยู่กลาง จึงต้องยึด badge กับตัวไอคอนไม่ใช่กับกล่อง
-              "relative flex items-center justify-center w-11 h-11 text-page",
-              "hover:text-orange-light transition-colors duration-150 ease-base",
-              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text",
-              cartAnimating && "cart-bounce"
-            )}
-          >
-            <span className="relative flex items-center justify-center">
-              <CartIcon size={24} />
-              {cartReady && cartCount > 0 && (
-                <span
-                  className={cn(
-                    "absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 bg-orange text-black font-heading text-[10px] font-bold leading-[16px] text-center",
-                    cartAnimating && "cart-badge-pop"
-                  )}
-                >
-                  {cartCount}
-                </span>
-              )}
-            </span>
-          </Link>
-        </div>
 
         {/* ลิงก์เดสก์ท็อป — flex-1 justify-center = กึ่งกลางระหว่างโลโก้กับแถบค้นหา */}
         <div className="hidden md:flex flex-1 items-center justify-center">
@@ -363,7 +346,7 @@ export default function Nav() {
                     )}
                   >
                     <div className="min-w-0">
-                      <div className={cn("font-heading text-fc-heading leading-snug truncate", on ? "text-page" : "text-black")}>{f.name}</div>
+                      <div className={cn("font-ui text-fc-heading leading-snug truncate", on ? "text-page" : "text-black")}>{f.name}</div>
                       {f.name_th && <div className={cn("font-body text-body-sm leading-snug truncate", on ? "text-grey-400" : "text-grey-600")}>{f.name_th}</div>}
                       {(() => {
                         const q = searchQuery.trim().toLowerCase();
@@ -372,7 +355,7 @@ export default function Nav() {
                           <div className="flex gap-1 mt-1 flex-wrap">
                             {matched.slice(0, 3).map((t) => (
                               // 🔴 ป้ายแท็กเป็นดำ/เทาอยู่แล้ว พอแถวเป็นดำต้องสลับคู่ ไม่งั้นดำบนดำ
-                              <span key={t} className={cn("font-heading text-badge px-1.5 py-0.5 leading-none", on ? "bg-page text-black" : "bg-black text-page")}>{t}</span>
+                              <span key={t} className={cn("font-ui text-badge px-1.5 py-0.5 leading-none", on ? "bg-page text-black" : "bg-black text-page")}>{t}</span>
                             ))}
                           </div>
                         ) : null;
@@ -413,7 +396,7 @@ export default function Nav() {
                 className={cn(
                   // ตัวอักษรใช้ text-ui (Bold 700, 16px) ให้หนาเท่าเมนูใน submenu (เจ้าของ 2026-07-18)
                   "w-8 h-8 bg-orange flex items-center justify-center cursor-pointer leading-none",
-                  "font-heading text-ui text-black transition-colors duration-150 ease-base",
+                  "font-ui text-ui text-black transition-colors duration-150 ease-base",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text"
                 )}
                 title={user.email ?? ""}
@@ -500,7 +483,7 @@ export default function Nav() {
               {cartReady && cartCount > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-orange text-black font-heading text-[10px] font-bold leading-[15px] text-center",
+                    "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-orange text-black font-ui text-[10px] font-bold leading-[15px] text-center",
                     cartAnimating && "cart-badge-pop"
                   )}
                 >
@@ -551,17 +534,37 @@ export default function Nav() {
           </div>
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden flex flex-col gap-1.5 p-1 bg-transparent border-none cursor-pointer"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="เมนู"
-            aria-expanded={menuOpen}
+          {/* ตะกร้า — มือถือ · ขวาสุดของแถบ (กลุ่มนี้มี ml-auto อยู่แล้ว)
+              · ไม่มี submenu เพราะทัชไม่มี hover จริง กดแล้วไป /cart เลย
+              · จงใจซ้ำกับตัวเดสก์ท็อปตามธรรมเนียมของไฟล์นี้ (เหมือนช่องค้นหา/เมนูบัญชี) */}
+          <Link
+            href="/cart/"
+            aria-label={cartCount > 0 ? `ตะกร้า (${cartCount} ฟอนต์)` : "ตะกร้า"}
+            className={cn(
+              // 44×44 = ขนาดเป้าสัมผัสขั้นต่ำที่กดไม่พลาด (เดิม 32 เล็กไป)
+              // -mr-2.5 ดึงกลับให้ "ขอบ svg" ชิดขอบ Container เท่าปุ่มสามขีดฝั่งซ้าย
+              // (กล่องกด 44 กว้างกว่าไอคอน 24 อยู่ข้างละ 10)
+              "md:hidden relative flex items-center justify-center w-11 h-11 -mr-2.5 text-page",
+              "hover:text-orange-light transition-colors duration-150 ease-base",
+              "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-text",
+              cartAnimating && "cart-bounce"
+            )}
           >
-            <span className={cn("block w-5 h-0.5 bg-white transition-all", menuOpen && "rotate-45 translate-y-2")} />
-            <span className={cn("block w-5 h-0.5 bg-white transition-all", menuOpen && "opacity-0")} />
-            <span className={cn("block w-5 h-0.5 bg-white transition-all", menuOpen && "-rotate-45 -translate-y-2")} />
-          </button>
+            {/* กล่องใหญ่แต่ไอคอนอยู่กลาง จึงต้องยึด badge กับตัวไอคอนไม่ใช่กับกล่อง */}
+            <span className="relative flex items-center justify-center">
+              <CartIcon size={24} />
+              {cartReady && cartCount > 0 && (
+                <span
+                  className={cn(
+                    "absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 bg-orange text-black font-ui text-[10px] font-bold leading-[16px] text-center",
+                    cartAnimating && "cart-badge-pop"
+                  )}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </span>
+          </Link>
         </div>
       </Container>
 

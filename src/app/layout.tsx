@@ -25,22 +25,25 @@ const plexThaiLooped = IBM_Plex_Sans_Thai_Looped({
   variable: "--font-plex-looped",
 });
 
-// หัวข้อ/ปุ่ม/ป้าย — typedee (ฟอนต์ของเจ้าของเอง · Copyright Montonn Thanaroj)
+// หัวข้อใหญ่ — typedee (ฟอนต์ของเจ้าของเอง · Copyright Montonn Thanaroj)
 //
-// ⚠️ ส่งขึ้นเว็บแค่ Bold 700 + Black 900 "ไม่ส่ง Regular" เป็นมาตรการกันฟอนต์หลุด
-//    (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด) → ทุกจุดที่ขอ typedee ที่น้ำหนัก 300/400
-//    เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ ไม่มี error — type scale จึงต้องไม่ขอน้ำหนักอื่น
-//    ดู tailwind.config.ts หัวข้อ TYPE SCALE
+// 🔑 ขอบเขต: **หัวข้อใหญ่เท่านั้น** (text-hero / text-font-slug / text-h1)
+//    เจ้าของเคาะรอบ 2 ว่าบุคลิกฟอนต์จัดเกินไปสำหรับการ์ด/ป้าย/ปุ่ม/label
+//    → h2 ลงมาเป็น Plex Bold หมด ดู tailwind.config.ts หัวข้อ fontFamily
+//
+// ⚠️ ส่งขึ้นเว็บแค่ **Black 900 ตัวเดียว** — "ไม่ส่ง Regular" เป็นมาตรการกันฟอนต์หลุด
+//    (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด) ส่วน Bold ถูกถอดออกตอนที่ typedee
+//    ถอยมาเหลือแค่หัวข้อใหญ่ซึ่งเป็น 900 ทั้งหมด — **`next/font/local` preload ทุกไฟล์
+//    ใน `src` ไม่ว่าจะมีใครใช้จริงหรือไม่** ปล่อย Bold ไว้ = เสีย 40KB ทุกครั้งที่เปิดหน้า
+//    ไฟล์ `typedee-Bold.woff2` ยังอยู่ในโฟลเดอร์ เติมกลับได้ทันทีถ้าวันหนึ่งต้องใช้
 //
 // ⚠️ ไฟล์ต้นฉบับ .otf ห้ามอยู่ใน public/ (เปิดโหลดตรงทาง URL ได้) — เก็บไว้ที่
 //    docs/design/typedee.com/font/typedee/ ส่วนที่ส่งขึ้นเว็บคือ .woff2 ใน src/fonts/
 //    ซึ่ง next/font/local จะ emit เป็น /_next/static/media/<hash>.woff2 ให้เอง
 //    แปลงด้วย fontTools: fsType=4 (Preview & Print) + license string ใน name nameID 13/14
+//    + ปรับ vertical metrics ให้ตัวอักษรอยู่กลางกล่อง — สคริปต์: scripts/build-typedee-webfont.py
 const typedee = localFont({
-  src: [
-    { path: "../fonts/typedee-Bold.woff2", weight: "700", style: "normal" },
-    { path: "../fonts/typedee-Black.woff2", weight: "900", style: "normal" },
-  ],
+  src: [{ path: "../fonts/typedee-Black.woff2", weight: "900", style: "normal" }],
   display: "swap",
   variable: "--font-typedee",
 });

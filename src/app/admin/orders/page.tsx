@@ -210,7 +210,7 @@ export default function AdminOrdersPage() {
   return (
     <div className="p-6 max-w-[1200px]">
       <div className="mb-4">
-        <h1 className="font-heading text-h2 text-black">Orders</h1>
+        <h1 className="font-ui text-h2 text-black">Orders</h1>
         <p className="font-body text-body-sm text-grey-600 mt-0.5">รายการคำสั่งซื้อทั้งหมด</p>
       </div>
 
@@ -223,7 +223,7 @@ export default function AdminOrdersPage() {
             // เลือกอยู่ = พื้นดำ + อักษรเทา (เดิม bg-page = สีเดียวกับพื้นหน้า มองไม่ออก)
             className={`text-left p-4 border-none cursor-pointer transition-colors duration-150 ease-base ${tab === key ? "bg-black" : "bg-surface hover:bg-grey-200"}`}
           >
-            <div className={`font-heading text-h2 leading-none mb-1 ${tab === key ? "text-page" : "text-black"}`}>{tabCount[key]}</div>
+            <div className={`font-ui text-h2 leading-none mb-1 ${tab === key ? "text-page" : "text-black"}`}>{tabCount[key]}</div>
             <div className={`font-body text-footnote ${tab === key ? "text-grey-400" : "text-grey-600"}`}>{label}</div>
           </button>
         ))}
@@ -247,7 +247,7 @@ export default function AdminOrdersPage() {
         <div className="bg-surface py-16 flex items-center justify-center font-body text-body-sm text-grey-600">กำลังโหลด…</div>
       ) : tab === "retail" ? (
         <div className="bg-surface overflow-hidden">
-          <div className={`${RETAIL_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+          <div className={`${RETAIL_GRID} px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]`}>
             <div>วันที่</div><div>หมายเลขออเดอร์</div><div>ผู้ซื้อ</div><div>ยอดเงิน</div><div>ประวัติดาวน์โหลด</div>
           </div>
           {retailOrders.length === 0 ? (
@@ -279,7 +279,7 @@ export default function AdminOrdersPage() {
                 </div>
                 {open && (
                   <div className="bg-page px-4 py-3">
-                    <div className={`${ITEM_GRID} px-3 pb-1.5 font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+                    <div className={`${ITEM_GRID} px-3 pb-1.5 font-ui text-badge text-grey-600 tracking-[0.04em]`}>
                       <div>ฟอนต์</div>
                       <div>ดีไซน์เนอร์</div>
                       <div className="text-right">ราคา</div>
@@ -308,7 +308,7 @@ export default function AdminOrdersPage() {
         </div>
       ) : (
         <div className="bg-surface overflow-hidden">
-          <div className={`${SUB_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+          <div className={`${SUB_GRID} px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]`}>
             <div>วันที่</div><div>หมายเลข</div><div>สมาชิก</div><div>อีเมล</div><div>วันหมดอายุ</div>
           </div>
           {periodSubs.length === 0 ? (
@@ -336,7 +336,7 @@ export default function AdminOrdersPage() {
         className="w-[90vw] max-w-[860px]"
       >
         <div className="p-5 overflow-y-auto max-h-[70vh]">
-          <div className={`${LOG_GRID} px-3 pb-1.5 font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+          <div className={`${LOG_GRID} px-3 pb-1.5 font-ui text-badge text-grey-600 tracking-[0.04em]`}>
             <div>ฟอนต์</div><div>ไฟล์</div><div>วันที่ - เวลา</div><div>IP</div>
           </div>
           <div className="flex flex-col gap-1">

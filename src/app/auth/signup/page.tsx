@@ -77,7 +77,7 @@ export default function SignupPage() {
           <p className="font-body text-body text-grey-800 leading-[1.8] mb-1">
             ✓ เราได้ส่งลิงก์ยืนยันไปที่
           </p>
-          <p className="font-heading text-h2 text-black mb-3">{email}</p>
+          <p className="font-ui text-h2 text-black mb-3">{email}</p>
           <p className="font-body text-body-sm text-grey-600 leading-[1.8] mb-6">
             กรุณาคลิกลิงก์ในอีเมลเพื่อเปิดใช้งานบัญชี หากไม่พบอีเมลให้ตรวจสอบในโฟลเดอร์ Spam
           </p>

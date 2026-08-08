@@ -90,17 +90,24 @@ const config: Config = {
       },
 
       fontFamily: {
-        // DESIGN.md §2.1 — รีแบรนด์เฟส 2: typedee (หัวข้อ/ปุ่ม/ป้าย) + IBM Plex Sans Thai Looped (เนื้อความ)
-        // ตัวแปรทั้งสองประกาศที่ src/app/layout.tsx แล้วแปะบน <body>
+        // DESIGN.md §2.1 — รีแบรนด์เฟส 2 · ตัวแปรประกาศที่ src/app/layout.tsx แล้วแปะบน <body>
         //
-        // ⚠️ typedee มีแค่ 700 กับ 900 บนเว็บ (ไม่ส่ง Regular เป็นมาตรการกันฟอนต์หลุด)
-        //    → คลาส font-heading/font-ui ต้องคู่กับ text-* ที่ให้น้ำหนัก 700 หรือ 900 เสมอ
-        //    ถ้าไปโผล่ที่ 300/400 เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ ไม่มีอะไรเตือน
+        // 🔑 เส้นแบ่งที่เจ้าของเคาะ (8 ส.ค. 2569 รอบ 2): **typedee ใช้กับหัวข้อใหญ่เท่านั้น**
+        //    บุคลิกฟอนต์จัดเกินไปสำหรับข้อความที่อยู่รวมกันเป็นก้อน (การ์ดฟอนต์ · ป้าย ·
+        //    ปุ่ม · label ฟอร์ม · หัวตาราง) → ของพวกนั้นเป็น Plex Bold 700 หมด
+        //
+        //    `heading` = typedee — **ใช้ได้เฉพาะคู่กับ text-hero / text-font-slug / text-h1**
+        //    `ui`      = Plex Bold — หัวข้อรอง (h2 ลงมา) · ปุ่ม · nav · แท็บ · ป้าย · label
+        //    `body`    = Plex — เนื้อความ
+        //
+        // ⚠️ `heading` กับ `ui` ต่างกันแค่ "ตระกูล" ไม่ได้ต่างกันที่น้ำหนัก น้ำหนักมากับ text-*
+        // ⚠️ typedee ส่งขึ้นเว็บแค่ Black 900 ตัวเดียว (ดูเหตุผลใน layout.tsx)
+        //    → `font-heading` ที่ไปโผล่กับ step อื่นจะได้ 900 เงียบ ๆ ไม่มีอะไรเตือน
         // ⚠️ Tailwind ไม่ error เมื่อ CSS variable หาย — ถ้า --font-typedee หลุดจาก <body>
         //    คลาสจะตกไป system-ui แล้วหน้าเว็บ "ดูเกือบถูก" ตรวจด้วย getComputedStyle เท่านั้น
         heading: ["var(--font-typedee)", "system-ui", "sans-serif"],
+        ui: ["var(--font-plex-looped)", "system-ui", "sans-serif"],
         body: ["var(--font-plex-looped)", "system-ui", "sans-serif"],
-        ui: ["var(--font-typedee)", "system-ui", "sans-serif"],
 
         // เดิมมี key `thai` เป็น config ตาย (0 call site ตั้งแต่แรก) — ลบทิ้งตอนรีแบรนด์เฟส 2
       },
@@ -128,10 +135,10 @@ const config: Config = {
       // ─────────────────────────────────────────────────────────────
       fontSize: {
         // หัวข้อ: ลำดับความสำคัญมาจาก "ขนาด" ล้วน
-        // รีแบรนด์เฟส 2 — เดิมเป็น ExtraBold 800 ทุกระดับ แต่ typedee ไม่มี 800 (มี 700 กับ 900)
-        //   → hero/font-slug/h1 = Black 900 · h2 = Bold 700 (เจ้าของเคาะ 8 ส.ค. 2569)
-        //   h2 ไม่เป็น Black เพราะโผล่ 77 จุดในตาราง/การ์ด/แดชบอร์ด ซึ่งหนาเกินจนหน้าจอทึบ
-        // ⚠️ ห้ามใส่น้ำหนักอื่นให้คลาสที่ใช้ font-heading/font-ui — typedee มีแค่ 700/900
+        // รีแบรนด์เฟส 2 — เดิมเป็น ExtraBold 800 ทุกระดับ แต่ typedee ไม่มี 800
+        //   hero/font-slug/h1 = **typedee Black 900** (คู่กับ font-heading)
+        //   h2 ลงมา          = **Plex Bold 700** (คู่กับ font-ui) — เจ้าของเคาะว่า typedee
+        //     บุคลิกจัดเกินไปสำหรับหัวข้อรองที่โผล่ 77 จุดในตาราง/การ์ด/แดชบอร์ด
         // hero = 60 ตาม moodboard/style/text_hero (update).png (เดิม 96)
         // lineHeight 1.15: hero เป็นหัวข้อหลายบรรทัด — 1.5 (สืบทอดจาก preflight) หลวมเกิน
         //   เจ้าของสั่งให้กระชับตามรูป Figma (2026-07-18) · unitless → scale ตาม clamp เอง
@@ -143,11 +150,11 @@ const config: Config = {
 
         body: ["1rem", { fontWeight: "400" }], // 16 · Plex Looped Regular — เนื้อความ
         "body-sm": ["0.875rem", { fontWeight: "300" }], // 14 · Plex Looped Light — ป้ายกำกับ
-        ui: ["1rem", { fontWeight: "700" }], // 16 · typedee Bold — ปุ่ม nav control
-        "fc-heading": ["1rem", { fontWeight: "700" }], // 16 · typedee Bold — ชื่อฟอนต์บนการ์ด
+        ui: ["1rem", { fontWeight: "700" }], // 16 · Plex Looped Bold — ปุ่ม nav control
+        "fc-heading": ["1rem", { fontWeight: "700" }], // 16 · Plex Looped Bold — ชื่อฟอนต์บนการ์ด
 
         // นอกเหนือจาก Figma — เพิ่มตามที่เจ้าของสั่ง (DESIGN.md §2.6)
-        badge: ["0.75rem", { fontWeight: "700" }], // 12 · typedee Bold — ป้าย Sale/FREE/NEW/tag
+        badge: ["0.75rem", { fontWeight: "700" }], // 12 · Plex Looped Bold — ป้าย Sale/FREE/NEW/tag
         footnote: ["0.75rem", { fontWeight: "300" }], // 12 · Plex Looped Light — © ท้าย footer
         "logo-sub": ["0.625rem", { fontWeight: "400" }], // 10 · Plex Looped Regular — บรรทัดรองใต้ wordmark
         "fc-byline": ["0.75rem", { fontWeight: "300" }], // 12 · Plex Looped Light — บรรทัดชื่อดีไซน์เนอร์บนการ์ด (เจ้าของ 2026-07-20 เดิม body-sm 14)

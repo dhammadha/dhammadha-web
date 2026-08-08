@@ -54,7 +54,7 @@ function Step1({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="font-heading text-h2 text-black mb-1">ตั้งชื่อ URL หน้าร้านของคุณ</h2>
+        <h2 className="font-ui text-h2 text-black mb-1">ตั้งชื่อ URL หน้าร้านของคุณ</h2>
         <p className="font-body text-body-sm text-grey-600 leading-[1.7]">
           Slug คือที่อยู่หน้าร้านและเป็นส่วนหนึ่งของลิงก์ฟอนต์ทุกตัว
           — ตั้งได้ครั้งเดียว เปลี่ยนภายหลังต้องติดต่อ admin
@@ -69,7 +69,7 @@ function Step1({
           <div className={`${iCls} flex items-center gap-2 cursor-default text-grey-600`}>
             <span className="text-grey-600">/designer/</span>
             <span className="font-ui text-ui text-black">{slug}</span>
-            <span className="ml-auto text-badge font-heading text-grey-600 bg-surface px-2 py-0.5">ล็อก</span>
+            <span className="ml-auto text-badge font-ui text-grey-600 bg-surface px-2 py-0.5">ล็อก</span>
           </div>
         ) : (
           <div className="relative">
@@ -112,7 +112,7 @@ function Step2({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="font-heading text-h2 text-black mb-1">ข้อมูลผู้ขาย</h2>
+        <h2 className="font-ui text-h2 text-black mb-1">ข้อมูลผู้ขาย</h2>
         <p className="font-body text-body-sm text-grey-600 leading-[1.7]">
           ใช้แสดงในใบเสนอราคาและเอกสารที่ออกให้ลูกค้าองค์กร
         </p>
@@ -204,7 +204,7 @@ function Step3({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="font-heading text-h2 text-black mb-1">บัญชีธนาคาร</h2>
+        <h2 className="font-ui text-h2 text-black mb-1">บัญชีธนาคาร</h2>
         <p className="font-body text-body-sm text-grey-600 leading-[1.7]">
           ใช้โอนส่วนแบ่งรายได้จากการขายผ่านเว็บ
         </p>
@@ -275,7 +275,7 @@ function Stepper({ step }: { step: number }) {
           <div key={n} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-badge font-heading transition-colors duration-150 ease-base ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-badge font-ui transition-colors duration-150 ease-base ${
                   done
                     ? "bg-orange text-black"
                     : active
@@ -471,10 +471,10 @@ export default function OnboardingPage() {
       <div className="w-full max-w-[720px]">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="font-heading text-badge tracking-[0.14em] text-grey-600 uppercase mb-2">
+          <div className="font-ui text-badge tracking-[0.14em] text-grey-600 uppercase mb-2">
             {BRAND_NAME}
           </div>
-          <h1 className="font-heading text-h2 text-black">ตั้งค่าร้านของคุณ</h1>
+          <h1 className="font-ui text-h2 text-black">ตั้งค่าร้านของคุณ</h1>
           <p className="font-body text-body-sm text-grey-600 mt-1">ทำครั้งเดียว ใช้ได้ตลอด</p>
         </div>
 

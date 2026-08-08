@@ -64,11 +64,11 @@ export default function AccountPage() {
                 {/* Avatar + role */}
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center font-heading text-h2 text-page select-none">
+                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center font-ui text-h2 text-page select-none">
                       {(user.email?.[0] ?? "?").toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-heading text-h2 text-black leading-snug">
+                      <p className="font-ui text-h2 text-black leading-snug">
                         {profile?.name ?? user.email}
                       </p>
                       <span className="inline-block mt-1">

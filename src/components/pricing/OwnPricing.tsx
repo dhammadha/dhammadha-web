@@ -197,7 +197,7 @@ export default function OwnPricing() {
   return (
     <div className="p-6 max-w-[720px]">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-heading text-h2 text-black">ราคาและโปรโมชั่น</h1>
+        <h1 className="font-ui text-h2 text-black">ราคาและโปรโมชั่น</h1>
         {quoteEnabled && !useDefault && (
           <button
             onClick={resetToDefault}

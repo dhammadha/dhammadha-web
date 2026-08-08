@@ -743,7 +743,7 @@ export default function FontForm({ open, onClose, editingFont, onSaved, ownerId,
     return (
       <div className="flex flex-col min-h-screen bg-page">
         <div className="flex-1 overflow-y-auto p-6 w-full">
-          <h1 className="font-heading text-h2 text-black mb-6">{editingFont ? "แก้ไขฟอนต์" : "เพิ่มฟอนต์"}</h1>
+          <h1 className="font-ui text-h2 text-black mb-6">{editingFont ? "แก้ไขฟอนต์" : "เพิ่มฟอนต์"}</h1>
           {/* 3 คอลัมน์เฉพาะจอ xl (1280+) — ที่ lg ยังแคบไป เพราะแต่ละคอลัมน์
               มีกริด 2 ช่องซ้อนอยู่ข้างใน บีบแล้วช่องกรอกจะสั้นจนอ่านค่าไม่ออก */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 max-w-[1600px]">
@@ -899,7 +899,7 @@ function FontFileSection({
     <div className={`bg-surface p-3 ${className}`}>
       <div className="flex items-center gap-2 mb-2">
         <span className="font-ui text-ui text-black">{label}</span>
-        <span className={`text-badge font-heading px-2 py-0.5 ${badgeColor}`}>{badge}</span>
+        <span className={`text-badge font-ui px-2 py-0.5 ${badgeColor}`}>{badge}</span>
       </div>
       <label className="flex items-center gap-2 px-3 py-1.5 bg-page cursor-pointer hover:bg-grey-200 transition-colors duration-150 ease-base w-fit font-body text-footnote text-grey-600">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>

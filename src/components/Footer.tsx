@@ -64,7 +64,7 @@ const LINK = cn(
 // หัวคอลัมน์ใช้ `ui` (Sans Bold 16) — Figma ไม่มีสไตล์ "footer heading" โดยเฉพาะ
 // และ fc-heading สงวนไว้ให้ชื่อฟอนต์บนการ์ด (สองอันเป็น Sans Bold 16 เหมือนกัน
 // แต่ชื่อต้องตรงกับหน้าที่)
-const HEADING = "font-heading text-ui text-page mb-3";
+const HEADING = "font-ui text-ui text-page mb-3";
 
 function Col({ title, children }: { title: string; children: React.ReactNode }) {
   return (

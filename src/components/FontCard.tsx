@@ -179,7 +179,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
       {/* pt-3 (เดิม py-2): บรรทัดชื่อดีไซน์เนอร์เล็กลงเหลือ 10px แล้วดันชื่อฟอนต์ลงมาให้บาลานซ์ (เจ้าของ 2026-07-20) */}
       <div className="px-3.5 pt-3 pb-2 md:px-4">
         {/* ชื่อฟอนต์ = fc-heading (Font Card Heading) — สไตล์นี้มีไว้สำหรับตรงนี้โดยเฉพาะ */}
-        <div className="font-heading text-fc-heading text-black truncate leading-none">{font.name || "—"}</div>
+        <div className="font-ui text-fc-heading text-black truncate leading-none">{font.name || "—"}</div>
 
         <div className="flex items-baseline justify-between gap-2">
           <div className="font-body text-fc-byline text-grey-600 truncate min-w-0 leading-0">
@@ -206,20 +206,20 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
               /* ไม่ขายรายชุด — ข้อความแทนตัวเลข ใช้ขนาด/น้ำหนักเดียวกับราคา
                  คำสั้น "สมาชิก" ไม่ใช่ "เฉพาะสมาชิก": แถวล่างของการ์ดบนมือถือกว้าง 138px
                  คำเต็มกิน 110px จนชื่อนักออกแบบถูกตัดจนไม่เหลือ · ป้ายมุมการ์ดบอกคำเต็มอยู่แล้ว */
-              <span className="font-heading text-h2 text-black">สมาชิก</span>
+              <span className="font-ui text-h2 text-black">สมาชิก</span>
             ) : font.is_free ? (
-              <span className="font-heading text-h2 text-success">ฟรี</span>
+              <span className="font-ui text-h2 text-success">ฟรี</span>
             ) : saleActive && eff.salePrice > 0 && font.price ? (
               /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ
                  ราคาลดใช้สีเดียวกับ "ฟรี" (success) ตามที่เจ้าของสั่ง 2026-07-18 */
               <span className="flex items-baseline gap-1.5">
                 <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
-                <span className="font-heading text-h2 text-success">฿{eff.salePrice.toLocaleString()}</span>
+                <span className="font-ui text-h2 text-success">฿{eff.salePrice.toLocaleString()}</span>
               </span>
             ) : font.price ? (
-              <span className="font-heading text-h2 text-black">฿{font.price.toLocaleString()}</span>
+              <span className="font-ui text-h2 text-black">฿{font.price.toLocaleString()}</span>
             ) : (
-              <span className="font-heading text-h2 text-black">—</span>
+              <span className="font-ui text-h2 text-black">—</span>
             )}
           </div>
         </div>

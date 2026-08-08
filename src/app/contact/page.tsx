@@ -140,7 +140,7 @@ export default function ContactPage() {
 
             {status === "success" ? (
               <div className="bg-surface p-6">
-                <div className="font-heading text-h2 text-success mb-2.5">✓ ส่งข้อความเรียบร้อย</div>
+                <div className="font-ui text-h2 text-success mb-2.5">✓ ส่งข้อความเรียบร้อย</div>
                 <p className="font-body text-body text-grey-800 leading-[1.8] mb-5">
                   เราได้รับข้อความของคุณแล้ว ทีมงานจะติดต่อกลับทางอีเมลภายใน 1–2 วันทำการ
                   หากไม่พบอีเมลตอบกลับ รบกวนตรวจสอบใน Junk Mail

@@ -101,7 +101,7 @@ export default function DesignerDetail() {
       <>
         <Nav />
         <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-          <div className="font-heading text-h2 text-black">ไม่พบ designer นี้</div>
+          <div className="font-ui text-h2 text-black">ไม่พบ designer นี้</div>
           <Link href="/fonts/" className="font-body text-body link-accent no-underline hover:underline">← ดูฟอนต์ทั้งหมด</Link>
         </div>
         <Footer />

@@ -163,7 +163,7 @@ export default function SubscribePage() {
 
                 {/* ราคา */}
                 <div className="flex items-end justify-center gap-2 mb-2">
-                  {trialOpen && <span className="font-heading text-h2 text-grey-400 line-through">฿{settings?.monthly_price.toLocaleString()}</span>}
+                  {trialOpen && <span className="font-ui text-h2 text-grey-400 line-through">฿{settings?.monthly_price.toLocaleString()}</span>}
                   <span className="font-heading text-hero text-black leading-none">
                     {trialOpen ? "฿0" : `฿${settings?.monthly_price.toLocaleString()}`}
                   </span>
@@ -206,7 +206,7 @@ export default function SubscribePage() {
                   {features.map((f) => (
                     <div key={f.title} className="bg-surface p-5">
                       <div className="mb-2">{f.icon}</div>
-                      <div className="font-heading text-h2 text-black mb-1">{f.title}</div>
+                      <div className="font-ui text-h2 text-black mb-1">{f.title}</div>
                       <div className="font-body text-body-sm text-grey-600 leading-[1.8]">{f.desc}</div>
                     </div>
                   ))}

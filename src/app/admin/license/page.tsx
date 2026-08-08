@@ -80,7 +80,7 @@ export default function AdminLicensePage() {
   return (
     <div className="p-6 max-w-[720px] flex flex-col gap-8">
       <div>
-        <h1 className="font-heading text-h2 text-black">License</h1>
+        <h1 className="font-ui text-h2 text-black">License</h1>
         <p className="font-body text-body-sm text-grey-600 mt-0.5 leading-[1.6]">
           โครงสร้างและราคาสิทธิ์ใช้งาน <strong className="text-black">default ของเว็บ</strong> —
           ใช้กับหน้าฟอนต์และหน้าขอใบเสนอราคาทั้งเว็บ เพิ่ม/ลบ/แก้ไขรูปแบบสิทธิได้อิสระ

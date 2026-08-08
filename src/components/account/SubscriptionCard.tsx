@@ -53,7 +53,7 @@ export default function SubscriptionCard() {
     <section className="mt-10">
       <div className="bg-surface p-6">
         <div className="flex items-center justify-between gap-3 mb-4">
-          <h2 className="font-heading text-h2 text-black">Subscription</h2>
+          <h2 className="font-ui text-h2 text-black">Subscription</h2>
           {active ? (
             <Badge variant="solid">ใช้งานอยู่</Badge>
           ) : (

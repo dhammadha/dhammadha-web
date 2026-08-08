@@ -85,7 +85,7 @@ function VerifyContent() {
           {result && (
             result.valid ? (
               <div className="bg-surface p-6">
-                <div className="font-heading text-h2 text-success mb-4">✓ คำสั่งซื้อนี้ถูกต้อง</div>
+                <div className="font-ui text-h2 text-success mb-4">✓ คำสั่งซื้อนี้ถูกต้อง</div>
                 <div className="grid grid-cols-[130px_1fr] gap-y-2.5 items-baseline">
                   <Row label="เลขคำสั่งซื้อ" value={result.order_no} />
                   <Row label="ผู้ได้รับสิทธิ์" value={result.licensed_to} />
@@ -103,7 +103,7 @@ function VerifyContent() {
               </div>
             ) : (
               <div className="bg-surface p-6">
-                <div className="font-heading text-h2 text-danger-dark mb-2.5">✕ ไม่พบคำสั่งซื้อนี้</div>
+                <div className="font-ui text-h2 text-danger-dark mb-2.5">✕ ไม่พบคำสั่งซื้อนี้</div>
                 <p className="font-body text-body text-grey-800 leading-[1.8]">
                   รหัสยืนยันไม่ถูกต้อง หรือไฟล์ฟอนต์นี้อาจไม่ได้มาจากการซื้อผ่าน {DOMAIN}
                   — หากคุณเชื่อว่าไฟล์ถูกละเมิดลิขสิทธิ์ แจ้งได้ที่{" "}

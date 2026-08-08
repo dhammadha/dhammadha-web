@@ -208,7 +208,7 @@ export default function AdminMembersPage() {
 
   return (
     <div className="p-6 max-w-[720px] flex flex-col gap-8">
-      <h1 className="font-heading text-h2 text-black">Members</h1>
+      <h1 className="font-ui text-h2 text-black">Members</h1>
 
       {/* สมาชิก */}
       <div className="flex flex-col gap-6">
@@ -244,12 +244,12 @@ export default function AdminMembersPage() {
           <div className="overflow-x-auto">
             <table className="w-full font-body text-body-sm">
               <thead>
-                <tr className="text-left bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
-                  <th className="px-4 py-3 font-heading">ผู้ใช้</th>
-                  <th className="px-4 py-3 font-heading">แผน</th>
-                  <th className="px-4 py-3 font-heading">สถานะ</th>
-                  <th className="px-4 py-3 font-heading">ใช้ได้ถึง</th>
-                  <th className="px-4 py-3 font-heading text-right">จัดการ</th>
+                <tr className="text-left bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
+                  <th className="px-4 py-3 font-ui">ผู้ใช้</th>
+                  <th className="px-4 py-3 font-ui">แผน</th>
+                  <th className="px-4 py-3 font-ui">สถานะ</th>
+                  <th className="px-4 py-3 font-ui">ใช้ได้ถึง</th>
+                  <th className="px-4 py-3 font-ui text-right">จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -263,7 +263,7 @@ export default function AdminMembersPage() {
                       </td>
                       <td className="px-4 py-3 text-grey-600">{PROVIDER_LABEL[r.provider] ?? r.provider}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-badge font-heading px-2 py-0.5 ${active ? "bg-success text-white" : "bg-page text-grey-600"}`}>
+                        <span className={`text-badge font-ui px-2 py-0.5 ${active ? "bg-success text-white" : "bg-page text-grey-600"}`}>
                           {active ? "ใช้งาน" : STATUS_LABEL[r.status] ?? r.status}
                         </span>
                       </td>
@@ -305,11 +305,11 @@ export default function AdminMembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full font-body text-body-sm">
                 <thead>
-                  <tr className="text-left bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
-                    <th className="px-4 py-3 font-heading">ผู้ใช้</th>
-                    <th className="px-4 py-3 font-heading">เครื่อง</th>
-                    <th className="px-4 py-3 font-heading">ใช้ล่าสุด</th>
-                    <th className="px-4 py-3 font-heading text-right">จัดการ</th>
+                  <tr className="text-left bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
+                    <th className="px-4 py-3 font-ui">ผู้ใช้</th>
+                    <th className="px-4 py-3 font-ui">เครื่อง</th>
+                    <th className="px-4 py-3 font-ui">ใช้ล่าสุด</th>
+                    <th className="px-4 py-3 font-ui text-right">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,7 +325,7 @@ export default function AdminMembersPage() {
                           <div className="text-black flex items-center gap-2">
                             {d.name || "ไม่ระบุชื่อ"}
                             {holding && (
-                              <span className="text-badge font-heading px-2 py-0.5 bg-black text-page">ถือสิทธิ์อยู่</span>
+                              <span className="text-badge font-ui px-2 py-0.5 bg-black text-page">ถือสิทธิ์อยู่</span>
                             )}
                           </div>
                           <div className="font-body text-footnote text-grey-600">{d.platform ?? "—"} · ลงทะเบียน {fmtDate(d.created_at)}</div>
@@ -360,11 +360,11 @@ export default function AdminMembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full font-body text-body-sm">
                 <thead>
-                  <tr className="text-left bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
-                    <th className="px-4 py-3 font-heading">ผู้ใช้</th>
-                    <th className="px-4 py-3 font-heading text-right">ไฟล์ที่โหลด</th>
-                    <th className="px-4 py-3 font-heading text-right">ฟอนต์ที่โหลด</th>
-                    <th className="px-4 py-3 font-heading text-right">ฟอนต์ที่ใช้จริง</th>
+                  <tr className="text-left bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
+                    <th className="px-4 py-3 font-ui">ผู้ใช้</th>
+                    <th className="px-4 py-3 font-ui text-right">ไฟล์ที่โหลด</th>
+                    <th className="px-4 py-3 font-ui text-right">ฟอนต์ที่โหลด</th>
+                    <th className="px-4 py-3 font-ui text-right">ฟอนต์ที่ใช้จริง</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -379,7 +379,7 @@ export default function AdminMembersPage() {
                         <td className="px-4 py-3">
                           <div className="text-black">{dev?.users?.email ?? u.userId.slice(0, 8)}</div>
                           {suspicious && (
-                            <div className="font-heading text-badge text-danger-dark tracking-[0.04em] mt-0.5">
+                            <div className="font-ui text-badge text-danger-dark tracking-[0.04em] mt-0.5">
                               ⚠ โหลดมากแต่ใช้จริงน้อย
                             </div>
                           )}

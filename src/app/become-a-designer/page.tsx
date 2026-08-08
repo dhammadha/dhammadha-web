@@ -112,7 +112,7 @@ export default function BecomeADesignerPage() {
             {BENEFITS.map((b) => (
               <div key={b.title} className="bg-surface p-5 flex flex-col">
                 <div className="text-orange-text mb-4">{b.icon}</div>
-                <h3 className="font-heading text-h2 text-black mb-2">{b.title}</h3>
+                <h3 className="font-ui text-h2 text-black mb-2">{b.title}</h3>
                 <p className="font-body text-body-sm text-grey-600 leading-[1.8]">{b.desc}</p>
               </div>
             ))}
@@ -128,7 +128,7 @@ export default function BecomeADesignerPage() {
             {STEPS.map((s) => (
               <div key={s.n}>
                 <div className="font-heading text-h1 text-orange-text leading-none mb-3">{s.n}</div>
-                <h3 className="font-heading text-h2 text-black mb-1.5">{s.title}</h3>
+                <h3 className="font-ui text-h2 text-black mb-1.5">{s.title}</h3>
                 <p className="font-body text-body-sm text-grey-600 leading-[1.8]">{s.desc}</p>
               </div>
             ))}

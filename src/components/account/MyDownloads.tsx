@@ -171,7 +171,7 @@ export default function MyDownloads() {
   // อยู่คอลัมน์ขวาของ /account — โชว์หัวข้อเสมอแม้ยังไม่เคยซื้อ ไม่งั้นคอลัมน์จะว่างเปล่า
   return (
     <section className="mt-10 lg:mt-0">
-      <h2 className="font-heading text-h2 text-black mb-1">ดาวน์โหลดของฉัน</h2>
+      <h2 className="font-ui text-h2 text-black mb-1">ดาวน์โหลดของฉัน</h2>
       <p className="font-body text-body-sm text-grey-600 mb-1">
         ไฟล์ฟอนต์ที่คุณมีสิทธิ์ใช้งาน — ดาวน์โหลดซ้ำได้ตลอด ไฟล์ถูกประทับข้อมูลสิทธิ์ของคุณ
       </p>

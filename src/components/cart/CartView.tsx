@@ -178,7 +178,7 @@ export default function CartView() {
         <span className="font-body text-body text-black">รวม {fonts.length} ฟอนต์</span>
         {/* เดิมเป็น text-h3 ซึ่งไม่มีใน type scale = คลาสตาย ยอดรวมจึงได้ขนาด/น้ำหนักที่สืบทอดมา
             (Tailwind ไม่ error เมื่อคลาสไม่มีจริง) — h2 คือ step ที่ใกล้เจตนาที่สุด */}
-        <span className="font-heading text-h2 text-black">{fmtBaht(total)}</span>
+        <span className="font-ui text-h2 text-black">{fmtBaht(total)}</span>
       </div>
 
       {/* บรรทัดละเรื่อง เรียงจากเรื่องของผู้ซื้อ → สัญญาฉบับกลาง → สัญญารายร้าน

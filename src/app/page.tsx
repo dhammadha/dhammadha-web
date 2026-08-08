@@ -114,7 +114,7 @@ export default function HomePage() {
               ))}
               {remaining > 0 && (
                 <Link href="/fonts/" className="flex flex-col items-center justify-center gap-1 bg-surface cursor-pointer transition-shadow duration-150 ease-base hover:shadow-md p-6 no-underline">
-                  <span className="font-heading text-h2 text-black">+{remaining}</span>
+                  <span className="font-ui text-h2 text-black">+{remaining}</span>
                   <span className="font-body text-body-sm text-grey-600">ฟอนต์อื่น ๆ</span>
                   <span className="font-body text-body-sm text-black mt-0.5">ดูทั้งหมด →</span>
                 </Link>
@@ -132,8 +132,8 @@ export default function HomePage() {
           <h2 className="font-heading text-h1 text-black mb-4">ราคาและแผนบริการ</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div className="p-5 bg-surface flex flex-col">
-              <div className="font-heading text-h2 text-black">ซื้อรายฟอนต์</div>
-              <div className="font-heading text-h2 text-black">ราคาแตกต่างกัน</div>
+              <div className="font-ui text-h2 text-black">ซื้อรายฟอนต์</div>
+              <div className="font-ui text-h2 text-black">ราคาแตกต่างกัน</div>
               <div className="font-body text-body-sm text-grey-600 mt-2.5 mb-2.5">ราคา / ชุดฟอนต์</div>
               <div className="font-body text-body-sm text-grey-600 flex-1">
                 ดาวน์โหลดไฟล์ฟอนต์ได้ทันทีหลังชำระเงิน

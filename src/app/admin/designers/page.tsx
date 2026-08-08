@@ -110,7 +110,7 @@ export default function AdminDesignersPage() {
     <div className="p-6 max-w-[1200px]">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="font-heading text-h2 text-black">Designers</h1>
+          <h1 className="font-ui text-h2 text-black">Designers</h1>
           {applications.length > 0 && (
             <p className="font-body text-body-sm text-warning mt-0.5">
               ⚠️ {applications.length} คำขอรอพิจารณา
@@ -131,7 +131,7 @@ export default function AdminDesignersPage() {
           >
             {t === "applications" ? "คำขอสมัคร" : "Designers"}
             {t === "applications" && applications.length > 0 && (
-              <span className="ml-1.5 text-badge font-heading px-1.5 py-0.5 bg-danger text-white leading-none">
+              <span className="ml-1.5 text-badge font-ui px-1.5 py-0.5 bg-danger text-white leading-none">
                 {applications.length}
               </span>
             )}
@@ -143,13 +143,13 @@ export default function AdminDesignersPage() {
         {/* List */}
         <div className="flex-1 bg-surface overflow-hidden">
           {tab === "applications" && (
-            <div className="grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
+            <div className="grid grid-cols-[100px_1fr_1.5fr_80px] gap-3 px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
               <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>สถานะ</div>
             </div>
           )}
 
           {tab === "designers" && (
-            <div className="grid grid-cols-[100px_1fr_1fr_120px_80px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
+            <div className="grid grid-cols-[100px_1fr_1fr_120px_80px] gap-3 px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
               <div>วันที่</div><div>ชื่อ</div><div>อีเมล</div><div>ลิงก์</div><div>Role</div>
             </div>
           )}
@@ -195,9 +195,9 @@ export default function AdminDesignersPage() {
               )}
               <div>
                 {tab === "applications" ? (
-                  <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black">รอพิจารณา</span>
+                  <span className="text-badge font-ui px-2 py-0.5 bg-warning text-black">รอพิจารณา</span>
                 ) : (
-                  <span className={`text-badge font-heading px-2 py-0.5 capitalize ${on ? "bg-page text-black" : "bg-black text-page"}`}>{u.role}</span>
+                  <span className={`text-badge font-ui px-2 py-0.5 capitalize ${on ? "bg-page text-black" : "bg-black text-page"}`}>{u.role}</span>
                 )}
               </div>
             </div>

@@ -93,7 +93,7 @@ export default function SubscriptionRevenue({ mode }: Props) {
   return (
     <section className="mt-10">
       <div className="flex items-center justify-between gap-3 mb-1">
-        <h2 className="font-heading text-h2 text-black">รายได้ Subscription</h2>
+        <h2 className="font-ui text-h2 text-black">รายได้ Subscription</h2>
         <select
           value={monthKey}
           onChange={(e) => setMonthKey(e.target.value)}
@@ -131,7 +131,7 @@ export default function SubscriptionRevenue({ mode }: Props) {
 function Pool({ label, pct, amount, sub }: { label: string; pct: string; amount: number; sub?: string }) {
   return (
     <div className="bg-surface p-4">
-      <div className="font-heading text-h2 text-black leading-none mb-1">{fmtBaht(amount)}</div>
+      <div className="font-ui text-h2 text-black leading-none mb-1">{fmtBaht(amount)}</div>
       <div className="font-body text-footnote text-grey-600">{label} <span className="text-grey-600">· {pct}</span></div>
       {sub && <div className="font-body text-footnote text-grey-600 mt-0.5">{sub}</div>}
     </div>
@@ -150,7 +150,7 @@ function AdminView({ stmt, names }: { stmt: SubMonthStatement; names: Record<str
       </div>
 
       <div className="bg-surface overflow-hidden">
-        <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
+        <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
           <div>Designer</div><div>แบ่งเท่ากัน</div><div>ตามการใช้งาน</div><div>รวม</div>
         </div>
         {designers.length === 0 ? (
@@ -194,15 +194,15 @@ function DesignerView({ stmt, designerId }: { stmt: SubMonthStatement; designerI
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-black leading-none mb-1">{fmtBaht(slice?.equal ?? 0)}</div>
+          <div className="font-ui text-h2 text-black leading-none mb-1">{fmtBaht(slice?.equal ?? 0)}</div>
           <div className="font-body text-footnote text-grey-600">แบ่งเท่ากัน (ตามวันที่อยู่ในแพลน)</div>
         </div>
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-black leading-none mb-1">{fmtBaht(slice?.stream ?? 0)}</div>
+          <div className="font-ui text-h2 text-black leading-none mb-1">{fmtBaht(slice?.stream ?? 0)}</div>
           <div className="font-body text-footnote text-grey-600">ตามการใช้งาน (font-days)</div>
         </div>
         <div className="bg-surface p-4">
-          <div className="font-heading text-h2 text-orange-text leading-none mb-1">{fmtBaht(slice?.total ?? 0)}</div>
+          <div className="font-ui text-h2 text-orange-text leading-none mb-1">{fmtBaht(slice?.total ?? 0)}</div>
           <div className="font-body text-footnote text-grey-600">รวมส่วนแบ่ง Subscription</div>
         </div>
       </div>
@@ -213,7 +213,7 @@ function DesignerView({ stmt, designerId }: { stmt: SubMonthStatement; designerI
         </div>
       ) : (
         <div className="bg-surface overflow-hidden">
-          <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] gap-3 px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
             <div>ฟอนต์</div><div>แบ่งเท่ากัน</div><div>ตามการใช้งาน</div><div>รวม</div>
           </div>
           {slice.fonts.map((f) => (

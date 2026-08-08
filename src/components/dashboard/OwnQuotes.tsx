@@ -349,7 +349,7 @@ export default function OwnQuotes() {
     <div className="p-6 max-w-[1200px]">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="font-heading text-h2 text-black">ใบเสนอราคา</h1>
+          <h1 className="font-ui text-h2 text-black">ใบเสนอราคา</h1>
           {pending.length > 0 && (
             <p className="font-body text-body-sm text-black mt-0.5">⚠️ {pending.length} รายการรอดำเนินการ</p>
           )}
@@ -358,7 +358,7 @@ export default function OwnQuotes() {
 
       <div className="flex gap-4 items-start">
         <div className="flex-1 bg-surface overflow-hidden">
-          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[100px_1.2fr_1.5fr_1fr_120px_120px] gap-3 px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
             <div>วันที่</div><div>ชื่อผู้ติดต่อ</div><div>บริษัท/องค์กร</div><div>รูปแบบสิทธิ์</div><div>ใบเสนอราคา</div><div>ใบเสร็จ</div>
           </div>
 
@@ -386,18 +386,18 @@ export default function OwnQuotes() {
                   จนตัดขึ้นบรรทัดใหม่กลางป้าย — คอลัมน์กว้าง 120px + ห้ามตัดคำ */}
               <div>
                 {q.quote_no
-                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.quote_no}</span>
-                  : <span className="text-badge font-heading px-2 py-0.5 bg-warning text-black whitespace-nowrap">รอดำเนินการ</span>}
+                  ? <span className="text-badge font-ui px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.quote_no}</span>
+                  : <span className="text-badge font-ui px-2 py-0.5 bg-warning text-black whitespace-nowrap">รอดำเนินการ</span>}
               </div>
               {/* ใบแจ้งหนี้ใช้คอลัมน์เดียวกับใบเสร็จ (ป้ายที่สองใต้ป้ายแรก)
                   — ตารางกว้างเต็มแล้ว เพิ่มคอลัมน์จะเบียดชื่อบริษัท */}
               <div className="flex flex-col gap-1 items-start">
                 {q.receipt_no
-                  ? <span className="text-badge font-heading px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.receipt_no}</span>
+                  ? <span className="text-badge font-ui px-2 py-0.5 bg-success text-white whitespace-nowrap">{q.receipt_no}</span>
                   : <span className={`font-body text-footnote ${on ? "text-grey-400" : "text-grey-600"}`}>—</span>}
                 {q.invoice_no && (
                   // ป้ายดำ/เทา ต้องสลับคู่เมื่อแถวเป็นดำ
-                  <span className={`text-badge font-heading px-2 py-0.5 whitespace-nowrap ${on ? "bg-page text-black" : "bg-black text-page"}`}>{q.invoice_no}</span>
+                  <span className={`text-badge font-ui px-2 py-0.5 whitespace-nowrap ${on ? "bg-page text-black" : "bg-black text-page"}`}>{q.invoice_no}</span>
                 )}
               </div>
             </div>
@@ -430,7 +430,7 @@ export default function OwnQuotes() {
             </div>
 
             <div>
-              <div className="font-heading text-badge text-grey-600 tracking-[0.04em] mb-1.5">ฟอนต์ที่ขอ</div>
+              <div className="font-ui text-badge text-grey-600 tracking-[0.04em] mb-1.5">ฟอนต์ที่ขอ</div>
               <div className="flex flex-col gap-1">
                 {selected.fonts.map((f, i) => (
                   <div key={i} className="font-body text-body-sm text-black px-2 py-1 bg-page">{f}</div>

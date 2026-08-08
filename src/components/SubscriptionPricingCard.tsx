@@ -29,8 +29,8 @@ export default function SubscriptionPricingCard() {
 
   return (
     <div className="p-5 bg-surface flex flex-col">
-      <div className="font-heading text-h2 text-black">Subscription รายเดือน</div>
-      <div className="font-heading text-h2 text-black">
+      <div className="font-ui text-h2 text-black">Subscription รายเดือน</div>
+      <div className="font-ui text-h2 text-black">
         {trialOpen ? (
           <>
             <span className="text-grey-400 line-through mr-2">฿{settings?.monthly_price.toLocaleString()}</span>฿0 / เดือน

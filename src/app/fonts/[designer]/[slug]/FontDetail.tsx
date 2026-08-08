@@ -245,7 +245,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
       <>
         <Nav />
         <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-page">
-          <div className="font-heading text-h2 text-black">ไม่พบฟอนต์นี้</div>
+          <div className="font-ui text-h2 text-black">ไม่พบฟอนต์นี้</div>
           <Link href="/" className="font-body text-body link-accent no-underline hover:underline">
             ← กลับหน้าแรก
           </Link>
@@ -330,7 +330,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
         {/* ฮีโร่ — ชื่ออังกฤษอย่างเดียว + ป้ายหมวดหมู่/แท็ก (moodboard: font detail alt.png) */}
         <Container className="pt-10 pb-5">
-          <h2 className="font-heading text-h2 text-black leading-none">{font.name || mainTitle}</h2>
+          <h2 className="font-ui text-h2 text-black leading-none">{font.name || mainTitle}</h2>
           {heroChips.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {heroChips.map((c) => (
@@ -455,7 +455,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
                 {/* Personal tier */}
                 <div>
-                  <h3 className="font-heading text-h2 text-black mb-3">บุคคลธรรมดา</h3>
+                  <h3 className="font-ui text-h2 text-black mb-3">บุคคลธรรมดา</h3>
                   <div className="bg-surface px-4 py-3 mb-3">
                     <div className="flex justify-between items-center gap-3">
                       <span className="font-body text-body text-black">
@@ -568,7 +568,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
 
                 {/* Org tiers */}
                 <div>
-                  <h3 className="font-heading text-h2 text-black mb-3">ห้างร้าน องค์กร บริษัท</h3>
+                  <h3 className="font-ui text-h2 text-black mb-3">ห้างร้าน องค์กร บริษัท</h3>
                   {!quoteEnabled ? (
                     <div className="bg-surface px-4 py-6 font-body text-body-sm text-grey-600 leading-[1.7]">
                       ฟอนต์นี้ยังไม่รองรับระบบใบเสนอราคา
@@ -622,7 +622,7 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
           {related.length > 0 && (
             <div className="mt-12">
               <AdBanner slot="1401819374" className="-mx-4 md:-mx-6 lg:-mx-8 mb-8" />
-              <h2 className="font-heading text-h2 text-black mb-4">ฟอนต์ที่คุณน่าจะสนใจ</h2>
+              <h2 className="font-ui text-h2 text-black mb-4">ฟอนต์ที่คุณน่าจะสนใจ</h2>
               <FontGrid fonts={related} />
             </div>
           )}

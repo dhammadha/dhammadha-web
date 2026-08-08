@@ -146,7 +146,7 @@ export default function AccountSettingsPage() {
 
             <div className="flex flex-col gap-4 mt-10">
               <div>
-                <h2 className="font-heading text-h2 text-black">เปลี่ยนรหัสผ่าน</h2>
+                <h2 className="font-ui text-h2 text-black">เปลี่ยนรหัสผ่าน</h2>
                 <p className="font-body text-body-sm text-grey-600 mt-0.5">อย่างน้อย 8 ตัวอักษร</p>
               </div>
 

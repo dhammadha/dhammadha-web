@@ -55,7 +55,7 @@ export default function AdminSubscriptionsPage() {
 
   return (
     <div className="p-6 max-w-[720px] flex flex-col gap-8">
-      <h1 className="font-heading text-h2 text-black">Subscription</h1>
+      <h1 className="font-ui text-h2 text-black">Subscription</h1>
 
       {/* Subscription settings */}
       <div className="bg-surface p-6">

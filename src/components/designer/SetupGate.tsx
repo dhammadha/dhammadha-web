@@ -86,7 +86,7 @@ export function QuoteSystemGate({ children }: { children: React.ReactNode }) {
       <div className="p-6 max-w-[560px]">
         <div className="bg-surface p-8 text-center">
           <div className="text-[32px] mb-3">📄</div>
-          <h1 className="font-heading text-h2 text-black mb-2">ยังไม่ได้เปิดใช้งานระบบใบเสนอราคา</h1>
+          <h1 className="font-ui text-h2 text-black mb-2">ยังไม่ได้เปิดใช้งานระบบใบเสนอราคา</h1>
           <p className="font-body text-body-sm text-grey-600 leading-[1.7] mb-6 max-w-[400px] mx-auto">
             ระบบใบเสนอราคาใช้สำหรับขายสิทธิให้ห้างร้าน องค์กร และบริษัท
             เปิดใช้งานได้ที่หน้าราคาและโปรโมชั่น
@@ -115,7 +115,7 @@ export function AddFontGate({ children }: { children: React.ReactNode }) {
       <div className="p-6 max-w-[560px]">
         <div className="bg-surface p-8 text-center">
           <div className="text-[32px] mb-3">🏪</div>
-          <h1 className="font-heading text-h2 text-black mb-2">ตั้ง Designer Slug ก่อนเพิ่มฟอนต์</h1>
+          <h1 className="font-ui text-h2 text-black mb-2">ตั้ง Designer Slug ก่อนเพิ่มฟอนต์</h1>
           <p className="font-body text-body-sm text-grey-600 leading-[1.7] mb-6 max-w-[400px] mx-auto">
             Slug คือที่อยู่หน้าร้านของคุณ (เช่น <span className="text-black font-ui text-ui">/designer/yourname</span>)
             และเป็นส่วนหนึ่งของลิงก์หน้าฟอนต์ทุกตัว จึงต้องตั้งก่อนจึงจะเพิ่มฟอนต์ได้

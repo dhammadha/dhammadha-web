@@ -187,7 +187,7 @@ export default function OwnRevenue() {
   return (
     <div className="p-6 max-w-[1200px]">
       <div className="mb-1">
-        <h1 className="font-heading text-h2 text-black">รายได้</h1>
+        <h1 className="font-ui text-h2 text-black">รายได้</h1>
         <p className="font-body text-body-sm text-grey-600 mt-0.5">สรุปยอดขายและรายได้รายเดือน</p>
         <p className="font-body text-body-sm text-grey-600 mt-0.5">
           จ่ายส่วนแบ่งทุก 3 เดือน (รายไตรมาส) — โอนในเดือนมกราคม เมษายน กรกฎาคม และตุลาคม
@@ -227,7 +227,7 @@ export default function OwnRevenue() {
                   {/* 🔴 ลูกทุกตัวต้องพลิกสีตามพ่อ ไม่งั้นตัวดำบนพื้นดำ — ไม่มี error ให้เห็น
                       ยอดค้างโอนเน้นส้มเฉพาะตอน "ไม่ได้เลือก" (ส้มบนดำ 6.02:1 ก็ได้ แต่จะไปแย่ง
                       ความหมายกับสถานะเลือก) · grey-600 บนดำได้ 1.9:1 จึงต้องเป็น grey-400 (9.23:1) */}
-                  <div className={`font-heading text-h2 leading-none mb-1 ${on ? "text-page" : b.accent ? "text-orange-text" : "text-black"}`}>{fmtBaht(b.value)}</div>
+                  <div className={`font-ui text-h2 leading-none mb-1 ${on ? "text-page" : b.accent ? "text-orange-text" : "text-black"}`}>{fmtBaht(b.value)}</div>
                   <div className={`font-body text-footnote ${on ? "text-grey-400" : "text-grey-600"}`}>{b.label}</div>
                 </button>
               );
@@ -263,7 +263,7 @@ function EmptyRow({ text = "ไม่มีข้อมูลในช่วง�
 function RetailDetail({ sales, fonts }: { sales: FontSale[]; fonts: Record<string, FontMeta> }) {
   return (
     <div className="bg-surface overflow-hidden">
-      <div className={`${RETAIL_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+      <div className={`${RETAIL_GRID} px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]`}>
         <div /><div>ฟอนต์</div><div>ราคา</div><div>จำนวนที่ขาย</div><div>ยอดรวมทั้งหมด</div><div>ส่วนแบ่ง</div>
       </div>
       {sales.length === 0 ? <EmptyRow /> : sales.map((s) => {
@@ -291,7 +291,7 @@ function RetailDetail({ sales, fonts }: { sales: FontSale[]; fonts: Record<strin
 function SubscriptionDetail({ fonts }: { fonts: { name: string | null; equal: number; stream: number; total: number }[] }) {
   return (
     <div className="bg-surface overflow-hidden">
-      <div className={`${SUB_GRID} px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+      <div className={`${SUB_GRID} px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]`}>
         <div>ฟอนต์</div><div>แบ่งเท่ากัน</div><div>ตามการใช้งาน</div><div>รายได้รวม</div>
       </div>
       {fonts.length === 0 ? <EmptyRow /> : fonts.map((f, i) => (
@@ -312,7 +312,7 @@ function PayoutHistory({ payouts }: { payouts: PayoutRow[] }) {
     new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" });
   return (
     <div className="bg-surface overflow-hidden">
-      <div className="grid grid-cols-[1fr_140px] gap-3 px-4 py-2.5 bg-page font-heading text-badge text-grey-600 tracking-[0.04em]">
+      <div className="grid grid-cols-[1fr_140px] gap-3 px-4 py-2.5 bg-page font-ui text-badge text-grey-600 tracking-[0.04em]">
         <div>วันที่โอนส่วนแบ่งรายได้</div><div>จำนวนเงิน</div>
       </div>
       {payouts.length === 0 ? <EmptyRow text="ยังไม่มีข้อมูล" /> : payouts.map((p) => (
@@ -358,7 +358,7 @@ function CombinedDetail({
       {/* แผงที่กางออกมา = พื้นขาวเหมือนแถวหัวข้อ (เจ้าของสั่ง 8 ส.ค. 2569 — เดิม bg-page เทา) */}
       {retailOpen && (
         <div className="bg-surface">
-          <div className={`${COMBINED_RETAIL_GRID} px-4 py-2 font-heading text-badge text-grey-600 tracking-[0.04em]`}>
+          <div className={`${COMBINED_RETAIL_GRID} px-4 py-2 font-ui text-badge text-grey-600 tracking-[0.04em]`}>
             <div>ฟอนต์</div><div>ขายกี่ครั้ง</div><div>ยอดรวม</div><div>ส่วนแบ่ง</div>
           </div>
           {retailSales.length === 0 ? <EmptyRow /> : retailSales.map((s) => (
@@ -383,7 +383,7 @@ function CombinedDetail({
       {/* แผงที่กางออกมา = พื้นขาวเหมือนแถวหัวข้อ (เจ้าของสั่ง 8 ส.ค. 2569 — เดิม bg-page เทา) */}
       {subOpen && (
         <div className="bg-surface">
-          <div className="grid grid-cols-[2fr_1fr] gap-3 px-4 py-2 font-heading text-badge text-grey-600 tracking-[0.04em]">
+          <div className="grid grid-cols-[2fr_1fr] gap-3 px-4 py-2 font-ui text-badge text-grey-600 tracking-[0.04em]">
             <div>เดือน</div><div>ส่วนแบ่ง</div>
           </div>
           {subMonths.filter((m) => m.total > 0).length === 0 ? <EmptyRow /> : subMonths.filter((m) => m.total > 0).map((m) => (

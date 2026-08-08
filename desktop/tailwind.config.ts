@@ -44,13 +44,18 @@ const config: Config = {
       fontFamily: {
         // มิเรอร์จาก tailwind.config.ts ที่ราก repo (รีแบรนด์เฟส 2, 8 ส.ค. 2569)
         // เดิมเป็น Noto Sans Thai / Noto Sans Thai Looped — ยกเลิกทั้งคู่พร้อมฝั่งเว็บ
+        //
+        // `heading` = typedee ใช้ได้เฉพาะหัวข้อใหญ่ (text-hero/font-slug/h1) ซึ่ง **config นี้
+        // ไม่ได้คัดมา** เพราะแอปไม่มีหน้าที่มีหัวข้อขนาดนั้น → ในทางปฏิบัติ typedee จึงยังไม่ถูกใช้
+        // ที่นี่ ปล่อย key ไว้ให้ตรงกับฝั่งเว็บ (ไฟล์ woff2 bundle ไว้แล้วใน src/fonts)
+        // ทุกอย่างที่แอปใช้จริง — หัวข้อรอง ปุ่ม แท็บ ป้าย label — เป็น Plex Bold
         heading: ["typedee", "system-ui", "sans-serif"],
+        ui: ["IBM Plex Sans Thai Looped", "system-ui", "sans-serif"],
         body: ["IBM Plex Sans Thai Looped", "system-ui", "sans-serif"],
-        ui: ["typedee", "system-ui", "sans-serif"],
       },
 
       fontSize: {
-        // h2 เดิม 800 → 700 เพราะ typedee มีแค่ 700 กับ 900 (ตามฝั่งเว็บ)
+        // h2 เดิม 800 → 700 (Plex Bold) ตามฝั่งเว็บ
         h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "700" }],
         body: ["1rem", { fontWeight: "400" }],
         "body-sm": ["0.875rem", { fontWeight: "300" }],

@@ -46,37 +46,54 @@ git tag มีไว้ **rebuild ของเดิม** ไม่ใช่เ�
 
 | บทบาท | ฟอนต์ | ใช้กับ |
 |---|---|---|
-| **Heading** | **typedee** (Black 900) | หัวข้อทุกระดับ, ชื่อฟอนต์บนการ์ด, ราคา |
-| **Body** | **IBM Plex Sans Thai Looped** | เนื้อความ, คำอธิบาย, ป้ายกำกับ |
-| **UI** | **typedee** (Bold 700) | ปุ่ม, nav, control, input, ป้าย |
+| คลาส | ฟอนต์ | ใช้กับ |
+|---|---|---|
+| `font-heading` | **typedee** Black 900 | **หัวข้อใหญ่เท่านั้น** — `text-hero` / `text-font-slug` / `text-h1` |
+| `font-ui` | **IBM Plex Sans Thai Looped** Bold 700 | หัวข้อรอง (`text-h2` ลงมา) · ปุ่ม · nav · แท็บ · ป้าย · label ฟอร์ม · หัวตาราง · การ์ดฟอนต์ |
+| `font-body` | **IBM Plex Sans Thai Looped** 300/400 | เนื้อความ, คำอธิบาย, ป้ายกำกับ |
 
 รีแบรนด์เฟส 2 (8 ส.ค. 2569) — เดิมเป็น Noto Sans Thai + Noto Sans Thai Looped ทั้งคู่
 CSS var `--font-typedee` / `--font-plex-looped` ประกาศที่ `src/app/layout.tsx` แปะบน `<body>`
 
 - **typedee** — ฟอนต์ของเจ้าของเอง (Copyright Montonn Thanaroj) โหลดผ่าน `next/font/local`
   จาก `src/fonts/*.woff2` · ต้นฉบับ `.otf` อยู่ที่ `docs/design/typedee.com/font/typedee/`
+  สร้าง webfont ด้วย `scripts/build-typedee-webfont.py`
 - **IBM Plex Sans Thai Looped** — `next/font/google` subset `thai` + `latin`
 
-> **🔴 typedee ส่งขึ้นเว็บแค่ Bold 700 + Black 900 — ไม่ส่ง Regular** เป็นมาตรการกันฟอนต์หลุด
-> (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด) พร้อม `fsType = 4` (Preview & Print) และ license
-> string ใน name table nameID 13/14 · **ผลที่ตามมาซึ่งไม่มีอะไรเตือน: คลาส `font-heading`/
-> `font-ui` ที่ไปโผล่ที่น้ำหนัก 300/400 เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ** → ทุก call site
-> ต้องคู่กับ step ที่ให้ 700/900 หรือประกาศ `font-bold` เอง
+> **🔑 เส้นแบ่งระหว่างสองตระกูล (เจ้าของเคาะ 8 ส.ค. 2569 หลังเห็นของจริงบนจอ):**
+> typedee **บุคลิกจัดเกินไป**สำหรับข้อความที่อยู่รวมกันเป็นก้อน — การ์ดฟอนต์ · ป้าย · ปุ่ม ·
+> label ฟอร์ม · หัวตาราง จึงเป็น Plex Bold ทั้งหมด เหลือ typedee ไว้ที่ "หัวข้อจริง ๆ"
+> `font-heading` กับ `font-ui` **ต่างกันแค่ตระกูล ไม่ได้ต่างกันที่น้ำหนัก** น้ำหนักมากับ `text-*`
+
+> **🔴 typedee ส่งขึ้นเว็บแค่ Black 900 ตัวเดียว** — ไม่ส่ง Regular เป็นมาตรการกันฟอนต์หลุด
+> (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด) ส่วน Bold ถูกถอดออกตอนที่ typedee ถอยมาเหลือแค่
+> หัวข้อใหญ่ซึ่งเป็น 900 ทั้งหมด — **`next/font/local` preload ทุกไฟล์ใน `src` ไม่ว่าใครใช้จริง
+> หรือไม่** ปล่อยไว้ = เสีย 40KB ทุกครั้งที่เปิดหน้า (ไฟล์ยังอยู่ในโฟลเดอร์ เติมกลับได้)
+> พร้อม `fsType = 4` (Preview & Print) + license string ใน name table nameID 13/14
 >
 > **🔴 IBM Plex Sans Thai Looped ไม่มี variable font** (ต่างจาก Noto เดิมที่จงใจละ `weight` ได้)
 > ต้องประกาศ `weight: ["300","400","700"]` ตรง ๆ ไม่งั้น build ล้ม
 
-> **วัดจริงหลังเฟส 2:** ฟอนต์ที่ส่งขึ้นเว็บรวม **158KB (14 ไฟล์)** — typedee 80KB (2) +
-> IBM Plex 78KB (12 = 3 น้ำหนัก × thai/latin/latin-ext/cyrillic-ext) เทียบของเดิม Noto สองตระกูล
-> ~140KB · ที่เพิ่มมาจาก (1) typedee เป็น static สองน้ำหนักเต็ม 686 glyph (2) เพิ่ม subset `latin`
-> ตามที่เจ้าของเคาะ — เดิมละตินทั้งเว็บตกไปที่ฟอนต์ของเครื่อง คนละหน้าตากันทุกเครื่อง
-> **ไม่ subset typedee โดยตั้งใจ**: ขอบเขตใช้งานคือหัวข้อ+ปุ่ม+ป้ายทั้งเว็บ ต้องมีไทยครบอยู่ดี
+> **วัดจริงหลังเฟส 2:** ฟอนต์ที่ส่งขึ้นเว็บรวม **119KB (13 ไฟล์)** — typedee Black 40KB (1) +
+> IBM Plex 79KB (12 = 3 น้ำหนัก × thai/latin/latin-ext/cyrillic-ext) · **น้อยกว่าของเดิม
+> (Noto สองตระกูล ~140KB) ทั้งที่เพิ่ม subset `latin` เข้ามาใหม่**
+> **ไม่ subset typedee โดยตั้งใจ**: หัวข้อเป็นภาษาไทยทั้งเว็บ ต้องมี 87 ตัวครบอยู่ดี
 
 ### 2.2 น้ำหนัก
 
-- **Heading ใช้ 700 (Bold) กับ 900 (Black) เท่านั้น** — typedee ไม่มี 800
-  (ก่อนเฟส 2 เป็น 700/800 เพราะ Noto เป็น variable ให้ค่าไหนก็ได้)
+- **หัวข้อใหญ่ = Black 900 (typedee) · หัวข้อรองลงมา = Bold 700 (Plex)** — ไม่มี 800 อีกแล้ว
+  (ก่อนเฟส 2 เป็น 800 ทุกระดับ เพราะ Noto เป็น variable ให้ค่าไหนก็ได้)
 - **ลำดับความสำคัญมาจาก*ขนาด* ไม่ใช่น้ำหนัก** — ห้ามใช้ weight ไล่ชั้น
+
+### 2.2b vertical metrics ของ typedee (ปรับเอง ไม่ใช่ค่าจากไฟล์ต้นฉบับ)
+
+ต้นฉบับตั้ง typo asc/desc/gap = `750 / -250 / 200` ซึ่งเบราว์เซอร์ยุบเป็น ascent 850 · descent 350
+→ **จุดกึ่งกลางกล่องอยู่ 250 หน่วยเหนือเส้นฐาน แต่กึ่งกลางสายตาของตัวอักษรอยู่ที่ ~295 (ไทย) ถึง
+~343 (ละตินพิมพ์ใหญ่)** ตัวอักษรจึงลอยสูง เหลือที่ว่างด้านล่างกล่องเยอะกว่าด้านบน — เห็นชัดในป้าย/ปุ่ม
+
+`scripts/build-typedee-webfont.py` เขียนทับเป็น `920 / -280 / gap 0` (กึ่งกลาง = **320** = ค่ากลาง
+ระหว่างไทยกับละติน) โดย **คงผลรวม asc+desc = 1200 เท่าเดิม → ความสูงบรรทัดไม่เปลี่ยน**
+วัดจริงในเบราว์เซอร์ที่ 100px ด้วย `measureText`: ที่ว่างบน/ล่าง `32.4 / 28.6` (ก่อนแก้ต่างกัน 11%)
 
 ### 2.3 Type scale — ตรงจาก Figma Styles panel
 
@@ -91,22 +108,23 @@ moodboard เล็กน้อย ถ้าต้องแก้ ใส่ `lin
 | `hero` | typedee | **Black 900** | 60 | 0% | ข้อความ hero หน้าแรก |
 | `font-slug` | typedee | **Black 900** | 48 | 0% | ชื่อฟอนต์บนหน้ารายละเอียด |
 | `h1` | typedee | **Black 900** | 40 | 0% | หัวข้อหมวด |
-| `h2` | typedee | **Bold 700** | 24 | 0% | หัวข้อรอง |
+| `h2` | **Plex Looped** | **Bold 700** | 24 | 0% | หัวข้อรอง (การ์ด, section ย่อย) |
 | `body` | IBM Plex Sans Thai Looped | Regular 400 | 16 | 0% | เนื้อความ |
 | `body-sm` | IBM Plex Sans Thai Looped | Light 300 | 14 | 0% | ป้ายกำกับ, ลิงก์ footer, **ทุกช่องกรอกฟอร์ม** |
-| `ui` | typedee | Bold 700 | 16 | 0% | ปุ่ม, nav, control |
-| `fc-heading` | typedee | Bold 700 | 16 | 0% | ชื่อฟอนต์บนการ์ด |
+| `ui` | **Plex Looped** | Bold 700 | 16 | 0% | ปุ่ม, nav, control, label ฟอร์ม |
+| `fc-heading` | **Plex Looped** | Bold 700 | 16 | 0% | ชื่อฟอนต์บนการ์ด |
 
 **tracking = 0% ทุกตัว ห้ามใส่ letter-spacing เอง**
 
-**`h2` เป็น Bold ไม่ใช่ Black** (เจ้าของเคาะ 8 ส.ค. 2569) — โผล่ 77 จุดในตาราง/การ์ด/แดชบอร์ด
-ถ้าเป็น Black หน้าจอจะทึบ ส่วน hero/font-slug/h1 เป็น Black ให้ตรงกับน้ำหนักบนโลโก้
+**`h2` ลงมาเป็น Plex Bold ไม่ใช่ typedee** (เจ้าของเคาะ 8 ส.ค. 2569) — โผล่ 77 จุดในตาราง/
+การ์ด/แดชบอร์ด บุคลิก typedee จัดเกินไปเมื่ออยู่รวมกันเป็นก้อน · hero/font-slug/h1 เป็น
+typedee Black ให้ตรงกับน้ำหนักบนโลโก้
 
 ### 2.4 สไตล์เพิ่มนอกเหนือ Figma (เจ้าของอนุมัติ 2026-07-17)
 
 | ชื่อ | ฟอนต์ | น้ำหนัก | ขนาด | ใช้ที่ |
 |---|---|---|---|---|
-| `badge` | typedee | Bold 700 | 12 | ป้าย Sale / FREE / NEW / tag |
+| `badge` | **Plex Looped** | Bold 700 | 12 | ป้าย Sale / FREE / NEW / tag |
 | `footnote` | IBM Plex Sans Thai Looped | Light 300 | 12 | `© 2012–2026 …` ท้าย footer |
 | `fc-byline` | IBM Plex Sans Thai Looped | Light 300 | 10 | ชื่อดีไซน์เนอร์บนการ์ดฟอนต์ (ตัดคำว่า "โดย" ออกในรีแบรนด์เฟส 1) (ข้อยกเว้นพื้นล่าง §2.5) |
 
@@ -426,7 +444,7 @@ hover "ฟอนต์" (6 หมวดครบ ต้องตรง `CATEGORI
    ปุ่มไม่ render) ไม่ใช่เทียบพิกเซล (พิกเซลเลื่อนคือประเด็นของงานนี้)
 2. **Console:** `onlyErrors: true` ต้องว่าง — React key warning/hydration error คือโหมดพังจริงเวลา restyle `.map()`
 3. **Network:** query Supabase ต้องยิงและได้แถวกลับ — จับโหมด "401 = กริดว่างเปล่า" ; เช็คว่าโหลดฟอนต์
-   2 ตระกูล (typedee + IBM Plex Sans Thai Looped) รวม ~158KB
+   2 ตระกูล (typedee Black + IBM Plex Sans Thai Looped) รวม ~119KB
 4. **ตรวจระบบ:** ไม่มี horizontal scroll ที่ 375px · arbitrary value ลดลงไม่ใช่เพิ่ม
    (`grep -oE '\[[^]]+\]' <ไฟล์>`) · ไม่มี `text-[9-13px]` เหลือ · ไม่มี `rounded-*` นอกจาก `rounded-full` ·
    **`getComputedStyle` ต้องคืนชื่อฟอนต์จริง ไม่ใช่ `system-ui`** — Tailwind ไม่ error เมื่อ CSS var หาย
