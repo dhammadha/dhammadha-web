@@ -219,7 +219,7 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
             ) : font.price ? (
               <span className="font-ui text-h2 text-black">฿{font.price.toLocaleString()}</span>
             ) : (
-              <span className="font-ui text-h2 text-black">—</span>
+              <span className="font-ui fc-byline text-black">—</span>
             )}
           </div>
         </div>
