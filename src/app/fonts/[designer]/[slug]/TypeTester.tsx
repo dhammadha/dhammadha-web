@@ -271,7 +271,9 @@ export default function TypeTester({ font }: { font: Font }) {
           {/* Size slider — MyFonts style: เล็ก A ... ใหญ่ A · ราง+ปุ่มเหลี่ยม (.tester-range ใน globals.css)
               พื้นหลัง gradient ตั้งตามค่า value: ดำซ้ายจุดปุ่ม · เทาขวา */}
           <div className="flex items-center gap-2">
-            <span className="font-heading text-body-sm text-grey-600 leading-none">A</span>
+            {/* font-body ไม่ใช่ font-heading: ป้ายกำกับสไลเดอร์เป็นน้ำหนัก 300
+                ซึ่ง typedee ไม่ได้ส่งขึ้นเว็บ (มีแค่ 700/900) จะกลายเป็นตัวหนาเงียบ ๆ */}
+            <span className="font-body text-body-sm text-grey-600 leading-none">A</span>
             <input
               type="range"
               min={16}

@@ -48,7 +48,9 @@ const VARIANT: Record<Variant, string> = {
 // 10px ยังอยู่ในช่วงที่เจ้าของอนุมัติสำหรับป้ายคำสั้น (SALE/FREE/NEW เป็นตัวพิมพ์ใหญ่ อ่านออก · §2.4)
 const SIZE: Record<Size, string> = {
   md: "text-badge px-2 py-1",
-  sm: "text-[10px] px-1.5 py-0.5",
+  // font-bold: ขนาดนี้เป็น text-[[10px]] ตรง ๆ ไม่มีน้ำหนักมากับ step อย่าง text-badge
+  // → ต้องประกาศ 700 เอง ไม่งั้นตกไปน้ำหนัก 400 ซึ่ง typedee ไม่ได้ส่งขึ้นเว็บ
+  sm: "text-[10px] font-bold px-1.5 py-0.5",
 };
 
 export default function Badge({

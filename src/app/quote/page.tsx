@@ -518,7 +518,9 @@ function QuoteForm() {
                               <div className={`font-body text-body-sm mt-0.5 ${on ? "text-grey-400" : "text-grey-600"}`}>{tier.desc}</div>
                             )}
                           </div>
-                          <div className={`font-heading text-body ml-3 shrink-0 ${on ? "text-page" : "text-black"}`}>
+                          {/* font-bold: text-body มากับน้ำหนัก 400 ซึ่ง typedee ไม่ได้ส่งขึ้นเว็บ
+                              (มีแค่ 700/900) ราคาตั้งใจให้หนาอยู่แล้ว จึงประกาศให้ชัด */}
+                          <div className={`font-heading text-body font-bold ml-3 shrink-0 ${on ? "text-page" : "text-black"}`}>
                             ฿{tier.price.toLocaleString()}
                           </div>
                         </div>

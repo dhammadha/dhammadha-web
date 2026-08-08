@@ -46,21 +46,36 @@ git tag มีไว้ **rebuild ของเดิม** ไม่ใช่เ�
 
 | บทบาท | ฟอนต์ | ใช้กับ |
 |---|---|---|
-| **Heading** | Noto Sans Thai | หัวข้อทุกระดับ, ชื่อฟอนต์บนการ์ด, ราคา |
-| **Body** | **Noto Sans Thai Looped** | เนื้อความ, คำอธิบาย, ป้ายกำกับ |
-| **UI** | Noto Sans Thai | ปุ่ม, nav, control, input |
+| **Heading** | **typedee** (Black 900) | หัวข้อทุกระดับ, ชื่อฟอนต์บนการ์ด, ราคา |
+| **Body** | **IBM Plex Sans Thai Looped** | เนื้อความ, คำอธิบาย, ป้ายกำกับ |
+| **UI** | **typedee** (Bold 700) | ปุ่ม, nav, control, input, ป้าย |
 
-โหลดผ่าน **variable font ทั้งคู่** · CSS var `--font-noto-thai` / `--font-noto-thai-looped` ·
-`Noto Sans Thai UI` ตัดทิ้ง (ไม่มีใน `next/font/google` allowlist) → UI text ใช้ Noto Sans Thai แทน
+รีแบรนด์เฟส 2 (8 ส.ค. 2569) — เดิมเป็น Noto Sans Thai + Noto Sans Thai Looped ทั้งคู่
+CSS var `--font-typedee` / `--font-plex-looped` ประกาศที่ `src/app/layout.tsx` แปะบน `<body>`
 
-> **วัดจริง:** variable font ของทั้งคู่รวมกัน 140KB (6 ไฟล์) เทียบตัวเดียว 71KB (3 ไฟล์) — **+68KB คือราคาจริง
-> ของการให้ body เป็น Looped** ไม่มีทางลดด้วยการ "ประกาศน้อยลง" เพราะ `next/font` resolve เป็น variable
-> เสมอไม่ว่าจะประกาศกี่ weight ถ้าจะลด: ตัด subset `latin`/`latin-ext` ของ Looped ทิ้งได้ (~41KB) แต่ต้อง
-> เช็คว่าไม่มีเนื้อความละตินปนอยู่ก่อน
+- **typedee** — ฟอนต์ของเจ้าของเอง (Copyright Montonn Thanaroj) โหลดผ่าน `next/font/local`
+  จาก `src/fonts/*.woff2` · ต้นฉบับ `.otf` อยู่ที่ `docs/design/typedee.com/font/typedee/`
+- **IBM Plex Sans Thai Looped** — `next/font/google` subset `thai` + `latin`
+
+> **🔴 typedee ส่งขึ้นเว็บแค่ Bold 700 + Black 900 — ไม่ส่ง Regular** เป็นมาตรการกันฟอนต์หลุด
+> (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด) พร้อม `fsType = 4` (Preview & Print) และ license
+> string ใน name table nameID 13/14 · **ผลที่ตามมาซึ่งไม่มีอะไรเตือน: คลาส `font-heading`/
+> `font-ui` ที่ไปโผล่ที่น้ำหนัก 300/400 เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ** → ทุก call site
+> ต้องคู่กับ step ที่ให้ 700/900 หรือประกาศ `font-bold` เอง
+>
+> **🔴 IBM Plex Sans Thai Looped ไม่มี variable font** (ต่างจาก Noto เดิมที่จงใจละ `weight` ได้)
+> ต้องประกาศ `weight: ["300","400","700"]` ตรง ๆ ไม่งั้น build ล้ม
+
+> **วัดจริงหลังเฟส 2:** ฟอนต์ที่ส่งขึ้นเว็บรวม **158KB (14 ไฟล์)** — typedee 80KB (2) +
+> IBM Plex 78KB (12 = 3 น้ำหนัก × thai/latin/latin-ext/cyrillic-ext) เทียบของเดิม Noto สองตระกูล
+> ~140KB · ที่เพิ่มมาจาก (1) typedee เป็น static สองน้ำหนักเต็ม 686 glyph (2) เพิ่ม subset `latin`
+> ตามที่เจ้าของเคาะ — เดิมละตินทั้งเว็บตกไปที่ฟอนต์ของเครื่อง คนละหน้าตากันทุกเครื่อง
+> **ไม่ subset typedee โดยตั้งใจ**: ขอบเขตใช้งานคือหัวข้อ+ปุ่ม+ป้ายทั้งเว็บ ต้องมีไทยครบอยู่ดี
 
 ### 2.2 น้ำหนัก
 
-- **Heading ใช้ 700 (bold) กับ 800 (extra bold) เท่านั้น**
+- **Heading ใช้ 700 (Bold) กับ 900 (Black) เท่านั้น** — typedee ไม่มี 800
+  (ก่อนเฟส 2 เป็น 700/800 เพราะ Noto เป็น variable ให้ค่าไหนก็ได้)
 - **ลำดับความสำคัญมาจาก*ขนาด* ไม่ใช่น้ำหนัก** — ห้ามใช้ weight ไล่ชั้น
 
 ### 2.3 Type scale — ตรงจาก Figma Styles panel
@@ -73,24 +88,27 @@ moodboard เล็กน้อย ถ้าต้องแก้ ใส่ `lin
 
 | ชื่อ | ฟอนต์ | น้ำหนัก | ขนาด | tracking | ใช้ที่ |
 |---|---|---|---|---|---|
-| `hero` | Noto Sans Thai | ExtraBold 800 | 60 | 0% | ข้อความ hero หน้าแรก |
-| `font-slug` | Noto Sans Thai | ExtraBold 800 | 48 | 0% | ชื่อฟอนต์บนหน้ารายละเอียด |
-| `h1` | Noto Sans Thai | ExtraBold 800 | 40 | 0% | หัวข้อหมวด |
-| `h2` | Noto Sans Thai | ExtraBold 800 | 24 | 0% | หัวข้อรอง |
-| `body` | Noto Looped Thai | Regular 400 | 16 | 0% | เนื้อความ |
-| `body-sm` | Noto Looped Thai | Light 300 | 14 | 0% | ป้ายกำกับ, ลิงก์ footer, **ทุกช่องกรอกฟอร์ม** |
-| `ui` | Noto Sans Thai | Bold 700 | 16 | 0% | ปุ่ม, nav, control |
-| `fc-heading` | Noto Sans Thai | Bold 700 | 16 | 0% | ชื่อฟอนต์บนการ์ด |
+| `hero` | typedee | **Black 900** | 60 | 0% | ข้อความ hero หน้าแรก |
+| `font-slug` | typedee | **Black 900** | 48 | 0% | ชื่อฟอนต์บนหน้ารายละเอียด |
+| `h1` | typedee | **Black 900** | 40 | 0% | หัวข้อหมวด |
+| `h2` | typedee | **Bold 700** | 24 | 0% | หัวข้อรอง |
+| `body` | IBM Plex Sans Thai Looped | Regular 400 | 16 | 0% | เนื้อความ |
+| `body-sm` | IBM Plex Sans Thai Looped | Light 300 | 14 | 0% | ป้ายกำกับ, ลิงก์ footer, **ทุกช่องกรอกฟอร์ม** |
+| `ui` | typedee | Bold 700 | 16 | 0% | ปุ่ม, nav, control |
+| `fc-heading` | typedee | Bold 700 | 16 | 0% | ชื่อฟอนต์บนการ์ด |
 
-**หัวข้อทุกระดับ ExtraBold 800 เท่ากันหมด — tracking = 0% ทุกตัว ห้ามใส่ letter-spacing เอง**
+**tracking = 0% ทุกตัว ห้ามใส่ letter-spacing เอง**
+
+**`h2` เป็น Bold ไม่ใช่ Black** (เจ้าของเคาะ 8 ส.ค. 2569) — โผล่ 77 จุดในตาราง/การ์ด/แดชบอร์ด
+ถ้าเป็น Black หน้าจอจะทึบ ส่วน hero/font-slug/h1 เป็น Black ให้ตรงกับน้ำหนักบนโลโก้
 
 ### 2.4 สไตล์เพิ่มนอกเหนือ Figma (เจ้าของอนุมัติ 2026-07-17)
 
 | ชื่อ | ฟอนต์ | น้ำหนัก | ขนาด | ใช้ที่ |
 |---|---|---|---|---|
-| `badge` | Noto Sans Thai | Bold 700 | 12 | ป้าย Sale / FREE / NEW / tag |
-| `footnote` | Noto Looped Thai | Light 300 | 12 | `© 2012–2026 …` ท้าย footer |
-| `fc-byline` | Noto Looped Thai | Light 300 | 10 | ชื่อดีไซน์เนอร์บนการ์ดฟอนต์ (ตัดคำว่า "โดย" ออกในรีแบรนด์เฟส 1) (ข้อยกเว้นพื้นล่าง §2.5) |
+| `badge` | typedee | Bold 700 | 12 | ป้าย Sale / FREE / NEW / tag |
+| `footnote` | IBM Plex Sans Thai Looped | Light 300 | 12 | `© 2012–2026 …` ท้าย footer |
+| `fc-byline` | IBM Plex Sans Thai Looped | Light 300 | 10 | ชื่อดีไซน์เนอร์บนการ์ดฟอนต์ (ตัดคำว่า "โดย" ออกในรีแบรนด์เฟส 1) (ข้อยกเว้นพื้นล่าง §2.5) |
 
 ### 2.5 พื้นล่างของขนาด
 
@@ -408,10 +426,11 @@ hover "ฟอนต์" (6 หมวดครบ ต้องตรง `CATEGORI
    ปุ่มไม่ render) ไม่ใช่เทียบพิกเซล (พิกเซลเลื่อนคือประเด็นของงานนี้)
 2. **Console:** `onlyErrors: true` ต้องว่าง — React key warning/hydration error คือโหมดพังจริงเวลา restyle `.map()`
 3. **Network:** query Supabase ต้องยิงและได้แถวกลับ — จับโหมด "401 = กริดว่างเปล่า" ; เช็คว่าโหลดฟอนต์
-   2 ตระกูล (Noto Sans Thai + Looped) รวม ~140KB
+   2 ตระกูล (typedee + IBM Plex Sans Thai Looped) รวม ~158KB
 4. **ตรวจระบบ:** ไม่มี horizontal scroll ที่ 375px · arbitrary value ลดลงไม่ใช่เพิ่ม
    (`grep -oE '\[[^]]+\]' <ไฟล์>`) · ไม่มี `text-[9-13px]` เหลือ · ไม่มี `rounded-*` นอกจาก `rounded-full` ·
-   `getComputedStyle` เนื้อความ = Looped (admin ยังเป็น Noto Sans Thai) · `focus-visible` มองเห็นได้ทุก element ที่กดได้
+   **`getComputedStyle` ต้องคืนชื่อฟอนต์จริง ไม่ใช่ `system-ui`** — Tailwind ไม่ error เมื่อ CSS var หาย
+   คลาสที่ตกหล่นจะกลายเป็น no-op เงียบ ๆ แล้วหน้าเว็บ "ดูเกือบถูก" · `focus-visible` มองเห็นได้ทุก element ที่กดได้
 5. **Interaction:** ทดสอบทุก breakpoint หลังแก้ · ตรวจราคาครบทั้ง 5 กิ่งด้วยฟอนต์จริงในแต่ละสถานะ ·
    login/logout ทั้งสองสถานะ
 6. **ไม่ตรวจ dark** — ไม่มีอยู่

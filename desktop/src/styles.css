@@ -1,11 +1,27 @@
 /* ฟอนต์ bundle มากับแอป — โหลดจาก Google Fonts ไม่ได้เพราะ CSP เป็น `default-src 'self'`
-   น้ำหนักที่ import = เท่าที่ DESIGN.md ใช้จริง (300/400/700/800) ไม่ยกมาทั้ง variable range */
-@import "@fontsource/noto-sans-thai/300.css";
-@import "@fontsource/noto-sans-thai/400.css";
-@import "@fontsource/noto-sans-thai/700.css";
-@import "@fontsource/noto-sans-thai/800.css";
-@import "@fontsource/noto-sans-thai-looped/300.css";
-@import "@fontsource/noto-sans-thai-looped/400.css";
+   น้ำหนักที่ import = เท่าที่ DESIGN.md ใช้จริง ไม่ยกมาทั้งตระกูล
+   รีแบรนด์เฟส 2 (8 ส.ค. 2569) — เลิกใช้ Noto ทั้งคู่ ตามฝั่งเว็บ */
+@import "@fontsource/ibm-plex-sans-thai-looped/300.css";
+@import "@fontsource/ibm-plex-sans-thai-looped/400.css";
+@import "@fontsource/ibm-plex-sans-thai-looped/700.css";
+
+/* typedee ไม่มีบน npm (ฟอนต์ของเจ้าของเอง) — ไฟล์ .woff2 คัดลอกมาจาก /src/fonts ของเว็บ
+   ⚠️ ส่งแค่ Bold 700 + Black 900 ไม่ส่ง Regular เหมือนฝั่งเว็บ (มาตรการกันฟอนต์หลุด)
+      จุดไหนขอ typedee ที่น้ำหนัก 300/400 เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ */
+@font-face {
+  font-family: "typedee";
+  src: url("./fonts/typedee-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "typedee";
+  src: url("./fonts/typedee-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;

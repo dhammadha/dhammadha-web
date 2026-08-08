@@ -90,13 +90,19 @@ const config: Config = {
       },
 
       fontFamily: {
-        // DESIGN.md §2.1 — Heading ใช้ 700/800 เท่านั้น ลำดับความสำคัญมาจากขนาด ไม่ใช่น้ำหนัก
-        heading: ["var(--font-noto-thai)", "system-ui", "sans-serif"],
-        body: ["var(--font-noto-thai-looped)", "system-ui", "sans-serif"],
-        ui: ["var(--font-noto-thai)", "system-ui", "sans-serif"],
+        // DESIGN.md §2.1 — รีแบรนด์เฟส 2: typedee (หัวข้อ/ปุ่ม/ป้าย) + IBM Plex Sans Thai Looped (เนื้อความ)
+        // ตัวแปรทั้งสองประกาศที่ src/app/layout.tsx แล้วแปะบน <body>
+        //
+        // ⚠️ typedee มีแค่ 700 กับ 900 บนเว็บ (ไม่ส่ง Regular เป็นมาตรการกันฟอนต์หลุด)
+        //    → คลาส font-heading/font-ui ต้องคู่กับ text-* ที่ให้น้ำหนัก 700 หรือ 900 เสมอ
+        //    ถ้าไปโผล่ที่ 300/400 เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ ไม่มีอะไรเตือน
+        // ⚠️ Tailwind ไม่ error เมื่อ CSS variable หาย — ถ้า --font-typedee หลุดจาก <body>
+        //    คลาสจะตกไป system-ui แล้วหน้าเว็บ "ดูเกือบถูก" ตรวจด้วย getComputedStyle เท่านั้น
+        heading: ["var(--font-typedee)", "system-ui", "sans-serif"],
+        body: ["var(--font-plex-looped)", "system-ui", "sans-serif"],
+        ui: ["var(--font-typedee)", "system-ui", "sans-serif"],
 
-        // @deprecated — config ตาย ไม่มีใครใช้เลยตั้งแต่แรก ปล่อยไว้ ไม่ต้องลบ
-        thai: ["var(--font-noto-thai)", "system-ui", "sans-serif"],
+        // เดิมมี key `thai` เป็น config ตาย (0 call site ตั้งแต่แรก) — ลบทิ้งตอนรีแบรนด์เฟส 2
       },
 
       // ─────────────────────────────────────────────────────────────
@@ -121,26 +127,30 @@ const config: Config = {
       //   h2        375→20  768→22  1280→24
       // ─────────────────────────────────────────────────────────────
       fontSize: {
-        // หัวข้อ = ExtraBold 800 ทุกระดับ ลำดับความสำคัญมาจาก "ขนาด" ล้วน
+        // หัวข้อ: ลำดับความสำคัญมาจาก "ขนาด" ล้วน
+        // รีแบรนด์เฟส 2 — เดิมเป็น ExtraBold 800 ทุกระดับ แต่ typedee ไม่มี 800 (มี 700 กับ 900)
+        //   → hero/font-slug/h1 = Black 900 · h2 = Bold 700 (เจ้าของเคาะ 8 ส.ค. 2569)
+        //   h2 ไม่เป็น Black เพราะโผล่ 77 จุดในตาราง/การ์ด/แดชบอร์ด ซึ่งหนาเกินจนหน้าจอทึบ
+        // ⚠️ ห้ามใส่น้ำหนักอื่นให้คลาสที่ใช้ font-heading/font-ui — typedee มีแค่ 700/900
         // hero = 60 ตาม moodboard/style/text_hero (update).png (เดิม 96)
         // lineHeight 1.15: hero เป็นหัวข้อหลายบรรทัด — 1.5 (สืบทอดจาก preflight) หลวมเกิน
         //   เจ้าของสั่งให้กระชับตามรูป Figma (2026-07-18) · unitless → scale ตาม clamp เอง
         //   บรรทัดแรก "ฟอนต์ไทย" ไม่มีสระล่าง/หาง → กระชับ 1.15 ไม่ชนสระบนของบรรทัดถัดไป
-        hero: ["clamp(2rem, 3.09vw + 1.28rem, 3.75rem)", { fontWeight: "800", lineHeight: "1.15" }],
-        "font-slug": ["clamp(1.75rem, 2.21vw + 1.23rem, 3rem)", { fontWeight: "800" }],
-        h1: ["clamp(1.5rem, 1.77vw + 1.08rem, 2.5rem)", { fontWeight: "800" }],
-        h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "800" }],
+        hero: ["clamp(2rem, 3.09vw + 1.28rem, 3.75rem)", { fontWeight: "900", lineHeight: "1.15" }],
+        "font-slug": ["clamp(1.75rem, 2.21vw + 1.23rem, 3rem)", { fontWeight: "900" }],
+        h1: ["clamp(1.5rem, 1.77vw + 1.08rem, 2.5rem)", { fontWeight: "900" }],
+        h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "700" }],
 
-        body: ["1rem", { fontWeight: "400" }], // 16 · Looped Regular — เนื้อความ
-        "body-sm": ["0.875rem", { fontWeight: "300" }], // 14 · Looped Light — ป้ายกำกับ
-        ui: ["1rem", { fontWeight: "700" }], // 16 · Sans Bold — ปุ่ม nav control
-        "fc-heading": ["1rem", { fontWeight: "700" }], // 16 · Sans Bold — ชื่อฟอนต์บนการ์ด
+        body: ["1rem", { fontWeight: "400" }], // 16 · Plex Looped Regular — เนื้อความ
+        "body-sm": ["0.875rem", { fontWeight: "300" }], // 14 · Plex Looped Light — ป้ายกำกับ
+        ui: ["1rem", { fontWeight: "700" }], // 16 · typedee Bold — ปุ่ม nav control
+        "fc-heading": ["1rem", { fontWeight: "700" }], // 16 · typedee Bold — ชื่อฟอนต์บนการ์ด
 
         // นอกเหนือจาก Figma — เพิ่มตามที่เจ้าของสั่ง (DESIGN.md §2.6)
-        badge: ["0.75rem", { fontWeight: "700" }], // 12 · Sans Bold — ป้าย Sale/FREE/NEW/tag
-        footnote: ["0.75rem", { fontWeight: "300" }], // 12 · Looped Light — © ท้าย footer
-        "logo-sub": ["0.625rem", { fontWeight: "400" }], // 10 · Sans Regular — "STUDIO" ใต้ DHAMMADHA
-        "fc-byline": ["0.75rem", { fontWeight: "300" }], // 12 · Looped Light — บรรทัดชื่อดีไซน์เนอร์บนการ์ด (เจ้าของ 2026-07-20 เดิม body-sm 14)
+        badge: ["0.75rem", { fontWeight: "700" }], // 12 · typedee Bold — ป้าย Sale/FREE/NEW/tag
+        footnote: ["0.75rem", { fontWeight: "300" }], // 12 · Plex Looped Light — © ท้าย footer
+        "logo-sub": ["0.625rem", { fontWeight: "400" }], // 10 · Plex Looped Regular — บรรทัดรองใต้ wordmark
+        "fc-byline": ["0.75rem", { fontWeight: "300" }], // 12 · Plex Looped Light — บรรทัดชื่อดีไซน์เนอร์บนการ์ด (เจ้าของ 2026-07-20 เดิม body-sm 14)
       },
 
       // ─────────────────────────────────────────────────────────────

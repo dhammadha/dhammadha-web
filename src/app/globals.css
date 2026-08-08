@@ -39,7 +39,12 @@ body {
      ⚠️ ค่านี้ต้องเท่ากับ `page` ใน tailwind.config.ts เป๊ะ ๆ ไม่งั้นแถบ sticky
      ที่ใช้ bg-page จะเห็นเป็นรอยต่อตอนเลื่อน (FontDetail.tsx) */
   background: #F0F0F0;
-  font-family: var(--font-noto-thai), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* ฟอนต์ปริยาย = เนื้อความ (IBM Plex Sans Thai Looped) — รีแบรนด์เฟส 2
+     กลับด้านจากคำเตือนเดิมที่ห้ามตั้ง body เป็น Looped: ตอนนั้น Looped เป็นฟอนต์รอง
+     ตอนนี้มันคือฟอนต์เนื้อความของแบรนด์ ข้อความที่ไม่ประกาศคลาสจึงควรได้ตัวนี้
+     ⚠️ ห้ามตั้งเป็น var(--font-typedee) — typedee ส่งขึ้นเว็บแค่ 700/900 ไม่มี Regular
+        ทุกย่อหน้าที่ไม่ประกาศน้ำหนักจะกลายเป็นตัวหนาทั้งเว็บ */
+  font-family: var(--font-plex-looped), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* Type tester — สไลเดอร์ขนาดตัวอักษร: ราง + ปุ่มเหลี่ยม (docs/design/DESIGN.md §15.10)

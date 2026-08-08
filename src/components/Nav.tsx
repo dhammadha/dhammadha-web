@@ -255,7 +255,7 @@ export default function Nav() {
               {cartReady && cartCount > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 bg-orange text-black font-heading text-[10px] leading-[16px] text-center",
+                    "absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 bg-orange text-black font-heading text-[10px] font-bold leading-[16px] text-center",
                     cartAnimating && "cart-badge-pop"
                   )}
                 >
@@ -500,7 +500,7 @@ export default function Nav() {
               {cartReady && cartCount > 0 && (
                 <span
                   className={cn(
-                    "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-orange text-black font-heading text-[10px] leading-[15px] text-center",
+                    "absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-1 bg-orange text-black font-heading text-[10px] font-bold leading-[15px] text-center",
                     cartAnimating && "cart-badge-pop"
                   )}
                 >
@@ -568,7 +568,7 @@ export default function Nav() {
       {/* เมนูมือถือ */}
       {menuOpen && (
         <div className="absolute top-full left-0 right-0 bg-black shadow-md flex flex-col md:hidden">
-          <Link href="/" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/" className="px-4 py-3.5 font-ui text-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             หน้าแรก
           </Link>
           {CATEGORY_LINKS.map((c) => (
@@ -576,7 +576,7 @@ export default function Nav() {
               key={c.value}
               href={categoryHref(c.value)}
               className={cn(
-                "px-4 py-3.5 font-ui no-underline transition-colors duration-150 ease-base",
+                "px-4 py-3.5 font-ui text-ui no-underline transition-colors duration-150 ease-base",
                 "hover:bg-orange hover:text-black",
                 c.value === "all" ? "text-page" : "text-grey-400 pl-8"
               )}
@@ -585,28 +585,28 @@ export default function Nav() {
               {c.value === "all" ? "ฟอนต์ทั้งหมด" : c.label}
             </Link>
           ))}
-          <Link href="/agreement/" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/agreement/" className="px-4 py-3.5 font-ui text-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             สัญญาอนุญาต
           </Link>
-          <Link href="/subscribe/" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+          <Link href="/subscribe/" className="px-4 py-3.5 font-ui text-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
             สมัครสมาชิกรายเดือน
           </Link>
 
           {/* บัญชี — มือถือ */}
           {authLoading ? null : user ? (
             <>
-              <Link href="/account" className="px-4 py-3.5 font-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+              <Link href="/account" className="px-4 py-3.5 font-ui text-ui text-page no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
                 เข้าหน้าโปรไฟล์
               </Link>
               <button
                 onClick={() => { signOut(); setMenuOpen(false); router.push("/"); }}
-                className="w-full text-left px-4 py-3.5 font-ui text-danger bg-transparent border-none cursor-pointer hover:bg-danger hover:text-white transition-colors"
+                className="w-full text-left px-4 py-3.5 font-ui text-ui text-danger bg-transparent border-none cursor-pointer hover:bg-danger hover:text-white transition-colors"
               >
                 ออกจากระบบ
               </button>
             </>
           ) : (
-            <Link href="/auth/login" className="px-4 py-3.5 font-ui text-orange-light no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
+            <Link href="/auth/login" className="px-4 py-3.5 font-ui text-ui text-orange-light no-underline hover:bg-orange hover:text-black transition-colors" onClick={() => setMenuOpen(false)}>
               เข้าสู่ระบบ
             </Link>
           )}
@@ -634,7 +634,7 @@ export default function Nav() {
               <div
                 key={f.slug}
                 onMouseDown={() => { goToFont(f); setMenuOpen(false); }}
-                className="px-2 py-2.5 font-ui text-page cursor-pointer hover:text-orange-light transition-colors"
+                className="px-2 py-2.5 font-ui text-ui text-page cursor-pointer hover:text-orange-light transition-colors"
               >
                 {f.name}
                 {f.name_th && <span className="font-body text-body-sm text-grey-400"> — {f.name_th}</span>}

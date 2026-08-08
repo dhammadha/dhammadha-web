@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Noto_Sans_Thai, Noto_Sans_Thai_Looped } from "next/font/google";
+import { IBM_Plex_Sans_Thai_Looped } from "next/font/google";
+import localFont from "next/font/local";
 import { AuthProvider } from "@/context/AuthContext";
 import { FavouritesProvider } from "@/context/FavouritesContext";
 import { CartProvider } from "@/context/CartContext";
@@ -8,30 +9,40 @@ import { NAME as BRAND_NAME, FAVICON_SRC } from "@/lib/brand";
 import "./globals.css";
 
 // ระบบดีไซน์: docs/design/DESIGN.md §2.1
+// รีแบรนด์เฟส 2 (8 ส.ค. 2569) — เลิกใช้ Noto Sans Thai / Noto Sans Thai Looped ทั้งคู่
 //
-// ละ weight = ประกาศเจตนาว่าใช้ variable font ตรง ๆ
-// (เดิมประกาศ 9 static weights ไว้ แต่ next/font resolve ไปที่ variable font ให้อยู่แล้ว
-//  → output เท่าเดิมเป๊ะ 70KB/3 subset ไม่ได้ประหยัดอะไรเพิ่ม แค่โค้ดตรงกับความจริง
-//  วัดแล้วยืนยัน: build ทั้งสองแบบได้ไฟล์ 26/15/29 KB เหมือนกัน)
-//
-// subsets: ["thai"] คงเดิม ตัวอักษรละตินยัง fallback ไป system font เหมือนที่เป็นอยู่
-// การเพิ่ม "latin" จะเปลี่ยนหน้าตาตัวละตินทั้งเว็บรวม admin = นอกขอบเขตรอบนี้
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ["thai"],
+// เนื้อความ — IBM Plex Sans Thai Looped
+// ⚠️ ตระกูลนี้ "ไม่มี" variable font บน Google Fonts (มีแต่ static 100–700)
+//    ต่างจาก Noto ของเดิมที่จงใจละ `weight` ไว้เพราะ resolve ไป variable ให้เอง
+//    → ที่นี่ต้องประกาศ weight เป็นรายตัว ไม่งั้น build ล้มทันที
+//    300 = text-body-sm/footnote/fc-byline · 400 = text-body · 700 = font-bold
+// subsets: เพิ่ม "latin" ตามที่เจ้าของเคาะ — เดิมมีแต่ "thai" ทำให้ตัวเลข/ราคา/อีเมล/
+//    ชื่อฟอนต์อังกฤษตกไปที่ฟอนต์ของเครื่อง (San Francisco/Segoe UI) คนละหน้าตากันทุกเครื่อง
+const plexThaiLooped = IBM_Plex_Sans_Thai_Looped({
+  subsets: ["thai", "latin"],
+  weight: ["300", "400", "700"],
   display: "swap",
-  variable: "--font-noto-thai",
+  variable: "--font-plex-looped",
 });
 
-// Body — Noto Sans Thai Looped (หัวกลม อ่านสบายกว่าสำหรับเนื้อความ)
-// ยังไม่ถูกใช้จนกว่าจะถึง Phase 4+ ที่ component เริ่ม opt-in ผ่าน class `font-body`
-// ⚠️ ห้ามสลับ body { font-family } ใน globals.css เป็นตัวนี้ — admin จะเปลี่ยนฟอนต์ตามทั้งหมด
+// หัวข้อ/ปุ่ม/ป้าย — typedee (ฟอนต์ของเจ้าของเอง · Copyright Montonn Thanaroj)
 //
-// ราคาที่จ่าย: +70KB (woff2, cache ได้, display:swap) — ตระกูลที่สองเพิ่มเท่าตัวจาก 71 → 140KB
-// ไม่มีส่วนลดจากการเปลี่ยนไป variable เพราะของเดิมก็เป็น variable อยู่แล้ว (ดูข้างบน)
-const notoSansThaiLooped = Noto_Sans_Thai_Looped({
-  subsets: ["thai"],
+// ⚠️ ส่งขึ้นเว็บแค่ Bold 700 + Black 900 "ไม่ส่ง Regular" เป็นมาตรการกันฟอนต์หลุด
+//    (Regular คือน้ำหนักที่ขโมยไปใช้คุ้มที่สุด) → ทุกจุดที่ขอ typedee ที่น้ำหนัก 300/400
+//    เบราว์เซอร์จะเลือก 700 ให้เงียบ ๆ ไม่มี error — type scale จึงต้องไม่ขอน้ำหนักอื่น
+//    ดู tailwind.config.ts หัวข้อ TYPE SCALE
+//
+// ⚠️ ไฟล์ต้นฉบับ .otf ห้ามอยู่ใน public/ (เปิดโหลดตรงทาง URL ได้) — เก็บไว้ที่
+//    docs/design/typedee.com/font/typedee/ ส่วนที่ส่งขึ้นเว็บคือ .woff2 ใน src/fonts/
+//    ซึ่ง next/font/local จะ emit เป็น /_next/static/media/<hash>.woff2 ให้เอง
+//    แปลงด้วย fontTools: fsType=4 (Preview & Print) + license string ใน name nameID 13/14
+const typedee = localFont({
+  src: [
+    { path: "../fonts/typedee-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../fonts/typedee-Black.woff2", weight: "900", style: "normal" },
+  ],
   display: "swap",
-  variable: "--font-noto-thai-looped",
+  variable: "--font-typedee",
 });
 
 export const metadata: Metadata = {
@@ -54,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           ไม่ใช่ลอยขึ้นมากลางจอ · คู่กับ `mt-auto` ที่ <footer> ใน Footer.tsx
           min-h-screen ทำให้ body สูงอย่างน้อยเต็มจอ แต่ยังยืดตามเนื้อหาได้เมื่อเนื้อยาว
           → ไม่มีการบีบ flex item เพราะ container ไม่เคยถูกจำกัดความสูง */}
-      <body className={`${notoSansThai.variable} ${notoSansThaiLooped.variable} min-h-screen flex flex-col`}>
+      <body className={`${typedee.variable} ${plexThaiLooped.variable} min-h-screen flex flex-col`}>
         <ScrollReset />
         <AuthProvider>
           <FavouritesProvider>

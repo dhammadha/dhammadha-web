@@ -42,13 +42,16 @@ const config: Config = {
       },
 
       fontFamily: {
-        heading: ["Noto Sans Thai", "system-ui", "sans-serif"],
-        body: ["Noto Sans Thai Looped", "system-ui", "sans-serif"],
-        ui: ["Noto Sans Thai", "system-ui", "sans-serif"],
+        // มิเรอร์จาก tailwind.config.ts ที่ราก repo (รีแบรนด์เฟส 2, 8 ส.ค. 2569)
+        // เดิมเป็น Noto Sans Thai / Noto Sans Thai Looped — ยกเลิกทั้งคู่พร้อมฝั่งเว็บ
+        heading: ["typedee", "system-ui", "sans-serif"],
+        body: ["IBM Plex Sans Thai Looped", "system-ui", "sans-serif"],
+        ui: ["typedee", "system-ui", "sans-serif"],
       },
 
       fontSize: {
-        h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "800" }],
+        // h2 เดิม 800 → 700 เพราะ typedee มีแค่ 700 กับ 900 (ตามฝั่งเว็บ)
+        h2: ["clamp(1.25rem, 0.44vw + 1.15rem, 1.5rem)", { fontWeight: "700" }],
         body: ["1rem", { fontWeight: "400" }],
         "body-sm": ["0.875rem", { fontWeight: "300" }],
         ui: ["1rem", { fontWeight: "700" }],
