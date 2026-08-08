@@ -198,7 +198,9 @@ export default function SubscribePage() {
                 ) : (
                   <div className="max-w-[420px] mx-auto mb-3">
                     <p className="font-body text-body-sm text-grey-600 mb-2.5">ลงทะเบียนรับแจ้งเตือนเมื่อเปิดให้บริการ</p>
-                    <WaitlistForm />
+                    {/* หน้านี้พื้นเป็น `page` → ช่องกรอกต้องเป็น `surface` (ตรงข้ามกับ
+                        การ์ดในหน้าแรกซึ่งเป็น surface อยู่แล้ว) */}
+                    <WaitlistForm on="page" />
                   </div>
                 )}
 

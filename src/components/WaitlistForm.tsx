@@ -7,7 +7,15 @@ import { supabase } from "@/lib/supabase";
 
 // ฟอร์มลงทะเบียนรอเปิดตัว Subscription — เก็บอีเมลลง subscription_waitlist
 // ยอดรายชื่อคือข้อมูลตัดสินใจราคา/จังหวะเปิดบริการ (ดู docs/ROADMAP.md Phase 4)
-export default function WaitlistForm() {
+//
+// 🔑 `on` = พื้นที่ฟอร์ม**วางอยู่บน** ไม่ใช่สีของช่องกรอก — ช่องกรอกเอาสีตรงข้ามเสมอ
+//    ฟอร์มนี้ถูกใช้สองที่ที่พื้นต่างกัน: การ์ดในหน้าแรก (surface) กับหน้า /subscribe (page)
+//    ถ้าฮาร์ดโค้ดสีเดียว อีกที่จะกลายเป็นช่องล่องหน — เคยเป็นมาแล้วทั้งสองฝั่ง
+//    ⚠️ ต้อง**เลือก**คลาสพื้น ห้ามต่อท้าย เพราะ `cn()` ไม่ merge คลาสที่ชนกัน
+type On = "surface" | "page";
+const FIELD_BG: Record<On, string> = { surface: "bg-page", page: "bg-surface" };
+
+export default function WaitlistForm({ on = "surface" }: { on?: On }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
@@ -25,15 +33,14 @@ export default function WaitlistForm() {
 
   if (status === "done") {
     return (
-      <p className="font-body text-body-sm text-success bg-page px-3.5 py-2.5">
+      <p className={cn("font-body text-body-sm text-success px-3.5 py-2.5", FIELD_BG[on])}>
         ✓ ลงทะเบียนแล้ว — เราจะแจ้งคุณทางอีเมลทันทีที่เปิดบริการ
       </p>
     );
   }
 
-  // ช่องกรอก = เหลี่ยม พื้น `page` · ปุ่ม = Button primitive (เหลี่ยม สูงเท่าปุ่ม "ดูฟอนต์ทั้งหมด")
-  // ⚠️ พื้นเป็น `page` ไม่ใช่ `surface` เพราะฟอร์มนี้อยู่บนการ์ดที่เป็น `surface` อยู่แล้ว
-  //    (พลิกขั้วตอนรีแบรนด์เฟส 1 ทำให้ทั้งสองเป็นขาวบนขาว มองไม่เห็นขอบช่อง)
+  // ช่องกรอก = เหลี่ยม พื้นตรงข้ามกับที่ฟอร์มวางอยู่ (ดู FIELD_BG หัวไฟล์)
+  // ปุ่ม = Button primitive (เหลี่ยม สูงเท่าปุ่ม "ดูฟอนต์ทั้งหมด")
   // items-stretch → ช่องกรอกยืดสูงเท่าปุ่มอัตโนมัติ (เจ้าของ 2026-07-18)
   return (
     <form onSubmit={submit} className="flex items-stretch gap-2">
@@ -44,7 +51,8 @@ export default function WaitlistForm() {
         placeholder="your@email.com"
         required
         className={cn(
-          "flex-1 min-w-0 px-3.5 bg-page font-body text-body-sm text-black placeholder:text-grey-400 outline-none",
+          "flex-1 min-w-0 px-3.5 font-body text-body-sm text-black placeholder:text-grey-400 outline-none",
+          FIELD_BG[on],
           "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-orange-text",
           status === "error" && "outline outline-2 -outline-offset-2 outline-danger"
         )}
