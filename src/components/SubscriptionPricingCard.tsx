@@ -29,8 +29,10 @@ export default function SubscriptionPricingCard() {
 
   return (
     <div className="p-5 bg-surface flex flex-col">
-      <div className="font-ui text-h2 text-black">Subscription รายเดือน</div>
+      {/* บรรทัดเดียว ปล่อยให้ตัดคำเองตามความกว้างการ์ด — ต้องคู่กับการ์ด "ซื้อรายฟอนต์"
+          ใน page.tsx ที่รวมบรรทัดเหมือนกัน (เจ้าของสั่ง 8 ส.ค. 2569) */}
       <div className="font-ui text-h2 text-black">
+        ระบบสมาชิกรายเดือน{" "}
         {trialOpen ? (
           <>
             <span className="text-grey-400 line-through mr-2">฿{settings?.monthly_price.toLocaleString()}</span>฿0 / เดือน

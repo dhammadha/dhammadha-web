@@ -25,13 +25,15 @@ export default function WaitlistForm() {
 
   if (status === "done") {
     return (
-      <p className="font-body text-body-sm text-success bg-surface px-3.5 py-2.5">
+      <p className="font-body text-body-sm text-success bg-page px-3.5 py-2.5">
         ✓ ลงทะเบียนแล้ว — เราจะแจ้งคุณทางอีเมลทันทีที่เปิดบริการ
       </p>
     );
   }
 
-  // ช่องกรอก = เหมือนช่องค้นหาบน nav (เหลี่ยม พื้น surface) · ปุ่ม = Button primitive (เหลี่ยม สูงเท่าปุ่ม "ดูฟอนต์ทั้งหมด")
+  // ช่องกรอก = เหลี่ยม พื้น `page` · ปุ่ม = Button primitive (เหลี่ยม สูงเท่าปุ่ม "ดูฟอนต์ทั้งหมด")
+  // ⚠️ พื้นเป็น `page` ไม่ใช่ `surface` เพราะฟอร์มนี้อยู่บนการ์ดที่เป็น `surface` อยู่แล้ว
+  //    (พลิกขั้วตอนรีแบรนด์เฟส 1 ทำให้ทั้งสองเป็นขาวบนขาว มองไม่เห็นขอบช่อง)
   // items-stretch → ช่องกรอกยืดสูงเท่าปุ่มอัตโนมัติ (เจ้าของ 2026-07-18)
   return (
     <form onSubmit={submit} className="flex items-stretch gap-2">
@@ -42,7 +44,7 @@ export default function WaitlistForm() {
         placeholder="your@email.com"
         required
         className={cn(
-          "flex-1 min-w-0 px-3.5 bg-surface font-body text-body-sm text-black placeholder:text-grey-400 outline-none",
+          "flex-1 min-w-0 px-3.5 bg-page font-body text-body-sm text-black placeholder:text-grey-400 outline-none",
           "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-orange-text",
           status === "error" && "outline outline-2 -outline-offset-2 outline-danger"
         )}

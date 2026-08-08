@@ -575,10 +575,13 @@ function QuoteForm() {
                 <div className="flex flex-col gap-2">
                   {selectedFonts.map((val, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
+                      {/* ⚠️ ป๊อปอัพของ <select> กว้างตามตัว select เสมอ (เบราว์เซอร์คุมเอง
+                          สั่ง CSS ที่ <option> ไม่ได้) — เดิม flex-1 เต็มฟอร์มจึงได้รายการ
+                          ยาวเกือบเต็มจอ อ่านยาก · cap ไว้ที่ 420px (เจ้าของสั่ง 8 ส.ค. 2569) */}
                       <select
                         value={val}
                         onChange={(e) => setFont(idx, e.target.value)}
-                        className={FIELD + " flex-1"}
+                        className={FIELD + " flex-1 max-w-[420px]"}
                       >
                         <option value="">— เลือกฟอนต์ —</option>
                         {fonts.map((f) => (

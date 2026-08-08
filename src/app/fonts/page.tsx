@@ -160,7 +160,9 @@ function AllFontsContent() {
     <>
       <div className="bg-page min-h-screen">
         <Container className="pt-10 pb-8">
-          <div className="flex items-baseline justify-between mb-4">
+          {/* ไม่มี mb — ระยะห่างถึงแถบกรองมาจาก pt-4 ของแถบเอง ซึ่งต้องมีเพื่อกันไม่ให้
+              การ์ดที่เลื่อนผ่านมาชิดขอบล่าง nav ตอนแถบถูกตรึง */}
+          <div className="flex items-baseline justify-between">
             <h1 className="font-heading text-h1 text-black">ฟอนต์ทั้งหมด</h1>
             {!loading && (
               <span className="font-body text-body-sm text-grey-600">{fonts.length} ฟอนต์</span>
@@ -171,7 +173,13 @@ function AllFontsContent() {
               active/inactive แยกด้วย "พื้นสี" ไม่ใช่เส้นขอบ: primary = ดำ · outline = surface (§4.0)
               flex-wrap ไม่ scroll — กันไม่ให้เกิด horizontal scroll ที่ 375px */}
           {!loading && fonts.length > 0 && (
-            <div className="flex flex-col gap-3 mb-5">
+            /* ตรึงแถบกรองไว้ใต้ nav ตอนเลื่อนดูกริดยาว ๆ (เจ้าของสั่ง 8 ส.ค. 2569)
+               ใช้สูตรเดียวกับหัวเรื่องใน FontDetail.tsx:
+                 top-[70px] = ความสูง nav · z-30 = ต่ำกว่า nav (z-50) แต่สูงกว่ากริด
+                 bg-page    = **จำเป็น** ไม่งั้นการ์ดที่เลื่อนผ่านจะทะลุขึ้นมาซ้อนตัวอักษร
+                 -mx/px     = ดันพื้นให้เต็มความกว้าง Container (ไม่งั้นเห็นการ์ดโผล่ริมสองข้าง)
+               ⚠️ ห้ามใส่ overflow-* ให้บรรพบุรุษของกล่องนี้ — sticky จะตายเงียบ ๆ ไม่มี error */
+            <div className="sticky top-[70px] z-30 bg-page flex flex-col gap-3 pt-4 pb-4 mb-1 -mx-4 px-4 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
               {/* Search + ล้างตัวกรอง (เจ้าของสั่ง 2026-07-21: ย้าย ล้างตัวกรอง ขึ้นมาต่อจากช่องค้นหา) */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative w-full sm:w-72">
@@ -199,7 +207,9 @@ function AllFontsContent() {
                   )}
                 </div>
                 {hasActiveFilters && (
-                  <Button size="sm" variant="ghost" onClick={clearFilters}>
+                  // variant="outline" ให้เป็นกล่องพื้น surface เหมือนปุ่มกรองแถวล่าง
+                  // (เดิม ghost = พื้นโปร่ง มองเป็นคนละชนิดกับปุ่มที่อยู่ในกลุ่มเดียวกัน)
+                  <Button size="sm" variant="outline" onClick={clearFilters}>
                     ล้างตัวกรอง
                   </Button>
                 )}
@@ -248,7 +258,8 @@ function AllFontsContent() {
           )}
 
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            /* mt-4 ชดเชยระยะที่เคยมาจาก mb-4 ของหัวเรื่อง — ตอนโหลดยังไม่มีแถบกรอง */
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
               {Array.from({ length: 8 }, (_, i) => (
                 <div key={i} className="bg-surface aspect-[4/3] animate-pulse" />
               ))}

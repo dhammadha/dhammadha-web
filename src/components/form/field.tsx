@@ -13,8 +13,10 @@ export const FIELD =
   "w-full bg-surface px-4 py-3 font-body text-body-sm text-black placeholder:text-grey-400 border-none " +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black";
 
-// หัวข้อช่องกรอกใช้ UI Text (Sans Bold 16) — ตัวหนา อ่านนำสายตาก่อนช่องกรอก
-export const LABEL = "block font-ui text-ui text-black mb-2";
+// หัวข้อช่องกรอกใช้ UI Text (Plex Bold 16) — ตัวหนา อ่านนำสายตาก่อนช่องกรอก
+// สี `grey-600` (5.74:1 ✅) ให้ตรงกับหัวข้อย่อยของฟอร์มในแดชบอร์ด (OwnSettings `Field`)
+// เจ้าของสั่ง 8 ส.ค. 2569 — เดิมเป็นดำซึ่งแย่งน้ำหนักกับหัวข้อ section ที่อยู่เหนือขึ้นไป
+export const LABEL = "block font-ui text-ui text-grey-600 mb-2";
 
 /**
  * Field — label + ช่องกรอก wrapper โง่ ๆ (ไม่มี state ไม่มี logic)
