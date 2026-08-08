@@ -21,15 +21,54 @@ import {
   LEGAL_ENTITY_TAX_ID,
 } from "./brand";
 
+/** รายการหนึ่งบรรทัดใน `orders.items` — ชุดเดียวกับที่อีเมล delivery อ่าน */
+export type RetailOrderItem = {
+  name?: string | null;
+  license_type?: string | null;
+  /** ราคาเต็ม ณ วันที่ซื้อ — มีตั้งแต่ migration `0086` · ออเดอร์เก่าเป็น undefined */
+  list_price?: number | null;
+  /** ยอดที่เก็บเงินได้จริงต่อรายการ (จาก line_items ของ Stripe) */
+  price?: number | null;
+};
+
 export type RetailReceiptOrder = {
   receipt_no: string | null;
   customer_name: string | null;
   customer_email: string | null;
   company_name?: string | null;
-  items: Array<{ name?: string | null; license_type?: string | null; price?: number | null }> | null;
+  items: RetailOrderItem[] | null;
   discount?: number | null;
   paid_at: string | null;
 };
+
+/**
+ * ราคาที่จะพิมพ์เป็น "ราคาเต็ม" ของรายการ
+ *
+ * ออเดอร์ก่อน `0086` ไม่มี `list_price` → คืนราคาที่จ่ายจริง ทำให้ส่วนลดออกมาเป็น 0
+ * แล้วใบเสร็จเก่าพิมพ์ซ้ำได้หน้าตาเดิมเป๊ะ (บรรทัด "ส่วนลด" ไม่โผล่)
+ */
+export function itemListPrice(item: RetailOrderItem): number {
+  const paid = Number(item.price ?? 0);
+  const list = Number(item.list_price ?? 0);
+  return list > paid ? list : paid;
+}
+
+/**
+ * ส่วนลดรวมของทั้งใบ = ส่วนลดที่บันทึกไว้ที่ระดับออเดอร์ + ผลต่างราคาเต็ม/ราคาจ่ายรายรายการ
+ *
+ * ⚠️ ใช้ตัวเดียวกันทั้งใบเสร็จ PDF และตารางเงินในอีเมล delivery — ทั้งสองใบไปถึง
+ * ลูกค้าในซองเดียวกัน ถ้าคิดคนละสูตรจะขัดกันเอง
+ */
+export function retailDiscountTotal(order: {
+  items?: RetailOrderItem[] | null;
+  discount?: number | null;
+}): number {
+  const perItem = (order.items ?? []).reduce(
+    (sum, i) => sum + (itemListPrice(i) - Number(i.price ?? 0)),
+    0
+  );
+  return Number(order.discount ?? 0) + perItem;
+}
 
 /** ผู้ออกเอกสาร = แพลตฟอร์ม (ชุดเดียวกับที่ `payout-doc.ts` ใช้) */
 const PLATFORM_SELLER = {
@@ -50,11 +89,13 @@ const PLATFORM_SELLER = {
 export function buildRetailReceiptData(order: RetailReceiptOrder): QuoteDocData | null {
   if (!order.receipt_no) return null;
 
+  // ตารางรายการพิมพ์ **ราคาเต็ม** แล้วให้บรรทัด "ส่วนลด" ข้างล่างหักออก — โครงเดียว
+  // กับใบเสนอราคา ลูกค้าจึงเห็นว่าฟอนต์ราคาเท่าไรและได้ลดเท่าไร ไม่ใช่เห็นแค่ยอดสุทธิ
   const items: QuoteDocItem[] = (order.items ?? []).map((i) => ({
     name: i.name ?? "",
     license_type: licenseLabel(i.license_type),
     license_lines: licenseDocLines(i.license_type),
-    price: Number(i.price ?? 0),
+    price: itemListPrice(i),
   }));
 
   return {
@@ -74,7 +115,7 @@ export function buildRetailReceiptData(order: RetailReceiptOrder): QuoteDocData 
     email: order.customer_email,
     note: null,
     items,
-    discount: Number(order.discount ?? 0),
+    discount: retailDiscountTotal(order),
     seller: PLATFORM_SELLER,
     // 🔴 การซื้อรายชุด = ลูกค้าจ่ายเต็มจำนวนผ่านบัตร/PromptPay ไม่มีการหัก ณ ที่จ่าย
     // (หน้าที่หัก 3% เป็นของลูกค้า**นิติบุคคล**ในเส้นทางใบเสนอราคาเท่านั้น)

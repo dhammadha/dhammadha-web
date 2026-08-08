@@ -206,20 +206,23 @@ export default function FontCard({ font, compact, aspectRatio }: { font: Font; c
               /* ไม่ขายรายชุด — ข้อความแทนตัวเลข ใช้ขนาด/น้ำหนักเดียวกับราคา
                  คำสั้น "สมาชิก" ไม่ใช่ "เฉพาะสมาชิก": แถวล่างของการ์ดบนมือถือกว้าง 138px
                  คำเต็มกิน 110px จนชื่อนักออกแบบถูกตัดจนไม่เหลือ · ป้ายมุมการ์ดบอกคำเต็มอยู่แล้ว */
-              <span className="font-ui text-h2 text-black">สมาชิก</span>
+              <span className="font-ui text-ui text-black">สมาชิก</span>
             ) : font.is_free ? (
-              <span className="font-ui text-h2 text-success">ฟรี</span>
+              <span className="font-ui text-ui text-black">ฟรี</span>
             ) : saleActive && eff.salePrice > 0 && font.price ? (
               /* ราคาจริง (ขีดฆ่า) หน้า → ราคาลด (ปัจจุบัน) ขวาสุด = ตำแหน่งเดียวกับการ์ดราคาปกติ
-                 ราคาลดใช้สีเดียวกับ "ฟรี" (success) ตามที่เจ้าของสั่ง 2026-07-18 */
+                 ราคาลดยังใช้สีเดียวกับ "ฟรี" ตามที่เจ้าของสั่ง 2026-07-18 แต่ทั้งคู่ย้ายจาก
+                 success (เทาเขียวที่เหลือจากยุค mint) มาเป็นดำ 8 ส.ค. 2569 พร้อมย่อขนาด
+                 ⚠️ อย่าเปลี่ยนเป็น orange-text: ที่ 16px bold ได้แค่ 3.83:1 (ต้องการ ≥18.66px bold)
+                 สัญญาณ "ลดราคา" ไปอยู่ที่ป้ายเหลืองบนปก + ราคาขีดฆ่าเทาแทน */
               <span className="flex items-baseline gap-1.5">
                 <span className="font-body text-body-sm text-grey-400 line-through">฿{font.price.toLocaleString()}</span>
-                <span className="font-ui text-h2 text-success">฿{eff.salePrice.toLocaleString()}</span>
+                <span className="font-ui text-ui text-black">฿{eff.salePrice.toLocaleString()}</span>
               </span>
             ) : font.price ? (
-              <span className="font-ui text-h2 text-black">฿{font.price.toLocaleString()}</span>
+              <span className="font-ui text-ui text-black">฿{font.price.toLocaleString()}</span>
             ) : (
-              <span className="font-ui text-h2 text-black">—</span>
+              <span className="font-ui text-ui text-black">—</span>
             )}
           </div>
         </div>

@@ -154,7 +154,7 @@ export default function OwnFonts({ basePath }: { basePath: "/designer" | "/admin
             <div className="font-body text-body-sm text-black">
               {f.is_sub_exclusive
                 ? <span className="text-grey-600">เฉพาะสมาชิก</span>
-                : f.is_free ? <span className="text-success">ฟรี</span>
+                : f.is_free ? <span className="text-black">ฟรี</span>
                 : f.price ? `฿${Number(f.price).toLocaleString()}` : "—"}
             </div>
             {/* โปรที่หมดอายุแล้วถือว่าไม่มี (isSaleActive นับถึง 23:59:59 เวลาไทย) จะได้

@@ -468,14 +468,15 @@ export default function FontDetail({ initialFont }: { initialFont?: Font | null 
                         {font.is_sub_exclusive ? (
                           <Badge variant="sale">MEMBERS ONLY</Badge>
                         ) : font.is_free ? (
-                          <span className="font-ui text-ui text-success">ฟรี</span>
+                          <span className="font-ui text-ui text-black">ฟรี</span>
                         ) : saleActive ? (
                           <>
+                            {/* ฟรี/ราคาลดย้ายจาก success มาเป็นดำ 8 ส.ค. 2569 — ดูเหตุผลที่ FontCard */}
                             <Badge variant="sale">-{eff.discountPercent}%</Badge>
                             <span className="font-body text-body-sm text-grey-400 line-through">
                               ฿{(font.price ?? 0).toLocaleString()}
                             </span>
-                            <span className="font-ui text-ui text-success">
+                            <span className="font-ui text-ui text-black">
                               ฿{eff.salePrice.toLocaleString()}
                             </span>
                           </>

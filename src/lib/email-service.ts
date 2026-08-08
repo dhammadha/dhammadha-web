@@ -5,6 +5,7 @@
 
 import { licenseLabel, designerLicensePdf } from "./license";
 import { NAME as BRAND, DOMAIN, URL as SITE_URL, CONTACT_EMAIL, FROM_EMAIL, LEGAL_ENTITY } from "./brand";
+import { itemListPrice, retailDiscountTotal, type RetailOrderItem } from "./retail-receipt";
 
 const FROM = FROM_EMAIL;
 
@@ -95,7 +96,7 @@ async function sendResendEmail(
     attachments?: { filename: string; content: string }[];
   }
 ): Promise<string | null> {
-  const { attachments, ...rest } = msg;
+  const { attachments, html, ...rest } = msg;
   let res: Response;
   try {
     res = await fetch("https://api.resend.com/emails", {
@@ -111,6 +112,8 @@ async function sendResendEmail(
         // เดิม CONTACT_EMAIL โผล่แค่เป็นตัวหนังสือท้ายอีเมล = ต้องก๊อปเอาเองถึงจะติดต่อได้
         reply_to: CONTACT_EMAIL,
         ...rest,
+        // ห่อที่นี่ที่เดียว → อีเมลทุกแบบได้ shell เหมือนกันหมด ไม่ต้องไล่แก้ทีละ builder
+        html: emailShell(html),
         ...(attachments && attachments.length ? { attachments } : {}),
       }),
     });
@@ -271,6 +274,41 @@ async function verifyTurnstile(env: EmailEnv, token: string, ip?: string | null)
 
 // ── Email HTML builders ─────────────────────────────────────────────────────
 
+/**
+ * ห่อ HTML ของทุกอีเมลด้วยกรอบพื้นขาว + ประกาศว่าอีเมลนี้เป็นธีมสว่าง
+ *
+ * ⚠️ ทำไมต้องมี: `sendResendEmail` ยิง HTML เป็นชิ้นเปล่า ๆ ไม่มี `<head>` ทำให้
+ * Mail บน macOS/iOS ถือว่า "ไม่รองรับ dark mode" แล้ว**กลับสีให้เอง** — ปุ่มพื้น teal
+ * ตัวขาวโผล่มาเป็นพื้นมิ้นต์อ่อนตัวดำ คนละอย่างกับที่ออกแบบไว้
+ * `color-scheme: light` คือสัญญาณมาตรฐานที่บอกให้ไคลเอนต์หยุด invert
+ *
+ * ไคลเอนต์ที่ไม่สนใจ meta นี้ (Gmail app, Outlook.com) ยังกลับสีอยู่ — ยอมรับได้
+ * เพราะปุ่ม "พื้นดำ/ตัวสว่าง" กลับสีแล้วกลายเป็น "พื้นสว่าง/ตัวดำ" ซึ่งยังอ่านออก
+ * (เป็นเหตุผลหนึ่งที่ปุ่มใช้ดำ ไม่ใช่ส้ม — ส้มกลับสีแล้วคอนทราสต์พัง)
+ *
+ * ไม่ครอบ `<html>/<body>` เอง เพราะ Resend ใส่ให้อยู่แล้ว การใส่ซ้อนทำให้บางไคลเอนต์
+ * ตัดทิ้งทั้งก้อน
+ */
+function emailShell(inner: string): string {
+  return `<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<style>:root{color-scheme:light;supported-color-schemes:light}</style>
+<div style="background-color:#FFFFFF;color:#080808;padding:24px;font-size:16px;line-height:1.6">
+${inner}
+</div>`;
+}
+
+/**
+ * ปุ่ม CTA — ตรงกับปุ่ม primary ของเว็บ (`ui/Button.tsx` variant primary, size md):
+ * เหลี่ยม ไม่มีขอบ พื้นดำ #080808 ตัวเทา #F0F0F0 (18:1 ✅)
+ *
+ * `display:inline-block` จำเป็น — ของเดิมไม่มี ทำให้ padding บน/ล่างถูกทิ้งในบางไคลเอนต์
+ * และใช้ `background-color` เต็มคำเพราะ Outlook อ่าน shorthand `background` ไม่ออก
+ */
+function emailButton(href: string, label: string): string {
+  return `<a href="${href}" style="display:inline-block;background-color:#080808;color:#F0F0F0;padding:12px 24px;border-radius:0;text-decoration:none;font-size:16px;font-weight:700">${label}</a>`;
+}
+
 const STUDIO_CONTACT_EMAIL = CONTACT_EMAIL;
 
 const STUDIO_FOOTER = `
@@ -315,7 +353,7 @@ function quoteNotifyHtml(d: QuoteFields): string {
   ${d.note && d.note !== "—" ? `<tr><td style="padding:6px 0;color:#888">หมายเหตุ</td><td style="padding:6px 0">${escapeHtml(d.note)}</td></tr>` : ""}
 </table>
 <br>
-<p><a href="${SITE_URL}/designer" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">จัดการใบเสนอราคา →</a></p>
+<p>${emailButton(`${SITE_URL}/designer`, "จัดการใบเสนอราคา →")}</p>
 ${STUDIO_FOOTER}
 `;
 }
@@ -366,7 +404,7 @@ interface OrderRow {
   customer_email: string;
   customer_name: string | null;
   designer_id: string | null;
-  items: Array<{ name?: string; license_type?: string; price?: number }>;
+  items: RetailOrderItem[];
   total_amount: number;
   discount: number;
   paid_at: string | null;
@@ -380,17 +418,20 @@ function deliveryHtml(
   /** null = ลูกค้าไม่ได้ขอใบแจ้งหนี้ → ห้ามเอ่ยถึงเลยทั้งฉบับ */
   invoiceNo: string | null = null
 ): string {
+  // ตารางเงินต้องเล่าเรื่องเดียวกับใบเสร็จที่แนบไปในซองเดียวกัน:
+  // พิมพ์ราคาเต็มรายบรรทัด แล้วหักด้วยบรรทัดส่วนลด (สูตรเดียวกัน อยู่ที่ retail-receipt.ts)
   const rows = order.items
     .map(
       (i) => `<tr>
   <td style="padding:6px 0">${escapeHtml(i.name ?? "")}<br><span style="color:#888;font-size:12px">สิทธิการใช้งาน : ${escapeHtml(licenseLabel(i.license_type))}</span></td>
-  <td style="padding:6px 0;text-align:right;white-space:nowrap">฿${Number(i.price ?? 0).toLocaleString()}</td>
+  <td style="padding:6px 0;text-align:right;white-space:nowrap">฿${itemListPrice(i).toLocaleString()}</td>
 </tr>`
     )
     .join("");
+  const discount = retailDiscountTotal(order);
   const discountRow =
-    Number(order.discount) > 0
-      ? `<tr><td style="padding:6px 0;color:#888">ส่วนลด</td><td style="padding:6px 0;text-align:right;white-space:nowrap;color:#c0392b">-฿${Number(order.discount).toLocaleString()}</td></tr>`
+    discount > 0
+      ? `<tr><td style="padding:6px 0;color:#888">ส่วนลด</td><td style="padding:6px 0;text-align:right;white-space:nowrap;color:#c0392b">-฿${discount.toLocaleString()}</td></tr>`
       : "";
   return `
 <p>${greetingLine(order.customer_name)}</p>
@@ -409,7 +450,7 @@ function deliveryHtml(
 <p><strong>ดาวน์โหลดไฟล์ฟอนต์:</strong><br>
 เข้าสู่ระบบที่ ${DOMAIN} ด้วยอีเมลนี้ (${escapeHtml(order.customer_email)}) <br>แล้วไปที่หน้า "บัญชีของฉัน" โดยไฟล์ทั้งหมดอยู่ในส่วน "ดาวน์โหลดของฉัน" และดาวน์โหลดซ้ำได้ตลอด</p>
 <p>หากยังไม่มีบัญชี สมัครสมาชิกด้วยอีเมลนี้ ระบบจะผูกสิทธิ์ให้อัตโนมัติ</p>
-<p><br><a href="${SITE_URL}/account" style="background:#0a8a84;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:14px">ไปที่หน้าดาวน์โหลด →</a><br><br></p>
+<p><br>${emailButton(`${SITE_URL}/account`, "ไปที่หน้าดาวน์โหลด →")}<br><br></p>
 ${
   receiptNo
     ? `<p style="color:#555;font-size:13px">แนบ${
