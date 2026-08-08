@@ -1,7 +1,7 @@
 [package]
 name = "typedee"
 version = "0.1.0"
-description = "Typedee — ฟอนต์ไทยแบบสมาชิก"
+description = "typedee — ฟอนต์ไทยแบบสมาชิก"
 edition = "2021"
 rust-version = "1.77"
 

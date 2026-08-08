@@ -43,7 +43,7 @@ export default function App() {
           </p>
           <p className="mt-2 text-body-sm text-grey-600">
             {failed
-              ? "หน้านี้ถูกเปิดนอกแอป Typedee"
+              ? "หน้านี้ถูกเปิดนอกแอป typedee"
               : state
                 ? `เวอร์ชัน ${state.version}`
                 : "รอ Rust ตอบกลับ"}

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Typedee",
+  "productName": "typedee",
   "version": "0.1.0",
   "identifier": "com.typedee.app",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Typedee",
+        "title": "typedee",
         "width": 1100,
         "height": 720,
         "minWidth": 900,
